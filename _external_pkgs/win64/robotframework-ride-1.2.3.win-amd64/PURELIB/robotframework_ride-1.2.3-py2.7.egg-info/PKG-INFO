@@ -1,0 +1,19 @@
+Metadata-Version: 1.1
+Name: robotframework-ride
+Version: 1.2.3
+Summary: RIDE :: Robot Framework Test Data Editor
+Home-page: https://github.com/robotframework/RIDE/
+Author: Robot Framework Developers
+Author-email: robotframework-devel@googlegroups,com
+License: Apache License 2.0
+Download-URL: https://github.com/robotframework/RIDE/downloads/
+Description: Robot Framework is a generic test automation framework for acceptance
+        level testing. RIDE is a lightweight and intuitive editor for Robot
+        Framework test data.
+Keywords: robotframework testing testautomation
+Platform: any
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development :: Testing

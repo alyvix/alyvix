@@ -1,0 +1,21 @@
+Metadata-Version: 1.1
+Name: python-tesseract
+Version: 0.9
+Summary: ${python:Provides} Wrapper for Python-${python:Versions}
+Home-page: UNKNOWN
+Author: FreeToGo Nowhere
+Author-email: freetogo@gmail.com
+License: MIT
+Description: UNKNOWN
+Keywords: geocode geocoding gis geographical maps earth distance
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Scientific/Engineering :: GIS
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
