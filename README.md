@@ -1,4 +1,4 @@
 # alyvix-api
 Source code of Alyvix Api
 
-Api Docs are here: http://violetatom.github.io/alyvix-api/
+Api Docs are here: http://violetatom.github.io/alyvix/
