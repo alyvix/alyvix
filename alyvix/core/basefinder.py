@@ -71,10 +71,10 @@ class MatchResult():
         self.set_coordinates(coordinates_tuple)
 
     def set_coordinates(self, coordinates_tuple):
-        self.x = coordinates_tuple[0]
-        self.y = coordinates_tuple[1]
-        self.width = coordinates_tuple[2]
-        self.height = coordinates_tuple[3]
+        self.x = int(coordinates_tuple[0])
+        self.y = int(coordinates_tuple[1])
+        self.width = int(coordinates_tuple[2])
+        self.height = int(coordinates_tuple[3])
 
 
 class BaseFinder(object):

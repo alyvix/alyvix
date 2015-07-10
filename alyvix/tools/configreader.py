@@ -51,7 +51,7 @@ class ConfigReader():
             self.__user_root_node = xml_doc_user.getElementsByTagName("config")[0]
             #print self.__user_root_node
         except Exception, err:
-            print Exception, err
+            #print Exception, err
             self.__user_root_node = None
 
         try:
