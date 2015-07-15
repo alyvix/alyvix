@@ -68,8 +68,11 @@ class ConfigReader():
         :rtype: string
         :return: full filename
         """
-        global_config_file_name = os.getenv("ALYVIX_HOME") + os.sep + "config.xml"
-        return global_config_file_name
+        try:
+            global_config_file_name = os.getenv("ALYVIX_HOME") + os.sep + "config.xml"
+            return global_config_file_name
+        except:
+            return ""
 
     def get_user_config_filename(self):
         """
