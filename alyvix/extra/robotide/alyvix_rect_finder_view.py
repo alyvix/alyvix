@@ -141,7 +141,7 @@ class AlyvixRectFinderView(QWidget):
                 self.esc_pressed = True
                 #print "dummy"
                 self.build_xml()
-                self.build_code()
+                #self.build_code()
                 self.build_code_array()
                 self.save_python_file()
                 self.build_perf_data_xml()

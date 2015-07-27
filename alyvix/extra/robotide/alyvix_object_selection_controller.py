@@ -194,6 +194,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                     item.setText(filename[:-17] + " [OF]")
                 elif filename.endswith('_CustomCode.xml'):
                     item.setText(filename[:-15] + " [CC]")
+                    
                 item.setData(Qt.UserRole, filename)
                 self.listWidgetAlyObj.addItem(item)
                 
@@ -270,6 +271,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             self.alyvix_finder_controller = AlyvixObjectFinderView(self)
             self.alyvix_finder_controller.show()
             return
+            
         if self.xml_name.endswith("_CustomCode.xml"):
             self.hide()
             time.sleep(0.600)
@@ -336,9 +338,13 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 penultimate_name = penultimate_name.replace("_old_code.txt", "_ObjectFinder.xml")
                 
             else:
-                item.setText(penultimate_name[:-13] + " [CC]")
+                item.setText(penultimate_name[:-15] + " [CC]")
                 penultimate_name = penultimate_name.replace("_old_code.txt", "_CustomCode.xml")
 
+            item.setData(Qt.UserRole, penultimate_name)
+            self.listWidgetAlyObj.addItem(item)
+            return
+        
         item.setData(Qt.UserRole, filename)
         self.listWidgetAlyObj.addItem(item)
         
