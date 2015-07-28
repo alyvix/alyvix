@@ -993,6 +993,8 @@ class AlyvixRectFinderView(QWidget):
             file_code_string = file_code_string + "import time" + os.linesep
             file_code_string = file_code_string + "from pykeyboard import PyKeyboard" + os.linesep
             file_code_string = file_code_string + "from pymouse import PyMouse" + os.linesep
+            file_code_string = file_code_string + "from alyvix.tools.procmanager import ProcManager" + os.linesep
+            file_code_string = file_code_string + "from alyvix.tools.winmanager import WinManager" + os.linesep
             file_code_string = file_code_string + "from alyvix.core.rectfinder import RectFinder" + os.linesep
             file_code_string = file_code_string + "from alyvix.core.imagefinder import ImageFinder" + os.linesep
             file_code_string = file_code_string + "from alyvix.core.textfinder import TextFinder" + os.linesep
