@@ -18,20 +18,8 @@
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
 
-import cv2
-import numpy
-import time
-import sys
 
-from alyvix.core.cache import CacheManagement
-from alyvix.tools.screenmanager import ScreenManager
-
-# System modules
-from Queue import Queue
-from threading import Thread
-
-perf_data_list = []
-perf_data_collected = []
+perfdata_list = []
 
 
 class _PerfData:
@@ -46,8 +34,13 @@ class _PerfData:
 
 class PerfManager:
 
-    def init_perfdata(self, name, value, warning_threshold=None, critical_threshold=None, exitcode=None):
-        global perf_data_list
+    def clear_perfdata(self):
+        global perfdata_list
+        perfdata_list = []
+
+    def add_perfdata(self, name, value, warning_threshold=None, critical_threshold=None, exitcode=None):
+
+        global perfdata_list
 
         perf_data = _PerfData()
         perf_data.name = name
@@ -56,20 +49,35 @@ class PerfManager:
         perf_data.critical_threshold = critical_threshold
         perf_data.exitcode = exitcode
 
-        perf_data_list.append(perf_data)
+        cnt = 0
+        for perf_data_in_list in perfdata_list:
+            if perf_data_in_list.name == perf_data.name:
 
-    def add_perfdata_collected(self, name, value, warning_threshold=None, critical_threshold=None, exitcode=None):
-        global perf_data_collected
+                perfdata_list[cnt] = perf_data
+                return
 
-        perf_data = _PerfData()
-        perf_data.name = name
-        perf_data.value = value
-        perf_data.warning_threshold = warning_threshold
-        perf_data.critical_threshold = critical_threshold
-        perf_data.exitcode = exitcode
+            cnt = cnt + 1
 
-        perf_data_collected.append(perf_data)
+        perfdata_list.append(perf_data)
 
-    def print_perfdata(self, perfdata):
-        global perf_data_list
-        perf_data_list.append(perfdata)
+    def get_perfdata_string(self):
+
+        global perfdata_list
+
+        ret_string = ""
+        cnt = 0
+        for perfdata in perfdata_list:
+
+            name = perfdata.name
+            value = perfdata.value
+            warning = perfdata.warning_threshold
+            critical = perfdata.critical_threshold
+
+            if cnt == 0:
+                ret_string = ret_string + name + "=" + str(value) + "s;" + str(warning) + ";" + str(critical) + ";;"
+            else:
+                ret_string = ret_string + " " + name + "=" + str(value) + "s;" + str(warning) + ";" + str(critical) + ";;"
+
+            cnt = cnt + 1
+
+        return ret_string
