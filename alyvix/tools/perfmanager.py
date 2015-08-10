@@ -30,9 +30,46 @@ from alyvix.tools.screenmanager import ScreenManager
 from Queue import Queue
 from threading import Thread
 
-screenshot_of_last_obj_found = []
+perf_data_list = []
+perf_data_collected = []
+
+
+class _PerfData:
+
+    def __init__(self):
+        self.name = None
+        self.value = None
+        self.warning_threshold = None
+        self.critical_threshold = None
+        self.exitcode = None
+
 
 class PerfManager:
 
-    def __init__(self):
-        pass
+    def init_perfdata(self, name, value, warning_threshold=None, critical_threshold=None, exitcode=None):
+        global perf_data_list
+
+        perf_data = _PerfData()
+        perf_data.name = name
+        perf_data.value = value
+        perf_data.warning_threshold = warning_threshold
+        perf_data.critical_threshold = critical_threshold
+        perf_data.exitcode = exitcode
+
+        perf_data_list.append(perf_data)
+
+    def add_perfdata_collected(self, name, value, warning_threshold=None, critical_threshold=None, exitcode=None):
+        global perf_data_collected
+
+        perf_data = _PerfData()
+        perf_data.name = name
+        perf_data.value = value
+        perf_data.warning_threshold = warning_threshold
+        perf_data.critical_threshold = critical_threshold
+        perf_data.exitcode = exitcode
+
+        perf_data_collected.append(perf_data)
+
+    def print_perfdata(self, perfdata):
+        global perf_data_list
+        perf_data_list.append(perfdata)
