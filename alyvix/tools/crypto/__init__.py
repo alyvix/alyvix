@@ -22,10 +22,10 @@ from sys import platform as _platform
 
 if _platform == "linux" or _platform == "linux2":
     #linux...
-    from linux import WinManager
+        from .linux import CryptoManager
 elif _platform == "darwin":
     #mac...
-    from mac import WinManager
+        from .mac import CryptoManager
 elif _platform == "win32":
     #windows...
-    from windows import WinManager
+    from .windows import CryptoManager

@@ -26,10 +26,10 @@ from threading import Thread
 import cv2
 import numpy
 
-from alyvix.tools.logmanager import LogManager
-from alyvix.tools.screenmanager import ScreenManager
+from alyvix.tools.log import LogManager
+from alyvix.tools.screen import ScreenManager
 from alyvix.tools.configreader import ConfigReader
-from alyvix.core.cachemanager import CacheManager
+from alyvix.finders.cachemanager import CacheManager
 
 #from alyvix.tools.
 
@@ -170,7 +170,7 @@ class BaseFinder(object):
 
     def wait(self, timeout=-1):
         """
-        wait until the object appears on the screenmanager.
+        wait until the object appears on the screen.
         if timeout value is -1 (default value) then timeout value will be read from config file.
         if configuration file doesn't exist, then timeout value will be 15 sec.
 

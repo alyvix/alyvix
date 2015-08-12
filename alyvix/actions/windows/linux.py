@@ -21,7 +21,9 @@
 import os
 import re
 import subprocess
-from .base import WinManagerBase
+
+from alyvix.actions.windows.base import WinManagerBase
+
 
 class WinManager(WinManagerBase):
 
@@ -35,7 +37,9 @@ class WinManager(WinManagerBase):
         :type window_title: string
         :param window_title: regular expression for the window title
         """
-        pass
+        hwnd_found_list = self._get_hwnd(window_title)
+        for hwnd_found in hwnd_found_list:
+            subprocess.Popen(["wmctrl", "-i", "-a", hwnd_found], stdout=subprocess.PIPE)
 
     def maximize_window(self, window_title):
         """
@@ -44,12 +48,19 @@ class WinManager(WinManagerBase):
         :type window_title: string
         :param window_title: regular expression for the window(s) title
         """
+        hwnd_found_list = self._get_hwnd(window_title)
+        for hwnd_found in hwnd_found_list:
+            subprocess.Popen(["wmctrl", "-i", "-r", hwnd_found, "-b", "add,maximized_vert,maximized_horz"], stdout=subprocess.PIPE)
+            subprocess.Popen(["wmctrl", "-i", "-a", hwnd_found], stdout=subprocess.PIPE)
 
     def maximize_foreground_window(self):
         """
         maximize foreground window.
         """
-        pass
+        proc = subprocess.Popen(["xprop", "-root", "_NET_ACTIVE_WINDOW"], stdout=subprocess.PIPE)
+        out, err = proc.communicate()
+        foreground_id = out.split(' ')[-1]
+        subprocess.Popen(["wmctrl", "-i", "-r", foreground_id, "-b", "add,maximized_vert,maximized_horz"], stdout=subprocess.PIPE)
 
     def check_if_window_exists(self, window_title):
         """
@@ -58,7 +69,11 @@ class WinManager(WinManagerBase):
         :type window_title: string
         :param window_title: regular expression for the window(s) title
         """
-        pass
+        hwnd_found_list = self._get_hwnd(window_title)
+        if len(hwnd_found_list) > 0:
+            return True
+        else:
+            return False
 
     def close_window(self, window_title):
         """
@@ -67,7 +82,21 @@ class WinManager(WinManagerBase):
         :type window_title: string
         :param window_title: regular expression for the window(s) title
         """
-        pass
+        hwnd_found_list = self._get_hwnd(window_title)
+        for hwnd_found in hwnd_found_list:
+            subprocess.Popen(["wmctrl", "-i", "-c", hwnd_found], stdout=subprocess.PIPE)
 
     def _get_hwnd(self, window_title):
-        pass
+
+        hwnd_list = []
+
+        proc = subprocess.Popen(["wmctrl", "-l"], stdout=subprocess.PIPE)
+        out, err = proc.communicate()
+
+        lines = out.split(os.linesep)
+
+        for line in lines:
+            if re.match(".*" + window_title + ".*", line, re.DOTALL | re.IGNORECASE) is not None:
+                hwnd_list.append(line.split(' ')[0])
+
+        return hwnd_list

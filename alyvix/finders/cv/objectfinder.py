@@ -24,14 +24,9 @@ import numpy
 import copy
 import datetime
 
-#from alyvix.core.basefinder import Roi
-from alyvix.core.basefinder import *
-#from alyvix.core.basefinder import MatchResult
-#from alyvix.core.basefinder import BaseFinder
-#from alyvix.core.imagefinder import ImageFinder
-#from alyvix.core.textfinder import TextFinder
-#from alyvix.core.rectfinder import RectFinder
-from alyvix.tools.screenmanager import ScreenManager
+#from alyvix.finders.basefinder import Roi
+from alyvix.finders.cv.basefinder import *
+from alyvix.tools.screen import ScreenManager
 
 
 class ObjectFinder(BaseFinder):

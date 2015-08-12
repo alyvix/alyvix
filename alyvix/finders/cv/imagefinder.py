@@ -24,10 +24,10 @@ import numpy
 import copy
 import datetime
 
-from alyvix.core.basefinder import BaseFinder
-from alyvix.core.basefinder import Roi
-from alyvix.core.basefinder import MatchResult
-from alyvix.tools.screenmanager import ScreenManager
+from alyvix.finders.cv.basefinder import BaseFinder
+from alyvix.finders.cv.basefinder import Roi
+from alyvix.finders.cv.basefinder import MatchResult
+from alyvix.tools.screen import ScreenManager
 
 
 class _Template():

@@ -19,10 +19,12 @@
 # Official website: http://www.alyvix.com/
 
 import win32gui
+import re
+
 import win32con
 import win32com.client
-import re
-from .base import WinManagerBase
+
+from alyvix.actions.windows.base import WinManagerBase
 
 
 class WinManager(WinManagerBase):
@@ -38,7 +40,7 @@ class WinManager(WinManagerBase):
         :param window_title: regular expression for the window title
         """
         shell = win32com.client.Dispatch('WScript.Shell')
-        shell.Run("python.exe -c \"from alyvix.tools.winmanager import WinManager; wm = WinManager(); wm._show_window('" + window_title + "')\"", 1, 1)
+        shell.Run("python.exe -c \"from alyvix.actions.windows import WinManager; wm = WinManager(); wm._show_window('" + window_title + "')\"", 1, 1)
 
     def maximize_foreground_window(self):
         """
