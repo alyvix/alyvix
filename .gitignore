@@ -16,4 +16,4 @@ Thumbs.db
 
 # IDEA dir#
 ######################
-.idea/
+*/.idea/
