@@ -17,3 +17,15 @@
 # Developer: Alan Pipitone (Violet Atom) - http://www.violetatom.com/
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
+
+from sys import platform as _platform
+
+if _platform == "linux" or _platform == "linux2":
+    #linux...
+        from .linux import KeyboardManager
+elif _platform == "darwin":
+    #mac...
+        from .mac import KeyboardManager
+elif _platform == "win32":
+    #windows...
+    from .windows import KeyboardManager

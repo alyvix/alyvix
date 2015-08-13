@@ -68,31 +68,36 @@ class CryptoManager(CryptoManagerBase):
         app_data_folder = shell.SHGetFolderPath(0, shellcon.CSIDL_LOCAL_APPDATA, 0, 0)
         return app_data_folder
 
-    def set_private_key(self, private_key):
+    def set_key(self, private_key):
         private_key_protected = self._win32_crypt_protect_data(private_key)
         private_key_protected_hex = str(binascii.hexlify(private_key_protected)).upper()
 
         app_data_folder = self._get_user_app_data_local()
         alyvix_app_data_folder = app_data_folder + os.sep + "alyvix"
+        hex_file_name = alyvix_app_data_folder + os.sep + "master.hex"
 
         if not os.path.exists(alyvix_app_data_folder):
             os.makedirs(alyvix_app_data_folder)
 
-        with open(alyvix_app_data_folder + os.sep + "master.hex", "w") as text_file:
+        with open(hex_file_name, "w") as text_file:
             text_file.write(private_key_protected_hex)
 
-    def get_private_key(self):
+    def get_key(self):
 
         private_key_protected_hex = ""
 
         app_data_folder = self._get_user_app_data_local()
         alyvix_app_data_folder = app_data_folder + os.sep + "alyvix"
+        hex_file_name = alyvix_app_data_folder + os.sep + "master.hex"
 
-        with open(alyvix_app_data_folder + os.sep + "master.hex", "r") as text_file:
-            private_key_protected_hex = text_file.read()
+        if os.path.exists(hex_file_name):
+            with open(hex_file_name, "r") as text_file:
+                private_key_protected_hex = text_file.read()
 
-        private_key_protected = str(binascii.unhexlify(private_key_protected_hex.lower()))
+            private_key_protected = str(binascii.unhexlify(private_key_protected_hex.lower()))
 
-        private_key_unprotected = self._win32_crypt_unprotect_data(private_key_protected)
+            private_key_unprotected = self._win32_crypt_unprotect_data(private_key_protected)
 
-        return private_key_unprotected
+            return private_key_unprotected
+
+        return ""

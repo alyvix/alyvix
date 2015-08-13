@@ -17,3 +17,25 @@
 # Developer: Alan Pipitone (Violet Atom) - http://www.violetatom.com/
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
+
+from .base import KeyboardManagerBase
+from ctypes import *
+import time
+import sys
+import os
+
+
+class KeyboardManager(KeyboardManagerBase):
+
+    def __init__(self):
+        python_path = os.path.split(sys.executable)[0]
+        autohotkey_dll_fullname = python_path + os.sep + "DLLs" + os.sep + "AutoHotkey.dll"
+
+        self.ahk = CDLL(autohotkey_dll_fullname) #load AutoHotkey
+        self.ahk.ahktextdll(unicode("","utf-8")) #start script in persistent mode (wait for action)
+
+        while not self.ahk.ahkReady(): #Wait for the end of the empty script
+            time.sleep(0.01)
+
+    def send(self, keys):
+        self.ahk.ahkExec("Send " + keys.decode("utf-8"))

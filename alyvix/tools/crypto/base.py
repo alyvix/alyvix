@@ -18,16 +18,31 @@
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
 
+import pyaes
+import binascii
+
 class CryptoManagerBase(object):
 
-    def set_private_key(self, private_key):
+    def set_key(self, private_key):
         raise NotImplementedError
 
-    def get_private_key(self):
+    def get_key(self):
         raise NotImplementedError
 
-    def crypt_data(self, data):
-        pass #raise NotImplementedError
+    def crypt_data(self, plaintext):
+        key = self.get_key()
+        if key == "":
+            return ""
+        aes = pyaes.AESModeOfOperationCTR(key)
+        ciphertext = aes.encrypt(plaintext)
+        ciphertext_base64 = str(binascii.b2a_base64(ciphertext))
+        return ciphertext_base64
 
-    def decrypt_data(self):
-        pass #raise NotImplementedError
+    def decrypt_data(self, ciphertext_base64):
+        key = self.get_key()
+        if key == "":
+            return ""
+        aes = pyaes.AESModeOfOperationCTR(key)
+        ciphertext = str(binascii.a2b_base64(ciphertext_base64))
+        decrypted = aes.decrypt(ciphertext).decode('utf-8')
+        return decrypted
