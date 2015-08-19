@@ -21,5 +21,5 @@
 
 class KeyboardManagerBase(object):
 
-    def send(self, keys):
+    def send(self, keys, encrypted=False):
         raise NotImplementedError

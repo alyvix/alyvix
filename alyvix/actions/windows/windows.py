@@ -24,7 +24,7 @@ import re
 import win32con
 import win32com.client
 
-from alyvix.actions.windows.base import WinManagerBase
+from .base import WinManagerBase
 
 
 class WinManager(WinManagerBase):

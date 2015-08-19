@@ -38,7 +38,7 @@ from alyvix_text_finder_view import AlyvixTextFinderView
 from alyvix_object_finder_properties_view import Ui_Form
 from alyvix_object_finder_obj_selection import Ui_Form as Ui_Form_2
 
-from alyvix.tools.screenmanager import ScreenManager
+from alyvix.tools.screen import ScreenManager
 
 from stat import S_ISREG, ST_CTIME, ST_MODE
 

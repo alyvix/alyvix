@@ -35,7 +35,7 @@ from alyvix_text_finder_view import AlyvixTextFinderView
 from alyvix_object_finder_view import AlyvixObjectFinderView
 from alyvix_code_view import AlyvixCustomCodeView
 
-from alyvix.tools.screenmanager import ScreenManager
+from alyvix.tools.screen import ScreenManager
 
 from stat import S_ISREG, ST_CTIME, ST_MODE
 

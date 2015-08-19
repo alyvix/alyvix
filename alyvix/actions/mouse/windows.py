@@ -18,7 +18,7 @@
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
 
-from .base import KeyboardManagerBase
+from .base import MouseManagerBase
 from alyvix.tools.crypto import CryptoManager
 from ctypes import *
 import time
@@ -26,9 +26,10 @@ import sys
 import os
 
 
-class KeyboardManager(KeyboardManagerBase):
+class MouseManager(MouseManagerBase):
 
     def __init__(self):
+        print "mouse manager"
         python_path = os.path.split(sys.executable)[0]
         autohotkey_dll_fullname = python_path + os.sep + "DLLs" + os.sep + "AutoHotkey.dll"
 
@@ -38,11 +39,19 @@ class KeyboardManager(KeyboardManagerBase):
         while not self.ahk.ahkReady(): #Wait for the end of the empty script
             time.sleep(0.01)
 
-    def send(self, keys, encrypted=False):
+    def click(self, x, y, button=1, n=1):
 
-        if encrypted == False:
-            self.ahk.ahkExec("Send " + keys.decode("utf-8"))
-        else:
-            cm = CryptoManager()
-            plain_keys = cm.decrypt_data(keys)
-            self.ahk.ahkExec("Send " + plain_keys)
+        self.ahk.ahkExec("CoordMode, mouse, screen".decode("utf-8"))
+
+        if button == 1:
+            self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", " +
+                             str(n).decode("utf-8"))
+        elif button == 2:
+            self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", right")
+        elif button == 3:
+            self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", middle")
+
+    def move(self, x, y):
+        self.ahk.ahkExec("CoordMode, mouse, screen".decode("utf-8"))
+        self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", 0")
+

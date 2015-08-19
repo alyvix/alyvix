@@ -1,3 +1,4 @@
+
 # Alyvix allows you to automate and monitor all types of applications
 # Copyright (C) 2015 Alan Pipitone
 #
@@ -18,31 +19,8 @@
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
 
-from .base import KeyboardManagerBase
-from alyvix.tools.crypto import CryptoManager
-from ctypes import *
-import time
-import sys
-import os
 
+class MouseManagerBase(object):
 
-class KeyboardManager(KeyboardManagerBase):
-
-    def __init__(self):
-        python_path = os.path.split(sys.executable)[0]
-        autohotkey_dll_fullname = python_path + os.sep + "DLLs" + os.sep + "AutoHotkey.dll"
-
-        self.ahk = CDLL(autohotkey_dll_fullname) #load AutoHotkey
-        self.ahk.ahktextdll(unicode("","utf-8")) #start script in persistent mode (wait for action)
-
-        while not self.ahk.ahkReady(): #Wait for the end of the empty script
-            time.sleep(0.01)
-
-    def send(self, keys, encrypted=False):
-
-        if encrypted == False:
-            self.ahk.ahkExec("Send " + keys.decode("utf-8"))
-        else:
-            cm = CryptoManager()
-            plain_keys = cm.decrypt_data(keys)
-            self.ahk.ahkExec("Send " + plain_keys)
+    def click(self, x, y, button=1, n=1):
+        raise NotImplementedError

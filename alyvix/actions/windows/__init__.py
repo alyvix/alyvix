@@ -22,10 +22,10 @@ from sys import platform as _platform
 
 if _platform == "linux" or _platform == "linux2":
     #linux...
-    from actions.windows.linux import WinManager
+    from .windows.linux import WinManager
 elif _platform == "darwin":
     #mac...
-    from actions.windows.mac import WinManager
+    from .windows.mac import WinManager
 elif _platform == "win32":
     #windows...
-    from actions.windows.windows import WinManager
+    from .windows import WinManager

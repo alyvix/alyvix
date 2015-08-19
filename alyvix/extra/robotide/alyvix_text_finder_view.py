@@ -39,7 +39,7 @@ from alyvix_text_finder_properties_view import Ui_Form
 from alyvix_text_check import Ui_Form as Ui_Form_Text
 #from alyvix_text_finder_properties_view_2 import Ui_Form
 #from alyvix_text_finder_properties_view_3 import Ui_Form as Ui_Form_2
-from alyvix.core.textfinder import TextFinder
+from alyvix.finders.cv.textfinder import TextFinder
 
 import xml.dom.minidom as minidom
 import xml.etree.ElementTree as ET
