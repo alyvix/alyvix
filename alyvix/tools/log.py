@@ -37,6 +37,7 @@ class LogManager:
     #__sub_objects_points = []
 
     def __init__(self):
+
         self._config_reader = ConfigReader()
 
         self.__enable_log = self._config_reader.get_log_enable_value()
