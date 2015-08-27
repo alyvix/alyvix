@@ -18,8 +18,10 @@
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
 
+import os
 
 perfdata_list = []
+timedout_finders = []
 
 
 class _PerfData:
@@ -29,7 +31,7 @@ class _PerfData:
         self.value = None
         self.warning_threshold = None
         self.critical_threshold = None
-        self.exitcode = None
+        self.state = 0
 
 
 class PerfManager:
@@ -38,7 +40,7 @@ class PerfManager:
         global perfdata_list
         perfdata_list = []
 
-    def add_perfdata(self, name, value, warning_threshold=None, critical_threshold=None, exitcode=None):
+    def add_perfdata(self, name, value, warning_threshold=None, critical_threshold=None, state=0):
 
         global perfdata_list
 
@@ -47,7 +49,11 @@ class PerfManager:
         perf_data.value = value
         perf_data.warning_threshold = warning_threshold
         perf_data.critical_threshold = critical_threshold
-        perf_data.exitcode = exitcode
+
+        if state is None:
+            perf_data.state = 3
+        else:
+            perf_data.state = int(state)
 
         cnt = 0
         for perf_data_in_list in perfdata_list:
@@ -81,3 +87,87 @@ class PerfManager:
             cnt = cnt + 1
 
         return ret_string
+
+    def print_output(self, message=None):
+
+        global perfdata_list
+        global timedout_finders
+
+        exitcode = self.get_exitcode()
+        performanceData = self.get_perfdata_string()
+
+        if performanceData is not "":
+            performanceData = "|" + performanceData
+        else:
+            performanceData = ""
+
+        if message is not None:
+            print message + performanceData
+        elif exitcode == 2:
+            print "CRITICAL: one or more steps are in critical state" + performanceData
+        elif exitcode == 1:
+            print "WARNING: one or more steps are in warning state" + performanceData
+        elif exitcode == 3:
+            print "UNKNOWN: some unknown error occured" + performanceData
+        elif len(timedout_finders) > 0:
+            print "CRITICAL: one or more steps are in timeout state" + performanceData
+        else:
+            print "OK: all steps are ok" + performanceData
+
+        for perfdata in perfdata_list:
+
+            name = perfdata.name
+            value = perfdata.value
+            warning = perfdata.warning_threshold
+            critical = perfdata.critical_threshold
+            state = perfdata.state
+
+            #only for Alyvix
+            if critical is not None and perfdata.value >= critical:
+                state = 2
+            elif warning is not None and perfdata.value >= warning:
+                state = 1
+
+            if state == 0:
+                print "OK: " + name + " time is " + str(value) + " sec."
+            elif state == 1:
+                print "WARNING: " + name + " time is " + str(value) + " sec."
+            elif state == 2:
+                if value is not None:
+                    print "CRITICAL: " + name + " time is " + str(value) + " sec."
+                else:
+                    print "CRITICAL: " + name + " time is null."
+            else:
+                if value is not None:
+                    print "UNKNOWN: " + name + " time is " + str(value) + " sec."
+                else:
+                    print "UNKNOWN: " + name + " time is null."
+
+    def get_exitcode(self):
+
+        global perfdata_list
+        exitcode = 0
+
+        for perfdata in perfdata_list:
+
+            name = perfdata.name
+            value = perfdata.value
+            warning = perfdata.warning_threshold
+            critical = perfdata.critical_threshold
+            state = perfdata.state
+
+            #only for Alyvix
+            if critical is not None and perfdata.value >= critical:
+                state = 2
+            elif warning is not None and perfdata.value >= warning:
+                state = 1
+
+            if state > exitcode:
+                exitcode = state
+
+            if exitcode == 2:
+                break
+
+        os.environ["alyvix_exitcode"] = str(exitcode)
+        return exitcode
+

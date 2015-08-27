@@ -991,14 +991,15 @@ class AlyvixRectFinderView(QWidget):
             file_code_string = file_code_string + "# -*- coding: utf-8 -*-" + os.linesep
             file_code_string = file_code_string + "import os" + os.linesep
             file_code_string = file_code_string + "import time" + os.linesep
-            file_code_string = file_code_string + "from pykeyboard import PyKeyboard" + os.linesep
-            file_code_string = file_code_string + "from pymouse import PyMouse" + os.linesep
+            file_code_string = file_code_string + "from distutils.sysconfig import get_python_lib" + os.linesep
+            file_code_string = file_code_string + "from alyvix.actions.keyboard import KeyboardManager" + os.linesep
+            file_code_string = file_code_string + "from alyvix.actions.mouse import MouseManager" + os.linesep
+            file_code_string = file_code_string + "from alyvix.actions.windows import WinManager" + os.linesep
+            file_code_string = file_code_string + "from alyvix.finders.cv.rectfinder import RectFinder" + os.linesep
+            file_code_string = file_code_string + "from alyvix.finders.cv.imagefinder import ImageFinder" + os.linesep
+            file_code_string = file_code_string + "from alyvix.finders.cv.textfinder import TextFinder" + os.linesep
+            file_code_string = file_code_string + "from alyvix.finders.cv.objectfinder import ObjectFinder" + os.linesep
             file_code_string = file_code_string + "from alyvix.tools.processes import ProcManager" + os.linesep
-            file_code_string = file_code_string + "from alyvix.tools.windows import WinManager" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.rectfinder import RectFinder" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.imagefinder import ImageFinder" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.textfinder import TextFinder" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.objectfinder import ObjectFinder" + os.linesep
             file_code_string = file_code_string + os.linesep
             file_code_string = file_code_string + os.linesep
             file_code_string = file_code_string + "os.environ[\"alyvix_test_case_name\"] = os.path.basename(__file__).split('.')[0]" + os.linesep
@@ -1070,8 +1071,8 @@ class AlyvixRectFinderView(QWidget):
         
     def build_code_array(self):
     
-        pykeyboard_declared = False
-        pymouse_declared = False
+        kmanager_declared = False
+        mmanager_declared = False
        
         if self._main_rect_finder is None:
             return
@@ -1188,9 +1189,9 @@ class AlyvixRectFinderView(QWidget):
         
             self._code_lines.append("    main_rect_pos = rect_finder.get_result(0)")  
         
-            if pymouse_declared is False:
-                self._code_lines.append("    m = PyMouse()")
-                pymouse_declared = True
+            if mmanager_declared is False:
+                self._code_lines.append("    m = MouseManager()")
+                mmanager_declared = True
                 
             self._code_lines.append("    time.sleep(2)")
                                 
@@ -1200,9 +1201,9 @@ class AlyvixRectFinderView(QWidget):
                 self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1, 2)")
             
         if self._main_rect_finder.sendkeys != "":
-            if pykeyboard_declared is False:
-                self._code_lines.append("    k  = PyKeyboard()")
-                pykeyboard_declared = True
+            if kmanager_declared is False:
+                self._code_lines.append("    k  = KeyboardManager()")
+                kmanager_declared = True
             keys = unicode(self._main_rect_finder.sendkeys, 'utf-8')
             macro_list = keys.split('\n')
             self._code_lines.append("    time.sleep(2)")
@@ -1218,9 +1219,9 @@ class AlyvixRectFinderView(QWidget):
             
                     self._code_lines.append("    sub_rect_" + str(cnt) + "_pos = rect_finder.get_result(0, " + str(cnt) + ")")  
                 
-                    if pymouse_declared is False:
-                        self._code_lines.append("    m = PyMouse()")
-                        pymouse_declared = True
+                    if mmanager_declared is False:
+                        self._code_lines.append("    m = MouseManager()")
+                        mmanager_declared = True
                     self._code_lines.append("    time.sleep(2)")
                                         
                     if sub_rect.click == True:
@@ -1229,9 +1230,9 @@ class AlyvixRectFinderView(QWidget):
                         self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1, 2)")
                     
                 if sub_rect.sendkeys != "":
-                    if pykeyboard_declared is False:
-                        self._code_lines.append("    k  = PyKeyboard()")
-                        pykeyboard_declared = True
+                    if kmanager_declared is False:
+                        self._code_lines.append("    k  = KeyboardManager()")
+                        kmanager_declared = True
                     keys = unicode(sub_rect.sendkeys, 'utf-8')
                     macro_list = keys.split('\n')
                     self._code_lines.append("    time.sleep(2)")
@@ -2380,7 +2381,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             
     @pyqtSlot()
     def inserttext_event(self):
-        if self.inserttext.toPlainText() == "Type here the Keyboard macro" or self.inserttext.toPlainText() == "#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)":
+        if self.inserttext.toPlainText() == "Type here the Keyboard macro" or self.inserttext.toPlainText() == "#k.send('Type here the key')":
             self.parent._main_rect_finder.sendkeys = "".encode('utf-8')
         else:
             self.parent._main_rect_finder.sendkeys = str(self.inserttext.toPlainText().toUtf8())
@@ -2405,11 +2406,11 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
                 parent_obj_name = obj.parent().objectName()
                
                 if self.inserttext.toPlainText() == "Type here the Keyboard macro" and parent_obj_name == "inserttext":
-                    self.inserttext.setPlainText("#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)")
+                    self.inserttext.setPlainText("#k.send('Type here the key')")
                     return True
                     
                 if self.inserttext_2.toPlainText() == "Type here the Keyboard macro" and parent_obj_name == "inserttext_2":
-                    self.inserttext_2.setPlainText("#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)")
+                    self.inserttext_2.setPlainText("#k.send('Type here the key')")
                     return True
                 
         if event.type()== event.FocusOut:
@@ -2478,11 +2479,11 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
                 self.namelineedit.setText(self.parent._main_rect_finder.name)
                 return True
         
-            if (self.inserttext.toPlainText() == "" or self.inserttext.toPlainText() == "#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)") and obj.objectName() == "inserttext":
+            if (self.inserttext.toPlainText() == "" or self.inserttext.toPlainText() == "#k.send('Type here the key')") and obj.objectName() == "inserttext":
                 self.inserttext.setPlainText("Type here the Keyboard macro")
                 return True
                 
-            if (self.inserttext.toPlainText() == "" or self.inserttext_2.toPlainText() == "#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)") and obj.objectName() == "inserttext_2":
+            if (self.inserttext.toPlainText() == "" or self.inserttext_2.toPlainText() == "#k.send('Type here the key')") and obj.objectName() == "inserttext_2":
                 self.inserttext_2.setPlainText("Type here the Keyboard macro")
                 return True
                 
@@ -2724,7 +2725,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
 
     @pyqtSlot()
     def inserttext_event_2(self):
-        if self.inserttext_2.toPlainText() == "Type here the Keyboard macro" or self.inserttext_2.toPlainText() == "#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)":
+        if self.inserttext_2.toPlainText() == "Type here the Keyboard macro" or self.inserttext_2.toPlainText() == "#k.send('Type here the key')":
             self.parent._sub_rects_finder[self.sub_rect_index].sendkeys = "".encode('utf-8')
         else:
             self.parent._sub_rects_finder[self.sub_rect_index].sendkeys = str(self.inserttext_2.toPlainText().toUtf8())

@@ -31,6 +31,7 @@ import re
 import tesseract
 import xml.etree.ElementTree as ET
 from PIL import Image
+from distutils.sysconfig import get_python_lib
 
 from alyvix.finders.cv.basefinder import BaseFinder
 from alyvix.finders.cv.basefinder import Roi
@@ -231,7 +232,8 @@ class TextFinder(BaseFinder):
             cnt = 0
 
             self.api = tesseract.TessBaseAPI()
-            self.api.Init("C:\\Program Files (x86)\\Tesseract-OCR\\", main_text.lang, tesseract.OEM_DEFAULT)
+            self.api.Init(get_python_lib() + os.sep + "alyvix" + os.sep + "extra" + os.sep +
+                          "Tesseract-OCR" + os.sep, main_text.lang, tesseract.OEM_DEFAULT)
             self.api.SetPageSegMode(tesseract.PSM_AUTO)
             self.api.SetVariable("tessedit_char_whitelist", main_text.whitelist)
 

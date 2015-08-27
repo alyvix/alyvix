@@ -654,8 +654,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
     def build_code_array(self):
     
-        pykeyboard_declared = False
-        pymouse_declared = False
+        kmanager_declared = False
+        mmanager_declared = False
        
         if self._main_object_finder is None:
             return
@@ -778,9 +778,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
             self._code_lines.append("    main_object_pos = object_finder.get_result(0)")  
         
-            if pymouse_declared is False:
-                self._code_lines.append("    m = PyMouse()")
-                pymouse_declared = True
+            if mmanager_declared is False:
+                self._code_lines.append("    m = MouseManager()")
+                mmanager_declared = True
                 
             self._code_lines.append("    time.sleep(2)")
                                 
@@ -790,9 +790,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 self._code_lines.append("    m.click(main_object_pos.x + (main_object_pos.width/2), main_object_pos.y + (main_object_pos.height/2), 1, 2)")
             
         if self._main_object_finder.sendkeys != "":
-            if pykeyboard_declared is False:
-                self._code_lines.append("    k  = PyKeyboard()")
-                pykeyboard_declared = True
+            if kmanager_declared is False:
+                self._code_lines.append("    k  = KeyboardManager()")
+                kmanager_declared = True
             keys = unicode(self._main_object_finder.sendkeys, 'utf-8')
             macro_list = keys.split('\n')
             self._code_lines.append("    time.sleep(2)")
@@ -808,9 +808,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             
                     self._code_lines.append("    sub_object_" + str(cnt) + "_pos = object_finder.get_result(0, " + str(cnt) + ")")  
                 
-                    if pymouse_declared is False:
-                        self._code_lines.append("    m = PyMouse()")
-                        pymouse_declared = True
+                    if mmanager_declared is False:
+                        self._code_lines.append("    m = MouseManager()")
+                        mmanager_declared = True
                     self._code_lines.append("    time.sleep(2)")
                                         
                     if sub_object.click == True:
@@ -819,9 +819,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                         self._code_lines.append("    m.click(sub_object_" + str(cnt) + "_pos.x + (sub_object_" + str(cnt) + "_pos.width/2), sub_object_" + str(cnt) + "_pos.y + (sub_object_" + str(cnt) + "_pos.height/2), 1, 2)")
                     
                 if sub_object.sendkeys != "":
-                    if pykeyboard_declared is False:
-                        self._code_lines.append("    k  = PyKeyboard()")
-                        pykeyboard_declared = True
+                    if kmanager_declared is False:
+                        self._code_lines.append("    k  = KeyboardManager()")
+                        kmanager_declared = True
                     keys = unicode(sub_object.sendkeys, 'utf-8')
                     macro_list = keys.split('\n')
                     self._code_lines.append("    time.sleep(2)")
@@ -1220,7 +1220,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     
     @pyqtSlot()
     def inserttext_event(self):
-        if self.inserttext.toPlainText() == "Type here the Keyboard macro" or self.inserttext.toPlainText() == "#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)":
+        if self.inserttext.toPlainText() == "Type here the Keyboard macro" or self.inserttext.toPlainText() == "#k.send('Type here the key')":
             self._main_object_finder.sendkeys = "".encode('utf-8')
         else:
             self._main_object_finder.sendkeys = str(self.inserttext.toPlainText().toUtf8())
@@ -1339,11 +1339,11 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 parent_obj_name = obj.parent().objectName()
                
                 if self.inserttext.toPlainText() == "Type here the Keyboard macro" and parent_obj_name == "inserttext":
-                    self.inserttext.setPlainText("#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)")
+                    self.inserttext.setPlainText("#k.send('Type here the key')")
                     return True
                     
                 if self.inserttext_2.toPlainText() == "Type here the Keyboard macro" and parent_obj_name == "inserttext_2":
-                    self.inserttext_2.setPlainText("#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)")
+                    self.inserttext_2.setPlainText("#k.send('Type here the key')")
                     return True
                 
         if event.type()== event.FocusOut:
@@ -1411,11 +1411,11 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 self.namelineedit.setText(self._main_object_finder.name)
                 return True
         
-            if (self.inserttext.toPlainText() == "" or self.inserttext.toPlainText() == "#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)") and obj.objectName() == "inserttext":
+            if (self.inserttext.toPlainText() == "" or self.inserttext.toPlainText() == "#k.send('Type here the key')") and obj.objectName() == "inserttext":
                 self.inserttext.setPlainText("Type here the Keyboard macro")
                 return True
                 
-            if (self.inserttext_2.toPlainText() == "" or self.inserttext_2.toPlainText() == "#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)") and obj.objectName() == "inserttext_2":
+            if (self.inserttext_2.toPlainText() == "" or self.inserttext_2.toPlainText() == "#k.send('Type here the key')") and obj.objectName() == "inserttext_2":
                 self.inserttext_2.setPlainText("Type here the Keyboard macro")
                 return True
                 
@@ -1656,7 +1656,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             
     @pyqtSlot()
     def inserttext_event_2(self):
-        if self.inserttext_2.toPlainText() == "Type here the Keyboard macro" or self.inserttext_2.toPlainText() == "#k.type_string('Type here the text')\n#time.sleep(1)\n#k.tap_key(k.enter_key)":
+        if self.inserttext_2.toPlainText() == "Type here the Keyboard macro" or self.inserttext_2.toPlainText() == "#k.send('Type here the key')":
             self._sub_objects_finder[self.sub_object_index].sendkeys = "".encode('utf-8')
         else:
             self._sub_objects_finder[self.sub_object_index].sendkeys = str(self.inserttext_2.toPlainText().toUtf8())
