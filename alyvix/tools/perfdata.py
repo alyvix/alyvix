@@ -39,6 +39,7 @@ class PerfManager:
     def __init__(self):
         self.save = os.dup(1), os.dup(2)
         self.null_fds = [os.open(os.devnull, os.O_RDWR) for x in xrange(2)]
+        self.performance_desc_string = ""
 
 
     def clear_perfdata(self):
@@ -93,7 +94,7 @@ class PerfManager:
 
         return ret_string
 
-    def print_output(self, message=None):
+    def get_output(self, message=None):
 
         global perfdata_list
         global timedout_finders
@@ -107,17 +108,27 @@ class PerfManager:
             performanceData = ""
 
         if message is not None:
-            print message + performanceData
+            self.performance_desc_string = self.performance_desc_string + message + performanceData + os.linesep
         elif exitcode == 2:
-            print "CRITICAL: one or more steps are in critical state" + performanceData
+            self.performance_desc_string = self.performance_desc_string +\
+                                           "CRITICAL: one or more steps are in critical state" +\
+                                           performanceData + os.linesep
         elif exitcode == 1:
-            print "WARNING: one or more steps are in warning state" + performanceData
+            self.performance_desc_string = self.performance_desc_string +\
+                                           "WARNING: one or more steps are in warning state" +\
+                                           performanceData + os.linesep
         elif exitcode == 3:
-            print "UNKNOWN: some unknown error occured" + performanceData
+            self.performance_desc_string = self.performance_desc_string +\
+                                           "UNKNOWN: some unknown error occured" +\
+                                           performanceData + os.linesep
         elif len(timedout_finders) > 0:
-            print "CRITICAL: one or more steps are in timeout state" + performanceData
+            self.performance_desc_string = self.performance_desc_string +\
+                                           "CRITICAL: one or more steps are in timeout state" +\
+                                           performanceData + os.linesep
         else:
-            print "OK: all steps are ok" + performanceData
+            self.performance_desc_string = self.performance_desc_string +\
+                                           "OK: all steps are ok" +\
+                                           performanceData + os.linesep
 
         for perfdata in perfdata_list:
 
@@ -134,19 +145,30 @@ class PerfManager:
                 state = 1
 
             if state == 0:
-                print "OK: " + name + " time is " + str(value) + " sec."
+                self.performance_desc_string = self.performance_desc_string +\
+                                               "OK: " + name + " time is " + str(value) + " sec." + os.linesep
             elif state == 1:
-                print "WARNING: " + name + " time is " + str(value) + " sec."
+                self.performance_desc_string = self.performance_desc_string +\
+                                               "WARNING: " + name + " time is " + str(value) + " sec." + os.linesep
             elif state == 2:
                 if value is not None:
-                    print "CRITICAL: " + name + " time is " + str(value) + " sec."
+                    self.performance_desc_string = self.performance_desc_string +\
+                                                   "CRITICAL: " + name + " time is " + str(value) + " sec." +\
+                                                   os.linesep
                 else:
-                    print "CRITICAL: " + name + " time is null."
+                    self.performance_desc_string = self.performance_desc_string +\
+                                                   "CRITICAL: " + name + " time is null." + os.linesep
             else:
                 if value is not None:
-                    print "UNKNOWN: " + name + " time is " + str(value) + " sec."
+                    self.performance_desc_string = self.performance_desc_string +\
+                                                   "UNKNOWN: " + name + " time is " + str(value) + " sec." + os.linesep
                 else:
-                    print "UNKNOWN: " + name + " time is null."
+                    self.performance_desc_string = self.performance_desc_string +\
+                                                   "UNKNOWN: " + name + " time is null." + os.linesep
+
+
+        os.environ["alyvix_exitcode"] = str(exitcode)
+        os.environ["alyvix_std_output"] = self.performance_desc_string
 
     def get_exitcode(self):
 
@@ -173,7 +195,6 @@ class PerfManager:
             if exitcode == 2:
                 break
 
-        os.environ["alyvix_exitcode"] = str(exitcode)
         return exitcode
 
     def disable_console_output(self):

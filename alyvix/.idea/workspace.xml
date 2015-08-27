@@ -36,8 +36,8 @@
       <file leaf-file-name="perfdata.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/tools/perfdata.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.60394263" vertical-offset="2859" max-vertical-offset="3417">
-              <caret line="188" column="24" selection-start-line="188" selection-start-column="24" selection-end-line="188" selection-end-column="24" />
+            <state vertical-scroll-proportion="0.3655914" vertical-offset="408" max-vertical-offset="3774">
+              <caret line="36" column="18" selection-start-line="36" selection-start-column="18" selection-end-line="36" selection-end-column="18" />
               <folding />
             </state>
           </provider>
@@ -932,8 +932,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tools/perfdata.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.60394263" vertical-offset="2859" max-vertical-offset="3417">
-          <caret line="188" column="24" selection-start-line="188" selection-start-column="24" selection-end-line="188" selection-end-column="24" />
+        <state vertical-scroll-proportion="0.3655914" vertical-offset="408" max-vertical-offset="3774">
+          <caret line="36" column="18" selection-start-line="36" selection-start-column="18" selection-end-line="36" selection-end-column="18" />
           <folding />
         </state>
       </provider>
