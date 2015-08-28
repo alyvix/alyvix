@@ -37,10 +37,7 @@ class _PerfData:
 class PerfManager:
 
     def __init__(self):
-        self.save = os.dup(1), os.dup(2)
-        self.null_fds = [os.open(os.devnull, os.O_RDWR) for x in xrange(2)]
         self.performance_desc_string = ""
-
 
     def clear_perfdata(self):
         global perfdata_list
@@ -196,21 +193,4 @@ class PerfManager:
                 break
 
         return exitcode
-
-    def disable_console_output(self):
-        # open 2 fds
-        self.null_fds = [os.open(os.devnull, os.O_RDWR) for x in xrange(2)]
-        # save the current file descriptors to a tuple
-        self.save = os.dup(1), os.dup(2)
-        # put /dev/null fds on 1 and 2
-        os.dup2(self.null_fds[0], 1)
-        os.dup2(self.null_fds[1], 2)
-
-
-    def enable_console_output(self):
-        os.dup2(self.save[0], 1)
-        os.dup2(self.save[1], 2)
-        # close the temporary fds
-        os.close(self.null_fds[0])
-        os.close(self.null_fds[1])
 
