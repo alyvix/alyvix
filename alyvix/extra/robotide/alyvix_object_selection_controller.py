@@ -334,7 +334,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             penultimate_name = os.path.basename(path)
         
             if penultimate_name.endswith('_ObjectFinder.xml'):
-                item.setText(penultimate_name[:-13] + " [OF]")
+                item.setText(penultimate_name[:-17] + " [OF]")
                 penultimate_name = penultimate_name.replace("_old_code.txt", "_ObjectFinder.xml")
                 
             else:

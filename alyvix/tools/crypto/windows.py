@@ -72,7 +72,24 @@ class CryptoManager(CryptoManagerBase):
         return app_data_folder
 
     def set_key(self, private_key):
-        private_key_protected = self._win32_crypt_protect_data(private_key)
+
+        extra_char = ["*", "#", "+", "b", "v", ",", ".", ";", "4", "9", "0", "x", "*", "y", "1", "<", "@", "k", "&",
+                      "8", "%", "l", "p", "!", "w", "$", "/", ")", "(", "_", "-", ":"]
+
+        key_len = len(private_key)
+        tmp_key = private_key
+
+        if key_len < 16:
+            for i in range(16 - key_len):
+                tmp_key = tmp_key + extra_char[i + key_len]
+        elif key_len < 24:
+            for i in range(24 - key_len):
+                tmp_key = tmp_key + extra_char[i + key_len]
+        elif key_len < 32:
+            for i in range(32 - key_len):
+                tmp_key = tmp_key + extra_char[i + key_len]
+
+        private_key_protected = self._win32_crypt_protect_data(tmp_key)
         private_key_protected_hex = str(binascii.hexlify(private_key_protected)).upper()
 
         if not os.path.exists(self.alyvix_app_data_folder):

@@ -321,9 +321,12 @@ class TextFinder(BaseFinder):
 
                         x = offset_x + (int(coordinates[1])/3)
                         y = offset_y + (int(coordinates[2])/3)
+                        print "offset x, x", offset_x, (int(coordinates[1])/3)
+                        print "offset y, y", offset_y, (int(coordinates[2])/3)
 
-                        w = (int(coordinates[3])/3) #- x
-                        h = (int(coordinates[4])/3) #- y
+
+                        w = (int(coordinates[3])/3) - (int(coordinates[1])/3)
+                        h = (int(coordinates[4])/3) - (int(coordinates[2])/3)
 
                         try:
                             #print "text from Ocr engine:",phrase
@@ -562,10 +565,14 @@ class TextFinder(BaseFinder):
 
                         x = int(coordinates[1])/3
                         y = int(coordinates[2])/3
-                        w = (int(coordinates[3])/3) # - x
-                        h = (int(coordinates[4])/3) # - y
+                        w = (int(coordinates[3])/3) - x
+                        h = (int(coordinates[4])/3) - y
 
                         sub_object_result = MatchResult((x1 + x, y1 + y, w, h))
+
+                        print "sub offset x, x, w", x1, (int(coordinates[1])/3), w
+                        print "sub offset y, y, h", y1, (int(coordinates[2])/3), h
+
                         #print "founded"
                         return sub_object_result
                 except Exception, err:

@@ -111,10 +111,38 @@ class AlyvixTextFinderView(QWidget):
         self.__old_code = self.get_old_code()
         #print self.__old_code
         
+        self._old_main_text = copy.deepcopy(self._main_text)
+        self._old_sub_text = copy.deepcopy(self._sub_texts_finder)
+        
         self.esc_pressed = False
+        self.ok_pressed = False
         
     def set_bg_pixmap(self, image):
         self._bg_pixmap = QPixmap.fromImage(image)
+        
+    def save_all(self):
+    
+        if self._main_text != None and self.ok_pressed is False:
+            self.ok_pressed = True
+            #print "dummy"
+            #self.build_xml()
+            self.build_code_array()
+            self.build_xml()
+            self.save_python_file()
+            self.build_perf_data_xml()
+            image_name = self._path + os.sep + self._main_text.name + "_TextFinder.png"
+            self._bg_pixmap.save(image_name,"PNG", -1)
+            #self.save_template_images(image_name)
+            if self.action == "new":
+                self.parent.add_new_item_on_list()
+        self.parent.show()
+        self.close()
+        
+    def cancel_all(self):
+        self._main_text = copy.deepcopy(self._old_main_text)
+        self._sub_texts_finder = copy.deepcopy(self._old_sub_text)
+        self.parent.show()
+        self.close()
         
     def keyPressEvent(self, event):
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
@@ -122,6 +150,10 @@ class AlyvixTextFinderView(QWidget):
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
             self.restore_rect()
         if event.key() == Qt.Key_Escape:
+            pass
+            """
+            self.parent.show()
+            self.close()
             if self._main_text != None and self.esc_pressed is False:
                 self.esc_pressed = True
                 #print "dummy"
@@ -137,6 +169,7 @@ class AlyvixTextFinderView(QWidget):
                     self.parent.add_new_item_on_list()
             self.parent.show()
             self.close()
+            """
     
     """
     def save_template_images(self, image_name):
@@ -155,7 +188,7 @@ class AlyvixTextFinderView(QWidget):
         cv2.imwrite(template_text_path + os.sep + "main_template.png", image2)
         
         cnt = 1
-        for sub_template in self._sub_texts_finder:
+        for sub_text in self._sub_texts_finder:
             x1 = sub_text.x
             x2 = x1 + sub_text.width
             y1 = sub_text.y
@@ -240,7 +273,7 @@ class AlyvixTextFinderView(QWidget):
         #self.__sub_text_color_index = 0
         for sub_text_finder in self._sub_texts_finder:
         
-            self.draw_sub_templateangle(qp, sub_text_finder)
+            self.draw_sub_textangle(qp, sub_text_finder)
             
             if self.is_mouse_inside_rect(sub_text_finder):
                 self.__flag_mouse_is_inside_rect = True
@@ -366,7 +399,7 @@ class AlyvixTextFinderView(QWidget):
             """
         
      
-    def draw_sub_templateangle(self, qp, text_finder):
+    def draw_sub_textangle(self, qp, text_finder):
     
             if text_finder.show is False:
                 return
@@ -855,17 +888,7 @@ class AlyvixTextFinderView(QWidget):
         
         if self.action == "new" and file_code_string == "":
             file_code_string = file_code_string + "# -*- coding: utf-8 -*-" + os.linesep
-            file_code_string = file_code_string + "import os" + os.linesep
-            file_code_string = file_code_string + "import time" + os.linesep
-            file_code_string = file_code_string + "from distutils.sysconfig import get_python_lib" + os.linesep
-            file_code_string = file_code_string + "from alyvix.actions.keyboard import KeyboardManager" + os.linesep
-            file_code_string = file_code_string + "from alyvix.actions.mouse import MouseManager" + os.linesep
-            file_code_string = file_code_string + "from alyvix.actions.windows import WinManager" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.cv.rectfinder import RectFinder" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.cv.imagefinder import ImageFinder" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.cv.textfinder import TextFinder" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.cv.objectfinder import ObjectFinder" + os.linesep
-            file_code_string = file_code_string + "from alyvix.tools.processes import ProcManager" + os.linesep
+            file_code_string = file_code_string + "from alyvixlib import *" + os.linesep
             file_code_string = file_code_string + os.linesep
             file_code_string = file_code_string + os.linesep
             file_code_string = file_code_string + "os.environ[\"alyvix_test_case_name\"] = os.path.basename(__file__).split('.')[0]" + os.linesep
@@ -959,7 +982,13 @@ class AlyvixTextFinderView(QWidget):
             
         #self._code_lines.append("def " + name + "():")
         
-        string_function_args = "def " + name + "("
+        strcode = name + "_object = TextFinder(\"" + name + "\")"
+        self._code_lines.append(strcode)
+        self._code_lines_for_object_finder.append(strcode)
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "_build_object("
         
         args_range = range(1, self._main_text.args_number + 1)
         
@@ -971,21 +1000,30 @@ class AlyvixTextFinderView(QWidget):
         string_function_args = string_function_args + "):"
         self._code_lines.append(string_function_args)
         
-        #self._code_lines.append("\n")
-        strcode = "    text_finder = TextFinder(\"" + name + "\")"
-        self._code_lines.append(strcode)
-        self._code_lines_for_object_finder.append(strcode)
-        #self._code_lines.append("\n")
+            
+        
+        #strcode = "    text_finder = TextFinder(\"" + name + "\")"
+        #self._code_lines.append(strcode)
+        #self._code_lines_for_object_finder.append(strcode)
         
         roi_x = str(self._main_text.roi_x)
         roi_y = str(self._main_text.roi_y)
         roi_width = str(self._main_text.roi_width)
         roi_height = str(self._main_text.roi_height)
         
-        if self._main_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
-            str1 = "    text_finder.set_main_component({\"text\": \"" + self._main_text.text + "\", \"lang\": \""  + self._main_text.lang + "\"},"
+        self._code_lines.append("    global " + name + "_object")  
+        
+        text_to_find = ""
+        
+        if self._main_text.quotes_ocr is True:
+            text_to_find = "\"" + self._main_text.text + "\""
         else:
-            str1 = "    text_finder.set_main_component({\"text\": \"" + self._main_text.text + "\", \"lang\": \""  + self._main_text.lang + "\"" + ", \"whitelist\": \"" + self._main_text.whitelist + "\"},"
+            text_to_find = self._main_text.text
+        
+        if self._main_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
+            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"},"
+        else:
+            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"" + ", \"whitelist\": \"" + self._main_text.whitelist + "\"},"
             
         str2 ="                                   {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
             
@@ -1010,11 +1048,17 @@ class AlyvixTextFinderView(QWidget):
                 roi_width = str(sub_text.roi_width)
                 roi_height = str(sub_text.roi_height)
                     
+                text_to_find = ""
+                if sub_text.quotes_ocr is True:
+                    text_to_find = "\"" + sub_text.text + "\""
+                else:
+                    text_to_find = sub_text.text
+            
                 #str1 = "    text_finder.add_sub_component({\"path\": \"" + sub_text.path + "\", \"threshold\":" + repr(sub_text.threshold) + "},"
                 if sub_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
-                    str1 = "    text_finder.add_sub_component({\"text\": \"" + sub_text.text + "\", \"lang\": \"" + sub_text.lang + "\"},"
+                    str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\"},"
                 else:
-                    str1 = "    text_finder.add_sub_component({\"text\": \"" + sub_text.text + "\", \"lang\": \"" + sub_text.lang + "\", \"whitelist\": \"" + sub_text.whitelist + "\"},"
+                    str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\", \"whitelist\": \"" + sub_text.whitelist + "\"},"
                     
                 
                 str2 = "                                  {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
@@ -1026,28 +1070,26 @@ class AlyvixTextFinderView(QWidget):
     
                 #self._code_lines.append("\n")
                 cnt = cnt + 1
-
-        if self._main_text.find is True:  
-            self._code_lines.append("    text_finder.find()")
-        else:
-           self._code_lines.append("    wait_time = text_finder.wait(" + str(self._main_text.timeout) + ")")
-           
-        if self._main_text.enable_performance is True and self._main_text.find is False:
-            self._code_lines.append("    if wait_time == -1:")
-            self._code_lines.append("        raise Exception(\"step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\")")
-            self._code_lines.append("    elif wait_time < " + repr(self._main_text.warning) + ":")
-            self._code_lines.append("        print \"step " + self._main_text.name + " is ok, execution time:\", wait_time, \"sec.\"")
-            self._code_lines.append("    elif wait_time < " + repr(self._main_text.critical) + ":")
-            self._code_lines.append("        print \"*WARN* step " + str(self._main_text.name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
-            self._code_lines.append("    else:")
-            self._code_lines.append("        print \"*WARN* step " + str(self._main_text.name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
-        elif self._main_text.find is False:
-            self._code_lines.append("    if wait_time == -1:")
-            self._code_lines.append("        raise Exception(\"step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\")")
         
-        if self._main_text.click == True or self._main_text.doubleclick == True:
+        self._code_lines.append("")
         
-            self._code_lines.append("    main_text_pos = text_finder.get_result(0)")  
+        string_function_args = "def " + name + "_mouse_keyboard("
+        
+        args_range = range(1, self._main_text.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")
+        
+        if self._main_text.click == True or self._main_text.doubleclick == True or self._main_text.rightclick == True or self._main_text.mousemove == True:
+        
+            self._code_lines.append("    main_text_pos = " + name + "_object.get_result(0)")  
         
             if mmanager_declared is False:
                 self._code_lines.append("    m = MouseManager()")
@@ -1059,25 +1101,173 @@ class AlyvixTextFinderView(QWidget):
                 self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1)")
             elif self._main_text.doubleclick == True:
                 self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1, 2)")
-            
+            elif self._main_text.rightclick == True:
+                self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 2)")
+            elif self._main_text.mousemove == True:
+                self._code_lines.append("    m.move(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+
+                
         if self._main_text.sendkeys != "":
             if kmanager_declared is False:
                 self._code_lines.append("    k  = KeyboardManager()")
                 kmanager_declared = True
             keys = unicode(self._main_text.sendkeys, 'utf-8')
-            macro_list = keys.split('\n')
             self._code_lines.append("    time.sleep(2)")
             
-            for keyboard_macro in macro_list:
-                self._code_lines.append("    " + keyboard_macro)
+            if self._main_text.sendkeys_quotes is True:
+                self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_text.text_encrypted) + ")")
+            else:
+                self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_text.text_encrypted) + ")")
             
         cnt = 0
-        for sub_template in self._sub_texts_finder:
+        for sub_text in self._sub_texts_finder:
         
             if sub_text.height != 0 and sub_text.width !=0:
-                if sub_text.click == True or sub_text.doubleclick == True:
+                if sub_text.click == True or sub_text.doubleclick == True or sub_text.rightclick == True or sub_text.mousemove == True:
             
-                    self._code_lines.append("    sub_text_" + str(cnt) + "_pos = text_finder.get_result(0, " + str(cnt) + ")")  
+                    self._code_lines.append("    sub_text_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
+                
+                    if mmanager_declared is False:
+                        self._code_lines.append("    m = MouseManager()")
+                        mmanager_declared = True
+                    self._code_lines.append("    time.sleep(2)")
+                                        
+                    if sub_text.click == True:
+                        self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1)")
+                    elif sub_text.doubleclick == True:
+                        self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1, 2)")
+                    elif sub_text.rightclick == True:
+                        self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 2)")
+                    elif sub_text.mousemove == True:
+                        self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                        
+                if sub_text.sendkeys != "":
+                    if kmanager_declared is False:
+                        self._code_lines.append("    k  = KeyboardManager()")
+                        kmanager_declared = True
+                    keys = unicode(sub_text.sendkeys, 'utf-8')
+                    self._code_lines.append("    time.sleep(2)")
+                    
+                    if sub_text.sendkeys_quotes is True:
+                        self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_text.text_encrypted) + ")")
+                    else:
+                        self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_text.text_encrypted) + ")")
+                              
+                                    
+                cnt = cnt + 1
+                
+        #if kmanager_declared is False and mmanager_declared is False:
+        #    self._code_lines.append("    pass")
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "("
+        
+        args_range = range(1, self._main_text.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")  
+
+        string_function_args = "    " + name + "_build_object("
+        
+        args_range = range(1, self._main_text.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+
+        if self._main_text.find is True:  
+            self._code_lines.append("    " + name + "_object.find()")
+        else:
+            self._code_lines.append("    wait_time = " + name + "_object.wait(" + str(self._main_text.timeout) + ")")
+           
+        if self._main_text.enable_performance is True and self._main_text.find is False:
+            self._code_lines.append("    if wait_time == -1:")
+            if self._main_text.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\")")             
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\"")
+                self._code_lines.append("        return False")
+            self._code_lines.append("    elif wait_time < " + repr(self._main_text.warning) + ":")
+            self._code_lines.append("        print \"step " + self._main_text.name + " is ok, execution time:\", wait_time, \"sec.\"")
+            self._code_lines.append("    elif wait_time < " + repr(self._main_text.critical) + ":")
+            self._code_lines.append("        print \"*WARN* step " + str(self._main_text.name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("    else:")
+            self._code_lines.append("        print \"*WARN* step " + str(self._main_text.name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("    p = PerfManager()")
+            self._code_lines.append("    p.add_perfdata(\"" + str(self._main_text.name) + "\", wait_time, " + repr(self._main_text.warning) + ", " + repr(self._main_text.critical) + ")")
+        elif self._main_text.find is False:
+            self._code_lines.append("    if wait_time == -1:")
+            if self._main_text.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\")")             
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\"")
+                self._code_lines.append("        return False")  
+            #self._code_lines.append("        raise Exception(\"step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\")")
+ 
+        string_function_args = "    " + name + "_mouse_keyboard("
+        
+        args_range = range(1, self._main_text.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+ 
+        """
+        if self._main_text.click == True or self._main_text.doubleclick == True or self._main_text.rightclick == True or self._main_text.mousemove == True:
+        
+            self._code_lines.append("    main_text_pos = " + name + "_object.get_result(0)")  
+        
+            if mmanager_declared is False:
+                self._code_lines.append("    m = MouseManager()")
+                mmanager_declared = True
+                
+            self._code_lines.append("    time.sleep(2)")
+                                
+            if self._main_text.click == True:
+                self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1)")
+            elif self._main_text.doubleclick == True:
+                self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1, 2)")
+            elif self._main_text.rightclick == True:
+                self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 2)")
+            elif self._main_text.mousemove == True:
+                self._code_lines.append("    m.move(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+
+                
+        if self._main_text.sendkeys != "":
+            if kmanager_declared is False:
+                self._code_lines.append("    k  = KeyboardManager()")
+                kmanager_declared = True
+            keys = unicode(self._main_text.sendkeys, 'utf-8')
+            self._code_lines.append("    time.sleep(2)")
+            
+            if self._main_text.sendkeys_quotes is True:
+                self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_text.text_encrypted) + ")")
+            else:
+                self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_text.text_encrypted) + ")")
+            
+        cnt = 0
+        for sub_text in self._sub_texts_finder:
+        
+            if sub_text.height != 0 and sub_text.width !=0:
+                if sub_text.click == True or sub_text.doubleclick == True or sub_text.rightclick == True or sub_text.mousemove == True:
+            
+                    self._code_lines.append("    sub_text_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
                 
                     if mmanager_declared is False:
                         self._code_lines.append("    mouse = MouseManager()")
@@ -1088,20 +1278,29 @@ class AlyvixTextFinderView(QWidget):
                         self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1)")
                     elif sub_text.doubleclick == True:
                         self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1, 2)")
-
+                    elif sub_text.rightclick == True:
+                        self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 2)")
+                    elif sub_text.mousemove == True:
+                        self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                        
                 if sub_text.sendkeys != "":
                     if kmanager_declared is False:
                         self._code_lines.append("    k  = KeyboardManager()")
                         kmanager_declared = True
                     keys = unicode(sub_text.sendkeys, 'utf-8')
-                    macro_list = keys.split('\n')
                     self._code_lines.append("    time.sleep(2)")
                     
-                    for keyboard_macro in macro_list:
-                        self._code_lines.append("    " + keyboard_macro)
+                    if sub_text.sendkeys_quotes is True:
+                        self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_text.text_encrypted) + ")")
+                    else:
+                        self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_text.text_encrypted) + ")")
+                              
                                     
                 cnt = cnt + 1
+        """
         
+        if self._main_text.timeout_exception is False:
+            self._code_lines.append("    return True")
         self._code_lines.append("")
         self._code_lines.append("")
 
@@ -1132,6 +1331,7 @@ class AlyvixTextFinderView(QWidget):
         root.set("find", str(self._main_text.find))
         root.set("wait", str(self._main_text.wait))
         root.set("timeout", str(self._main_text.timeout))
+        root.set("timeout_exception", str(self._main_text.timeout_exception))
         root.set("enable_performance", str(self._main_text.enable_performance))
         root.set("warning_value", repr(self._main_text.warning))
         root.set("critical_value", repr(self._main_text.critical))
@@ -1153,6 +1353,7 @@ class AlyvixTextFinderView(QWidget):
         height_node.text = str(self._main_text.height)
         
         text_node = ET.SubElement(main_text_node, "text")
+        text_node.set("quotes", str(self._main_text.quotes_ocr))
         text_node.append(ET.Comment(' --><![CDATA[' + unicode(self._main_text.text.replace(']]>', ']]]]><![CDATA[>'), 'utf-8') + ']]><!-- '))
         #text_node.text = str(self._main_text.text)
         
@@ -1191,8 +1392,17 @@ class AlyvixTextFinderView(QWidget):
 
         doubleclick_node = ET.SubElement(main_text_node, "doubleclick")
         doubleclick_node.text = str(self._main_text.doubleclick)
+        
+        rightclick_node = ET.SubElement(main_text_node, "rightclick")
+        rightclick_node.text = str(self._main_text.rightclick)
+        
+        mousemove_node = ET.SubElement(main_text_node, "mousemove")
+        mousemove_node.text = str(self._main_text.mousemove)
 
         sendkeys_node = ET.SubElement(main_text_node, "sendkeys")
+        
+        sendkeys_node.set("encrypted", str(self._main_text.text_encrypted))
+        sendkeys_node.set("quotes", str(self._main_text.sendkeys_quotes))
         
         #print self._main_text.sendkeys
         
@@ -1235,6 +1445,8 @@ class AlyvixTextFinderView(QWidget):
                 #threshold_node.text = repr(sub_text.threshold)
                 
                 text_node = ET.SubElement(sub_text_node, "text")
+                text_node.set("quotes", str(sub_text.quotes_ocr))
+                
                 text_node.append(ET.Comment(' --><![CDATA[' + unicode(sub_text.text.replace(']]>', ']]]]><![CDATA[>'), 'utf-8') + ']]><!-- '))
                 #text_node.text = str(sub_text.text)
 
@@ -1264,7 +1476,15 @@ class AlyvixTextFinderView(QWidget):
                 doubleclick_node = ET.SubElement(sub_text_node, "doubleclick")
                 doubleclick_node.text = str(sub_text.doubleclick)
                 
+                rightclick_node = ET.SubElement(sub_text_node, "rightclick")
+                rightclick_node.text = str(sub_text.rightclick)
+
+                mousemove_node = ET.SubElement(sub_text_node, "mousemove")
+                mousemove_node.text = str(sub_text.mousemove)
+                
                 sendkeys_node = ET.SubElement(sub_text_node, "sendkeys")
+                sendkeys_node.set("encrypted", str(sub_text.text_encrypted))
+                sendkeys_node.set("quotes", str(sub_text.sendkeys_quotes))
                 #sendkeys_node.text = unicode(sub_text.sendkeys, 'utf-8')
                 sendkeys_node.append(ET.Comment(' --><![CDATA[' + unicode(sub_text.sendkeys.replace(']]>', ']]]]><![CDATA[>'), 'utf-8') + ']]><!-- '))
                 
@@ -1276,7 +1496,7 @@ class AlyvixTextFinderView(QWidget):
             block_text = block[1]
             block_end_line = block[2]
            # block_text = unicode(block_text, "utf-8")
-            code_block = ET.SubElement(code_blocks_root, "code_block") #ET.SubElement(sub_templates_root, "sub_text_" + str(cnt))
+            code_block = ET.SubElement(code_blocks_root, "code_block") #ET.SubElement(sub_texts_root, "sub_text_" + str(cnt))
             #code_block.set("id", str(block_start_line) + "_" + str(block_end_line))
             
             start_line_node = ET.SubElement(code_block, "start_line")
@@ -1329,7 +1549,7 @@ class AlyvixTextFinderView(QWidget):
         python_file.write("    rect = RectFinder(\"test\")" + "\n")
         python_file.write("    rect.set_main_rect({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": 15, \"width_tolerance\": 15}," + "\n")
         
-        for sub_template in self._sub_texts_finder:
+        for sub_text in self._sub_texts_finder:
             if sub_text.height != 0 and sub_text.width !=0:
             
                 x = str(sub_text.x - self._main_text.x)
@@ -1337,7 +1557,7 @@ class AlyvixTextFinderView(QWidget):
                 height = str(sub_text.height)
                 width = str(sub_text.width)
                 
-                python_file.write("    rect.add_sub_template({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": 15, \"width_tolerance\": 15}," + "\n")
+                python_file.write("    rect.add_sub_text({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": 15, \"width_tolerance\": 15}," + "\n")
                 python_file.write("                      {\"roi_x\": " + x + ", \"roi_y\": " + y + ", \"roi_width\": " + width + ", \"roi_height\": " + height + "})" + "\n")
         
         """
@@ -1372,6 +1592,11 @@ class AlyvixTextFinderView(QWidget):
         self._main_text.timeout = int(root_node.attributes["timeout"].value)
         self._main_text.args_number = int(root_node.attributes["args"].value)
         
+        if root_node.attributes["timeout_exception"].value == "True":
+            self._main_text.timeout_exception = True
+        else:
+            self._main_text.timeout_exception = False
+        
         self._main_text.x = int(main_text_node.getElementsByTagName("x")[0].firstChild.nodeValue)
         self._main_text.y = int(main_text_node.getElementsByTagName("y")[0].firstChild.nodeValue)
         self._main_text.height = int(main_text_node.getElementsByTagName("height")[0].firstChild.nodeValue)
@@ -1381,8 +1606,16 @@ class AlyvixTextFinderView(QWidget):
         #self._main_text.text = main_text_node.getElementsByTagName("text")[0].firstChild.nodeValue
         
         try:
+            #self._main_text.text = main_text_node.getElementsByTagName("text")[0].toxml()
+            
+            if main_text_node.getElementsByTagName("text")[0].attributes["quotes"].value == "True":
+                self._main_text.quotes_ocr = True
+            else:
+                self._main_text.quotes_ocr = False
+            
             self._main_text.text = main_text_node.getElementsByTagName("text")[0].toxml()
-            self._main_text.text = self._main_text.text.replace("<text><!-- -->","")
+            self._main_text.text = self._main_text.text.replace("<text quotes=\"False\"><!-- -->","")
+            self._main_text.text = self._main_text.text.replace("<text quotes=\"True\"><!-- -->","")
             self._main_text.text = self._main_text.text.replace("<!-- --></text>","")
             self._main_text.text = self._main_text.text.replace("<![CDATA[","")
             self._main_text.text = self._main_text.text.replace("]]>","")
@@ -1428,6 +1661,16 @@ class AlyvixTextFinderView(QWidget):
         else:
             self._main_text.doubleclick = False
             
+        if "True" in main_text_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
+            self._main_text.rightclick = True
+        else:
+            self._main_text.rightclick = False
+            
+        if "True" in main_text_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
+            self._main_text.mousemove = True
+        else:
+            self._main_text.mousemove = False
+            
         if "True" in root_node.attributes["enable_performance"].value:
             self._main_text.enable_performance = True
         else:
@@ -1437,9 +1680,22 @@ class AlyvixTextFinderView(QWidget):
             
         self._main_text.critical = float(root_node.attributes["critical_value"].value)
         
+        if main_text_node.getElementsByTagName("sendkeys")[0].attributes["encrypted"].value == "True":
+            self._main_text.text_encrypted = True
+        else:
+            self._main_text.text_encrypted = False
+            
+        if main_text_node.getElementsByTagName("sendkeys")[0].attributes["quotes"].value == "True":
+            self._main_text.sendkeys_quotes = True
+        else:
+            self._main_text.sendkeys_quotes = False
+        
         try:
             self._main_text.sendkeys = main_text_node.getElementsByTagName("sendkeys")[0].toxml()
-            self._main_text.sendkeys = self._main_text.sendkeys.replace("<sendkeys><!-- -->","")
+            self._main_text.sendkeys = self._main_text.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"False\"><!-- -->","")
+            self._main_text.sendkeys = self._main_text.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"True\"><!-- -->","")
+            self._main_text.sendkeys = self._main_text.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"False\"><!-- -->","")
+            self._main_text.sendkeys = self._main_text.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"True\"><!-- -->","")
             self._main_text.sendkeys = self._main_text.sendkeys.replace("<!-- --></sendkeys>","")
             self._main_text.sendkeys = self._main_text.sendkeys.replace("<![CDATA[","")
             self._main_text.sendkeys = self._main_text.sendkeys.replace("]]>","")
@@ -1470,8 +1726,16 @@ class AlyvixTextFinderView(QWidget):
             #sub_text_obj.text = sub_text_node.getElementsByTagName("text")[0].firstChild.nodeValue
             
             try:
-                sub_text_obj.text = sub_text_node.getElementsByTagName("text")[0].toxml()                
-                sub_text_obj.text = sub_text_obj.text.replace("<text><!-- -->","")
+                #self._main_text.text = main_text_node.getElementsByTagName("text")[0].toxml()
+            
+                if sub_text_node.getElementsByTagName("text")[0].attributes["quotes"].value == "True":
+                    sub_text_obj.quotes_ocr = True
+                else:
+                    sub_text_obj.quotes_ocr = False
+                
+                sub_text_obj.text = sub_text_node.getElementsByTagName("text")[0].toxml()
+                sub_text_obj.text = sub_text_obj.text.replace("<text quotes=\"False\"><!-- -->","")
+                sub_text_obj.text = sub_text_obj.text.replace("<text quotes=\"True\"><!-- -->","")
                 sub_text_obj.text = sub_text_obj.text.replace("<!-- --></text>","")
                 sub_text_obj.text = sub_text_obj.text.replace("<![CDATA[","")
                 sub_text_obj.text = sub_text_obj.text.replace("]]>","")
@@ -1506,10 +1770,33 @@ class AlyvixTextFinderView(QWidget):
                 sub_text_obj.doubleclick = True
             else:
                 sub_text_obj.doubleclick = False
+                
+            if "True" in sub_text_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
+                sub_text_obj.rightclick = True
+            else:
+                sub_text_obj.rightclick = False
+                
+            if "True" in sub_text_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
+                sub_text_obj.mousemove = True
+            else:
+                sub_text_obj.mousemove = False
+                
+            if sub_text_node.getElementsByTagName("sendkeys")[0].attributes["encrypted"].value == "True":
+                sub_text_obj.text_encrypted = True
+            else:
+                sub_text_obj.text_encrypted = False
+                
+            if sub_text_node.getElementsByTagName("sendkeys")[0].attributes["quotes"].value == "True":
+                sub_text_obj.sendkeys_quotes = True
+            else:
+                sub_text_obj.sendkeys_quotes = False
             
             try:
                 sub_text_obj.sendkeys = sub_text_node.getElementsByTagName("sendkeys")[0].toxml()                
-                sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<sendkeys><!-- -->","")
+                sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"False\"><!-- -->","")
+                sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"True\"><!-- -->","")
+                sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"False\"><!-- -->","")
+                sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"True\"><!-- -->","")
                 sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<!-- --></sendkeys>","")
                 sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<![CDATA[","")
                 sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("]]>","")
@@ -1612,6 +1899,7 @@ class MainTextForGui:
         self.show = True
         #self.threshold = 0.7
         self.text = ""
+        self.quotes_ocr = True
         self.whitelist = "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@"
         self.lang = "eng"
         self.path = ""
@@ -1624,12 +1912,17 @@ class MainTextForGui:
         self.deleted_height = None
         self.deleted_width = None
         self.click = False
+        self.rightclick = False
+        self.mousemove = False
         self.doubleclick = False
         self.wait = True
         self.find = False
         self.args_number = 0
         self.timeout = 60
+        self.timeout_exception = True
         self.sendkeys = ""
+        self.sendkeys_quotes = True
+        self.text_encrypted = False
         self.enable_performance = True
         self.warning = 15.00
         self.critical = 40.00
@@ -1643,6 +1936,7 @@ class SubTextForGui:
         self.width = 0
         #self.threshold = 0.7
         self.text = ""
+        self.quotes_ocr = True
         self.whitelist = "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@"
         self.lang = "eng"
         self.path = ""
@@ -1657,8 +1951,12 @@ class SubTextForGui:
         self.args_number = 0
         self.show = True
         self.click = False
+        self.rightclick = False
+        self.mousemove = False
         self.doubleclick = False
         self.sendkeys = ""
+        self.sendkeys_quotes = True
+        self.text_encrypted = False
         
 class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
     def __init__(self, parent):
@@ -1680,7 +1978,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         """
         
         self.textEdit = LineTextWidget(self.tab_code)
-        self.textEdit.setGeometry(QRect(8, 9, 520, 225))
+        self.textEdit.setGeometry(QRect(8, 9, 535, 255))
         self.textEdit.setText(self.parent.build_code_string())
         #self.textEdit.setStyleSheet("font-family: Currier New;")
         
@@ -1713,14 +2011,21 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if self.parent.action == "edit":
             self.namelineedit.setEnabled(False)
             
+        if self.parent._main_text.timeout_exception is False:
+            self.timeout_exception.setChecked(False)
+        else:
+            self.timeout_exception.setChecked(True)
+            
         if self.parent._main_text.find is True:
             self.find_radio.setChecked(True)
             self.timeout_label.setEnabled(False)
             self.timeout_spinbox.setEnabled(False)
+            self.timeout_exception.setEnabled(False)
         else:
             self.find_radio.setChecked(False)
             self.timeout_label.setEnabled(True)
             self.timeout_spinbox.setEnabled(True)
+            self.timeout_exception.setEnabled(True)
             
         """
         if self.parent._main_text.wait is True:
@@ -1739,10 +2044,38 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.doubleclickRadio.setChecked(False)
             
-        if self.parent._main_text.click is False and self.parent._main_text.doubleclick is False:
+        if self.parent._main_text.rightclick is True:
+            self.rightclickRadio.setChecked(True)
+        else:
+            self.rightclickRadio.setChecked(False)
+            
+        if self.parent._main_text.mousemove is True:
+            self.movemouseRadio.setChecked(True)
+        else:
+            self.movemouseRadio.setChecked(False)
+            
+        if self.parent._main_text.click is False \
+            and self.parent._main_text.doubleclick is False \
+            and self.parent._main_text.mousemove is False\
+            and self.parent._main_text.rightclick is False:
             self.dontclickRadio.setChecked(True)
         else:
             self.dontclickRadio.setChecked(False)
+            
+        if self.parent._main_text.text_encrypted is False:
+            self.text_encrypted.setChecked(False)
+        else:
+            self.text_encrypted.setChecked(True)
+            
+        if self.parent._main_text.sendkeys_quotes is False:
+            self.add_quotes.setChecked(False)
+        else:
+            self.add_quotes.setChecked(True)
+            
+        if self.parent._main_text.quotes_ocr is False:
+            self.add_quotes_ocr.setChecked(False)
+        else:
+            self.add_quotes_ocr.setChecked(True)
                     
         self.widget_2.hide()
         
@@ -1755,7 +2088,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 continue
             item = QListWidgetItem()
             item.setCheckState(Qt.Checked)
-            item.setText("sub_text_" + str(cnt))
+            item.setText("sub_component_" + str(cnt))
             self.listWidget.addItem(item)
             cnt = cnt + 1
             
@@ -1763,12 +2096,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.listWidget.item(0).setSelected(True)
         
         self.timeout_spinbox.setValue(self.parent._main_text.timeout)      
-        self.inserttext.setPlainText(self.parent._main_text.sendkeys)       
+        self.inserttext.setText(self.parent._main_text.sendkeys)       
 
         if self.parent._main_text.sendkeys == "":
-            self.inserttext.setPlainText("Type here the Keyboard macro")
+            self.inserttext.setText("Insert here the Keystroke to send")
         else:
-            self.inserttext.setPlainText(unicode(self.parent._main_text.sendkeys, 'utf-8'))       
+            self.inserttext.setText(unicode(self.parent._main_text.sendkeys, 'utf-8'))       
             
         if self.parent._main_text.text == "":
             self.lineEditText.setText("Type here the Text to find")
@@ -1790,14 +2123,19 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
         self.connect(self.wait_radio, SIGNAL('toggled(bool)'), self.wait_radio_event)
         self.connect(self.timeout_spinbox, SIGNAL('valueChanged(int)'), self.timeout_spinbox_event)
+        self.connect(self.timeout_exception, SIGNAL('stateChanged(int)'), self.timeout_exception_event)
+        
+        self.connect(self.add_quotes_ocr, SIGNAL('stateChanged(int)'), self.add_quotes_ocr_event)
         
         self.connect(self.clickRadio, SIGNAL('toggled(bool)'), self.clickRadio_event)
         self.connect(self.doubleclickRadio, SIGNAL('toggled(bool)'), self.doubleclickRadio_event)
+        self.connect(self.rightclickRadio, SIGNAL('toggled(bool)'), self.rightclickRadio_event)
+        self.connect(self.movemouseRadio, SIGNAL('toggled(bool)'), self.movemouseRadio_event)
         self.connect(self.dontclickRadio, SIGNAL('toggled(bool)'), self.dontclickRadio_event)
         
         self.connect(self.pushButtonCheck, SIGNAL('clicked()'), self.check_text)
         
-        self.connect(self.inserttext, SIGNAL("textChanged()"), self, SLOT("inserttext_event()"))
+        self.connect(self.inserttext, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event(QString)"))
         self.connect(self.namelineedit, SIGNAL("textChanged(QString)"), self, SLOT("namelineedit_event(QString)"))
         #self.connect(self.inserttext, SIGNAL('cursorPositionChanged ( int, int)'), self.inserttext_textchanged_event)
         self.connect(self.pushButtonAddBlock, SIGNAL('clicked()'), self.add_block_code)
@@ -1809,8 +2147,11 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.lineEditWhiteList, SIGNAL("textChanged(QString)"), self, SLOT("lineEditWhiteList_event(QString)"))
         
         
-        self.inserttext.viewport().installEventFilter(self)
+        #self.inserttext.viewport().installEventFilter(self)
         self.inserttext.installEventFilter(self)
+        
+        self.connect(self.add_quotes, SIGNAL('stateChanged(int)'), self.add_quotes_event)
+        self.connect(self.text_encrypted, SIGNAL('stateChanged(int)'), self.text_encrypted_event)
         
         self.namelineedit.installEventFilter(self)
         
@@ -1823,8 +2164,13 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.spinBoxArgs, SIGNAL('valueChanged(int)'), self.args_spinbox_change_event)
         self.lineEditText.installEventFilter(self)
         
+        self.connect(self.pushButtonOk, SIGNAL('clicked()'), self.pushButtonOk_event)
+        self.connect(self.pushButtonCancel, SIGNAL('clicked()'), self.pushButtonCancel_event)
+        
         ###########
         ###########
+        
+        self.connect(self.add_quotes_ocr_2, SIGNAL('stateChanged(int)'), self.add_quotes_ocr_event_2)
         
         self.connect(self.roi_x_spinbox, SIGNAL('valueChanged(int)'), self.roi_x_spinbox_event)
         self.connect(self.roi_y_spinbox, SIGNAL('valueChanged(int)'), self.roi_y_spinbox_event)
@@ -1835,16 +2181,21 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
         self.connect(self.clickRadio_2, SIGNAL('toggled(bool)'), self.clickRadio_event_2)
         self.connect(self.doubleclickRadio_2, SIGNAL('toggled(bool)'), self.doubleclickRadio_event_2)
+        self.connect(self.movemouseRadio_2, SIGNAL('toggled(bool)'), self.movemouseRadio_event_2)
+        self.connect(self.rightclickRadio_2, SIGNAL('toggled(bool)'), self.rightclickRadio_event_2)
         self.connect(self.dontclickRadio_2, SIGNAL('toggled(bool)'), self.dontclickRadio_event_2)
         
-        self.connect(self.inserttext_2, SIGNAL("textChanged()"), self, SLOT("inserttext_event_2()"))
+        self.connect(self.inserttext_2, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event_2(QString)"))
         #self.connect(self.inserttext, SIGNAL('cursorPositionChanged ( int, int)'), self.inserttext_textchanged_event)
         self.connect(self.lineEditText_2, SIGNAL("textChanged(QString)"), self, SLOT("lineEditText_2_event(QString)"))
         self.connect(self.lineEditLang_2, SIGNAL("textChanged(QString)"), self, SLOT("lineEditLang2_event(QString)"))
         self.connect(self.lineEditWhiteList_2, SIGNAL("textChanged(QString)"), self, SLOT("lineEditWhiteList2_event(QString)"))
         
-        self.inserttext_2.viewport().installEventFilter(self)
+        #self.inserttext_2.viewport().installEventFilter(self)
         self.inserttext_2.installEventFilter(self)
+        
+        self.connect(self.text_encrypted_2, SIGNAL('stateChanged(int)'), self.text_encrypted_event_2)
+        self.connect(self.add_quotes_2, SIGNAL('stateChanged(int)'), self.add_quotes_event_2)
         
         self.textEditCustomLines.installEventFilter(self)
         self.lineEditText_2.installEventFilter(self)
@@ -1852,8 +2203,23 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.roi_height_spinbox.installEventFilter(self)
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)
+        
+    def pushButtonCancel_event(self):
+        self.close()
+        self.parent.cancel_all()
+
+    def pushButtonOk_event(self):
+        answer = QMessageBox.Yes
+        if self.parent._main_text.name == "":
+            answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
+        
+        if answer == QMessageBox.Yes:
+            self.close()
+            self.parent.save_all()
   
     def check_text(self):
+        if not os.path.exists(self.parent._path):
+            os.makedirs(self.parent._path)
         image_name = self.parent._path + os.sep + time.strftime("text_finder_%d_%m_%y_%H_%M_%S_temp_img.png")
         self.parent._bg_pixmap.save(image_name,"PNG", -1)
         time.sleep(0.05)
@@ -2040,12 +2406,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
-            self.widget.setGeometry(QRect(149, 9, 381, 291))
+            self.widget.setGeometry(QRect(173, 9, 381, 306))
 
         else:
             self.widget.hide()
             self.widget_2.show()
-            self.widget_2.setGeometry(QRect(149, 9, 381, 311))
+            self.widget_2.setGeometry(QRect(173, 9, 381, 283))
             self.sub_text_index = selected_index - 1
             self.update_sub_text_view()
 
@@ -2089,14 +2455,35 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
     def timeout_spinbox_event(self, event):
         self.parent._main_text.timeout = self.timeout_spinbox.value()
+        
+    def timeout_exception_event(self, event):
+        if self.timeout_exception.isChecked() is True:
+            self.parent._main_text.timeout_exception = True
+        else:
+            self.parent._main_text.timeout_exception = False
 
     def update_sub_text_view(self):
         index = self.sub_text_index
         
         if self.parent._sub_texts_finder[index].sendkeys == "":
-            self.inserttext_2.setPlainText("Type here the Keyboard macro")
+            self.inserttext_2.setText("Insert here the Keystroke to send")
         else:
-            self.inserttext_2.setPlainText(unicode(self.parent._sub_texts_finder[index].sendkeys, 'utf-8'))
+            self.inserttext_2.setText(unicode(self.parent._sub_texts_finder[index].sendkeys, 'utf-8'))
+            
+        if self.parent._sub_texts_finder[index].text_encrypted is False:
+            self.text_encrypted_2.setChecked(False)
+        else:
+            self.text_encrypted_2.setChecked(True)
+            
+        if self.parent._sub_texts_finder[index].sendkeys_quotes is False:
+            self.add_quotes_2.setChecked(False)
+        else:
+            self.add_quotes_2.setChecked(True)
+            
+        if self.parent._sub_texts_finder[index].quotes_ocr is False:
+            self.add_quotes_ocr_2.setChecked(False)
+        else:
+            self.add_quotes_ocr_2.setChecked(True)
             
         if self.parent._sub_texts_finder[index].text == "":
             self.lineEditText_2.setText("Type here the Text to find")
@@ -2122,7 +2509,20 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.doubleclickRadio_2.setChecked(False)
             
-        if self.parent._sub_texts_finder[self.sub_text_index].click is False and self.parent._sub_texts_finder[self.sub_text_index].doubleclick is False:
+        if self.parent._sub_texts_finder[self.sub_text_index].rightclick is True:
+            self.rightclickRadio_2.setChecked(True)
+        else:
+            self.rightclickRadio_2.setChecked(False)
+            
+        if self.parent._sub_texts_finder[self.sub_text_index].mousemove is True:
+            self.movemouseRadio_2.setChecked(True)
+        else:
+            self.movemouseRadio_2.setChecked(False)
+            
+        if self.parent._sub_texts_finder[self.sub_text_index].click is False \
+            and self.parent._sub_texts_finder[self.sub_text_index].doubleclick is False \
+            and self.parent._sub_texts_finder[self.sub_text_index].rightclick is False \
+            and self.parent._sub_texts_finder[self.sub_text_index].mousemove is False:
             self.dontclickRadio_2.setChecked(True)
         else:
             self.dontclickRadio_2.setChecked(False)
@@ -2138,18 +2538,49 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.parent._main_text.doubleclick = False
         else:
             self.parent._main_text.doubleclick = True 
+            
+                        
+    def rightclickRadio_event(self, event):
+        if event is False:
+            self.parent._main_text.rightclick = False
+        else:
+            self.parent._main_text.rightclick = True 
+            
+    def movemouseRadio_event(self, event):
+        if event is False:
+            self.parent._main_text.mousemove = False
+        else:
+            self.parent._main_text.mousemove = True 
              
     def dontclickRadio_event(self, event):
         if event is True:
             self.parent._main_text.click = False
             self.parent._main_text.doubleclick = False
             
-    @pyqtSlot()
-    def inserttext_event(self):
-        if self.inserttext.toPlainText() == "Type here the Keyboard macro" or self.inserttext.toPlainText() == "#k.send('Type here the key')":
+    @pyqtSlot(QString)
+    def inserttext_event(self, text):
+        if self.inserttext.text() == "Insert here the Keystroke to send": #or self.inserttext.text() == "#k.send('Type here the key')":
             self.parent._main_text.sendkeys = "".encode('utf-8')
         else:
-            self.parent._main_text.sendkeys = str(self.inserttext.toPlainText().toUtf8())
+            self.parent._main_text.sendkeys = str(text.toUtf8()) #str(self.inserttext.text().toUtf8())
+            
+    def text_encrypted_event(self, event):
+        if self.text_encrypted.isChecked() is True:
+            self.parent._main_text.text_encrypted = True
+        else:
+            self.parent._main_text.text_encrypted = False
+    
+    def add_quotes_event(self, event):
+        if self.add_quotes.isChecked() is True:
+            self.parent._main_text.sendkeys_quotes = True
+        else:
+            self.parent._main_text.sendkeys_quotes = False
+            
+    def add_quotes_ocr_event(self, event):
+        if self.add_quotes_ocr.isChecked() is True:
+            self.parent._main_text.quotes_ocr = True
+        else:
+            self.parent._main_text.quotes_ocr = False
     
     @pyqtSlot(QString)    
     def lineEditText_event(self, text):
@@ -2186,17 +2617,14 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 self.namelineedit.setText("")
                 return True
         
-            if obj.objectName() == 'qt_scrollarea_viewport':    
-               
-                parent_obj_name = obj.parent().objectName()
-               
-                if self.inserttext.toPlainText() == "Type here the Keyboard macro" and parent_obj_name == "inserttext":
-                    self.inserttext.setPlainText("#k.send('Type here the key')")
-                    return True
+
+            if self.inserttext.text() == "Insert here the Keystroke to send" and obj.objectName() == "inserttext":
+                self.inserttext.setText("")
+                return True
                     
-                if self.inserttext_2.toPlainText() == "Type here the Keyboard macro" and parent_obj_name == "inserttext_2":
-                    self.inserttext_2.setPlainText("#k.send('Type here the key')")
-                    return True
+            if self.inserttext_2.text() == "Insert here the Keystroke to send" and obj.objectName() == "inserttext_2":
+                self.inserttext_2.setText("")
+                return True
                 
             if self.lineEditText.text() == "Type here the Text to find" and obj.objectName() == "lineEditText":
                 self.lineEditText.setText("")
@@ -2273,12 +2701,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 self.namelineedit.setText(self.parent._main_text.name)
                 return True
         
-            if (self.inserttext.toPlainText() == "" or self.inserttext.toPlainText() == "#k.send('Type here the key')") and obj.objectName() == "inserttext":
-                self.inserttext.setPlainText("Type here the Keyboard macro")
+            if self.inserttext.text() == "" and obj.objectName() == "inserttext":
+                self.inserttext.setText("Insert here the Keystroke to send")
                 return True
                 
-            if (self.inserttext_2.toPlainText() == "" or self.inserttext_2.toPlainText() == "#k.send('Type here the key')") and obj.objectName() == "inserttext_2":
-                self.inserttext_2.setPlainText("Type here the Keyboard macro")
+            if self.inserttext_2.text() == "" and obj.objectName() == "inserttext_2":
+                self.inserttext_2.setText("Insert here the Keystroke to send")
                 return True
                 
             if self.lineEditText.text() == "" and obj.objectName() == "lineEditText":
@@ -2522,8 +2950,28 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
 ############
 ############
+
+    def text_encrypted_event_2(self, event):
+        if self.text_encrypted_2.isChecked() is True:
+            self.parent._sub_texts_finder[self.sub_text_index].text_encrypted = True
+        else:
+            self.parent._sub_texts_finder[self.sub_text_index].text_encrypted = False
+    
+    def add_quotes_event_2(self, event):
+        if self.add_quotes_2.isChecked() is True:
+            self.parent._sub_texts_finder[self.sub_text_index].sendkeys_quotes = True
+        else:
+            self.parent._sub_texts_finder[self.sub_text_index].sendkeys_quotes = False
+            
+    def add_quotes_ocr_event_2(self, event):
+        if self.add_quotes_ocr_2.isChecked() is True:
+            self.parent._sub_texts_finder[self.sub_text_index].quotes_ocr = True
+        else:
+            self.parent._sub_texts_finder[self.sub_text_index].quotes_ocr = False
         
     def check_text_2(self):
+        if not os.path.exists(self.parent._path):
+            os.makedirs(self.parent._path)
         image_name = self.parent._path + os.sep + time.strftime("text_finder_%d_%m_%y_%H_%M_%S_temp_img.png")
         self.parent._bg_pixmap.save(image_name,"PNG", -1)
         time.sleep(0.05)
@@ -2554,14 +3002,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.check_window = AlyvixTextCheck(text, result_flag)
         self.check_window.show()
         
-    @pyqtSlot()
-    def inserttext_event_2(self):
-        if self.inserttext_2.toPlainText() == "Type here the Keyboard macro" or self.inserttext_2.toPlainText() == "#k.send('Type here the key')":
+    @pyqtSlot(QString)
+    def inserttext_event_2(self, text):
+        if self.inserttext_2.text() == "Insert here the Keystroke to send":
             self.parent._sub_texts_finder[self.sub_text_index].sendkeys = "".encode('utf-8')
         else:
-            self.parent._sub_texts_finder[self.sub_text_index].sendkeys = str(self.inserttext_2.toPlainText().toUtf8())
-            
-        print "text:", self.parent._sub_texts_finder[self.sub_text_index].sendkeys
+            self.parent._sub_texts_finder[self.sub_text_index].sendkeys = str(text.toUtf8())
 
             
     @pyqtSlot(QString)    
@@ -2728,6 +3174,19 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.parent._sub_texts_finder[self.sub_text_index].doubleclick = False
         else:
             self.parent._sub_texts_finder[self.sub_text_index].doubleclick = True 
+            
+                        
+    def movemouseRadio_event_2(self, event):
+        if event is False:
+            self.parent._sub_texts_finder[self.sub_text_index].mousemove = False
+        else:
+            self.parent._sub_texts_finder[self.sub_text_index].mousemove = True 
+            
+    def rightclickRadio_event_2(self, event):
+        if event is False:
+            self.parent._sub_texts_finder[self.sub_text_index].rightclick = False
+        else:
+            self.parent._sub_texts_finder[self.sub_text_index].rightclick = True 
              
     def dontclickRadio_event_2(self, event):
         if event is True:

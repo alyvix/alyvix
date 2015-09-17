@@ -91,12 +91,14 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.button_selected = "set_main_object"
         
         self.esc_pressed = False
+        self.ok_pressed = False
         
         self._main_object_finder = MainObjectForGui()
         self._sub_objects_finder = []
         self._deleted_sub_objects = []
         
         self._code_lines = []
+        self._arg_index_processed = 0
         self._code_lines_for_object_finder = []
         
         self._code_blocks = []
@@ -108,6 +110,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self.build_objects()
         #print self._main_object_finder.xml_path
+        self._old_main_object = copy.deepcopy(self._main_object_finder)
+        self._old_sub_objects = copy.deepcopy(self._sub_objects_finder)
         
         self.__old_code = self.get_old_code()
         #self.__alyvix_proxy_path = os.getenv("ALYVIX_HOME") + os.sep + "robotproxy"
@@ -138,25 +142,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.find_radio.setChecked(True)
             self.timeout_label.setEnabled(False)
             self.timeout_spinbox.setEnabled(False)
+            self.timeout_exception.setEnabled(False)
         else:
             self.find_radio.setChecked(False)
             self.timeout_label.setEnabled(True)
             self.timeout_spinbox.setEnabled(True)
-
-        if self._main_object_finder.click is True:
-            self.clickRadio.setChecked(True)
-        else:
-            self.clickRadio.setChecked(False)
-            
-        if self._main_object_finder.doubleclick is True:
-            self.doubleclickRadio.setChecked(True)
-        else:
-            self.doubleclickRadio.setChecked(False)
-            
-        if self._main_object_finder.click is False and self._main_object_finder.doubleclick is False:
-            self.dontclickRadio.setChecked(True)
-        else:
-            self.dontclickRadio.setChecked(False)
+            self.timeout_exception.setEnabled(True)
                     
         self.widget_2.hide()
         
@@ -187,13 +178,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         #self.listWidget.setCurrentIndex(QModelIndex(self.listWidget.rootIndex()))
         #self.listWidget.item(0).setSelected(True)
         self.timeout_spinbox.setValue(self._main_object_finder.timeout)      
-        self.inserttext.setPlainText(self._main_object_finder.sendkeys)       
-
-        if self._main_object_finder.sendkeys == "":
-            self.inserttext.setPlainText("Type here the Keyboard macro")
+        
+        if self._main_object_finder.timeout_exception is False:
+            self.timeout_exception.setChecked(False)
         else:
-            self.inserttext.setPlainText(unicode(self._main_object_finder.sendkeys, 'utf-8'))       
-
+            self.timeout_exception.setChecked(True)
+        
         if self._main_object_finder.name == "":
             self.namelineedit.setText("Type here the name of the object")
         else:
@@ -209,19 +199,20 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self.connect(self.wait_radio, SIGNAL('toggled(bool)'), self.wait_radio_event)
         self.connect(self.timeout_spinbox, SIGNAL('valueChanged(int)'), self.timeout_spinbox_event)
+        self.connect(self.timeout_exception, SIGNAL('stateChanged(int)'), self.timeout_exception_event)
         
-        self.connect(self.clickRadio, SIGNAL('toggled(bool)'), self.clickRadio_event)
-        self.connect(self.doubleclickRadio, SIGNAL('toggled(bool)'), self.doubleclickRadio_event)
-        self.connect(self.dontclickRadio, SIGNAL('toggled(bool)'), self.dontclickRadio_event)
+        #self.connect(self.clickRadio, SIGNAL('toggled(bool)'), self.clickRadio_event)
+        #self.connect(self.doubleclickRadio, SIGNAL('toggled(bool)'), self.doubleclickRadio_event)
+        #self.connect(self.dontclickRadio, SIGNAL('toggled(bool)'), self.dontclickRadio_event)
         
-        self.connect(self.inserttext, SIGNAL("textChanged()"), self, SLOT("inserttext_event()"))
+        #self.connect(self.inserttext, SIGNAL("textChanged()"), self, SLOT("inserttext_event()"))
         self.connect(self.namelineedit, SIGNAL("textChanged(QString)"), self, SLOT("namelineedit_event(QString)"))
         self.connect(self.pushButtonAddBlock, SIGNAL('clicked()'), self.add_block_code)
         self.connect(self.pushButtonRemoveBlock, SIGNAL('clicked()'), self.remove_block_code)
         self.connect(self.listWidgetBlocks, SIGNAL('itemSelectionChanged()'), self.listWidgetBlocks_selection_changed)
         
-        self.inserttext.viewport().installEventFilter(self)
-        self.inserttext.installEventFilter(self)
+        #self.inserttext.viewport().installEventFilter(self)
+        #self.inserttext.installEventFilter(self)
         
         self.namelineedit.installEventFilter(self)
         
@@ -238,6 +229,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.connect(self.pushButtonEditObj, SIGNAL('clicked()'), self.edit_obj)
         self.connect(self.pushButtonRemoveObj, SIGNAL('clicked()'), self.remove_obj)
         
+        self.connect(self.pushButtonOk, SIGNAL('clicked()'), self.pushButtonOk_event)
+        self.connect(self.pushButtonCancel, SIGNAL('clicked()'), self.pushButtonCancel_event)
+        
         ##################
         ##################
         
@@ -246,14 +240,17 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.connect(self.roi_height_spinbox, SIGNAL('valueChanged(int)'), self.roi_height_spinbox_event)
         self.connect(self.roi_width_spinbox, SIGNAL('valueChanged(int)'), self.roi_width_spinbox_event)
         
-        self.connect(self.clickRadio_2, SIGNAL('toggled(bool)'), self.clickRadio_event_2)
-        self.connect(self.doubleclickRadio_2, SIGNAL('toggled(bool)'), self.doubleclickRadio_event_2)
-        self.connect(self.dontclickRadio_2, SIGNAL('toggled(bool)'), self.dontclickRadio_event_2)
+        #self.connect(self.clickRadio_2, SIGNAL('toggled(bool)'), self.clickRadio_event_2)
+        #self.connect(self.doubleclickRadio_2, SIGNAL('toggled(bool)'), self.doubleclickRadio_event_2)
+        #self.connect(self.dontclickRadio_2, SIGNAL('toggled(bool)'), self.dontclickRadio_event_2)
         
-        self.connect(self.inserttext_2, SIGNAL("textChanged()"), self, SLOT("inserttext_event_2()"))
+        #self.connect(self.inserttext_2, SIGNAL("textChanged()"), self, SLOT("inserttext_event_2()"))
         
-        self.inserttext_2.viewport().installEventFilter(self)
-        self.inserttext_2.installEventFilter(self)
+        #self.inserttext_2.viewport().installEventFilter(self)
+        #self.inserttext_2.installEventFilter(self)
+        
+        self.connect(self.pushButtonEditObj_2, SIGNAL('clicked()'), self.edit_obj_2)
+        self.connect(self.pushButtonRemoveObj_2, SIGNAL('clicked()'), self.remove_obj_2)
         
         self.textEditCustomLines.installEventFilter(self)
         self.roi_y_spinbox.installEventFilter(self)
@@ -261,9 +258,49 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)
         
+    def save_all(self):
+        if self._main_object_finder != None and self.ok_pressed is False:
+            self.ok_pressed = True
+            self.build_code_array()
+            self.build_xml()
+            self.save_python_file()
+            self.update_lock_list()
+            self.build_perf_data_xml()
+            #image_name = self._path + os.sep + self._main_object_finder.name + "_ImageFinder.png"
+            #self._bg_pixmap.save(image_name,"PNG", -1)
+            #self.save_template_images(image_name)
+            #time.sleep(0.4)
+            if self.action == "new":
+                self.parent.add_new_item_on_list()
+            
+        self.parent.show()
+        self.close()
+        
+    def cancel_all(self):
+        self._main_object_finder = copy.deepcopy(self._old_main_object)
+        self._sub_objects_finder = copy.deepcopy(self._old_sub_objects)
+        self.parent.show()
+        self.close()
+        
+    def pushButtonCancel_event(self):
+        self.close()
+        self.cancel_all()
+
+    def pushButtonOk_event(self):
+        answer = QMessageBox.Yes
+        if self.parent._main_rect_finder.name == "":
+            answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
+
+        if answer == QMessageBox.Yes:
+            self.close()
+            self.parent.save_all()
         
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
+            pass
+            """
+            self.parent.show()
+            self.close()
             if self._main_object_finder != None and self.esc_pressed is False and self._main_object_finder.xml_path != "":
                 self.esc_pressed = True
                 self.build_code_array()
@@ -280,6 +317,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 
             self.parent.show()
             self.close()
+            """
     
     def delete_lock_list(self):
         filename = self._path + os.sep + "lock_list.xml"
@@ -422,6 +460,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         #self._main_object_finder.find = main_obj_node.attributes["find"].value
         #self._main_object_finder.wait = main_obj_node.attributes["wait"].value
         self._main_object_finder.timeout = int(root_node.attributes["timeout"].value)
+        
+        if root_node.attributes["timeout_exception"].value == "True":
+            self._main_object_finder.timeout_exception = True
+        else:
+            self._main_object_finder.timeout_exception = False
+        
         self._main_object_finder.args_number = int(root_node.attributes["args"].value)
         
         if "True" in root_node.attributes["find"].value: #main_obj_node.getElementsByTagName("find")[0].firstChild.nodeValue:
@@ -434,16 +478,6 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         else:
             self._main_object_finder.wait = False    
             
-        if "True" in main_obj_node.getElementsByTagName("click")[0].firstChild.nodeValue:
-            self._main_object_finder.click = True
-        else:
-            self._main_object_finder.click = False
-            
-        if "True" in main_obj_node.getElementsByTagName("doubleclick")[0].firstChild.nodeValue:
-            self._main_object_finder.doubleclick = True
-        else:
-            self._main_object_finder.doubleclick = False
-            
         if "True" in root_node.attributes["enable_performance"].value:
             self._main_object_finder.enable_performance = True
         else:
@@ -452,16 +486,6 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self._main_object_finder.warning = float(root_node.attributes["warning_value"].value)
             
         self._main_object_finder.critical = float(root_node.attributes["critical_value"].value)
-        
-        try:
-            self._main_object_finder.sendkeys = main_obj_node.getElementsByTagName("sendkeys")[0].toxml()
-            self._main_object_finder.sendkeys = self._main_object_finder.sendkeys.replace("<sendkeys><!-- -->","")
-            self._main_object_finder.sendkeys = self._main_object_finder.sendkeys.replace("<!-- --></sendkeys>","")
-            self._main_object_finder.sendkeys = self._main_object_finder.sendkeys.replace("<![CDATA[","")
-            self._main_object_finder.sendkeys = self._main_object_finder.sendkeys.replace("]]>","")
-            self._main_object_finder.sendkeys = self._main_object_finder.sendkeys.encode('utf-8')
-        except AttributeError:
-            self._main_object_finder.sendkeys = ''.encode('utf-8')
         
         #self.__flag_capturing_main_rect = False
         #self.__flag_capturing_sub_rect_roi = True
@@ -504,26 +528,6 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             sub_object.roi_y = int(sub_object_node.getElementsByTagName("roi_y")[0].firstChild.nodeValue)
             sub_object.roi_width = int(sub_object_node.getElementsByTagName("roi_width")[0].firstChild.nodeValue)
             sub_object.roi_height = int(sub_object_node.getElementsByTagName("roi_height")[0].firstChild.nodeValue)
-                
-            if "True" in sub_object_node.getElementsByTagName("click")[0].firstChild.nodeValue:
-                sub_object.click = True
-            else:
-                sub_object.click = False
-                
-            if "True" in sub_object_node.getElementsByTagName("doubleclick")[0].firstChild.nodeValue:
-                sub_object.doubleclick = True
-            else:
-                sub_object.doubleclick = False
-            
-            try:
-                sub_object.sendkeys = sub_object_node.getElementsByTagName("sendkeys")[0].toxml()                
-                sub_object.sendkeys = sub_object.sendkeys.replace("<sendkeys><!-- -->","")
-                sub_object.sendkeys = sub_object.sendkeys.replace("<!-- --></sendkeys>","")
-                sub_object.sendkeys = sub_object.sendkeys.replace("<![CDATA[","")
-                sub_object.sendkeys = sub_object.sendkeys.replace("]]>","")
-                sub_object.sendkeys = sub_object.sendkeys.encode('utf-8')
-            except AttributeError:
-                sub_object.sendkeys = ''.encode('utf-8')
             
             self._sub_objects_finder.append(sub_object)
             
@@ -671,6 +675,139 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             
         #self._code_lines.append("def " + name + "():")
         
+        str_global_obj = ""
+        str_build_obj = ""
+        str_set_main_obj = ""
+        main_obj_name = ""
+        
+        path_main_xml = self._main_object_finder.xml_path
+        main_obj = None           
+        m_controller = dummy()
+        m_controller.action = "new"
+        m_controller.path = self.parent.path
+        m_controller.xml_name = path_main_xml.split(os.sep)[-1]
+        
+        if m_controller.xml_name == "":
+            return
+            
+        arg_main_component = 0
+        if path_main_xml.endswith('_RectFinder.xml'):
+            main_obj = AlyvixRectFinderView(m_controller)
+            arg_main_component = main_obj._main_rect_finder.args_number
+            main_obj_name = main_obj._main_rect_finder.name
+        elif path_main_xml.endswith('_ImageFinder.xml'):
+            main_obj = AlyvixImageFinderView(m_controller)
+            arg_main_component = main_obj._main_template.args_number
+            main_obj_name = main_obj._main_template.name
+        elif path_main_xml.endswith('_TextFinder.xml'):
+            main_obj = AlyvixTextFinderView(m_controller)
+            arg_main_component = main_obj._main_text.args_number
+            main_obj_name = main_obj._main_text.name
+        
+        self._main_object_finder.args_number = self._main_object_finder.args_number + arg_main_component
+        str_global_obj = "    global " + main_obj_name + "_object"
+        
+        string_function_args = "    " + main_obj_name + "_build_object("
+        
+        args_range = range(1, arg_main_component + 1)
+        
+        last_arg_num = 0
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+            last_arg_num = arg_num
+        
+        self._arg_index_processed = self._arg_index_processed + last_arg_num
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        str_build_obj = string_function_args
+        
+        if last_arg_num != 0:
+            obj_args_str2 = string_function_args.replace("    " + main_obj_name + "_build_object(", "")
+            obj_args_str2 = obj_args_str2.replace(")","")
+            self._main_object_finder.component_args = obj_args_str2
+        else:
+            self._main_object_finder.component_args = ""
+        
+        #str_build_obj = "    " + main_obj_name + "_build_object()"
+        str_set_main_obj = "    object_finder.set_main_object(" + main_obj_name + "_object)"
+        
+        str_lines_sub_obj = []
+        cnt = 1
+        for sub_object in self._sub_objects_finder:
+            if sub_object.height != 0 and sub_object.width !=0:
+            
+                arg_sub_component = 0
+                #roi_x = str(sub_object.roi_x - self._main_object_finder.x)
+                roi_x = str(sub_object.roi_x)
+                roi_y = str(sub_object.roi_y)
+                
+                roi_width = str(sub_object.roi_width)
+                roi_height = str(sub_object.roi_height)
+                
+                path_sub_xml = sub_object.xml_path
+                sub_obj = None           
+                s_controller = dummy()
+                s_controller.action = "new"
+                s_controller.path = self.parent.path
+                s_controller.xml_name = path_sub_xml.split(os.sep)[-1]
+        
+                if path_sub_xml.endswith('_RectFinder.xml'):
+                    sub_obj = AlyvixRectFinderView(s_controller)
+                    sub_obj_name = sub_obj._main_rect_finder.name
+                    arg_sub_component = sub_obj._main_rect_finder.args_number
+                elif path_sub_xml.endswith('_ImageFinder.xml'):
+                    sub_obj = AlyvixImageFinderView(s_controller)
+                    sub_obj_name = sub_obj._main_template.name
+                    arg_sub_component = sub_obj._main_template.args_number
+                elif path_sub_xml.endswith('_TextFinder.xml'):
+                    sub_obj = AlyvixTextFinderView(s_controller)
+                    sub_obj_name = sub_obj._main_text.name
+                    arg_sub_component = sub_obj._main_text.args_number
+                
+                self._main_object_finder.args_number = self._main_object_finder.args_number + arg_sub_component
+                str_lines_sub_obj.append("    global " + sub_obj_name + "_object")
+                
+                
+                
+                string_function_args = "    " + sub_obj_name + "_build_object("
+        
+                args_range = range(last_arg_num + 1, last_arg_num + arg_sub_component + 1)
+                
+                last_arg_num = 0
+                for arg_num in args_range:
+                    string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+                    last_arg_num = arg_num
+                    
+                self._arg_index_processed = self._arg_index_processed + last_arg_num
+                
+                if string_function_args.endswith(", "):
+                    string_function_args = string_function_args[:-2]
+                string_function_args = string_function_args + ")"
+                
+                str_lines_sub_obj.append(string_function_args)
+                
+                if last_arg_num != 0:
+                    sub_obj_args_str2 = string_function_args.replace("    " + sub_obj_name + "_build_object(", "")
+                    sub_obj_args_str2 = sub_obj_args_str2.replace(")","")
+                    sub_object.component_args = sub_obj_args_str2
+                else:
+                    sub_object.component_args = ""
+                
+                
+                
+                
+                
+                str_lines_sub_obj.append("    object_finder.add_sub_object(" + sub_obj_name + "_object, {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})")
+
+                #sub_obj.build_code_array()
+                #str_lines_sub_obj.extend(sub_obj._code_lines_for_object_finder)
+                #str_lines_sub_obj.append(strcode)
+                #str_lines_sub_obj_for_object_finder.append(strcode)
+
+                cnt = cnt + 1
+        
         string_function_args = "def " + name + "("
         
         args_range = range(1, self._main_object_finder.args_number + 1)
@@ -686,9 +823,10 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         #self._code_lines.append("\n")
         strcode = "    object_finder = ObjectFinder(\"" + name + "\")"
         self._code_lines.append(strcode)
-        self._code_lines_for_object_finder.append(strcode)
+        #self._code_lines_for_object_finder.append(strcode)
         #self._code_lines.append("\n")
         
+        """
         path_main_xml = self._main_object_finder.xml_path
         main_obj = None           
         m_controller = dummy()
@@ -702,25 +840,39 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         #print m_controller.path
         #print m_controller.xml_name
         
+        
         if path_main_xml.endswith('_RectFinder.xml'):
             main_obj = AlyvixRectFinderView(m_controller)
-            strcode = "    object_finder.set_main_object(rect_finder)"
+            main_obj_name = main_obj._main_rect_finder.name
+            self._code_lines.append("    global " + main_obj_name + "_object")
+            self._code_lines.append("    " + main_obj_name + "_build_object()")
+            strcode = "    object_finder.set_main_object(" + main_obj_name + "_object)"
         elif path_main_xml.endswith('_ImageFinder.xml'):
             main_obj = AlyvixImageFinderView(m_controller)
-            strcode = "    object_finder.set_main_object(image_finder)"
+            main_obj_name = main_obj._main_template.name
+            self._code_lines.append("    global " + main_obj_name + "_object")
+            self._code_lines.append("    " + main_obj_name + "_build_object()")
+            strcode = "    object_finder.set_main_object(" + main_obj_name + "_object)"
         elif path_main_xml.endswith('_TextFinder.xml'):
             main_obj = AlyvixTextFinderView(m_controller)
-            strcode = "    object_finder.set_main_object(text_finder)"
+            main_obj_name = main_obj._main_text.name
+            self._code_lines.append("    global " + main_obj_name + "_object")
+            self._code_lines.append("    " + main_obj_name + "_build_object()")
+            strcode = "    object_finder.set_main_object(" + main_obj_name + "_object)"
+        """
         
-        main_obj.build_code_array()
+        #main_obj.build_code_array()
             
-        self._code_lines.extend(main_obj._code_lines_for_object_finder)
+        #self._code_lines.extend(main_obj._code_lines_for_object_finder)
         
-        self._code_lines.append(strcode)
-        self._code_lines_for_object_finder.append(strcode)
+        self._code_lines.append(str_global_obj)
+        self._code_lines.append(str_build_obj)
+        self._code_lines.append(str_set_main_obj)
+        #self._code_lines_for_object_finder.append(strcode)
         
         #self._code_lines.append("\n")
         
+        """
         cnt = 1
         for sub_object in self._sub_objects_finder:
             if sub_object.height != 0 and sub_object.width !=0:
@@ -741,95 +893,88 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
                 if path_sub_xml.endswith('_RectFinder.xml'):
                     sub_obj = AlyvixRectFinderView(s_controller)
-                    strcode = "    object_finder.add_sub_object(rect_finder, {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
+                    sub_obj_name = sub_obj._main_rect_finder.name
+                    self._code_lines.append("    global " + sub_obj_name + "_object")
+                    self._code_lines.append("    " + sub_obj_name + "_build_object()")
+                    strcode = "    object_finder.add_sub_object(" + sub_obj_name + "_object, {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
                 elif path_sub_xml.endswith('_ImageFinder.xml'):
                     sub_obj = AlyvixImageFinderView(s_controller)
-                    strcode = "    object_finder.add_sub_object(image_finder, {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
+                    sub_obj_name = sub_obj._main_template.name
+                    self._code_lines.append("    global " + sub_obj_name + "_object")
+                    self._code_lines.append("    " + sub_obj_name + "_build_object()")
+                    strcode = "    object_finder.add_sub_object(" + sub_obj_name + "_object, {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
                 elif path_sub_xml.endswith('_TextFinder.xml'):
                     sub_obj = AlyvixTextFinderView(s_controller)
-                    strcode = "    object_finder.add_sub_object(text_finder, {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
+                    sub_obj_name = sub_obj._main_text.name
+                    self._code_lines.append("    global " + sub_obj_name + "_object")
+                    self._code_lines.append("    " + sub_obj_name + "_build_object()")
+                    strcode = "    object_finder.add_sub_object(" + sub_obj_name + "_object, {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
 
                 sub_obj.build_code_array()
-                self._code_lines.extend(sub_obj._code_lines_for_object_finder)
+                #self._code_lines.extend(sub_obj._code_lines_for_object_finder)
                 self._code_lines.append(strcode)
                 self._code_lines_for_object_finder.append(strcode)
 
                 cnt = cnt + 1
-
+        """
+        
+        self._code_lines.extend(str_lines_sub_obj)
+                
         if self._main_object_finder.find is True:  
             self._code_lines.append("    object_finder.find()")
         else:
-           self._code_lines.append("    wait_time = object_finder.wait(" + str(self._main_object_finder.timeout) + ")")
-           
-        if self._main_object_finder.enable_performance is True and self._main_object_finder.find is False:
+            self._code_lines.append("    wait_time = object_finder.wait(" + str(self._main_object_finder.timeout) + ")")
+
+        if self._main_object_finder.enable_performance is True and self._main_object_finder.find is False:  
             self._code_lines.append("    if wait_time == -1:")
-            self._code_lines.append("        raise Exception(\"step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\")")
+            if self._main_object_finder.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\")")             
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\"")
+                self._code_lines.append("        return False")
+                
             self._code_lines.append("    elif wait_time < " + repr(self._main_object_finder.warning) + ":")
             self._code_lines.append("        print \"step " + self._main_object_finder.name + " is ok, execution time:\", wait_time, \"sec.\"")
             self._code_lines.append("    elif wait_time < " + repr(self._main_object_finder.critical) + ":")
             self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
             self._code_lines.append("    else:")
             self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("    p = PerfManager()")
+            self._code_lines.append("    p.add_perfdata(\"" + str(self._main_object_finder.name) + "\", wait_time, " + repr(self._main_object_finder.warning) + ", " + repr(self._main_object_finder.critical) + ")")
         elif self._main_object_finder.find is False:
             self._code_lines.append("    if wait_time == -1:")
-            self._code_lines.append("        raise Exception(\"step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\")")
+            if self._main_object_finder.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\")")             
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\"")
+                self._code_lines.append("        return False")
         
-        if self._main_object_finder.click == True or self._main_object_finder.doubleclick == True:
-        
-            self._code_lines.append("    main_object_pos = object_finder.get_result(0)")  
-        
-            if mmanager_declared is False:
-                self._code_lines.append("    m = MouseManager()")
-                mmanager_declared = True
-                
-            self._code_lines.append("    time.sleep(2)")
-                                
-            if self._main_object_finder.click == True:
-                self._code_lines.append("    m.click(main_object_pos.x + (main_object_pos.width/2), main_object_pos.y + (main_object_pos.height/2), 1)")
-            elif self._main_object_finder.doubleclick == True:
-                self._code_lines.append("    m.click(main_object_pos.x + (main_object_pos.width/2), main_object_pos.y + (main_object_pos.height/2), 1, 2)")
-            
-        if self._main_object_finder.sendkeys != "":
-            if kmanager_declared is False:
-                self._code_lines.append("    k  = KeyboardManager()")
-                kmanager_declared = True
-            keys = unicode(self._main_object_finder.sendkeys, 'utf-8')
-            macro_list = keys.split('\n')
-            self._code_lines.append("    time.sleep(2)")
-            
-            for keyboard_macro in macro_list:
-                self._code_lines.append("    " + keyboard_macro)
+        self._code_lines.append("    " + main_obj_name + "_mouse_keyboard(" + self._main_object_finder.component_args + ")")
             
         cnt = 0
         for sub_object in self._sub_objects_finder:
         
             if sub_object.height != 0 and sub_object.width !=0:
-                if sub_object.click == True or sub_object.doubleclick == True:
-            
-                    self._code_lines.append("    sub_object_" + str(cnt) + "_pos = object_finder.get_result(0, " + str(cnt) + ")")  
                 
-                    if mmanager_declared is False:
-                        self._code_lines.append("    m = MouseManager()")
-                        mmanager_declared = True
-                    self._code_lines.append("    time.sleep(2)")
-                                        
-                    if sub_object.click == True:
-                        self._code_lines.append("    m.click(sub_object_" + str(cnt) + "_pos.x + (sub_object_" + str(cnt) + "_pos.width/2), sub_object_" + str(cnt) + "_pos.y + (sub_object_" + str(cnt) + "_pos.height/2), 1)")
-                    elif sub_object.doubleclick == True:
-                        self._code_lines.append("    m.click(sub_object_" + str(cnt) + "_pos.x + (sub_object_" + str(cnt) + "_pos.width/2), sub_object_" + str(cnt) + "_pos.y + (sub_object_" + str(cnt) + "_pos.height/2), 1, 2)")
-                    
-                if sub_object.sendkeys != "":
-                    if kmanager_declared is False:
-                        self._code_lines.append("    k  = KeyboardManager()")
-                        kmanager_declared = True
-                    keys = unicode(sub_object.sendkeys, 'utf-8')
-                    macro_list = keys.split('\n')
-                    self._code_lines.append("    time.sleep(2)")
-                    
-                    for keyboard_macro in macro_list:
-                        self._code_lines.append("    " + keyboard_macro)
-                                    
-                cnt = cnt + 1
+                path_sub_xml = sub_object.xml_path
+                sub_obj = None           
+                s_controller = dummy()
+                s_controller.action = "new"
+                s_controller.path = self.parent.path
+                s_controller.xml_name = path_sub_xml.split(os.sep)[-1]
+        
+                if path_sub_xml.endswith('_RectFinder.xml'):
+                    sub_obj = AlyvixRectFinderView(s_controller)
+                    sub_obj_name = sub_obj._main_rect_finder.name
+                    self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
+                elif path_sub_xml.endswith('_ImageFinder.xml'):
+                    sub_obj = AlyvixImageFinderView(s_controller)
+                    sub_obj_name = sub_obj._main_template.name
+                    self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
+                elif path_sub_xml.endswith('_TextFinder.xml'):
+                    sub_obj = AlyvixTextFinderView(s_controller)
+                    sub_obj_name = sub_obj._main_text.name
+                    self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
         
         self._code_lines.append("")
         self._code_lines.append("") 
@@ -1133,6 +1278,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         root.set("find", str(self._main_object_finder.find))
         root.set("wait", str(self._main_object_finder.wait))
         root.set("timeout", str(self._main_object_finder.timeout))
+        root.set("timeout_exception", str(self._main_object_finder.timeout_exception))
         root.set("enable_performance", str(self._main_object_finder.enable_performance))
         root.set("warning_value", repr(self._main_object_finder.warning))
         root.set("critical_value", repr(self._main_object_finder.critical))
@@ -1142,18 +1288,6 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         path_node = ET.SubElement(main_object_node, "xml_path")
         path_node.text = str(self._main_object_finder.xml_path)
-        
-        click_node = ET.SubElement(main_object_node, "click")
-        click_node.text = str(self._main_object_finder.click)
-
-        doubleclick_node = ET.SubElement(main_object_node, "doubleclick")
-        doubleclick_node.text = str(self._main_object_finder.doubleclick)
-
-        sendkeys_node = ET.SubElement(main_object_node, "sendkeys")
-        
-        sendkey_text = unicode(self._main_object_finder.sendkeys, 'utf-8')
-
-        sendkeys_node.append(ET.Comment(' --><![CDATA[' + sendkey_text.replace(']]>', ']]]]><![CDATA[>') + ']]><!-- '))
         
         sub_objects_root = ET.SubElement(root, "sub_objects")
         
@@ -1179,16 +1313,6 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 
                 roi_height_node = ET.SubElement(sub_object_node, "roi_height")
                 roi_height_node.text = str(sub_object.roi_height)
-                
-                click_node = ET.SubElement(sub_object_node, "click")
-                click_node.text = str(sub_object.click)
-                
-                doubleclick_node = ET.SubElement(sub_object_node, "doubleclick")
-                doubleclick_node.text = str(sub_object.doubleclick)
-                
-                sendkeys_node = ET.SubElement(sub_object_node, "sendkeys")
-                #sendkeys_node.text = unicode(sub_object.sendkeys, 'utf-8')
-                sendkeys_node.append(ET.Comment(' --><![CDATA[' + unicode(sub_object.sendkeys.replace(']]>', ']]]]><![CDATA[>'), 'utf-8') + ']]><!-- '))
                 
                 cnt = cnt + 1
         
@@ -1292,24 +1416,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             
     def timeout_spinbox_event(self, event):
         self._main_object_finder.timeout = self.timeout_spinbox.value()
-    
-    def clickRadio_event(self, event):
-        if event is False:
-            self._main_object_finder.click = False
+        
+    def timeout_exception_event(self, event):
+        if self.timeout_exception.isChecked() is True:
+            self._main_object_finder.timeout_exception = True
         else:
-            self._main_object_finder.click = True
-            
-    def doubleclickRadio_event(self, event):
-        if event is False:
-            self._main_object_finder.doubleclick = False
-        else:
-            self._main_object_finder.doubleclick = True 
-             
-    def dontclickRadio_event(self, event):
-        if event is True:
-            self._main_object_finder.click = False
-            self._main_object_finder.doubleclick = False
-            
+            self._main_object_finder.timeout_exception = False
+        
     def listWidget_selection_changed(self):
     
         selected_index = self.listWidget.currentRow()
@@ -1317,12 +1430,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
-            self.widget.setGeometry(QRect(149, 9, 381, 291))
+            self.widget.setGeometry(QRect(172, 9, 379, 148))
 
         else:
             self.widget.hide()
             self.widget_2.show()
-            self.widget_2.setGeometry(QRect(149, 9, 381, 311))
+            self.widget_2.setGeometry(QRect(172, 9, 378, 100))
             self.sub_object_index = selected_index - 1
             self.update_sub_object_view()
     
@@ -1333,18 +1446,6 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             if self.namelineedit.text() == "Type here the name of the object" and obj.objectName() == "namelineedit":
                 self.namelineedit.setText("")
                 return True
-        
-            if obj.objectName() == 'qt_scrollarea_viewport':    
-               
-                parent_obj_name = obj.parent().objectName()
-               
-                if self.inserttext.toPlainText() == "Type here the Keyboard macro" and parent_obj_name == "inserttext":
-                    self.inserttext.setPlainText("#k.send('Type here the key')")
-                    return True
-                    
-                if self.inserttext_2.toPlainText() == "Type here the Keyboard macro" and parent_obj_name == "inserttext_2":
-                    self.inserttext_2.setPlainText("#k.send('Type here the key')")
-                    return True
                 
         if event.type()== event.FocusOut:
             if obj.objectName() == "roi_y_spinbox":
@@ -1409,14 +1510,6 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 return True
             elif obj.objectName() == "namelineedit":
                 self.namelineedit.setText(self._main_object_finder.name)
-                return True
-        
-            if (self.inserttext.toPlainText() == "" or self.inserttext.toPlainText() == "#k.send('Type here the key')") and obj.objectName() == "inserttext":
-                self.inserttext.setPlainText("Type here the Keyboard macro")
-                return True
-                
-            if (self.inserttext_2.toPlainText() == "" or self.inserttext_2.toPlainText() == "#k.send('Type here the key')") and obj.objectName() == "inserttext_2":
-                self.inserttext_2.setPlainText("Type here the Keyboard macro")
                 return True
                 
             if obj.objectName() == "textEditCustomLines" and self.added_block is False:
@@ -1623,43 +1716,14 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                     
         if index < 0:
             return
-        
-        if self._sub_objects_finder[index].sendkeys == "":
-            self.inserttext_2.setPlainText("Type here the Keyboard macro")
-        else:
-            self.inserttext_2.setPlainText(unicode(self._sub_objects_finder[index].sendkeys, 'utf-8'))
             
         self.roi_x_spinbox.setValue(self._sub_objects_finder[self.sub_object_index].roi_x)
         self.roi_y_spinbox.setValue(self._sub_objects_finder[self.sub_object_index].roi_y)
         self.roi_width_spinbox.setValue(self._sub_objects_finder[self.sub_object_index].roi_width)
         self.roi_height_spinbox.setValue(self._sub_objects_finder[self.sub_object_index].roi_height)
-        
-            
-        if self._sub_objects_finder[self.sub_object_index].click is True:
-            self.clickRadio_2.setChecked(True)
-        else:
-            self.clickRadio_2.setChecked(False)
-            
-        if self._sub_objects_finder[self.sub_object_index].doubleclick is True:
-            self.doubleclickRadio_2.setChecked(True)
-        else:
-            self.doubleclickRadio_2.setChecked(False)
-            
-        if self._sub_objects_finder[self.sub_object_index].click is False and self._sub_objects_finder[self.sub_object_index].doubleclick is False:
-            self.dontclickRadio_2.setChecked(True)
-        else:
-            self.dontclickRadio_2.setChecked(False)
             
     #################
     #################
-    
-            
-    @pyqtSlot()
-    def inserttext_event_2(self):
-        if self.inserttext_2.toPlainText() == "Type here the Keyboard macro" or self.inserttext_2.toPlainText() == "#k.send('Type here the key')":
-            self._sub_objects_finder[self.sub_object_index].sendkeys = "".encode('utf-8')
-        else:
-            self._sub_objects_finder[self.sub_object_index].sendkeys = str(self.inserttext_2.toPlainText().toUtf8())
             
     def roi_x_spinbox_event(self, event):
         self._sub_objects_finder[self.sub_object_index].roi_x = self.roi_x_spinbox.value()
@@ -1675,24 +1739,48 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
     def roi_height_spinbox_event(self, event):
         self._sub_objects_finder[self.sub_object_index].roi_height = self.roi_height_spinbox.value()
-        self.update()
-    
-    def clickRadio_event_2(self, event):
-        if event is False:
-            self._sub_objects_finder[self.sub_object_index].click = False
-        else:
-            self._sub_objects_finder[self.sub_object_index].click = True
         
-    def doubleclickRadio_event_2(self, event):
-        if event is False:
-            self._sub_objects_finder[self.sub_object_index].doubleclick = False
+    def remove_obj_2(self):
+    
+        selected_index = self.listWidget.currentRow()
+    
+        if selected_index == 0:
+            item = QListWidgetItem()
+            item.setText("")
+            self.listWidget.takeItem(0)
+            self.listWidget.insertItem(0, item)
+        
+            self.button_selected = "set_main_object"
+            self.open_select_obj_window()
         else:
-            self._sub_objects_finder[self.sub_object_index].doubleclick = True 
-             
-    def dontclickRadio_event_2(self, event):
-        if event is True:
-            self._sub_objects_finder[self.sub_object_index].click = False
-            self._sub_objects_finder[self.sub_object_index].doubleclick = False
+            item = self.listWidget.takeItem(selected_index)
+            self.listWidget.removeItemWidget(item)
+            del self._sub_objects_finder[-1]
+        
+    def edit_obj_2(self):
+    
+        s_controller = dummy()
+        s_controller.set_parent(self)
+        s_controller.action = "edit"
+        s_controller.path = self.parent.path
+        s_controller.robot_file_name =  self._robot_file_name
+        s_controller.xml_name = str(self.listWidget.currentItem().data(Qt.UserRole).toString())
+        
+        image = QImage(s_controller.path + os.sep + s_controller.xml_name.replace("xml", "png"))
+        
+        if s_controller.xml_name.endswith('_RectFinder.xml'):
+            self.object = AlyvixRectFinderView(s_controller)
+        elif s_controller.xml_name.endswith('_ImageFinder.xml'):
+            self.object = AlyvixImageFinderView(s_controller)
+        elif s_controller.xml_name.endswith('_TextFinder.xml'):
+            self.object = AlyvixTextFinderView(s_controller)
+        
+        self.hide()
+        
+        self.object.set_bg_pixmap(image)
+        self.object.showFullScreen()
+        self.update()
+        
             
 class MainObjectForGui:
     
@@ -1709,7 +1797,9 @@ class MainObjectForGui:
         self.wait = True
         self.find = False
         self.args_number = 0
+        self.component_args = ""
         self.timeout = 60
+        self.timeout_exception = 60
         self.sendkeys = ""
         self.enable_performance = True
         self.warning = 15.00
@@ -1731,6 +1821,7 @@ class SubObjectForGui:
         self.click = False
         self.doubleclick = False
         self.sendkeys = ""
+        self.component_args = ""
         
 class AlyvixObjectsSelection(QDialog, Ui_Form_2):
     def __init__(self, parent):

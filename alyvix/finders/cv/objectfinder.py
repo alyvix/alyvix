@@ -46,6 +46,9 @@ class ObjectFinder(BaseFinder):
         self._main_object = None
         self._sub_objects = []
 
+        self._main_indexes_to_keep = []
+        self._sub_indexes_to_keep = []
+
         the_name = "object_finder"
 
         if name is not None:
@@ -158,6 +161,7 @@ class ObjectFinder(BaseFinder):
                 main_object._flag_thread_started = False
                 self._flag_thread_have_to_exit = False
                 self._flag_thread_started = False
+                print "RETTTTTTTTTTT"
                 return []
 
             object_found = []
@@ -191,9 +195,10 @@ class ObjectFinder(BaseFinder):
                         main_object._flag_thread_started = False
                         self._flag_thread_have_to_exit = False
                         self._flag_thread_started = False
+                        print "RETTTTTTTTTTT"
                         return []
 
-                    sub_template_coordinates = self.find_sub_object((x, y), sub_object)
+                    sub_template_coordinates = copy.deepcopy(self.find_sub_object((x, y), sub_object))
 
                     if sub_template_coordinates is not None:
                         sub_objects_found.append(sub_template_coordinates)
@@ -208,22 +213,26 @@ class ObjectFinder(BaseFinder):
                         object_found[1] = sub_objects_found
 
                         objects_found.append(object_found)
+                        self._main_indexes_to_keep.append(cnt)
 
             #self._log_manager.save_object_image("img_" + str(cnt) + ".png")
             cnt = cnt + 1
 
         if len(objects_found) > 0:
             self._objects_found = copy.deepcopy(objects_found)
+            main_object.rebuild_result(self._main_indexes_to_keep)
             self._cacheManager.SetLastObjFoundFullImg(self._source_image_gray)
-
-        self._flag_thread_started = False
-        main_object._flag_thread_started = False
 
         self._source_image_color = None
         self._source_image_gray = None
 
         if self._flag_check_before_exit is True:
             self._flag_checked_before_exit = True
+            print "self._flag_checked_before_exit = True"
+            print self._time_checked_before_exit_start
+
+        self._flag_thread_started = False
+        main_object._flag_thread_started = False
 
         return self._objects_found
 
@@ -263,6 +272,13 @@ class ObjectFinder(BaseFinder):
         object.set_source_image_color(self._source_image_color)
         object.set_source_image_gray(self._source_image_gray)
 
+        object_old_results = copy.deepcopy(object._objects_found)
         object.find()
 
-        return object.get_result(0)
+        #print "sub_obj", object._objects_found
+        result = object.get_result(0)
+
+        if result is None:
+            object._objects_found = copy.deepcopy(object_old_results)
+
+        return result
