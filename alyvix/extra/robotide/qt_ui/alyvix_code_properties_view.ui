@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Alyvix - Custom Code</string>
   </property>
   <widget class="QLineEdit" name="namelineedit">
    <property name="geometry">
@@ -51,42 +51,14 @@
        <x>10</x>
        <y>10</y>
        <width>131</width>
-       <height>149</height>
+       <height>33</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_6">
       <item>
-       <widget class="QPushButton" name="pushButtonTapKey">
+       <widget class="QPushButton" name="pushButtonSend">
         <property name="text">
-         <string>Tap Key</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButtonPressKey">
-        <property name="text">
-         <string>Press Key</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButtonReleaseKey">
-        <property name="text">
-         <string>Release Key</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButtonPressKeys">
-        <property name="text">
-         <string>Press Keys</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButtonTypeString">
-        <property name="text">
-         <string>Type String</string>
+         <string>Send</string>
         </property>
        </widget>
       </item>
@@ -103,24 +75,10 @@
        <x>10</x>
        <y>10</y>
        <width>131</width>
-       <height>210</height>
+       <height>174</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_7">
-      <item>
-       <widget class="QPushButton" name="pushButtonMousePress">
-        <property name="text">
-         <string>Press</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButtonMouseRelease">
-        <property name="text">
-         <string>Release</string>
-        </property>
-       </widget>
-      </item>
       <item>
        <widget class="QPushButton" name="pushButtonMouseClick">
         <property name="text">
@@ -132,6 +90,13 @@
        <widget class="QPushButton" name="pushButtonMouseDoubleClick">
         <property name="text">
          <string>Double Click</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonMouseRightClick">
+        <property name="text">
+         <string>Right Click</string>
         </property>
        </widget>
       </item>

@@ -75,6 +75,8 @@ class dummy():
 class AlyvixObjectFinderView(QDialog, Ui_Form):
     def __init__(self, parent):
         QDialog.__init__(self)
+        
+        self.setMouseTracking(True)
 
         # Set up the user interface from Designer.
         self.setupUi(self)
@@ -262,10 +264,11 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         if self._main_object_finder != None and self.ok_pressed is False:
             self.ok_pressed = True
             self.build_code_array()
+            self.update_lock_list()
+            self.parent.update_list()
             self.build_xml()
             self.save_python_file()
-            self.update_lock_list()
-            self.build_perf_data_xml()
+            #self.build_perf_data_xml()
             #image_name = self._path + os.sep + self._main_object_finder.name + "_ImageFinder.png"
             #self._bg_pixmap.save(image_name,"PNG", -1)
             #self.save_template_images(image_name)
@@ -288,16 +291,23 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
 
     def pushButtonOk_event(self):
         answer = QMessageBox.Yes
-        if self.parent._main_rect_finder.name == "":
-            answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
+        
+        print "name button", self._main_object_finder.name
 
-        if answer == QMessageBox.Yes:
-            self.close()
-            self.parent.save_all()
+        if self._main_object_finder.xml_path != "":
+            if self._main_object_finder.name == "":
+                answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
+
+            if answer == QMessageBox.Yes:
+                self.close()
+                self.save_all()
         
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
-            pass
+            if self._main_object_finder is None and self.esc_pressed is False:
+                self.esc_pressed = True
+                self.parent.show()
+                self.close()
             """
             self.parent.show()
             self.close()
@@ -1102,6 +1112,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             item = self.listWidget.takeItem(selected_index)
             self.listWidget.removeItemWidget(item)
             del self._sub_objects_finder[-1]
+        self.parent.update_list()
         
     def edit_obj(self):
     
@@ -1169,7 +1180,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         else:
             self.listWidget.addItem(item)
             
-        self._main_object_finder = MainObjectForGui()
+        #self._main_object_finder = MainObjectForGui()
         self._main_object_finder.xml_path = xml_name
         self._main_object_finder.x = main_obj.x
         self._main_object_finder.y = main_obj.y
@@ -1355,6 +1366,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self._main_object_finder.name = "".encode('utf-8')
         else:
             self._main_object_finder.name = str(text.toUtf8()).replace(" ", "_")
+            
+        print "name", self._main_object_finder.name
   
     def args_spinbox_change_event(self, event):
         self._main_object_finder.args_number = self.spinBoxArgs.value()

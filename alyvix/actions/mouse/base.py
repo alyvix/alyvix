@@ -22,5 +22,21 @@
 
 class MouseManagerBase(object):
 
+    def __init__(self):
+        self.left_button = 1
+        self.right_button = 2
+        self.middle_button = 3
+        self.wheel_up = 4
+        self.wheel_down = 5
+
     def click(self, x, y, button=1, n=1):
+        raise NotImplementedError
+
+    def move(self, x, y):
+        raise NotImplementedError
+
+    def scroll(self, step, direction):
+        raise NotImplementedError
+
+    def drag(self, x1, y1, x2, y2, button=1):
         raise NotImplementedError

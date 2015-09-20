@@ -37,6 +37,8 @@ from alyvix_text_finder_view import AlyvixTextFinderView
 
 from alyvix_code_properties_view import Ui_Form
 
+from alyvix.tools.screen import ScreenManager
+
 from stat import S_ISREG, ST_CTIME, ST_MODE
 
 import shutil
@@ -72,8 +74,8 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         
         self.code_lines = []
         
-        self.pykeyboard_declared = False
-        self.pymouse_declared = False
+        self.kmanager_declared = False
+        self.mmanager_declared = False
         self.winmanager_declared = False
         self.procmanager_declared = False
         
@@ -95,16 +97,11 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         if self.name != "":
             self.namelineedit.setText(self.name)
         
-        self.connect(self.pushButtonTapKey, SIGNAL('clicked()'), self.pushbutton_tap_key_event)
-        self.connect(self.pushButtonPressKey, SIGNAL('clicked()'), self.pushbutton_press_key_event)
-        self.connect(self.pushButtonReleaseKey, SIGNAL('clicked()'), self.pushbutton_release_key_event)
-        self.connect(self.pushButtonPressKeys, SIGNAL('clicked()'), self.pushbutton_press_keys_event)
-        self.connect(self.pushButtonTypeString, SIGNAL('clicked()'), self.pushbutton_type_string_event)
+        self.connect(self.pushButtonSend, SIGNAL('clicked()'), self.pushbutton_send_key_event)
         
-        self.connect(self.pushButtonMousePress, SIGNAL('clicked()'), self.pushbutton_mouse_press_event)
-        self.connect(self.pushButtonMouseRelease, SIGNAL('clicked()'), self.pushbutton_mouse_release_event)
         self.connect(self.pushButtonMouseClick, SIGNAL('clicked()'), self.pushbutton_mouse_click_event)
         self.connect(self.pushButtonMouseDoubleClick, SIGNAL('clicked()'), self.pushbutton_mouse_doubleclick_event)
+        self.connect(self.pushButtonMouseRightClick, SIGNAL('clicked()'), self.pushbutton_mouse_right_click_event)
         self.connect(self.pushButtonMouseMove, SIGNAL('clicked()'), self.pushbutton_mouse_move_event)
         self.connect(self.pushButtonMouseScroll, SIGNAL('clicked()'), self.pushbutton_mouse_scroll_event)
         self.connect(self.pushButtonMouseDrag, SIGNAL('clicked()'), self.pushbutton_mouse_drag_event)
@@ -148,7 +145,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
             string = string + line.lstrip('    ') + '\n'
             
     
-        self.textEdit.setText(unicode(string, 'utf-8'))      
+        self.textEdit.setText(unicode(string[:-3], 'utf-8'))      
     
     def build_objects(self):
         
@@ -217,8 +214,8 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         for string in tmp_str_array:
             self._code_lines.append('    ' + string)
         
-        self._code_lines.append("")
-        self._code_lines.append("") 
+        #self._code_lines.append("")
+        #self._code_lines.append("") 
         
         for string in self._code_lines:
             print string
@@ -260,16 +257,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         
         if self.action == "new" and file_code_string == "":
             file_code_string = file_code_string + "# -*- coding: utf-8 -*-" + os.linesep
-            file_code_string = file_code_string + "import os" + os.linesep
-            file_code_string = file_code_string + "import time" + os.linesep
-            file_code_string = file_code_string + "from pykeyboard import PyKeyboard" + os.linesep
-            file_code_string = file_code_string + "from pymouse import PyMouse" + os.linesep
-            file_code_string = file_code_string + "from alyvix.tools.processes import ProcManager" + os.linesep
-            file_code_string = file_code_string + "from alyvix.tools.windows import WinManager" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.rectfinder import RectFinder" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.imagefinder import ImageFinder" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.textfinder import TextFinder" + os.linesep
-            file_code_string = file_code_string + "from alyvix.finders.objectfinder import ObjectFinder" + os.linesep
+            file_code_string = file_code_string + "from alyvixcommon import *" + os.linesep
             file_code_string = file_code_string + os.linesep
             file_code_string = file_code_string + os.linesep
             file_code_string = file_code_string + "os.environ[\"alyvix_test_case_name\"] = os.path.basename(__file__).split('.')[0]" + os.linesep
@@ -376,120 +364,73 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
             
         return False  
         
-    def pushbutton_tap_key_event(self):
+    def pushbutton_send_key_event(self):
     
-        if self.pykeyboard_declared is False:
-            self.textEdit.append("k = PyKeyboard()")
+        if self.kmanager_declared is False or "km = KeyboardManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.append("km = KeyboardManager()")
             self.textEdit.append("")
-            self.pykeyboard_declared = True
+            self.kmanager_declared = True
         
-        self.textEdit.append("k.tap_key(insert here the key)")
-        self.textEdit.append("")
-        
-    def pushbutton_press_key_event(self):
-        if self.pykeyboard_declared is False:
-            self.textEdit.append("k = PyKeyboard()")
-            self.textEdit.append("")
-            self.pykeyboard_declared = True
-            
-        self.textEdit.append("k.press_key(insert here the key)")
-        self.textEdit.append("")
-
-        
-    def pushbutton_release_key_event(self):
-        if self.pykeyboard_declared is False:
-            self.textEdit.append("k = PyKeyboard()")
-            self.textEdit.append("")
-            self.pykeyboard_declared = True
-            
-        self.textEdit.append("k.release_key(insert here the key)")
-        self.textEdit.append("")
-        
-    def pushbutton_press_keys_event(self):
-        if self.pykeyboard_declared is False:
-            self.textEdit.append("k = PyKeyboard()")
-            self.textEdit.append("")
-            self.pykeyboard_declared = True
-            
-        self.textEdit.append("k.press_keys(['insert', 'here', 'the', 'keys'])")
-        self.textEdit.append("")
-        
-    def pushbutton_type_string_event(self):
-        if self.pykeyboard_declared is False:
-            self.textEdit.append("k = PyKeyboard()")
-            self.textEdit.append("")
-            self.pykeyboard_declared = True
-        
-        self.textEdit.append("k.type_string('insert here the string')")
-        self.textEdit.append("")
-        
-        
-        
-    def pushbutton_mouse_press_event(self):
-        if self.pymouse_declared is False:
-            self.textEdit.append("m = PyMouse()")
-            self.textEdit.append("")
-            self.pymouse_declared = True
-        
-        self.textEdit.append("m.press(x=0, y=0, button=1)")
-        self.textEdit.append("")
-        
-    def pushbutton_mouse_release_event(self):
-        if self.pymouse_declared is False:
-            self.textEdit.append("m = PyMouse()")
-            self.textEdit.append("")
-            self.pymouse_declared = True
-        
-        self.textEdit.append("m.release(x=0, y=0, button=1)")
-        self.textEdit.append("")
+        self.textEdit.append("#insert the keys between below quotes")
+        self.textEdit.append("km.send('', encrypted=False)")
+        self.textEdit.append("")        
         
     def pushbutton_mouse_click_event(self):
-        if self.pymouse_declared is False:
-            self.textEdit.append("m = PyMouse()")
+        if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.append("mm = MouseManager()")
             self.textEdit.append("")
-            self.pymouse_declared = True
+            self.mmanager_declared = True
         
-        self.textEdit.append("m.click(x=0, y=0, button=1, n=1)")
+        self.textEdit.append("mm.click(x=0, y=0, mm.button_left, n=1)")
         self.textEdit.append("")
         
     def pushbutton_mouse_doubleclick_event(self):
-        if self.pymouse_declared is False:
-            self.textEdit.append("m = PyMouse()")
+        if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.append("mm = MouseManager()")
             self.textEdit.append("")
-            self.pymouse_declared = True
+            self.mmanager_declared = True
         
-        self.textEdit.append("m.click(x=0, y=0, button=1, n=2)")
+        self.textEdit.append("mm.click(x=0, y=0, mm.button_left, n=2)")
+        self.textEdit.append("")
+        
+    def pushbutton_mouse_right_click_event(self):
+        if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.append("mm = MouseManager()")
+            self.textEdit.append("")
+            self.mmanager_declared = True
+        
+        self.textEdit.append("mm.click(x=0, y=0, mm.button_right, n=1)")
         self.textEdit.append("")
         
     def pushbutton_mouse_move_event(self):
-        if self.pymouse_declared is False:
-            self.textEdit.append("m = PyMouse()")
+        if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.append("mm = MouseManager()")
             self.textEdit.append("")
-            self.pymouse_declared = True
+            self.mmanager_declared = True
         
-        self.textEdit.append("m.move(x=0, y=0)")
+        self.textEdit.append("mm.move(x=0, y=0)")
         self.textEdit.append("")
         
     def pushbutton_mouse_scroll_event(self):
-        if self.pymouse_declared is False:
-            self.textEdit.append("m = PyMouse()")
+        if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.append("mm = MouseManager()")
             self.textEdit.append("")
-            self.pymouse_declared = True
+            self.mmanager_declared = True
         
-        self.textEdit.append("m.scroll(vertical=None, horizontal=None, depth=None)")
+        self.textEdit.append("mm.scroll(steps=2, direction=mm.wheel_up)")
         self.textEdit.append("")
         
     def pushbutton_mouse_drag_event(self):
-        if self.pymouse_declared is False:
-            self.textEdit.append("m = PyMouse()")
+        if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.append("mm = MouseManager()")
             self.textEdit.append("")
-            self.pymouse_declared = True
+            self.mmanager_declared = True
         
-        self.textEdit.append("m.drag(x=0, y=0)")
+        self.textEdit.append("mm.drag(x1=0, y1=0, x2=0, y2=0)")
         self.textEdit.append("")
 
     def pushbutton_proc_create_event(self):
-        if self.procmanager_declared is False:
+        if self.procmanager_declared is False or "pm = ProcManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
             self.textEdit.append("pm = ProcManager()")
             self.textEdit.append("")
             self.procmanager_declared = True
@@ -498,28 +439,54 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         self.textEdit.append("")
         
     def pushbutton_proc_kill_event(self):
-        if self.procmanager_declared is False:
+        if self.procmanager_declared is False or "pm = ProcManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
             self.textEdit.append("pm = ProcManager()")
             self.textEdit.append("")
             self.procmanager_declared = True
         
-        self.textEdit.append("pm.kill_process('insert here the process name')")
+        self.textEdit.append("#insert the process name between below quotes")
+        self.textEdit.append("pm.kill_process('')")
+        self.textEdit.append("")
+
+    def pushbutton_win_show_event(self):
+        if self.procmanager_declared is False or "wm = WinManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.append("wm = WinManager()")
+            self.textEdit.append("")
+            self.procmanager_declared = True
+        
+        self.textEdit.append("#insert window(s) title between below quotes")
+        self.textEdit.append("wm.show_window('')")
         self.textEdit.append("")
         
-        
-        
-    
-    def pushbutton_win_show_event(self):
-        pass
-        
     def pushbutton_win_maximize_event(self):
-        pass
+        if self.procmanager_declared is False or "wm = WinManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.append("wm = WinManager()")
+            self.textEdit.append("")
+            self.procmanager_declared = True
+        
+        self.textEdit.append("#insert window(s) title between below quotes")
+        self.textEdit.append("wm.maximize_window('')")
+        self.textEdit.append("")
         
     def pushbutton_win_check(self):
-        pass
+        if self.procmanager_declared is False or "wm = WinManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.append("wm = WinManager()")
+            self.textEdit.append("")
+            self.procmanager_declared = True
+        
+        self.textEdit.append("#insert window(s) title between below quotes")
+        self.textEdit.append("return wm.check_if_window_exists('')")
+        self.textEdit.append("")
         
     def pushbutton_win_close_event(self):
-        pass
+        if self.procmanager_declared is False or "wm = WinManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.append("wm = WinManager()")
+            self.textEdit.append("")
+            self.procmanager_declared = True
+        
+        self.textEdit.append("#insert window(s) title between below quotes")
+        self.textEdit.append("return wm.close_window('')")
+        self.textEdit.append("")
         
     def args_spinbox_change_event(self, event):
         self.args_number = self.spinBoxArgs.value()

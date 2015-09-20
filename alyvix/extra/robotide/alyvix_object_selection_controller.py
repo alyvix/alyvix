@@ -150,8 +150,13 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
         item = self.listWidgetAlyObj.takeItem(selected_index)
         self.listWidgetAlyObj.removeItemWidget(item)
+        
+        self.update_list()
     
     def update_list(self):
+    
+        self.listWidgetAlyObj.clear()
+    
         #dirs = os.listdir(self.full_file_name)
         #dirs = [d for d in os.listdir(self.path) if os.path.isdir(os.path.join(self.path, d))]
         
@@ -299,15 +304,29 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_finder_controller.showFullScreen()
  
     def add_new_item_on_list(self): 
+    
+        #self.update_list()
+    
         dirpath = self.path
 
         # get all entries in the directory w/ stats
-        entries = (os.path.join(dirpath, fn) for fn in os.listdir(dirpath))
+        entries = (os.path.join(dirpath, fn) for fn in os.listdir(dirpath) if not fn.endswith(".txt") and not fn.endswith(".png") and not fn.endswith('list.xml') and not fn.endswith('data.xml'))
+        
+        #print entries
+        
         entries = ((os.stat(path), path) for path in entries)
 
         # leave only regular files, insert creation date
         entries = ((stat[ST_CTIME], path)
                    for stat, path in entries if S_ISREG(stat[ST_MODE]))
+        
+        """
+        for entry in entries:
+            cdate, path = entry
+            print path
+        """
+                   
+        #print entries
         #NOTE: on Windows `ST_CTIME` is a creation date 
         #  but on Unix it could be something else
         #NOTE: use `ST_MTIME` to sort by a modification date
@@ -319,6 +338,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print filename
         #print cdate
         
+        print filename
         item = QListWidgetItem()
 
         if filename.endswith('_RectFinder.xml'):
@@ -327,6 +347,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             item.setText(filename[:-16] + " [IF]")
         elif filename.endswith("_TextFinder.xml"):
             item.setText(filename[:-15] + " [TF]")
+        elif filename.endswith("_ObjectFinder.xml"):
+            item.setText(filename[:-17] + " [OF]")
+        elif filename.endswith("_CustomCode.xml"):
+            item.setText(filename[:-15] + " [CC]")
+        """
         elif filename.endswith('_old_code.txt'):
         
             cdate, path = list_sorted[-2]
@@ -344,9 +369,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             item.setData(Qt.UserRole, penultimate_name)
             self.listWidgetAlyObj.addItem(item)
             return
+        """
         
         item.setData(Qt.UserRole, filename)
         self.listWidgetAlyObj.addItem(item)
+        #self.update()
         
     def open_rectfinder_view(self):
         self.xml_name = None

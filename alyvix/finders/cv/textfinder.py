@@ -267,6 +267,7 @@ class TextFinder(BaseFinder):
             #print text
             root = ET.fromstring(text)
 
+            line_sep = ""
             break_loop = False
             self.__phrase_backup = ""
             for span in root.iter('span'):
@@ -293,6 +294,7 @@ class TextFinder(BaseFinder):
                         line = span.get('id')
                         line = line.replace('line_','')
                         lineNr = line
+                        line_sep = "\n" #"RRRRRRR" #os.linesep
 
                     if not span.find('strong') ==  None:
                         span.text = span.find('strong').text
@@ -306,8 +308,12 @@ class TextFinder(BaseFinder):
                     if span.text == None:
                         continue
 
-                    phrase = phrase + " " + span.text
-                    self.__phrase_backup = self.__phrase_backup + span.text
+                    phrase = phrase + " " + span.text #+ line_sep
+                    self.__phrase_backup = self.__phrase_backup + " " + line_sep + span.text
+
+                    if line_sep != "":
+                        line_sep = ""
+
                     #print phrase
                     #print main_text.text
 
@@ -321,8 +327,8 @@ class TextFinder(BaseFinder):
 
                         x = offset_x + (int(coordinates[1])/3)
                         y = offset_y + (int(coordinates[2])/3)
-                        print "offset x, x", offset_x, (int(coordinates[1])/3)
-                        print "offset y, y", offset_y, (int(coordinates[2])/3)
+                        #print "offset x, x", offset_x, (int(coordinates[1])/3)
+                        #print "offset y, y", offset_y, (int(coordinates[2])/3)
 
 
                         w = (int(coordinates[3])/3) - (int(coordinates[1])/3)
@@ -570,8 +576,8 @@ class TextFinder(BaseFinder):
 
                         sub_object_result = MatchResult((x1 + x, y1 + y, w, h))
 
-                        print "sub offset x, x, w", x1, (int(coordinates[1])/3), w
-                        print "sub offset y, y, h", y1, (int(coordinates[2])/3), h
+                        #print "sub offset x, x, w", x1, (int(coordinates[1])/3), w
+                        #print "sub offset y, y, h", y1, (int(coordinates[2])/3), h
 
                         #print "founded"
                         return sub_object_result

@@ -217,14 +217,10 @@ class BaseFinder(object):
 
                 #cv2.imwrite('img2.png', img2)
 
-                print "te1", time_elapsed
                 if time.time() - thread_t0 >= thread_interval:
                     thread_t0 = time.time()
-                    #self.__queue.put(False)
-                    #print "2 sec. elapsed"
                     if self._flag_thread_started is False:
                         self._flag_thread_started = True
-                        #print "Worker Started"
                         self.set_source_image_color(img2_color)
                         self.set_source_image_gray(img2_gray)
                         if self._log_manager.is_log_enable() is True:
@@ -232,14 +228,11 @@ class BaseFinder(object):
                         worker = Thread(target=self.find)
                         worker.setDaemon(True)
                         worker.start()
-                print "te2", time_elapsed
 
                 if len(self._objects_found) > 0:
                     if self._time_checked_before_exit_start is not None:
-                        print "tttttt", self._time_checked_before_exit_start
                         return self._time_checked_before_exit_start
                     else:
-                        print "lc", time_of_last_change
                         return time_of_last_change
 
                 diff_mask = numpy.bitwise_xor(img1, img2_gray)
@@ -247,7 +240,6 @@ class BaseFinder(object):
 
                 # find the contours
                 contours, hierarchy = cv2.findContours(diff_mask, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-                #print "contorus", len(contours)
 
                 for cnt in contours:
                     x,y,w,h = cv2.boundingRect(cnt)
@@ -261,7 +253,6 @@ class BaseFinder(object):
                     is_images_equal = False
 
                 if is_images_equal is False:
-                    #print "diversi"
                     if self._log_manager.is_log_enable() is True:
                         self._log_manager.save_image("difference", "old.png", img1)
                     img1 = img2_gray.copy()
@@ -273,7 +264,6 @@ class BaseFinder(object):
                     if self._flag_check_before_exit is False:
                         self._flag_check_before_exit = True
                         self._time_checked_before_exit_start = time_of_last_change
-                        print "time_c", self._time_checked_before_exit_start
                     elif self._flag_checked_before_exit is True and self._flag_check_before_exit is True:
                         self._flag_check_before_exit = False
                         self._flag_checked_before_exit = False
@@ -281,8 +271,6 @@ class BaseFinder(object):
                         self._time_checked_before_exit_start = None
 
                     time_of_last_change = time_elapsed
-                    print time_of_last_change
-                    print "img false"
 
                 #if len(self._objects_found) > 0:
                 #    return time_of_last_change
@@ -292,13 +280,10 @@ class BaseFinder(object):
                 if time_sleep < 0:
                     time_sleep = 0
 
-                #print "time to sleep", time_sleep
                 time.sleep(time_sleep)
 
                 time_elapsed = time.time() - time_before_loop
-                #print "seconds elapsed", time_elapsed
 
-                #print "minutes elapsed", str(datetime.timedelta(seconds=time_elapsed))
             except Exception, err:
                 #print str(err) + " on line " + str(sys.exc_traceback.tb_lineno)
                 self._log_manager.save_exception("ERROR", "an exception has occurred: " + str(err) + " on line " + str(sys.exc_traceback.tb_lineno))
@@ -326,23 +311,6 @@ class BaseFinder(object):
             self._log_manager.save_exception("ERROR", "an exception has occurred: " + str(err) + " on line " + str(sys.exc_traceback.tb_lineno))
             return None
 
-    """
-    def rebuild_result(self, index_to_keep):
-        cnt = 0
-        object_to_keep = []
-        print self._objects_found
-        print index_to_keep
-        for object in self._objects_found:
-            print cnt
-            if cnt == index_to_keep:
-                object_to_keep = copy.deepcopy(object)
-                print "obj", object
-            cnt = cnt + 1
-
-        self._objects_found = []
-        self._objects_found.append(copy.deepcopy(object_to_keep))
-    """
-
     def rebuild_result(self, indexes_to_keep):
 
         objects_to_keep = []
@@ -350,7 +318,6 @@ class BaseFinder(object):
 
         cnt = 0
         for object in self._objects_found:
-            print cnt
 
             for index_to_keep in indexes_to_keep:
                 if cnt == index_to_keep:

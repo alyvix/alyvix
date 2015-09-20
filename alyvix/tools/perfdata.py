@@ -43,20 +43,32 @@ class PerfManager:
         global perfdata_list
         perfdata_list = []
 
-    def add_perfdata(self, name, value, warning_threshold=None, critical_threshold=None, state=0):
+    def add_perfdata(self, name, value=None, warning_threshold=None, critical_threshold=None, state=0):
 
         global perfdata_list
 
         perf_data = _PerfData()
         perf_data.name = name
-        perf_data.value = value
-        perf_data.warning_threshold = warning_threshold
-        perf_data.critical_threshold = critical_threshold
 
-        if state is None:
-            perf_data.state = 3
-        else:
+        try:
+            perf_data.value = int(value)
+        except:
+            perf_data.value = ""
+
+        try:
+            perf_data.warning_threshold = int(warning_threshold)
+        except:
+            perf_data.warning_threshold = ""
+
+        try:
+            perf_data.critical_threshold = int(critical_threshold)
+        except:
+             perf_data.critical_threshold = ""
+
+        try:
             perf_data.state = int(state)
+        except:
+             perf_data.state = 3
 
         cnt = 0
         for perf_data_in_list in perfdata_list:
@@ -116,7 +128,7 @@ class PerfManager:
                                            performanceData + os.linesep
         elif exitcode == 3:
             self.performance_desc_string = self.performance_desc_string +\
-                                           "UNKNOWN: some unknown error occured" +\
+                                           "UNKNOWN: some unknown error occurred" +\
                                            performanceData + os.linesep
         elif len(timedout_finders) > 0:
             self.performance_desc_string = self.performance_desc_string +\
@@ -133,13 +145,18 @@ class PerfManager:
             value = perfdata.value
             warning = perfdata.warning_threshold
             critical = perfdata.critical_threshold
-            state = perfdata.state
+            #state = perfdata.state
 
             #only for Alyvix
-            if critical is not None and perfdata.value >= critical:
+            state = 3
+            if value != "" and critical != "" and value >= critical:
                 state = 2
-            elif warning is not None and perfdata.value >= warning:
+            elif value != "" and warning != "" and value >= warning:
                 state = 1
+            elif value != "":
+                state = 0
+            elif value == "" and warning == "" and critical == "" and state == 0:
+                state = 3
 
             if state == 0:
                 self.performance_desc_string = self.performance_desc_string +\
@@ -148,24 +165,22 @@ class PerfManager:
                 self.performance_desc_string = self.performance_desc_string +\
                                                "WARNING: " + name + " time is " + str(value) + " sec." + os.linesep
             elif state == 2:
-                if value is not None:
-                    self.performance_desc_string = self.performance_desc_string +\
-                                                   "CRITICAL: " + name + " time is " + str(value) + " sec." +\
-                                                   os.linesep
-                else:
-                    self.performance_desc_string = self.performance_desc_string +\
-                                                   "CRITICAL: " + name + " time is null." + os.linesep
+                self.performance_desc_string = self.performance_desc_string +\
+                                               "CRITICAL: " + name + " time is " + str(value) + " sec." +\
+                                               os.linesep
             else:
-                if value is not None:
+                if value != "":
                     self.performance_desc_string = self.performance_desc_string +\
                                                    "UNKNOWN: " + name + " time is " + str(value) + " sec." + os.linesep
-                else:
+                elif value == "":
                     self.performance_desc_string = self.performance_desc_string +\
                                                    "UNKNOWN: " + name + " time is null." + os.linesep
 
 
         os.environ["alyvix_exitcode"] = str(exitcode)
         os.environ["alyvix_std_output"] = self.performance_desc_string
+        print self.performance_desc_string
+        return exitcode
 
     def get_exitcode(self):
 
@@ -181,10 +196,12 @@ class PerfManager:
             state = perfdata.state
 
             #only for Alyvix
-            if critical is not None and perfdata.value >= critical:
+            if value != "" and critical != "" and value >= critical:
                 state = 2
-            elif warning is not None and perfdata.value >= warning:
+            elif value != "" and warning != "" and value >= warning:
                 state = 1
+            elif value == "" and warning == "" and critical == "" and state == 0:
+                state = 3
 
             if state > exitcode:
                 exitcode = state

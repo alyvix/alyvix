@@ -1,1 +1,1 @@
-call C:\Python27-32\Lib\site-packages\PyQt4\pyuic4.bat alyvix_object_finder_properties_view.ui > ..\alyvix_object_finder_properties_view.py
+call C:\Python27-32\Lib\site-packages\PyQt4\pyuic4.bat alyvix_code_properties_view.ui > ..\alyvix_code_properties_view.py

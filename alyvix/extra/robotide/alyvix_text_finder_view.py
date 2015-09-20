@@ -129,7 +129,7 @@ class AlyvixTextFinderView(QWidget):
             self.build_code_array()
             self.build_xml()
             self.save_python_file()
-            self.build_perf_data_xml()
+            #self.build_perf_data_xml()
             image_name = self._path + os.sep + self._main_text.name + "_TextFinder.png"
             self._bg_pixmap.save(image_name,"PNG", -1)
             #self.save_template_images(image_name)
@@ -150,7 +150,10 @@ class AlyvixTextFinderView(QWidget):
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
             self.restore_rect()
         if event.key() == Qt.Key_Escape:
-            pass
+            if self._main_text is None and self.esc_pressed is False:
+                self.esc_pressed = True
+                self.parent.show()
+                self.close()
             """
             self.parent.show()
             self.close()
@@ -888,7 +891,7 @@ class AlyvixTextFinderView(QWidget):
         
         if self.action == "new" and file_code_string == "":
             file_code_string = file_code_string + "# -*- coding: utf-8 -*-" + os.linesep
-            file_code_string = file_code_string + "from alyvixlib import *" + os.linesep
+            file_code_string = file_code_string + "from alyvixcommon import *" + os.linesep
             file_code_string = file_code_string + os.linesep
             file_code_string = file_code_string + os.linesep
             file_code_string = file_code_string + "os.environ[\"alyvix_test_case_name\"] = os.path.basename(__file__).split('.')[0]" + os.linesep

@@ -143,9 +143,10 @@ class AlyvixRectFinderView(QWidget):
             #self.build_code()
             self.build_code_array()
             self.save_python_file()
-            self.build_perf_data_xml()
+            #self.build_perf_data_xml()
             self._bg_pixmap.save(self._path + os.sep + self._main_rect_finder.name + "_RectFinder.png","PNG", -1)
             if self.action == "new":
+                print "add_new"
                 self.parent.add_new_item_on_list()
         self.parent.show()
         self.close()
@@ -162,7 +163,10 @@ class AlyvixRectFinderView(QWidget):
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
             self.restore_rect()
         if event.key() == Qt.Key_Escape:
-            pass
+            if self._main_rect_finder is None and self.esc_pressed is False:
+                self.esc_pressed = True
+                self.parent.show()
+                self.close()
             """
             self.parent.show()
             self.close()
@@ -1020,7 +1024,7 @@ class AlyvixRectFinderView(QWidget):
         
         if self.action == "new" and file_code_string == "":
             file_code_string = file_code_string + "# -*- coding: utf-8 -*-" + os.linesep
-            file_code_string = file_code_string + "from alyvixlib import *" + os.linesep
+            file_code_string = file_code_string + "from alyvixcommon import *" + os.linesep
             file_code_string = file_code_string + os.linesep
             file_code_string = file_code_string + os.linesep
             file_code_string = file_code_string + "os.environ[\"alyvix_test_case_name\"] = os.path.basename(__file__).split('.')[0]" + os.linesep
