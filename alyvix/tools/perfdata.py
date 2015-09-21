@@ -51,17 +51,17 @@ class PerfManager:
         perf_data.name = name
 
         try:
-            perf_data.value = int(value)
+            perf_data.value = float(value)
         except:
             perf_data.value = ""
 
         try:
-            perf_data.warning_threshold = int(warning_threshold)
+            perf_data.warning_threshold = float(warning_threshold)
         except:
             perf_data.warning_threshold = ""
 
         try:
-            perf_data.critical_threshold = int(critical_threshold)
+            perf_data.critical_threshold = float(critical_threshold)
         except:
              perf_data.critical_threshold = ""
 
@@ -103,7 +103,9 @@ class PerfManager:
 
         return ret_string
 
-    def get_output(self, message=None):
+    def get_output(self, message=None, print_output=True):
+
+        prefix_robot_framework = ""
 
         global perfdata_list
         global timedout_finders
@@ -122,18 +124,22 @@ class PerfManager:
             self.performance_desc_string = self.performance_desc_string +\
                                            "CRITICAL: one or more steps are in critical state" +\
                                            performanceData + os.linesep
+            prefix_robot_framework = "*WARN*"
         elif exitcode == 1:
             self.performance_desc_string = self.performance_desc_string +\
                                            "WARNING: one or more steps are in warning state" +\
                                            performanceData + os.linesep
+            prefix_robot_framework = "*WARN*"
         elif exitcode == 3:
             self.performance_desc_string = self.performance_desc_string +\
                                            "UNKNOWN: some unknown error occurred" +\
                                            performanceData + os.linesep
+            prefix_robot_framework = "*WARN*"
         elif len(timedout_finders) > 0:
             self.performance_desc_string = self.performance_desc_string +\
                                            "CRITICAL: one or more steps are in timeout state" +\
                                            performanceData + os.linesep
+            prefix_robot_framework = "*WARN*"
         else:
             self.performance_desc_string = self.performance_desc_string +\
                                            "OK: all steps are ok" +\
@@ -179,7 +185,9 @@ class PerfManager:
 
         os.environ["alyvix_exitcode"] = str(exitcode)
         os.environ["alyvix_std_output"] = self.performance_desc_string
-        print self.performance_desc_string
+
+        if print_output is True:
+            print prefix_robot_framework + self.performance_desc_string
         return exitcode
 
     def get_exitcode(self):

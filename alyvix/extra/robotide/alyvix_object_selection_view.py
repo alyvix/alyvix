@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'alyvix_object_selection.ui'
+# Form implementation generated from reading ui file 'alyvix_object_selection_view.ui'
 #
-# Created: Tue Jun 23 14:52:52 2015
+# Created: Sun Sep 20 22:16:01 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -74,7 +74,7 @@ class Ui_Form(object):
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
-        Form.setWindowTitle(_translate("Form", "Form", None))
+        Form.setWindowTitle(_translate("Form", "Alyvix - Select Finder", None))
         self.pushButtonNew.setText(_translate("Form", "New", None))
         self.pushButtonEdit.setText(_translate("Form", "Edit", None))
         self.pushButtonRemove.setText(_translate("Form", "Remove", None))

@@ -1111,7 +1111,7 @@ class AlyvixRectFinderView(QWidget):
             name = time.strftime("rect_finder_%d_%m_%y_%H_%M_%S")
             self._main_rect_finder.name = name
             
-        strcode = name + "_object = RectFinder(\"" + name + "\")"
+        strcode = name + "_object = None" #RectFinder(\"" + name + "\")"
         self._code_lines.append(strcode)
         self._code_lines_for_object_finder.append(strcode)
         self._code_lines.append("")
@@ -1129,6 +1129,7 @@ class AlyvixRectFinderView(QWidget):
         self._code_lines.append(string_function_args)
         
         self._code_lines.append("    global " + name + "_object")
+        self._code_lines.append("    " + name + "_object = RectFinder(\"" + name + "\")")
         
         if self._main_rect_finder.use_min_max is False:                  
             height = str(self._main_rect_finder.height)

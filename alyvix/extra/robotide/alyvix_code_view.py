@@ -417,7 +417,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
             self.textEdit.append("")
             self.mmanager_declared = True
         
-        self.textEdit.append("mm.scroll(steps=2, direction=mm.wheel_up)")
+        self.textEdit.append("mm.scroll(steps=2, direction=mm.wheel_down)")
         self.textEdit.append("")
         
     def pushbutton_mouse_drag_event(self):
@@ -485,7 +485,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
             self.procmanager_declared = True
         
         self.textEdit.append("#insert window(s) title between below quotes")
-        self.textEdit.append("return wm.close_window('')")
+        self.textEdit.append("wm.close_window('')")
         self.textEdit.append("")
         
     def args_spinbox_change_event(self, event):

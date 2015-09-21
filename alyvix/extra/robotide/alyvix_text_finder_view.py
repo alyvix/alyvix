@@ -985,7 +985,7 @@ class AlyvixTextFinderView(QWidget):
             
         #self._code_lines.append("def " + name + "():")
         
-        strcode = name + "_object = TextFinder(\"" + name + "\")"
+        strcode = name + "_object = None" #TextFinder(\"" + name + "\")"
         self._code_lines.append(strcode)
         self._code_lines_for_object_finder.append(strcode)
         
@@ -1015,6 +1015,7 @@ class AlyvixTextFinderView(QWidget):
         roi_height = str(self._main_text.roi_height)
         
         self._code_lines.append("    global " + name + "_object")  
+        self._code_lines.append("    " + name + "_object = TextFinder(\"" + name + "\")")
         
         text_to_find = ""
         

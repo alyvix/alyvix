@@ -803,7 +803,7 @@ class AlyvixImageFinderView(QWidget):
             name = time.strftime("image_finder_%d_%m_%y_%H_%M_%S")
             self._main_template.name = name
             
-        strcode = name + "_object = ImageFinder(\"" + name + "\")"
+        strcode = name + "_object = None"
         self._code_lines.append(strcode)
         self._code_lines_for_object_finder.append(strcode)
 
@@ -822,6 +822,7 @@ class AlyvixImageFinderView(QWidget):
         self._code_lines.append(string_function_args)
         
         self._code_lines.append("    global " + name + "_object")  
+        self._code_lines.append("    " + name + "_object = ImageFinder(\"" + name + "\")")
 
         template_image_path = self._path + os.sep + name
         

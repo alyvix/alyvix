@@ -90,6 +90,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.action = self.parent.action
         self._xml_name = self.parent.xml_name
         
+        self.building_code = False
+        
         self.button_selected = "set_main_object"
         
         self.esc_pressed = False
@@ -292,7 +294,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     def pushButtonOk_event(self):
         answer = QMessageBox.Yes
         
-        print "name button", self._main_object_finder.name
+        #print "name button", self._main_object_finder.name
 
         if self._main_object_finder.xml_path != "":
             if self._main_object_finder.name == "":
@@ -668,6 +670,10 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
     def build_code_array(self):
     
+        total_args = 0 #self._main_object_finder.args_number
+    
+        self.building_code = True
+    
         kmanager_declared = False
         mmanager_declared = False
        
@@ -714,7 +720,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             arg_main_component = main_obj._main_text.args_number
             main_obj_name = main_obj._main_text.name
         
-        self._main_object_finder.args_number = self._main_object_finder.args_number + arg_main_component
+        total_args = total_args + arg_main_component
         str_global_obj = "    global " + main_obj_name + "_object"
         
         string_function_args = "    " + main_obj_name + "_build_object("
@@ -776,7 +782,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                     sub_obj_name = sub_obj._main_text.name
                     arg_sub_component = sub_obj._main_text.args_number
                 
-                self._main_object_finder.args_number = self._main_object_finder.args_number + arg_sub_component
+                total_args = total_args + arg_sub_component
                 str_lines_sub_obj.append("    global " + sub_obj_name + "_object")
                 
                 
@@ -820,7 +826,10 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         string_function_args = "def " + name + "("
         
-        args_range = range(1, self._main_object_finder.args_number + 1)
+        if self._main_object_finder.args_number == 0:
+            args_range = range(1, total_args + 1)
+        else:
+            args_range = range(1, self._main_object_finder.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -987,7 +996,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                     self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
         
         self._code_lines.append("")
-        self._code_lines.append("") 
+        self._code_lines.append("")
+        if self._main_object_finder.args_number != 0:
+            self.spinBoxArgs.setValue(self._main_object_finder.args_number)
+        else:
+            self.spinBoxArgs.setValue(total_args)
+        self.building_code = False
         
     def get_old_code(self):
         file_code_string = ""
@@ -1367,12 +1381,15 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         else:
             self._main_object_finder.name = str(text.toUtf8()).replace(" ", "_")
             
-        print "name", self._main_object_finder.name
+        #print "name", self._main_object_finder.name
   
     def args_spinbox_change_event(self, event):
-        self._main_object_finder.args_number = self.spinBoxArgs.value()
-        self.build_code_array()
-        self.textEdit.setText(unicode(self.build_code_string(), 'utf-8'))
+
+        if self.building_code is False:
+            #print "spinbox"
+            self._main_object_finder.args_number = self.spinBoxArgs.value()
+            self.build_code_array()
+            self.textEdit.setText(unicode(self.build_code_string(), 'utf-8'))
   
     def warning_event(self, event):
         self._main_object_finder.warning = self.doubleSpinBoxWarning.value()
@@ -2144,7 +2161,7 @@ class PaintingView(QWidget):
         if sub_obj.roi_height == 0 or sub_obj.roi_width == 0:
             return
         
-        print sub_obj.roi_x, sub_obj.roi_y, sub_obj.roi_height,sub_obj.roi_width
+        #print sub_obj.roi_x, sub_obj.roi_y, sub_obj.roi_height,sub_obj.roi_width
         
         self.parent._deleted_sub_objects.append(copy.deepcopy(sub_obj))
         

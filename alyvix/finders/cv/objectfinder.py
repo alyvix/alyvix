@@ -161,7 +161,6 @@ class ObjectFinder(BaseFinder):
                 main_object._flag_thread_started = False
                 self._flag_thread_have_to_exit = False
                 self._flag_thread_started = False
-                print "RETTTTTTTTTTT"
                 return []
 
             object_found = []
@@ -195,7 +194,6 @@ class ObjectFinder(BaseFinder):
                         main_object._flag_thread_started = False
                         self._flag_thread_have_to_exit = False
                         self._flag_thread_started = False
-                        print "RETTTTTTTTTTT"
                         return []
 
                     sub_template_coordinates = copy.deepcopy(self.find_sub_object((x, y), sub_object))
@@ -228,8 +226,8 @@ class ObjectFinder(BaseFinder):
 
         if self._flag_check_before_exit is True:
             self._flag_checked_before_exit = True
-            print "self._flag_checked_before_exit = True"
-            print self._time_checked_before_exit_start
+            #print "self._flag_checked_before_exit = True"
+            #print self._time_checked_before_exit_start
 
         self._flag_thread_started = False
         main_object._flag_thread_started = False

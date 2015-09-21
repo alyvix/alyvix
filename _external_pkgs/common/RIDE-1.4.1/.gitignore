@@ -1,0 +1,13 @@
+tmp
+build
+dist
+.idea
+.*project
+*.pyc
+*$py.class
+results
+src/robotframework_ride.egg-info
+RIDE.wiki
+.DS_Store
+.spyderworkspace
+rfgen.py

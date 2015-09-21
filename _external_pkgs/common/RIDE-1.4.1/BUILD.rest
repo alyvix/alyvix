@@ -1,0 +1,138 @@
+BUILD
+=====
+
+This document describes the technical details of the RIDE project:
+
+ * How to build, run and test RIDE
+ * What's in the source
+ * How to contribute
+ * How to make a release
+ * Settings migrations
+
+Developing
+==========
+
+It is recommended to use Virtualenv__ as a development Python environment.
+
+Necessary development dependencies can be installed with::
+
+    pip install -r requirements.txt
+
+RIDE uses Paver__ as it's build tool. Packaging, testing, and running a
+development version without installation can all be done using Paver.
+Run::
+
+    paver help
+
+for more information.
+
+__ https://pypi.python.org/pypi/virtualenv
+__ http://paver.github.com/paver
+
+
+MacOS 10.7 - 10.8
+-----------------
+wxPython is limited to running in 32-bit mode.
+Python itself should thus be executed in 32-bit mode. This can be done by setting:
+
+  export VERSIONER_PYTHON_PREFER_32_BIT=yes
+
+MacOS 10.9+
+-----------
+
+wxPython 2.8 is still limited to run in 32-bit mode. It must be launched with the command
+
+  arch -i386 /usr/bin/python /usr/local/bin/ride.py
+
+Repository contents
+===================
+
+Repository contains source code, unit tests, and some helper scripts for
+development and package generation.
+
+Source code
+-----------
+
+Source code is located in `src` directory. `src/bin` contains installed start
+scripts and `src/robotide` contains the actual source code.
+
+
+Unit tests
+----------
+
+Unit tests are in `utest` directory. They can be executed with::
+
+  paver test
+
+
+
+Contributing
+============
+
+Fork and send a pull request! To enhance the possibility of getting the pull
+request merged, read guidelines below.
+
+
+Coding guidelines
+=================
+
+In general, all the code should be written according to Style Guide for Python
+Code [5] However, as stated in the Zen of Python, practicality beats purity.
+
+Method names
+------------
+
+Typically, we use `lowercase_with_underscore` style for method names. Of
+course, when overriding wx methods, `AllCapitalized` style must be used.
+Additionally, there's a special case when writing event handler methods. We
+have chosen to name event handlers following this pattern: `OnEventName` (e.g.
+`OnMouseClick`).
+
+
+ http://www.python.org/dev/peps/pep-0008/
+
+
+Releasing
+=========
+
+* Release early and often!
+* **Consider making a preview release** - this will give you possibility to test the new release with friendly real users
+* Manually test run RIDE in windows, linux and OSX
+* Primary distribution channel is PyPi.
+* Following steps are needed for a final release. Updating release notes plugin is optional for pre-releases::
+
+  > paver test
+  > paver set_version 1.xx
+  > paver register
+  > paver release_notes_plugin
+  > paver sdist upload
+  > git commit -am 'Version 1.xx'
+  > git tag 1.xx
+  > git push --tags
+  
+
+* For final releases, create Windows installer with following command and upload it to GitHub::
+
+  > paver bdist_wininst
+  
+
+* Announce on usergroup, robot homepage, and twitter
+
+
+Settings migration
+==================
+
+RIDE has a user specific configuration file that you usually don't need to worry about.
+But sometimes old configurations should be changed during RIDE version update. For example when the old configuration
+had a bug or new RIDE uses a differing kind of configuration parameter then the old version.
+
+For these situations I've created a configuration migration system that can do these changes when a new version of RIDE is taken in to use.
+The migrator is currenlty (10.8.2012) located at preferences/settings.py/SettingsMigrator.
+
+The mechanism works in the following way:
+ * Settings have a settings_version attribute that should be updated when a new migration is needed
+ * the SettingsMigrator.migrate method should be updated so that it will also do the new migration
+ * You only need to add a migration from the previous version to current (the migrate method will handle all the older versions -
+so only the last configuration delta is needed)
+
+Hope this helps when persistent things change a lot.

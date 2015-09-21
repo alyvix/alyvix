@@ -64,6 +64,7 @@ class LogManager:
         global log_path
 
         root_log_path = self._config_reader.get_log_folder()
+
         #print "log_path:", root_log_path
 
         test_case_name = os.getenv("alyvix_test_case_name", "generic")

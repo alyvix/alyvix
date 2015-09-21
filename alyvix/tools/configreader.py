@@ -92,6 +92,7 @@ class ConfigReader():
         :return: full filename
         """
         testcase_config_filename = os.getenv("alyvix_testcase_config")
+        print testcase_config_filename
         return testcase_config_filename
 
     def get_finder_thread_interval(self):

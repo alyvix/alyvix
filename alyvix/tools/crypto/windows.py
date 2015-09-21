@@ -98,6 +98,12 @@ class CryptoManager(CryptoManagerBase):
         with open(self.alyvix_hex_file_name, "w") as text_file:
             text_file.write(private_key_protected_hex)
 
+    def check_if_key_exists(self):
+        if os.path.exists(self.alyvix_hex_file_name):
+            return True
+        else:
+            return False
+
     def get_key(self):
 
         if os.path.exists(self.alyvix_hex_file_name):
