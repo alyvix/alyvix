@@ -1831,7 +1831,7 @@ class MainObjectForGui:
         self.args_number = 0
         self.component_args = ""
         self.timeout = 60
-        self.timeout_exception = 60
+        self.timeout_exception = True
         self.sendkeys = ""
         self.enable_performance = True
         self.warning = 15.00
