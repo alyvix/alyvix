@@ -995,6 +995,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                     sub_obj_name = sub_obj._main_text.name
                     self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
         
+        if self._main_object_finder.timeout_exception is False:
+            self._code_lines.append("    return True")
         self._code_lines.append("")
         self._code_lines.append("")
         if self._main_object_finder.args_number != 0:

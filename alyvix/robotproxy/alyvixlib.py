@@ -123,13 +123,19 @@ def print_perfdata(message=None, print_output="True"):
     message_value = None
     print_output_value = True
     
-    if message.lower() is not None and message.lower() != "":
-        message_value = message
-        
-    if print_output.lower() == "true":
-        print_output_value = True
-    elif print_output.lower() == "false":
-        print_output_value = False
+    try:
+        if message.lower() != "":
+            message_value = message
+    except:
+        pass
+    
+    try:    
+        if print_output.lower() == "true":
+            print_output_value = True
+        elif print_output.lower() == "false":
+            print_output_value = False
+    except:
+        pass
 
     pm = PerfManager()
     return pm.get_output(message_value, print_output_value)
