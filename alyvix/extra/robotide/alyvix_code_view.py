@@ -371,7 +371,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         if event.type() == event.KeyPress and obj.objectName() == "textEdit" and event.key() == Qt.Key_Tab:
             #print "event!!!!!!!!!!!!!!!!!"
             #event.ignore()
-            #self.textEdit.append("    ")
+            #self.textEdit.appendPlainText("    ")
             #print event.Key()
             #self.textEdit.setPlainText(self.textEdit.toPlainText().replace("\t","    "))
             
@@ -498,126 +498,126 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
     def pushbutton_send_key_event(self):
     
         if self.kmanager_declared is False or "km = KeyboardManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("km = KeyboardManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("km = KeyboardManager()")
+            self.textEdit.appendPlainText("")
             self.kmanager_declared = True
         
-        self.textEdit.append("#insert the keys between below quotes")
-        self.textEdit.append("km.send('', encrypted=False)")
-        self.textEdit.append("")        
+        self.textEdit.appendPlainText("#insert the keys between below quotes")
+        self.textEdit.appendPlainText("km.send('', encrypted=False)")
+        self.textEdit.appendPlainText("")        
         
     def pushbutton_mouse_click_event(self):
         if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("mm = MouseManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("mm = MouseManager()")
+            self.textEdit.appendPlainText("")
             self.mmanager_declared = True
         
-        self.textEdit.append("mm.click(x=0, y=0, mm.button_left, n=1)")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("mm.click(x=0, y=0, mm.button_left, n=1)")
+        self.textEdit.appendPlainText("")
         
     def pushbutton_mouse_doubleclick_event(self):
         if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("mm = MouseManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("mm = MouseManager()")
+            self.textEdit.appendPlainText("")
             self.mmanager_declared = True
         
-        self.textEdit.append("mm.click(x=0, y=0, mm.button_left, n=2)")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("mm.click(x=0, y=0, mm.button_left, n=2)")
+        self.textEdit.appendPlainText("")
         
     def pushbutton_mouse_right_click_event(self):
         if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("mm = MouseManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("mm = MouseManager()")
+            self.textEdit.appendPlainText("")
             self.mmanager_declared = True
         
-        self.textEdit.append("mm.click(x=0, y=0, mm.button_right, n=1)")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("mm.click(x=0, y=0, mm.button_right, n=1)")
+        self.textEdit.appendPlainText("")
         
     def pushbutton_mouse_move_event(self):
         if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("mm = MouseManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("mm = MouseManager()")
+            self.textEdit.appendPlainText("")
             self.mmanager_declared = True
         
-        self.textEdit.append("mm.move(x=0, y=0)")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("mm.move(x=0, y=0)")
+        self.textEdit.appendPlainText("")
         
     def pushbutton_mouse_scroll_event(self):
         if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("mm = MouseManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("mm = MouseManager()")
+            self.textEdit.appendPlainText("")
             self.mmanager_declared = True
         
-        self.textEdit.append("mm.scroll(steps=2, direction=mm.wheel_down)")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("mm.scroll(steps=2, direction=mm.wheel_down)")
+        self.textEdit.appendPlainText("")
         
     def pushbutton_mouse_drag_event(self):
         if self.mmanager_declared is False or "mm = MouseManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("mm = MouseManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("mm = MouseManager()")
+            self.textEdit.appendPlainText("")
             self.mmanager_declared = True
         
-        self.textEdit.append("mm.drag(x1=0, y1=0, x2=0, y2=0)")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("mm.drag(x1=0, y1=0, x2=0, y2=0)")
+        self.textEdit.appendPlainText("")
 
     def pushbutton_proc_create_event(self):
         if self.procmanager_declared is False or "pm = ProcManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("pm = ProcManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("pm = ProcManager()")
+            self.textEdit.appendPlainText("")
             self.procmanager_declared = True
         
-        self.textEdit.append("pm.create_process(popenargs, kwargs)")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("pm.create_process(popenargs, kwargs)")
+        self.textEdit.appendPlainText("")
         
     def pushbutton_proc_kill_event(self):
         if self.procmanager_declared is False or "pm = ProcManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("pm = ProcManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("pm = ProcManager()")
+            self.textEdit.appendPlainText("")
             self.procmanager_declared = True
         
-        self.textEdit.append("#insert the process name between below quotes")
-        self.textEdit.append("pm.kill_process('')")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("#insert the process name between below quotes")
+        self.textEdit.appendPlainText("pm.kill_process('')")
+        self.textEdit.appendPlainText("")
 
     def pushbutton_win_show_event(self):
         if self.procmanager_declared is False or "wm = WinManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("wm = WinManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("wm = WinManager()")
+            self.textEdit.appendPlainText("")
             self.procmanager_declared = True
         
-        self.textEdit.append("#insert window(s) title between below quotes")
-        self.textEdit.append("wm.show_window('')")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("#insert window(s) title between below quotes")
+        self.textEdit.appendPlainText("wm.show_window('')")
+        self.textEdit.appendPlainText("")
         
     def pushbutton_win_maximize_event(self):
         if self.procmanager_declared is False or "wm = WinManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("wm = WinManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("wm = WinManager()")
+            self.textEdit.appendPlainText("")
             self.procmanager_declared = True
         
-        self.textEdit.append("#insert window(s) title between below quotes")
-        self.textEdit.append("wm.maximize_window('')")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("#insert window(s) title between below quotes")
+        self.textEdit.appendPlainText("wm.maximize_window('')")
+        self.textEdit.appendPlainText("")
         
     def pushbutton_win_check(self):
         if self.procmanager_declared is False or "wm = WinManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("wm = WinManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("wm = WinManager()")
+            self.textEdit.appendPlainText("")
             self.procmanager_declared = True
         
-        self.textEdit.append("#insert window(s) title between below quotes")
-        self.textEdit.append("return wm.check_if_window_exists('')")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("#insert window(s) title between below quotes")
+        self.textEdit.appendPlainText("return wm.check_if_window_exists('')")
+        self.textEdit.appendPlainText("")
         
     def pushbutton_win_close_event(self):
         if self.procmanager_declared is False or "wm = WinManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
-            self.textEdit.append("wm = WinManager()")
-            self.textEdit.append("")
+            self.textEdit.appendPlainText("wm = WinManager()")
+            self.textEdit.appendPlainText("")
             self.procmanager_declared = True
         
-        self.textEdit.append("#insert window(s) title between below quotes")
-        self.textEdit.append("wm.close_window('')")
-        self.textEdit.append("")
+        self.textEdit.appendPlainText("#insert window(s) title between below quotes")
+        self.textEdit.appendPlainText("wm.close_window('')")
+        self.textEdit.appendPlainText("")
         
     def args_spinbox_change_event(self, event):
         self.args_number = self.spinBoxArgs.value()
