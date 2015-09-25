@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'alyvix_code_properties_view.ui'
 #
-# Created: Sat Sep 19 20:47:09 2015
+# Created: Fri Sep 25 10:12:57 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -116,6 +116,10 @@ class Ui_Form(object):
         self.spinBoxArgs = QtGui.QSpinBox(Form)
         self.spinBoxArgs.setGeometry(QtCore.QRect(258, 258, 60, 22))
         self.spinBoxArgs.setObjectName(_fromUtf8("spinBoxArgs"))
+        self.textEdit = QtGui.QPlainTextEdit(Form)
+        self.textEdit.setGeometry(QtCore.QRect(201, 40, 349, 210))
+        self.textEdit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
+        self.textEdit.setObjectName(_fromUtf8("textEdit"))
 
         self.retranslateUi(Form)
         self.tabWidget.setCurrentIndex(0)

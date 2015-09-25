@@ -227,6 +227,19 @@
     </rect>
    </property>
   </widget>
+  <widget class="QPlainTextEdit" name="textEdit">
+   <property name="geometry">
+    <rect>
+     <x>201</x>
+     <y>40</y>
+     <width>349</width>
+     <height>210</height>
+    </rect>
+   </property>
+   <property name="lineWrapMode">
+    <enum>QPlainTextEdit::NoWrap</enum>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

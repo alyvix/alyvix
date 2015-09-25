@@ -79,9 +79,10 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         self.winmanager_declared = False
         self.procmanager_declared = False
         
-        self.textEdit = LineTextWidget(self)
-        self.textEdit.setGeometry(QRect(198, 40, 350, 206))
-        #self.textEdit.setText(self.build_code_string())
+        #self.textEdit = LineTextWidget(self)
+        #self.textEdit.setGeometry(QRect(198, 40, 350, 206))
+        
+        #self.textEdit.insertPlainText(self.build_code_string())
         
                         
         self.build_objects()
@@ -116,7 +117,10 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         
         self.connect(self.spinBoxArgs, SIGNAL('valueChanged(int)'), self.args_spinbox_change_event)
         
+        #self.textEdit.LineWrapMode(QTextEdit.NoWrap)
+        
         self.textEdit.setFocus()
+        self.textEdit.installEventFilter(self)
         
         self.connect(self.namelineedit, SIGNAL("textChanged(QString)"), self, SLOT("namelineedit_event(QString)"))
         self.namelineedit.installEventFilter(self)
@@ -142,10 +146,10 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         string = ""
         for line in old_code_lines:
         
-            string = string + line.lstrip('    ') + '\n'
+            string = string + line[4:] + "\n" #line.lstrip('    ') + '\n'
             
     
-        self.textEdit.setText(unicode(string[:-3], 'utf-8'))      
+        self.textEdit.insertPlainText(unicode(string[:-3], 'utf-8'))      
     
     def build_objects(self):
         
@@ -218,7 +222,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         #self._code_lines.append("") 
         
         for string in self._code_lines:
-            print string
+            pass #print string
         
     def get_old_code(self):
         file_code_string = ""
@@ -276,6 +280,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
             """
 
         string = file_code_string
+        string = string + os.linesep + os.linesep
         string = string.encode('utf-8')
 
         file = codecs.open(filename, 'w', 'utf-8')
@@ -307,7 +312,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         current_code_string = unicode(self.build_code_string(), 'utf-8')
         #current_code_string = current_code_string.replace(os.linesep + os.linesep, os.linesep)
         
-        print "old_code:", self.__old_code
+        #print "old_code:", self.__old_code
         file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), "")
         
         string = file_code_string
@@ -347,6 +352,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
             self.name = str(text.toUtf8()).replace(" ", "_")
             
     def eventFilter(self, obj, event):
+        #print "event"
         if event.type() == event.MouseButtonPress:
         
             if self.namelineedit.text() == "Type here the name of the object" and obj.objectName() == "namelineedit":
@@ -361,6 +367,131 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
             elif obj.objectName() == "namelineedit":
                 self.namelineedit.setText(self.name)
                 return True
+                
+        if event.type() == event.KeyPress and obj.objectName() == "textEdit" and event.key() == Qt.Key_Tab:
+            #print "event!!!!!!!!!!!!!!!!!"
+            #event.ignore()
+            #self.textEdit.append("    ")
+            #print event.Key()
+            #self.textEdit.setPlainText(self.textEdit.toPlainText().replace("\t","    "))
+            
+            #self.textEdit.moveCursor(QTextCursor.End)
+            #string =  self.textEdit.textCursor().selectedText().split("\n")
+            #print self.textEdit.textCursor().selectedText().replace("\n","    ").toUtf8()
+            
+            """
+            selected_lines = self.textEdit.textCursor().selection().toPlainText().split("\n")
+            print len(selected_lines)
+            for line in selected_lines:
+                print line.toUtf8()
+            """
+            
+            select_start = self.textEdit.textCursor().selectionStart()
+            
+            new_text = self.textEdit.textCursor().selection().toPlainText()
+            
+            if new_text == "":
+                self.textEdit.insertPlainText("    ")
+            else:
+                new_text = "    " + new_text.replace("\n", "\n    ")
+                self.textEdit.textCursor().insertText(new_text)
+                            
+                select_end = self.textEdit.textCursor().position()
+
+                c = self.textEdit.textCursor()
+                c.setPosition(select_start)
+                c.setPosition(select_end, QTextCursor.KeepAnchor)
+                self.textEdit.setTextCursor(c)
+            
+            # str(string.toUtf8()) #unicode(string, "utf-8")
+            
+            """
+            cnt = 0
+            for str in string:
+                str = "    " + str
+                cnt = cnt + 1
+            """
+                
+            #print self.textEdit.toPlainText()
+                        
+            #self.textEdit.insertPlainText("    ")
+
+            #self.textEdit.moveCursor(QTextCursor.End)
+
+            #self.update_code_block_array()
+
+            return True
+            
+        if event.type() == event.KeyPress and obj.objectName() == "textEdit" and event.key() == Qt.Key_Backtab:
+            
+            cursors_pos = self.textEdit.textCursor().position()
+            new_pos = 0
+            select_start = self.textEdit.textCursor().selectionStart()
+            
+            new_text = str(self.textEdit.textCursor().selection().toPlainText().toUtf8())
+            
+            if new_text == "":
+                #self.textEdit.insertPlainText("    ")
+                #print self.textEdit.textCursor().block().text().toAscii()
+
+                textedit_string = str(self.textEdit.toPlainText().toUtf8())
+                textedit_strings = textedit_string.split("\n")
+                
+                cursor_line_number = self.textEdit.textCursor().blockNumber()
+                
+                cnt = 0
+                for string in textedit_strings:
+                    if cnt == cursor_line_number:
+                        #current_line = str(self.textEdit.textCursor().block().text().toAscii())
+                        #print current_line
+                        if string.startswith("    "):
+                            string_trimmed = string[4:]
+                            #new_text = new_text.replace(first_line, firt_line_trimmed, 1)
+                            #self.textEdit.textCursor().insertText(current_line_trimmed)
+                            textedit_strings[cnt] = string_trimmed
+                            new_pos = cursors_pos -4
+                            
+                            new_string = ""
+                            
+                            for string in textedit_strings:
+                                new_string = new_string + string + "\n"
+                            new_string = new_string[:-1]
+
+                            self.textEdit.setPlainText(unicode(new_string, 'utf-8'))
+                            
+                            if new_pos < 0:
+                                new_pos = 0
+                            
+                            c = self.textEdit.textCursor()
+                            c.setPosition(new_pos)
+                            self.textEdit.setTextCursor(c)
+                            
+                            
+                            
+                            #print string_trimmed
+                    cnt = cnt + 1
+                    
+            else:
+                first_line = new_text.split("\n")[0]
+                #firt_line_trimmed = str(first_line).lstrip('    ')
+                if first_line.startswith("    "):
+                    firt_line_trimmed = first_line[4:]
+                    new_text = new_text.replace(first_line, firt_line_trimmed, 1)
+                new_text = new_text.replace("\n    ", "\n")
+
+                self.textEdit.textCursor().insertText(unicode(new_text,'utf-8'))
+                
+                select_end = self.textEdit.textCursor().position()
+                
+                c = self.textEdit.textCursor()
+                c.setPosition(select_start)
+                c.setPosition(select_end, QTextCursor.KeepAnchor)
+                self.textEdit.setTextCursor(c)
+            
+                                
+            #self.update_code_block_array()
+                
+            return True
             
         return False  
         
