@@ -68,6 +68,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         self._xml_name = self.parent.xml_name
         
         self.esc_pressed = False
+        self.ok_pressed  = False
         
         self.name = ""
         self.args_number = 0
@@ -78,6 +79,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         self.mmanager_declared = False
         self.winmanager_declared = False
         self.procmanager_declared = False
+        self.perfmanager_declared = False
         
         #self.textEdit = LineTextWidget(self)
         #self.textEdit.setGeometry(QRect(198, 40, 350, 206))
@@ -115,7 +117,13 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         self.connect(self.pushButtonWinCheck, SIGNAL('clicked()'), self.pushbutton_win_check)
         self.connect(self.pushButtonWinClose, SIGNAL('clicked()'), self.pushbutton_win_close_event)
         
+        self.connect(self.pushButtonAddPerf, SIGNAL('clicked()'), self.pushbutton_addperf_event)
+        self.connect(self.pushButtonPrintPerf, SIGNAL('clicked()'), self.pushbutton_printperf_event)
+        
         self.connect(self.spinBoxArgs, SIGNAL('valueChanged(int)'), self.args_spinbox_change_event)
+        
+        self.connect(self.pushButtonOk, SIGNAL('clicked()'), self.pushbutton_ok_event)
+        self.connect(self.pushButtonCancel, SIGNAL('clicked()'), self.pushbutton_cancel_event)
         
         #self.textEdit.LineWrapMode(QTextEdit.NoWrap)
         
@@ -127,6 +135,18 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
+        
+            if self.name == "" and self.textEdit.toPlainText() == "":
+                self.parent.show()
+                self.close()
+            
+            self.build_code_array()
+            
+            if self.__old_code == self.build_code_string():
+                self.parent.show()
+                self.close()
+                
+        """
             if self.esc_pressed is False and self.textEdit.toPlainText() != "":
                 self.esc_pressed = True
                 self.build_code_array()
@@ -134,9 +154,22 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
                 self.save_python_file()
                 if self.action == "new":
                     self.parent.add_new_item_on_list()
-                
-            self.parent.show()
-            self.close()
+        """
+        
+    def save_all(self):
+        if self.textEdit.toPlainText() != "" and self.ok_pressed is False:
+            self.ok_pressed = True
+            self.build_code_array()
+            self.build_xml()
+            self.save_python_file()
+            if self.action == "new":
+                self.parent.add_new_item_on_list()
+        self.parent.show()
+        self.close()
+        
+    def cancel_all(self):
+        self.parent.show()
+        self.close()
  
     def set_textedit_text(self):
         old_code_lines = []
@@ -618,6 +651,37 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
         self.textEdit.appendPlainText("#insert window(s) title between below quotes")
         self.textEdit.appendPlainText("wm.close_window('')")
         self.textEdit.appendPlainText("")
+        
+    def pushbutton_addperf_event(self):
+        if self.perfmanager_declared is False or "pm = PerfManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.appendPlainText("pm = PerfManager()")
+            self.textEdit.appendPlainText("")
+            self.perfmanager_declared = True
+        
+        self.textEdit.appendPlainText("#insert perf data name between below quotes")
+        self.textEdit.appendPlainText("pm.add_perfdata('', value=None, warning_threshold=None, critical_threshold=None, state=0)")
+        self.textEdit.appendPlainText("")
+    
+    def pushbutton_printperf_event(self):
+        if self.perfmanager_declared is False or "pm = PerfManager()" not in unicode(self.textEdit.toPlainText().toUtf8(), 'utf-8'):
+            self.textEdit.appendPlainText("pm = PerfManager()")
+            self.textEdit.appendPlainText("")
+            self.perfmanager_declared = True
+        
+        self.textEdit.appendPlainText("#insert message between below quotes")
+        self.textEdit.appendPlainText("pm.get_output(message='', print_output=True)")
+        self.textEdit.appendPlainText("")
+        
+    def pushbutton_ok_event(self):
+        answer = QMessageBox.Yes
+        if self.name == "":
+            answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
+
+        if answer == QMessageBox.Yes:
+            self.save_all()
+    
+    def pushbutton_cancel_event(self):
+        self.cancel_all()
         
     def args_spinbox_change_event(self, event):
         self.args_number = self.spinBoxArgs.value()

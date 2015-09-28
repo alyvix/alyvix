@@ -167,6 +167,9 @@ class AlyvixRectFinderView(QWidget):
                 self.esc_pressed = True
                 self.parent.show()
                 self.close()
+        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O:
+            self.rect_view_properties = AlyvixRectFinderPropertiesView(self)
+            self.rect_view_properties.show()
             """
             self.parent.show()
             self.close()

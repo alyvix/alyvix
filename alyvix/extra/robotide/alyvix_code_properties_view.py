@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'alyvix_code_properties_view.ui'
 #
-# Created: Fri Sep 25 10:12:57 2015
+# Created: Sun Sep 27 21:42:49 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,12 +26,12 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(563, 292)
+        Form.resize(563, 349)
         self.namelineedit = QtGui.QLineEdit(Form)
         self.namelineedit.setGeometry(QtCore.QRect(200, 10, 350, 20))
         self.namelineedit.setObjectName(_fromUtf8("namelineedit"))
         self.tabWidget = QtGui.QTabWidget(Form)
-        self.tabWidget.setGeometry(QtCore.QRect(10, 10, 178, 275))
+        self.tabWidget.setGeometry(QtCore.QRect(10, 10, 178, 331))
         self.tabWidget.setTabPosition(QtGui.QTabWidget.West)
         self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
         self.tab_7 = QtGui.QWidget()
@@ -109,17 +109,38 @@ class Ui_Form(object):
         self.pushButtonWinClose.setObjectName(_fromUtf8("pushButtonWinClose"))
         self.verticalLayout.addWidget(self.pushButtonWinClose)
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
+        self.tab_3 = QtGui.QWidget()
+        self.tab_3.setObjectName(_fromUtf8("tab_3"))
+        self.verticalLayoutWidget_3 = QtGui.QWidget(self.tab_3)
+        self.verticalLayoutWidget_3.setGeometry(QtCore.QRect(11, 11, 131, 61))
+        self.verticalLayoutWidget_3.setObjectName(_fromUtf8("verticalLayoutWidget_3"))
+        self.verticalLayout_3 = QtGui.QVBoxLayout(self.verticalLayoutWidget_3)
+        self.verticalLayout_3.setMargin(0)
+        self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
+        self.pushButtonAddPerf = QtGui.QPushButton(self.verticalLayoutWidget_3)
+        self.pushButtonAddPerf.setObjectName(_fromUtf8("pushButtonAddPerf"))
+        self.verticalLayout_3.addWidget(self.pushButtonAddPerf)
+        self.pushButtonPrintPerf = QtGui.QPushButton(self.verticalLayoutWidget_3)
+        self.pushButtonPrintPerf.setObjectName(_fromUtf8("pushButtonPrintPerf"))
+        self.verticalLayout_3.addWidget(self.pushButtonPrintPerf)
+        self.tabWidget.addTab(self.tab_3, _fromUtf8(""))
         self.labelArgs = QtGui.QLabel(Form)
-        self.labelArgs.setGeometry(QtCore.QRect(200, 263, 46, 13))
+        self.labelArgs.setGeometry(QtCore.QRect(200, 320, 46, 13))
         self.labelArgs.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.labelArgs.setObjectName(_fromUtf8("labelArgs"))
         self.spinBoxArgs = QtGui.QSpinBox(Form)
-        self.spinBoxArgs.setGeometry(QtCore.QRect(258, 258, 60, 22))
+        self.spinBoxArgs.setGeometry(QtCore.QRect(258, 315, 60, 22))
         self.spinBoxArgs.setObjectName(_fromUtf8("spinBoxArgs"))
         self.textEdit = QtGui.QPlainTextEdit(Form)
-        self.textEdit.setGeometry(QtCore.QRect(201, 40, 349, 210))
+        self.textEdit.setGeometry(QtCore.QRect(201, 40, 349, 262))
         self.textEdit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         self.textEdit.setObjectName(_fromUtf8("textEdit"))
+        self.pushButtonOk = QtGui.QPushButton(Form)
+        self.pushButtonOk.setGeometry(QtCore.QRect(379, 314, 75, 23))
+        self.pushButtonOk.setObjectName(_fromUtf8("pushButtonOk"))
+        self.pushButtonCancel = QtGui.QPushButton(Form)
+        self.pushButtonCancel.setGeometry(QtCore.QRect(467, 314, 75, 23))
+        self.pushButtonCancel.setObjectName(_fromUtf8("pushButtonCancel"))
 
         self.retranslateUi(Form)
         self.tabWidget.setCurrentIndex(0)
@@ -145,5 +166,10 @@ class Ui_Form(object):
         self.pushButtonWinCheck.setText(_translate("Form", "Check if Exists", None))
         self.pushButtonWinClose.setText(_translate("Form", "Close Window", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Form", "Windows", None))
+        self.pushButtonAddPerf.setText(_translate("Form", "Add Perf Data", None))
+        self.pushButtonPrintPerf.setText(_translate("Form", "Print Perf Data", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("Form", "Perf", None))
         self.labelArgs.setText(_translate("Form", "Args", None))
+        self.pushButtonOk.setText(_translate("Form", "Ok", None))
+        self.pushButtonCancel.setText(_translate("Form", "Cancel", None))
 

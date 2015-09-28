@@ -141,6 +141,10 @@ class AlyvixImageFinderView(QWidget):
                 self.esc_pressed = True
                 self.parent.show()
                 self.close()
+                
+        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O:
+            self.image_view_properties = AlyvixImageFinderPropertiesView(self)
+            self.image_view_properties.show()
             """
             self.parent.show()
             self.close()
