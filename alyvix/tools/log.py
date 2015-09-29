@@ -63,8 +63,6 @@ class LogManager:
 
         global log_path
 
-        root_log_path = self._config_reader.get_log_folder()
-
         #print "log_path:", root_log_path
 
         test_case_name = os.getenv("alyvix_test_case_name", "generic")
@@ -75,6 +73,9 @@ class LogManager:
 
             day_time = time.strftime("%d-%m-%y")
             hh_mm_ss = time.strftime("%H_%M_%S")
+
+            root_log_path = self._config_reader.get_log_folder()
+
             #print root_log_path
             path = root_log_path + os.sep + test_case_name + os.sep + day_time + os.sep + hh_mm_ss
 
@@ -84,7 +85,7 @@ class LogManager:
             log_path = path
             #print path
 
-        self.__delete_old_folders(root_log_path + os.sep + test_case_name)
+            self.__delete_old_folders(root_log_path + os.sep + test_case_name)
 
     def __delete_old_folders(self, root_path):
 
