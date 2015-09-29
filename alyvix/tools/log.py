@@ -71,7 +71,7 @@ class LogManager:
         #print test_case_name
 
         #set testcase root log folder
-        if log_path is None:
+        if log_path is None and self.__enable_log is True:
 
             day_time = time.strftime("%d-%m-%y")
             hh_mm_ss = time.strftime("%H_%M_%S")

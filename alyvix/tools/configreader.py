@@ -257,7 +257,7 @@ class ConfigReader():
                 log_node = self.__global_root_node.getElementsByTagName("log")[0]
                 log_enabled = str(log_node.getElementsByTagName("enable")[0].firstChild.nodeValue)
             except:
-                log_enabled = "true"
+                log_enabled = "false"
 
         if log_enabled.lower() == "true":
             log_enabled = True

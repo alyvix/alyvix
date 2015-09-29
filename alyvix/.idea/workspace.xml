@@ -34,16 +34,6 @@
         </entry>
       </file>
       <file leaf-file-name="windows.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/devices/keyboard/windows.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="153" max-vertical-offset="918">
-              <caret line="22" column="20" selection-start-line="22" selection-start-column="20" selection-end-line="22" selection-end-column="20" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="windows.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tools/window/windows.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="-59.5" vertical-offset="0" max-vertical-offset="1904">
@@ -63,11 +53,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="basefinder.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="basefinder.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/finders/cv/basefinder.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.31669536" vertical-offset="4162" max-vertical-offset="5763">
-              <caret line="234" column="6" selection-start-line="234" selection-start-column="6" selection-end-line="234" selection-end-column="6" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="3397" max-vertical-offset="5763">
+              <caret line="254" column="44" selection-start-line="254" selection-start-column="44" selection-end-line="254" selection-end-column="44" />
               <folding>
                 <element signature="e#918#927#0" expanded="true" />
               </folding>
@@ -78,8 +68,20 @@
       <file leaf-file-name="log.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tools/log.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="3100" max-vertical-offset="5474">
-              <caret line="269" column="12" selection-start-line="269" selection-start-column="12" selection-end-line="269" selection-end-column="44" />
+            <state vertical-scroll-proportion="-6.714286" vertical-offset="1189" max-vertical-offset="5610">
+              <caret line="81" column="23" selection-start-line="81" selection-start-column="19" selection-end-line="81" selection-end-column="23" />
+              <folding>
+                <element signature="e#918#928#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="configreader.py" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/tools/configreader.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.62794614" vertical-offset="4081" max-vertical-offset="5746">
+              <caret line="264" column="31" selection-start-line="264" selection-start-column="31" selection-end-line="264" selection-end-column="31" />
               <folding />
             </state>
           </provider>
@@ -160,14 +162,14 @@
         <option value="$PROJECT_DIR$/tools/window/__init__.py" />
         <option value="$PROJECT_DIR$/action/mouse/__init__.py" />
         <option value="$PROJECT_DIR$/tools/window/windows.py" />
-        <option value="$PROJECT_DIR$/tools/log.py" />
-        <option value="$PROJECT_DIR$/tools/configreader.py" />
         <option value="$PROJECT_DIR$/tools/perfdata.py" />
         <option value="$PROJECT_DIR$/tools/crypto/windows.py" />
         <option value="$PROJECT_DIR$/devices/keyboard/windows.py" />
         <option value="$PROJECT_DIR$/finders/cv/rectfinder.py" />
         <option value="$PROJECT_DIR$/finders/cv/objectfinder.py" />
         <option value="$PROJECT_DIR$/finders/cv/basefinder.py" />
+        <option value="$PROJECT_DIR$/tools/log.py" />
+        <option value="$PROJECT_DIR$/tools/configreader.py" />
       </list>
     </option>
   </component>
@@ -798,13 +800,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tools/configreader.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33222592" vertical-offset="922" max-vertical-offset="5746">
-          <caret line="68" column="12" selection-start-line="68" selection-start-column="9" selection-end-line="68" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tools/crypto/windows.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="1325" max-vertical-offset="2006">
@@ -887,21 +882,31 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tools/log.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3100" max-vertical-offset="5474">
-          <caret line="269" column="12" selection-start-line="269" selection-start-column="12" selection-end-line="269" selection-end-column="44" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/finders/cv/basefinder.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.31669536" vertical-offset="4162" max-vertical-offset="5763">
-          <caret line="234" column="6" selection-start-line="234" selection-start-column="6" selection-end-line="234" selection-end-column="6" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="3397" max-vertical-offset="5763">
+          <caret line="254" column="44" selection-start-line="254" selection-start-column="44" selection-end-line="254" selection-end-column="44" />
           <folding>
             <element signature="e#918#927#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/log.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-6.714286" vertical-offset="1189" max-vertical-offset="5610">
+          <caret line="81" column="23" selection-start-line="81" selection-start-column="19" selection-end-line="81" selection-end-column="23" />
+          <folding>
+            <element signature="e#918#928#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/configreader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.62794614" vertical-offset="4081" max-vertical-offset="5746">
+          <caret line="264" column="31" selection-start-line="264" selection-start-column="31" selection-end-line="264" selection-end-column="31" />
+          <folding />
         </state>
       </provider>
     </entry>
