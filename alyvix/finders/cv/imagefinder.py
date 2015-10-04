@@ -400,10 +400,10 @@ class ImageFinder(BaseFinder):
                     cv2.rectangle(img_copy, (x, y), (x+tmpl_w, y+tmpl_h), (0, 0, 255), 2)
                     self._log_manager.save_image(self.__find_log_folder, "sub_object_found.png", img_copy)
 
-                    sub_object_result = MatchResult((x1 + x, y1 + y, tmpl_w, tmpl_h))
-                    return sub_object_result
+                sub_object_result = MatchResult((x1 + x, y1 + y, tmpl_w, tmpl_h))
+                return sub_object_result
 
-                return None
+            return None
         except Exception, err:
             self._log_manager.save_exception("ERROR", "an exception has occurred: " + str(err) + " on line " + str(sys.exc_traceback.tb_lineno))
             return None

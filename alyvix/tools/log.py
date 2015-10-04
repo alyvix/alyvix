@@ -79,8 +79,11 @@ class LogManager:
             #print root_log_path
             path = root_log_path + os.sep + test_case_name + os.sep + day_time + os.sep + hh_mm_ss
 
-            if not os.path.exists(path):
-                os.makedirs(path)
+            try:
+                if not os.path.exists(path):
+                    os.makedirs(path)
+            except:
+                pass
 
             log_path = path
             #print path
@@ -93,37 +96,44 @@ class LogManager:
 
         for daily_folder in daily_folders:
 
-            if not "-" in daily_folder:
-                continue
-            daily_folder_datetime = datetime.strptime(daily_folder, "%d-%m-%y")
-            current_datetime = datetime.now()
+        
+            try:
+                if not "-" in daily_folder:
+                    continue
+                daily_folder_datetime = datetime.strptime(daily_folder, "%d-%m-%y")
+                current_datetime = datetime.now()
 
-            current_full_path = root_path + os.sep + daily_folder
+                current_full_path = root_path + os.sep + daily_folder
 
-            log_max_days = os.getenv("alyvix_log_max_days", "7")
-            log_max_days_int = int(log_max_days)
+                log_max_days = os.getenv("alyvix_log_max_days", "7")
+                log_max_days_int = int(log_max_days)
 
-            #if log folder are too old, then delete it
-            if daily_folder_datetime <= current_datetime + timedelta(days=(log_max_days_int * -1)):
-                shutil.rmtree(current_full_path)
-            #otherwise, check if we have to delete hours folder
-            elif daily_folder == time.strftime("%d-%m-%y"):
-                minutes_folders = os.listdir(current_full_path)
+                #if log folder are too old, then delete it
+                if daily_folder_datetime <= current_datetime + timedelta(days=(log_max_days_int * -1)):
+                    shutil.rmtree(current_full_path)
+                #otherwise, check if we have to delete hours folder
+                elif daily_folder == time.strftime("%d-%m-%y"):
+                    minutes_folders = os.listdir(current_full_path)
 
-                for minutes_folder in minutes_folders:
+                    for minutes_folder in minutes_folders:
+                        try:
 
-                    if not "-" in minutes_folder:
-                        continue
+                            if not "-" in minutes_folder:
+                                continue
 
-                    #create fake datetime, that because we need only to compare hours
-                    minutes_folder_datetime = datetime.strptime(daily_folder + "_" + minutes_folder,
-                                                                "%d-%m-%y_%H_%M_%S")
-                    log_max_hours = os.getenv("alyvix_log_max_hours_per_days", "24")
-                    log_max_hours_int = int(log_max_hours)
+                            #create fake datetime, that because we need only to compare hours
+                            minutes_folder_datetime = datetime.strptime(daily_folder + "_" + minutes_folder,
+                                                                        "%d-%m-%y_%H_%M_%S")
+                            log_max_hours = os.getenv("alyvix_log_max_hours_per_days", "24")
+                            log_max_hours_int = int(log_max_hours)
 
-                    #if hours folder are too old, then delete it
-                    if minutes_folder_datetime <= current_datetime + timedelta(hours=(log_max_hours_int * -1)):
-                        shutil.rmtree(current_full_path + os.sep + minutes_folder)
+                            #if hours folder are too old, then delete it
+                            if minutes_folder_datetime <= current_datetime + timedelta(hours=(log_max_hours_int * -1)):
+                                shutil.rmtree(current_full_path + os.sep + minutes_folder)
+                        except:
+                            pass
+            except:
+                pass
 
     def __delete_items_but(self, path, max_items=None, exclude_item=None):
         if max_items is not None:
@@ -139,20 +149,25 @@ class LogManager:
                 new_items = items
 
             while len(new_items) >= max_items:
+            
+                try:
 
-                items = os.listdir(path)
+                    items = os.listdir(path)
 
-                if exclude_item is not None:
-                    new_items = [item for item in items if item != exclude_item]
-                else:
-                    new_items = items
+                    if exclude_item is not None:
+                        new_items = [item for item in items if item != exclude_item]
+                    else:
+                        new_items = items
 
-                full_name = path + os.sep + new_items[0]
+                    full_name = path + os.sep + new_items[0]
 
-                if os.path.isdir(full_name) is True:
-                    shutil.rmtree(full_name)
-                else:
-                    os.remove(full_name)
+                    if os.path.isdir(full_name) is True:
+                        shutil.rmtree(full_name)
+                    else:
+                        os.remove(full_name)
+                        
+                except:
+                    pass
 
     def __delete_files(self, path, max_files=None):
 
@@ -161,9 +176,13 @@ class LogManager:
 
         if max_files is not None:
             while len(os.listdir(path)) > max_files:
+            
+                try:
 
-                files = os.listdir(path)
-                os.remove(path + os.sep + files[0])
+                    files = os.listdir(path)
+                    os.remove(path + os.sep + files[0])
+                except:
+                    pass
 
     def is_log_enable(self):
         """
@@ -199,9 +218,9 @@ class LogManager:
             if not os.path.exists(log_path):
                 os.makedirs(log_path)
 
-        text_file = open(fullname, "a")
-        text_file.write(type + "|" + current_time + "|" + self.__name + "|" + text_data)
-        text_file.close()
+            text_file = open(fullname, "a")
+            text_file.write(type + "|" + current_time + "|" + self.__name + "|" + text_data)
+            text_file.close()
 
     def save_image(self, sub_dir, image_name, image_data):
         """
@@ -215,14 +234,19 @@ class LogManager:
         :param image_data: the image data to save
         """
 
-        if isinstance(image_data, numpy.ndarray):
-            self.__save_numpy_image(sub_dir, image_name, image_data)
+        try:
+            if isinstance(image_data, numpy.ndarray):
+                self.__save_numpy_image(sub_dir, image_name, image_data)
 
-        if isinstance(image_data, Image.Image):
-            self.__save_pil_image(sub_dir, image_name, image_data)
+            if isinstance(image_data, Image.Image):
+                self.__save_pil_image(sub_dir, image_name, image_data)
 
-        if isinstance(image_data, cv.iplimage):
-            self.__save_cv_image(sub_dir, image_name, image_data)
+            if isinstance(image_data, cv.iplimage):
+                self.__save_cv_image(sub_dir, image_name, image_data)
+        except Exception, err:
+            pass
+            #import traceback
+            #self.save_exception("ERROR", traceback.format_exc())
 
     def save_info_file(self, sub_dir, file_name, text_data):
 
