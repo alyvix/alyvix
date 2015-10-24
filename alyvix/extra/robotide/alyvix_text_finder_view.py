@@ -53,6 +53,16 @@ class AlyvixTextFinderView(QWidget):
         QWidget.__init__(self)
         #self.setupUi(self)
         
+        self.object_name = ""
+        self.wait = True
+        self.find = False
+        self.args_number = 0
+        self.timeout = 60
+        self.timeout_exception = True
+        self.enable_performance = True
+        self.warning = 15.00
+        self.critical = 40.00
+        
         self.setMouseTracking(True)
         
         self._bg_pixmap = QPixmap()
@@ -130,7 +140,7 @@ class AlyvixTextFinderView(QWidget):
             self.build_xml()
             self.save_python_file()
             #self.build_perf_data_xml()
-            image_name = self._path + os.sep + self._main_text.name + "_TextFinder.png"
+            image_name = self._path + os.sep + self.object_name + "_TextFinder.png"
             self._bg_pixmap.save(image_name,"PNG", -1)
             #self.save_template_images(image_name)
             if self.action == "new":
@@ -168,7 +178,7 @@ class AlyvixTextFinderView(QWidget):
                 self.build_xml()
                 self.save_python_file()
                 self.build_perf_data_xml()
-                image_name = self._path + os.sep + self._main_text.name + "_TextFinder.png"
+                image_name = self._path + os.sep + self.object_name + "_TextFinder.png"
                 self._bg_pixmap.save(image_name,"PNG", -1)
                 #self.save_template_images(image_name)
                 if self.action == "new":
@@ -180,7 +190,7 @@ class AlyvixTextFinderView(QWidget):
     """
     def save_template_images(self, image_name):
     
-        template_text_path = self._path + os.sep + self._main_text.name
+        template_text_path = self._path + os.sep + self.object_name
         
         if not os.path.exists(template_text_path):
             os.makedirs(template_text_path)
@@ -980,11 +990,11 @@ class AlyvixTextFinderView(QWidget):
         self._code_lines = []
         self._code_lines_for_object_finder = []
             
-        name = self._main_text.name
+        name = self.object_name
         
         if name == "":
             name = time.strftime("text_finder_%d_%m_%y_%H_%M_%S")
-            self._main_text.name = name
+            self.object_name = name
             
         #self._code_lines.append("def " + name + "():")
         
@@ -996,7 +1006,7 @@ class AlyvixTextFinderView(QWidget):
         
         string_function_args = "def " + name + "_build_object("
         
-        args_range = range(1, self._main_text.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -1082,7 +1092,7 @@ class AlyvixTextFinderView(QWidget):
         
         string_function_args = "def " + name + "_mouse_keyboard("
         
-        args_range = range(1, self._main_text.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -1170,7 +1180,7 @@ class AlyvixTextFinderView(QWidget):
         
         string_function_args = "def " + name + "("
         
-        args_range = range(1, self._main_text.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -1184,7 +1194,7 @@ class AlyvixTextFinderView(QWidget):
 
         string_function_args = "    " + name + "_build_object("
         
-        args_range = range(1, self._main_text.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -1194,38 +1204,38 @@ class AlyvixTextFinderView(QWidget):
         string_function_args = string_function_args + ")"
         self._code_lines.append(string_function_args)
 
-        if self._main_text.find is True:  
+        if self.find is True:  
             self._code_lines.append("    " + name + "_object.find()")
         else:
-            self._code_lines.append("    wait_time = " + name + "_object.wait(" + str(self._main_text.timeout) + ")")
+            self._code_lines.append("    wait_time = " + name + "_object.wait(" + str(self.timeout) + ")")
            
-        if self._main_text.enable_performance is True and self._main_text.find is False:
+        if self.enable_performance is True and self.find is False:
             self._code_lines.append("    if wait_time == -1:")
-            if self._main_text.timeout_exception is True:
-                self._code_lines.append("        raise Exception(\"step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\")")             
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
             else:
-                self._code_lines.append("        print \"*WARN* step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\"")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
                 self._code_lines.append("        return False")
-            self._code_lines.append("    elif wait_time < " + repr(self._main_text.warning) + ":")
-            self._code_lines.append("        print \"step " + self._main_text.name + " is ok, execution time:\", wait_time, \"sec.\"")
-            self._code_lines.append("    elif wait_time < " + repr(self._main_text.critical) + ":")
-            self._code_lines.append("        print \"*WARN* step " + str(self._main_text.name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("    elif wait_time < " + repr(self.warning) + ":")
+            self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time, \"sec.\"")
+            self._code_lines.append("    elif wait_time < " + repr(self.critical) + ":")
+            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
             self._code_lines.append("    else:")
-            self._code_lines.append("        print \"*WARN* step " + str(self._main_text.name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
             self._code_lines.append("    p = PerfManager()")
-            self._code_lines.append("    p.add_perfdata(\"" + str(self._main_text.name) + "\", wait_time, " + repr(self._main_text.warning) + ", " + repr(self._main_text.critical) + ")")
-        elif self._main_text.find is False:
+            self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+        elif self.find is False:
             self._code_lines.append("    if wait_time == -1:")
-            if self._main_text.timeout_exception is True:
-                self._code_lines.append("        raise Exception(\"step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\")")             
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
             else:
-                self._code_lines.append("        print \"*WARN* step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\"")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
                 self._code_lines.append("        return False")  
-            #self._code_lines.append("        raise Exception(\"step " + str(self._main_text.name) + " timed out, execution time: " + str(self._main_text.timeout) + "\")")
+            #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
  
         string_function_args = "    " + name + "_mouse_keyboard("
         
-        args_range = range(1, self._main_text.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -1306,7 +1316,7 @@ class AlyvixTextFinderView(QWidget):
                 cnt = cnt + 1
         """
         
-        if self._main_text.timeout_exception is False:
+        if self.timeout_exception is False:
             self._code_lines.append("    return True")
         self._code_lines.append("")
         self._code_lines.append("")
@@ -1327,22 +1337,22 @@ class AlyvixTextFinderView(QWidget):
         if self._main_text is None:
             return
 
-        name = str(self._main_text.name)
+        name = str(self.object_name)
         
         if name == "":
             name = time.strftime("text_finder_%d_%m_%y_%H_%M_%S")
-            self._main_text.name = name
+            self.object_name = name
         
         root = ET.Element("text_finder")
         root.set("name", name)
-        root.set("find", str(self._main_text.find))
-        root.set("wait", str(self._main_text.wait))
-        root.set("timeout", str(self._main_text.timeout))
-        root.set("timeout_exception", str(self._main_text.timeout_exception))
-        root.set("enable_performance", str(self._main_text.enable_performance))
-        root.set("warning_value", repr(self._main_text.warning))
-        root.set("critical_value", repr(self._main_text.critical))
-        root.set("args", str(self._main_text.args_number))
+        root.set("find", str(self.find))
+        root.set("wait", str(self.wait))
+        root.set("timeout", str(self.timeout))
+        root.set("timeout_exception", str(self.timeout_exception))
+        root.set("enable_performance", str(self.enable_performance))
+        root.set("warning_value", repr(self.warning))
+        root.set("critical_value", repr(self.critical))
+        root.set("args", str(self.args_number))
 
         main_text_node = ET.SubElement(root, "main_text")
 
@@ -1385,13 +1395,13 @@ class AlyvixTextFinderView(QWidget):
         
         """
         find_node = ET.SubElement(main_text_node, "find")
-        find_node.text = str(self._main_text.find)
+        find_node.text = str(self.find)
         
         wait_node = ET.SubElement(main_text_node, "wait")
-        wait_node.text = str(self._main_text.wait)
+        wait_node.text = str(self.wait)
         
         timeout_node = ET.SubElement(main_text_node, "timeout")
-        timeout_node.text = str(self._main_text.timeout)
+        timeout_node.text = str(self.timeout)
         """
         
         click_node = ET.SubElement(main_text_node, "click")
@@ -1545,7 +1555,7 @@ class AlyvixTextFinderView(QWidget):
         if not os.path.exists(self._path):
             os.makedirs(self._path)
             
-        python_file = open(self._path + os.sep + self._main_text.name + "_TextFinder.xml", 'w')
+        python_file = open(self._path + os.sep + self.object_name + "_TextFinder.xml", 'w')
         tree.write(python_file, encoding='utf-8', xml_declaration=True) 
         #python_file.write(rough_string)        
         python_file.close()
@@ -1591,18 +1601,18 @@ class AlyvixTextFinderView(QWidget):
         self._main_text = MainTextForGui()
         
         main_text_node = doc.getElementsByTagName("main_text")[0]
-        #self._main_text.name = main_text_node.getElementsByTagName("name")[0].firstChild.nodeValue
+        #self.object_name = main_text_node.getElementsByTagName("name")[0].firstChild.nodeValue
         
-        self._main_text.name = root_node.attributes["name"].value
-        #self._main_text.find = main_text_node.attributes["find"].value
-        #self._main_text.wait = main_text_node.attributes["wait"].value
-        self._main_text.timeout = int(root_node.attributes["timeout"].value)
-        self._main_text.args_number = int(root_node.attributes["args"].value)
+        self.object_name = root_node.attributes["name"].value
+        #self.find = main_text_node.attributes["find"].value
+        #self.wait = main_text_node.attributes["wait"].value
+        self.timeout = int(root_node.attributes["timeout"].value)
+        self.args_number = int(root_node.attributes["args"].value)
         
         if root_node.attributes["timeout_exception"].value == "True":
-            self._main_text.timeout_exception = True
+            self.timeout_exception = True
         else:
-            self._main_text.timeout_exception = False
+            self.timeout_exception = False
         
         self._main_text.x = int(main_text_node.getElementsByTagName("x")[0].firstChild.nodeValue)
         self._main_text.y = int(main_text_node.getElementsByTagName("y")[0].firstChild.nodeValue)
@@ -1649,14 +1659,14 @@ class AlyvixTextFinderView(QWidget):
         self._main_text.roi_height = int(main_text_node.getElementsByTagName("roi_height")[0].firstChild.nodeValue)
         
         if "True" in root_node.attributes["find"].value: #main_text_node.getElementsByTagName("find")[0].firstChild.nodeValue:
-            self._main_text.find = True
+            self.find = True
         else:
-            self._main_text.find = False    
+            self.find = False    
             
         if "True" in root_node.attributes["wait"].value: #main_text_node.getElementsByTagName("wait")[0].firstChild.nodeValue:
-            self._main_text.wait = True
+            self.wait = True
         else:
-            self._main_text.wait = False    
+            self.wait = False    
             
         if "True" in main_text_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_text.click = True
@@ -1679,13 +1689,13 @@ class AlyvixTextFinderView(QWidget):
             self._main_text.mousemove = False
             
         if "True" in root_node.attributes["enable_performance"].value:
-            self._main_text.enable_performance = True
+            self.enable_performance = True
         else:
-            self._main_text.enable_performance = False
+            self.enable_performance = False
             
-        self._main_text.warning = float(root_node.attributes["warning_value"].value)
+        self.warning = float(root_node.attributes["warning_value"].value)
             
-        self._main_text.critical = float(root_node.attributes["critical_value"].value)
+        self.critical = float(root_node.attributes["critical_value"].value)
         
         if main_text_node.getElementsByTagName("sendkeys")[0].attributes["encrypted"].value == "True":
             self._main_text.text_encrypted = True
@@ -1846,26 +1856,26 @@ class AlyvixTextFinderView(QWidget):
             
             for item_node in items_node:
                 name = item_node.getElementsByTagName("name")[0].firstChild.nodeValue
-                if name == self._main_text.name and self._main_text.enable_performance is False:
+                if name == self.object_name and self.enable_performance is False:
                     root_node.removeChild(item_node)
-                elif name == self._main_text.name:
+                elif name == self.object_name:
                     perf_is_present = True
                     
-            if perf_is_present is False and self._main_text.enable_performance is True:
+            if perf_is_present is False and self.enable_performance is True:
                 item = doc.createElement("perfdata")
                 
                 name = doc.createElement("name")
-                txt = doc.createTextNode(self._main_text.name)
+                txt = doc.createTextNode(self.object_name)
                 name.appendChild(txt)
                 item.appendChild(name)
 
                 warning = doc.createElement("warning")
-                txt = doc.createTextNode(str(self._main_text.warning))
+                txt = doc.createTextNode(str(self.warning))
                 warning.appendChild(txt)
                 item.appendChild(warning)
                 
                 critical = doc.createElement("critical")
-                txt = doc.createTextNode(str(self._main_text.critical))
+                txt = doc.createTextNode(str(self.critical))
                 critical.appendChild(txt)
                 item.appendChild(critical)
                 
@@ -1881,13 +1891,13 @@ class AlyvixTextFinderView(QWidget):
             main_item_node = ET.SubElement(root, "perfdata")
             
             name_node = ET.SubElement(main_item_node, "name")
-            name_node.text = str(self._main_text.name)
+            name_node.text = str(self.object_name)
             
             warning_node = ET.SubElement(main_item_node, "warning")
-            warning_node.text = str(self._main_text.warning)
+            warning_node.text = str(self.warning)
             
             critical_node = ET.SubElement(main_item_node, "critical")
-            critical_node.text = str(self._main_text.critical)
+            critical_node.text = str(self.critical)
             
             tree = ET.ElementTree(root)
             python_file = open(filename, 'w')
@@ -2018,12 +2028,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if self.parent.action == "edit":
             self.namelineedit.setEnabled(False)
             
-        if self.parent._main_text.timeout_exception is False:
+        if self.parent.timeout_exception is False:
             self.timeout_exception.setChecked(False)
         else:
             self.timeout_exception.setChecked(True)
             
-        if self.parent._main_text.find is True:
+        if self.parent.find is True:
             self.find_radio.setChecked(True)
             self.timeout_label.setEnabled(False)
             self.timeout_spinbox.setEnabled(False)
@@ -2035,7 +2045,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.timeout_exception.setEnabled(True)
             
         """
-        if self.parent._main_text.wait is True:
+        if self.parent.wait is True:
             self.wait_radio.setChecked(True)
         else:
             self.wait_radio.setChecked(False)
@@ -2102,7 +2112,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         #self.listWidget.setCurrentIndex(QModelIndex(self.listWidget.rootIndex()))
         self.listWidget.item(0).setSelected(True)
         
-        self.timeout_spinbox.setValue(self.parent._main_text.timeout)      
+        self.timeout_spinbox.setValue(self.parent.timeout)      
         self.inserttext.setText(self.parent._main_text.sendkeys)       
 
         if self.parent._main_text.sendkeys == "":
@@ -2115,13 +2125,13 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.lineEditText.setText(unicode(self.parent._main_text.text, 'utf-8'))      
 
-        if self.parent._main_text.name == "":
+        if self.parent.object_name == "":
             self.namelineedit.setText("Type here the name of the object")
         else:
-            self.namelineedit.setText(self.parent._main_text.name)      
+            self.namelineedit.setText(self.parent.object_name)      
 
         
-        self.spinBoxArgs.setValue(self.parent._main_text.args_number)
+        self.spinBoxArgs.setValue(self.parent.args_number)
         
         self.init_block_code()            
            
@@ -2217,7 +2227,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
 
     def pushButtonOk_event(self):
         answer = QMessageBox.Yes
-        if self.parent._main_text.name == "":
+        if self.parent.object_name == "":
             answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
         
         if answer == QMessageBox.Yes:
@@ -2258,25 +2268,25 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.check_window.show()
   
     def args_spinbox_change_event(self, event):
-        self.parent._main_text.args_number = self.spinBoxArgs.value()
+        self.parent.args_number = self.spinBoxArgs.value()
         self.parent.build_code_array()
         self.textEdit.setText(unicode(self.parent.build_code_string(), 'utf-8'))
   
     def warning_event(self, event):
-        self.parent._main_text.warning = self.doubleSpinBoxWarning.value()
+        self.parent.warning = self.doubleSpinBoxWarning.value()
         
     def critical_event(self, event):
-        self.parent._main_text.critical = self.doubleSpinBoxCritical.value()
+        self.parent.critical = self.doubleSpinBoxCritical.value()
         
     def enable_performance_event(self, event):
         if self.checkBoxEnablePerformance.isChecked() is True:
-            self.parent._main_text.enable_performance = True
+            self.parent.enable_performance = True
             self.doubleSpinBoxWarning.setEnabled(True)
             self.doubleSpinBoxCritical.setEnabled(True)
             self.labelWarning.setEnabled(True)
             self.labelCritical.setEnabled(True)
         else:
-            self.parent._main_text.enable_performance = False
+            self.parent.enable_performance = False
             self.doubleSpinBoxWarning.setEnabled(False)
             self.doubleSpinBoxCritical.setEnabled(False)
             self.labelWarning.setEnabled(False)
@@ -2287,10 +2297,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.parent.build_code_array()
             self.textEdit.setText(unicode(self.parent.build_code_string(), 'utf-8'))
         elif tab_index is 3:
-            self.doubleSpinBoxWarning.setValue(self.parent._main_text.warning)
-            self.doubleSpinBoxCritical.setValue(self.parent._main_text.critical)
+            self.doubleSpinBoxWarning.setValue(self.parent.warning)
+            self.doubleSpinBoxCritical.setValue(self.parent.critical)
             
-            if self.parent._main_text.enable_performance is True:
+            if self.parent.enable_performance is True:
                 self.checkBoxEnablePerformance.setCheckState(Qt.Checked)
                 self.doubleSpinBoxWarning.setEnabled(True)
                 self.doubleSpinBoxCritical.setEnabled(True)
@@ -2452,22 +2462,22 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if event is True:
             self.timeout_spinbox.setEnabled(True)
             self.timeout_label.setEnabled(True)
-            self.parent._main_text.wait = True
-            self.parent._main_text.find = False
+            self.parent.wait = True
+            self.parent.find = False
         else:
             self.timeout_spinbox.setEnabled(False)
             self.timeout_label.setEnabled(False)
-            self.parent._main_text.wait = False
-            self.parent._main_text.find = True
+            self.parent.wait = False
+            self.parent.find = True
             
     def timeout_spinbox_event(self, event):
-        self.parent._main_text.timeout = self.timeout_spinbox.value()
+        self.parent.timeout = self.timeout_spinbox.value()
         
     def timeout_exception_event(self, event):
         if self.timeout_exception.isChecked() is True:
-            self.parent._main_text.timeout_exception = True
+            self.parent.timeout_exception = True
         else:
-            self.parent._main_text.timeout_exception = False
+            self.parent.timeout_exception = False
 
     def update_sub_text_view(self):
         index = self.sub_text_index
@@ -2613,9 +2623,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
     @pyqtSlot(QString)
     def namelineedit_event(self, text):
         if text == "Type here the name of the object":
-            self.parent._main_text.name = "".encode('utf-8')
+            self.parent.object_name = "".encode('utf-8')
         else:
-            self.parent._main_text.name = str(text.toUtf8()).replace(" ", "_")
+            self.parent.object_name = str(text.toUtf8()).replace(" ", "_")
         
     def eventFilter(self, obj, event):
         if event.type() == event.MouseButtonPress:
@@ -2705,7 +2715,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 self.namelineedit.setText("Type here the name of the object")
                 return True
             elif obj.objectName() == "namelineedit":
-                self.namelineedit.setText(self.parent._main_text.name)
+                self.namelineedit.setText(self.parent.object_name)
                 return True
         
             if self.inserttext.text() == "" and obj.objectName() == "inserttext":

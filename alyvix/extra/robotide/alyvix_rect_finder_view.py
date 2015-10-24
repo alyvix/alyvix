@@ -53,6 +53,16 @@ class AlyvixRectFinderView(QWidget):
         
         self.parent = parent
         
+        self.object_name = ""
+        self.wait = True
+        self.find = False
+        self.args_number = 0
+        self.timeout = 60
+        self.timeout_exception = True
+        self.enable_performance = True
+        self.warning = 15.00
+        self.critical = 40.00
+        
         self.setMouseTracking(True)
         
         self._bg_pixmap = QPixmap()
@@ -144,7 +154,7 @@ class AlyvixRectFinderView(QWidget):
             self.build_code_array()
             self.save_python_file()
             #self.build_perf_data_xml()
-            self._bg_pixmap.save(self._path + os.sep + self._main_rect_finder.name + "_RectFinder.png","PNG", -1)
+            self._bg_pixmap.save(self._path + os.sep + self.object_name + "_RectFinder.png","PNG", -1)
             if self.action == "new":
                 print "add_new"
                 self.parent.add_new_item_on_list()
@@ -182,7 +192,7 @@ class AlyvixRectFinderView(QWidget):
                 self.build_code_array()
                 self.save_python_file()
                 self.build_perf_data_xml()
-                self._bg_pixmap.save(self._path + os.sep + self._main_rect_finder.name + "_RectFinder.png","PNG", -1)
+                self._bg_pixmap.save(self._path + os.sep + self.object_name + "_RectFinder.png","PNG", -1)
                 if self.action == "new":
                     self.parent.add_new_item_on_list()
             self.parent.show()
@@ -1108,11 +1118,11 @@ class AlyvixRectFinderView(QWidget):
         self._code_lines = []
         self._code_lines_for_object_finder = []
             
-        name = self._main_rect_finder.name
+        name = self.object_name
         
         if name == "":
             name = time.strftime("rect_finder_%d_%m_%y_%H_%M_%S")
-            self._main_rect_finder.name = name
+            self.object_name = name
             
         strcode = name + "_object = None" #RectFinder(\"" + name + "\")"
         self._code_lines.append(strcode)
@@ -1121,7 +1131,7 @@ class AlyvixRectFinderView(QWidget):
         
         string_function_args = "def " + name + "_build_object("
         
-        args_range = range(1, self._main_rect_finder.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -1198,7 +1208,7 @@ class AlyvixRectFinderView(QWidget):
  
         string_function_args = "def " + name + "_mouse_keyboard("
         
-        args_range = range(1, self._main_rect_finder.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -1284,7 +1294,7 @@ class AlyvixRectFinderView(QWidget):
         
         string_function_args = "def " + name + "("
         
-        args_range = range(1, self._main_rect_finder.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -1298,7 +1308,7 @@ class AlyvixRectFinderView(QWidget):
         
         string_function_args = "    " + name + "_build_object("
         
-        args_range = range(1, self._main_rect_finder.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -1308,38 +1318,38 @@ class AlyvixRectFinderView(QWidget):
         string_function_args = string_function_args + ")"
         self._code_lines.append(string_function_args)
         
-        if self._main_rect_finder.find is True:  
+        if self.find is True:  
             self._code_lines.append("    " + name + "_object.find()")
         else:
-           self._code_lines.append("    wait_time = " + name + "_object.wait(" + str(self._main_rect_finder.timeout) + ")")
+           self._code_lines.append("    wait_time = " + name + "_object.wait(" + str(self.timeout) + ")")
            
-        if self._main_rect_finder.enable_performance is True and self._main_rect_finder.find is False:
+        if self.enable_performance is True and self.find is False:
             self._code_lines.append("    if wait_time == -1:")
-            if self._main_rect_finder.timeout_exception is True:
-                self._code_lines.append("        raise Exception(\"step " + str(self._main_rect_finder.name) + " timed out, execution time: " + str(self._main_rect_finder.timeout) + "\")")             
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
             else:
-                self._code_lines.append("        print \"*WARN* step " + str(self._main_rect_finder.name) + " timed out, execution time: " + str(self._main_rect_finder.timeout) + "\"")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
                 self._code_lines.append("        return False")
-            self._code_lines.append("    elif wait_time < " + repr(self._main_rect_finder.warning) + ":")
-            self._code_lines.append("        print \"step " + self._main_rect_finder.name + " is ok, execution time:\", wait_time, \"sec.\"")
+            self._code_lines.append("    elif wait_time < " + repr(self.warning) + ":")
+            self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time, \"sec.\"")
             self._code_lines.append("    elif wait_time < " + repr(self._main_rect_finder.critical) + ":")
-            self._code_lines.append("        print \"*WARN* step " + str(self._main_rect_finder.name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
             self._code_lines.append("    else:")
-            self._code_lines.append("        print \"*WARN* step " + str(self._main_rect_finder.name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
             self._code_lines.append("    p = PerfManager()")
-            self._code_lines.append("    p.add_perfdata(\"" + str(self._main_rect_finder.name) + "\", wait_time, " + repr(self._main_rect_finder.warning) + ", " + repr(self._main_rect_finder.critical) + ")")
-        elif self._main_rect_finder.find is False:
+            self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self._main_rect_finder.critical) + ")")
+        elif self.find is False:
             self._code_lines.append("    if wait_time == -1:")
-            if self._main_rect_finder.timeout_exception is True:
-                self._code_lines.append("        raise Exception(\"step " + str(self._main_rect_finder.name) + " timed out, execution time: " + str(self._main_rect_finder.timeout) + "\")")             
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
             else:
-                self._code_lines.append("        print \"*WARN* step " + str(self._main_rect_finder.name) + " timed out, execution time: " + str(self._main_rect_finder.timeout) + "\"")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
                 self._code_lines.append("        return False")  
-            #self._code_lines.append("        raise Exception(\"step " + str(self._main_rect_finder.name) + " timed out, execution time: " + str(self._main_rect_finder.timeout) + "\")")
+            #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
         
         string_function_args = "    " + name + "_mouse_keyboard("
         
-        args_range = range(1, self._main_rect_finder.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -1349,7 +1359,7 @@ class AlyvixRectFinderView(QWidget):
         string_function_args = string_function_args + ")"
         self._code_lines.append(string_function_args)
         
-        if self._main_rect_finder.timeout_exception is False:
+        if self.timeout_exception is False:
             self._code_lines.append("    return True")
         self._code_lines.append("")
         self._code_lines.append("")
@@ -1369,7 +1379,7 @@ class AlyvixRectFinderView(QWidget):
         if self._main_rect_finder is None:
             return
             
-        name = self._main_rect_finder.name
+        name = self.object_name
         
         if name == "":
             name = time.strftime("rect_finder_%d_%m_%y_%H_%M_%S")
@@ -1430,22 +1440,22 @@ class AlyvixRectFinderView(QWidget):
         if self._main_rect_finder is None:
             return
 
-        name = str(self._main_rect_finder.name)
+        name = str(self.object_name)
         
         if name == "":
             name = time.strftime("rect_finder_%d_%m_%y_%H_%M_%S")
-            self._main_rect_finder.name = name
+            self.object_name = name
         
         root = ET.Element("rect_finder")
         root.set("name", name)
-        root.set("find", str(self._main_rect_finder.find))
-        root.set("wait", str(self._main_rect_finder.wait))
-        root.set("timeout", str(self._main_rect_finder.timeout))
-        root.set("timeout_exception", str(self._main_rect_finder.timeout_exception))
-        root.set("enable_performance", str(self._main_rect_finder.enable_performance))
-        root.set("warning_value", repr(self._main_rect_finder.warning))
+        root.set("find", str(self.find))
+        root.set("wait", str(self.wait))
+        root.set("timeout", str(self.timeout))
+        root.set("timeout_exception", str(self.timeout_exception))
+        root.set("enable_performance", str(self.enable_performance))
+        root.set("warning_value", repr(self.warning))
         root.set("critical_value", repr(self._main_rect_finder.critical))
-        root.set("args", str(self._main_rect_finder.args_number))
+        root.set("args", str(self.args_number))
 
         main_rect_node = ET.SubElement(root, "main_rect")
 
@@ -1488,13 +1498,13 @@ class AlyvixRectFinderView(QWidget):
         
         """
         find_node = ET.SubElement(main_rect_node, "find")
-        find_node.text = str(self._main_rect_finder.find)
+        find_node.text = str(self.find)
         
         wait_node = ET.SubElement(main_rect_node, "wait")
-        wait_node.text = str(self._main_rect_finder.wait)
+        wait_node.text = str(self.wait)
         
         timeout_node = ET.SubElement(main_rect_node, "timeout")
-        timeout_node.text = str(self._main_rect_finder.timeout)
+        timeout_node.text = str(self.timeout)
         """
         
         click_node = ET.SubElement(main_rect_node, "click")
@@ -1655,7 +1665,7 @@ class AlyvixRectFinderView(QWidget):
         if not os.path.exists(self._path):
             os.makedirs(self._path)
                 
-        python_file = open(self._path + os.sep + self._main_rect_finder.name + "_RectFinder.xml", 'w')
+        python_file = open(self._path + os.sep + self.object_name + "_RectFinder.xml", 'w')
         tree.write(python_file, encoding='utf-8', xml_declaration=True) 
         #python_file.write(rough_string)        
         python_file.close()
@@ -1701,20 +1711,20 @@ class AlyvixRectFinderView(QWidget):
         self._main_rect_finder = MainRectForGui()
         
         main_rect_node = doc.getElementsByTagName("main_rect")[0]
-        #self._main_rect_finder.name = main_rect_node.getElementsByTagName("name")[0].firstChild.nodeValue
+        #self.object_name = main_rect_node.getElementsByTagName("name")[0].firstChild.nodeValue
         
-        self._main_rect_finder.name = root_node.attributes["name"].value
-        #self._main_rect_finder.find = main_rect_node.attributes["find"].value
-        #self._main_rect_finder.wait = main_rect_node.attributes["wait"].value
-        self._main_rect_finder.timeout = int(root_node.attributes["timeout"].value)
+        self.object_name = root_node.attributes["name"].value
+        #self.find = main_rect_node.attributes["find"].value
+        #self.wait = main_rect_node.attributes["wait"].value
+        self.timeout = int(root_node.attributes["timeout"].value)
         
         
         if root_node.attributes["timeout_exception"].value == "True":
-            self._main_rect_finder.timeout_exception = True
+            self.timeout_exception = True
         else:
-            self._main_rect_finder.timeout_exception = False
+            self.timeout_exception = False
         
-        self._main_rect_finder.args_number = int(root_node.attributes["args"].value)
+        self.args_number = int(root_node.attributes["args"].value)
         
         self._main_rect_finder.x = int(main_rect_node.getElementsByTagName("x")[0].firstChild.nodeValue)
         self._main_rect_finder.y = int(main_rect_node.getElementsByTagName("y")[0].firstChild.nodeValue)
@@ -1727,7 +1737,7 @@ class AlyvixRectFinderView(QWidget):
         self._main_rect_finder.max_height = int(main_rect_node.getElementsByTagName("max_height")[0].firstChild.nodeValue)
         self._main_rect_finder.width_tolerance = int(main_rect_node.getElementsByTagName("width_tolerance")[0].firstChild.nodeValue)
         self._main_rect_finder.height_tolerance = int(main_rect_node.getElementsByTagName("height_tolerance")[0].firstChild.nodeValue)
-        #self._main_rect_finder.timeout = int(main_rect_node.getElementsByTagName("timeout")[0].firstChild.nodeValue)               
+        #self.timeout = int(main_rect_node.getElementsByTagName("timeout")[0].firstChild.nodeValue)               
         
         if "True" in main_rect_node.getElementsByTagName("use_tolerance")[0].firstChild.nodeValue:
             self._main_rect_finder.use_tolerance = True
@@ -1740,14 +1750,14 @@ class AlyvixRectFinderView(QWidget):
             self._main_rect_finder.use_min_max = False
 
         if "True" in root_node.attributes["find"].value: #main_rect_node.getElementsByTagName("find")[0].firstChild.nodeValue:
-            self._main_rect_finder.find = True
+            self.find = True
         else:
-            self._main_rect_finder.find = False    
+            self.find = False    
             
         if "True" in root_node.attributes["wait"].value: #main_rect_node.getElementsByTagName("wait")[0].firstChild.nodeValue:
-            self._main_rect_finder.wait = True
+            self.wait = True
         else:
-            self._main_rect_finder.wait = False    
+            self.wait = False    
             
         if "True" in main_rect_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_rect_finder.click = True
@@ -1770,11 +1780,11 @@ class AlyvixRectFinderView(QWidget):
             self._main_rect_finder.mousemove = False
             
         if "True" in root_node.attributes["enable_performance"].value:
-            self._main_rect_finder.enable_performance = True
+            self.enable_performance = True
         else:
-            self._main_rect_finder.enable_performance = False
+            self.enable_performance = False
             
-        self._main_rect_finder.warning = float(root_node.attributes["warning_value"].value)
+        self.warning = float(root_node.attributes["warning_value"].value)
             
         self._main_rect_finder.critical = float(root_node.attributes["critical_value"].value)
         
@@ -1922,21 +1932,21 @@ class AlyvixRectFinderView(QWidget):
             
             for item_node in items_node:
                 name = item_node.getElementsByTagName("name")[0].firstChild.nodeValue
-                if name == self._main_rect_finder.name and self._main_rect_finder.enable_performance is False:
+                if name == self.object_name and self.enable_performance is False:
                     root_node.removeChild(item_node)
-                elif name == self._main_rect_finder.name:
+                elif name == self.object_name:
                     perf_is_present = True
                     
-            if perf_is_present is False and self._main_rect_finder.enable_performance is True:
+            if perf_is_present is False and self.enable_performance is True:
                 item = doc.createElement("perfdata")
                 
                 name = doc.createElement("name")
-                txt = doc.createTextNode(self._main_rect_finder.name)
+                txt = doc.createTextNode(self.object_name)
                 name.appendChild(txt)
                 item.appendChild(name)
 
                 warning = doc.createElement("warning")
-                txt = doc.createTextNode(str(self._main_rect_finder.warning))
+                txt = doc.createTextNode(str(self.warning))
                 warning.appendChild(txt)
                 item.appendChild(warning)
                 
@@ -1957,10 +1967,10 @@ class AlyvixRectFinderView(QWidget):
             main_item_node = ET.SubElement(root, "perfdata")
             
             name_node = ET.SubElement(main_item_node, "name")
-            name_node.text = str(self._main_rect_finder.name)
+            name_node.text = str(self.object_name)
             
             warning_node = ET.SubElement(main_item_node, "warning")
-            warning_node.text = str(self._main_rect_finder.warning)
+            warning_node.text = str(self.warning)
             
             critical_node = ET.SubElement(main_item_node, "critical")
             critical_node.text = str(self._main_rect_finder.critical)
@@ -2136,12 +2146,12 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.min_width_spinbox.setEnabled(False)
             self.max_width_spinbox.setEnabled(False)    
                         
-        if self.parent._main_rect_finder.timeout_exception is False:
+        if self.parent.timeout_exception is False:
             self.timeout_exception.setChecked(False)
         else:
             self.timeout_exception.setChecked(True)
 
-        if self.parent._main_rect_finder.find is True:
+        if self.parent.find is True:
             self.find_radio.setChecked(True)
             self.timeout_label.setEnabled(False)
             self.timeout_spinbox.setEnabled(False)
@@ -2153,7 +2163,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.timeout_exception.setEnabled(True)
             
         """
-        if self.parent._main_rect_finder.wait is True:
+        if self.parent.wait is True:
             self.wait_radio.setChecked(True)
         else:
             self.wait_radio.setChecked(False)
@@ -2221,7 +2231,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.max_height_spinbox.setValue(self.parent._main_rect_finder.max_height)     
         self.height_tolerance_spinbox.setValue(self.parent._main_rect_finder.height_tolerance)
         self.width_tolerance_spinbox.setValue(self.parent._main_rect_finder.width_tolerance)
-        self.timeout_spinbox.setValue(self.parent._main_rect_finder.timeout)      
+        self.timeout_spinbox.setValue(self.parent.timeout)      
         self.inserttext.setText(self.parent._main_rect_finder.sendkeys)       
 
         if self.parent._main_rect_finder.sendkeys == "":
@@ -2229,12 +2239,12 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.inserttext.setText(unicode(self.parent._main_rect_finder.sendkeys, 'utf-8'))       
 
-        if self.parent._main_rect_finder.name == "":
+        if self.parent.object_name == "":
             self.namelineedit.setText("Type here the name of the object")
         else:
-            self.namelineedit.setText(self.parent._main_rect_finder.name)      
+            self.namelineedit.setText(self.parent.object_name)      
 
-        self.spinBoxArgs.setValue(self.parent._main_rect_finder.args_number)
+        self.spinBoxArgs.setValue(self.parent.args_number)
         
         self.init_block_code()            
         
@@ -2342,7 +2352,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
 
     def pushButtonOk_event(self):
         answer = QMessageBox.Yes
-        if self.parent._main_rect_finder.name == "":
+        if self.parent.object_name == "":
             answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
 
         if answer == QMessageBox.Yes:
@@ -2350,25 +2360,25 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.parent.save_all()
         
     def args_spinbox_change_event(self, event):
-        self.parent._main_rect_finder.args_number = self.spinBoxArgs.value()
+        self.parent.args_number = self.spinBoxArgs.value()
         self.parent.build_code_array()
         self.textEdit.setText(unicode(self.parent.build_code_string(), 'utf-8'))
   
     def warning_event(self, event):
-        self.parent._main_rect_finder.warning = self.doubleSpinBoxWarning.value()
+        self.parent.warning = self.doubleSpinBoxWarning.value()
         
     def critical_event(self, event):
-        self.parent._main_rect_finder.critical = self.doubleSpinBoxCritical.value()
+        self.parent.critical = self.doubleSpinBoxCritical.value()
         
     def enable_performance_event(self, event):
         if self.checkBoxEnablePerformance.isChecked() is True:
-            self.parent._main_rect_finder.enable_performance = True
+            self.parent.enable_performance = True
             self.doubleSpinBoxWarning.setEnabled(True)
             self.doubleSpinBoxCritical.setEnabled(True)
             self.labelWarning.setEnabled(True)
             self.labelCritical.setEnabled(True)
         else:
-            self.parent._main_rect_finder.enable_performance = False
+            self.parent.enable_performance = False
             self.doubleSpinBoxWarning.setEnabled(False)
             self.doubleSpinBoxCritical.setEnabled(False)
             self.labelWarning.setEnabled(False)
@@ -2379,10 +2389,10 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.parent.build_code_array()
             self.textEdit.setText(unicode(self.parent.build_code_string(), 'utf-8'))
         elif tab_index is 3:
-            self.doubleSpinBoxWarning.setValue(self.parent._main_rect_finder.warning)
-            self.doubleSpinBoxCritical.setValue(self.parent._main_rect_finder.critical)
+            self.doubleSpinBoxWarning.setValue(self.parent.warning)
+            self.doubleSpinBoxCritical.setValue(self.parent.critical)
             
-            if self.parent._main_rect_finder.enable_performance is True:
+            if self.parent.enable_performance is True:
                 self.checkBoxEnablePerformance.setCheckState(Qt.Checked)
                 self.doubleSpinBoxWarning.setEnabled(True)
                 self.doubleSpinBoxCritical.setEnabled(True)
@@ -2545,17 +2555,17 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.timeout_spinbox.setEnabled(True)
             self.timeout_label.setEnabled(True)
             self.timeout_exception.setEnabled(True)
-            self.parent._main_rect_finder.wait = True
-            self.parent._main_rect_finder.find = False
+            self.parent.wait = True
+            self.parent.find = False
         else:
             self.timeout_spinbox.setEnabled(False)
             self.timeout_exception.setEnabled(False)
             self.timeout_label.setEnabled(False)
-            self.parent._main_rect_finder.wait = False
-            self.parent._main_rect_finder.find = True
+            self.parent.wait = False
+            self.parent.find = True
             
     def timeout_spinbox_event(self, event):
-        self.parent._main_rect_finder.timeout = self.timeout_spinbox.value()
+        self.parent.timeout = self.timeout_spinbox.value()
 
     def update_sub_rect_view(self):
         index = self.sub_rect_index
@@ -2635,9 +2645,9 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             
     def timeout_exception_event(self, event):
         if self.timeout_exception.isChecked() is True:
-            self.parent._main_rect_finder.timeout_exception = True
+            self.parent.timeout_exception = True
         else:
-            self.parent._main_rect_finder.timeout_exception = False
+            self.parent.timeout_exception = False
             
     def clickRadio_event(self, event):
         if event is False:
@@ -2680,9 +2690,9 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
     @pyqtSlot(QString)
     def namelineedit_event(self, text):
         if text == "Type here the name of the object":
-            self.parent._main_rect_finder.name = "".encode('utf-8')
+            self.parent.object_name = "".encode('utf-8')
         else:
-            self.parent._main_rect_finder.name = str(text.toUtf8()).replace(" ", "_")
+            self.parent.object_name = str(text.toUtf8()).replace(" ", "_")
     
     def text_encrypted_event(self, event):
         if self.text_encrypted.isChecked() is True:
@@ -2775,7 +2785,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
                 self.namelineedit.setText("Type here the name of the object")
                 return True
             elif obj.objectName() == "namelineedit":
-                self.namelineedit.setText(self.parent._main_rect_finder.name)
+                self.namelineedit.setText(self.parent.object_name)
                 return True
         
             if self.inserttext.text() == "" and obj.objectName() == "inserttext":

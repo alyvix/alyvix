@@ -233,6 +233,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     def restore_view(self):
         self.gridLayoutWidget.hide()
         self.pushButtonCancel.hide()
+        self.spinBoxDelay.hide()
+        self.label_2.hide()
         
         self.listWidgetAlyObj.setGeometry(QRect(8, 28, 218, 181))
         self.pushButtonEdit.show()
@@ -241,6 +243,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.listWidgetAlyObj.show()
         self.label.show()
 
+        #self.spinBoxDelay.setGeometry(QRect(62, 500, 111, 23))
+        
+        self.label_2.setGeometry(QRect(135, 333, 37, 20))
+        self.spinBoxDelay.setGeometry(QRect(184, 332, 42, 22))
+        
         self.gridLayoutWidget.setGeometry(QRect(8, 330, 218, 177))
         self.pushButtonCancel.setGeometry(QRect(62, 500, 111, 23))
     
@@ -254,8 +261,14 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.label.hide()
         self.gridLayoutWidget.show()
         self.pushButtonCancel.show()
-        self.gridLayoutWidget.setGeometry(QRect(8, 18, 218, 177))
-        self.pushButtonCancel.setGeometry(QRect(62, 209, 111, 23))
+        self.spinBoxDelay.show()
+        self.label_2.show()
+        
+        self.label_2.setGeometry(QRect(135, 12, 37, 20))
+        self.spinBoxDelay.setGeometry(QRect(182, 10, 42, 22))
+        
+        self.gridLayoutWidget.setGeometry(QRect(8, 38, 218, 197))
+        self.pushButtonCancel.setGeometry(QRect(62, 235, 111, 23))
         
                     
     def edit_item(self):
@@ -380,6 +393,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.restore_view()
         screen_manager = ScreenManager()
         self.hide()
+        self.sleep_before_action()
         time.sleep(0.600)
         img_color = screen_manager.grab_desktop(screen_manager.get_color_mat)
         img_color = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)
@@ -393,6 +407,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.restore_view()
         screen_manager = ScreenManager()
         self.hide()
+        self.sleep_before_action()
         time.sleep(0.600)
         img_color = screen_manager.grab_desktop(screen_manager.get_color_mat)
         img_color = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)
@@ -406,6 +421,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.restore_view()
         screen_manager = ScreenManager()
         self.hide()
+        self.sleep_before_action()
         time.sleep(0.600)
         img_color = screen_manager.grab_desktop(screen_manager.get_color_mat)
         img_color = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)
@@ -419,6 +435,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.restore_view()
         #screen_manager = ScreenManager()
         self.hide()
+        self.sleep_before_action()
         time.sleep(0.600)
         #img_color = screen_manager.grab_desktop(screen_manager.get_color_mat)
         #img_color = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)
@@ -439,6 +456,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_custom_code_controller = AlyvixCustomCodeView(self)
         #self.alyvix_objectfinder_controller.set_bg_pixmap(image)
         self.alyvix_custom_code_controller.show()
+        
+    def sleep_before_action(self):
+        time.sleep(int(self.spinBoxDelay.value()))
 
 if __name__ == "__main__":
 

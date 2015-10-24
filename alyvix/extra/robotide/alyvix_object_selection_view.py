@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'alyvix_object_selection_view.ui'
 #
-# Created: Sun Sep 20 22:16:01 2015
+# Created: Sat Oct 24 18:03:10 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,24 +26,24 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(235, 253)
+        Form.resize(235, 271)
         self.listWidgetAlyObj = QtGui.QListWidget(Form)
-        self.listWidgetAlyObj.setGeometry(QtCore.QRect(8, 28, 218, 181))
+        self.listWidgetAlyObj.setGeometry(QtCore.QRect(8, 28, 218, 191))
         self.listWidgetAlyObj.setObjectName(_fromUtf8("listWidgetAlyObj"))
         self.pushButtonNew = QtGui.QPushButton(Form)
-        self.pushButtonNew.setGeometry(QtCore.QRect(8, 219, 60, 23))
+        self.pushButtonNew.setGeometry(QtCore.QRect(8, 235, 60, 23))
         self.pushButtonNew.setObjectName(_fromUtf8("pushButtonNew"))
         self.pushButtonEdit = QtGui.QPushButton(Form)
-        self.pushButtonEdit.setGeometry(QtCore.QRect(80, 219, 60, 23))
+        self.pushButtonEdit.setGeometry(QtCore.QRect(80, 235, 60, 23))
         self.pushButtonEdit.setObjectName(_fromUtf8("pushButtonEdit"))
         self.pushButtonRemove = QtGui.QPushButton(Form)
-        self.pushButtonRemove.setGeometry(QtCore.QRect(151, 219, 75, 23))
+        self.pushButtonRemove.setGeometry(QtCore.QRect(151, 235, 75, 23))
         self.pushButtonRemove.setObjectName(_fromUtf8("pushButtonRemove"))
         self.label = QtGui.QLabel(Form)
         self.label.setGeometry(QtCore.QRect(8, 7, 211, 16))
         self.label.setObjectName(_fromUtf8("label"))
         self.gridLayoutWidget = QtGui.QWidget(Form)
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(8, 333, 218, 177))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(8, 362, 218, 177))
         self.gridLayoutWidget.setObjectName(_fromUtf8("gridLayoutWidget"))
         self.gridLayout = QtGui.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setMargin(0)
@@ -67,8 +67,16 @@ class Ui_Form(object):
         self.pushButtonCC.setObjectName(_fromUtf8("pushButtonCC"))
         self.gridLayout.addWidget(self.pushButtonCC, 4, 0, 1, 1)
         self.pushButtonCancel = QtGui.QPushButton(Form)
-        self.pushButtonCancel.setGeometry(QtCore.QRect(62, 520, 111, 23))
+        self.pushButtonCancel.setGeometry(QtCore.QRect(62, 547, 111, 23))
         self.pushButtonCancel.setObjectName(_fromUtf8("pushButtonCancel"))
+        self.spinBoxDelay = QtGui.QSpinBox(Form)
+        self.spinBoxDelay.setGeometry(QtCore.QRect(184, 332, 42, 22))
+        self.spinBoxDelay.setMaximum(60)
+        self.spinBoxDelay.setObjectName(_fromUtf8("spinBoxDelay"))
+        self.label_2 = QtGui.QLabel(Form)
+        self.label_2.setGeometry(QtCore.QRect(135, 333, 37, 20))
+        self.label_2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_2.setObjectName(_fromUtf8("label_2"))
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -85,4 +93,5 @@ class Ui_Form(object):
         self.pushButtonOF.setText(_translate("Form", "Object Finder", None))
         self.pushButtonCC.setText(_translate("Form", "Custom Code", None))
         self.pushButtonCancel.setText(_translate("Form", "Cancel", None))
+        self.label_2.setText(_translate("Form", "Delay:", None))
 

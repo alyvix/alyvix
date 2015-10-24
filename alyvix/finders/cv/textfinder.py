@@ -79,8 +79,6 @@ class _Text():
 
 class TextFinder(BaseFinder):
 
-    _main_component = None
-    __sub_components = []
     name = None
 
     def __init__(self, name=None):
@@ -102,6 +100,9 @@ class TextFinder(BaseFinder):
         self.api = None
 
         self.__phrase_backup = ""
+
+        self._main_component = None
+        self.__sub_components = []
 
     def get_last_read(self):
         return self.__phrase_backup
@@ -556,8 +557,13 @@ class TextFinder(BaseFinder):
                     #print "text found:",phrase
 
                     #print "tempo ocr", time.time() - timex
+
+                    if self._log_manager.is_log_enable() is True:
+                        self._log_manager.save_info_file(self.__find_log_folder, "resized.txt", self.__phrase_backup)
+
                     if result != None:
 
+                        """
                         try:
                             #print "text from Ocr engine SUBBB:",phrase
                             #print "ocr time:",time.time() - timex,"sec."
@@ -566,6 +572,7 @@ class TextFinder(BaseFinder):
                             phrase = insensitive_phrase.sub('', phrase)
                         except:
                             pass
+                        """
 
                         #good_points.append((x, y, w, h))
 

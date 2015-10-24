@@ -99,10 +99,71 @@ def show_window(window_title):
     wm = WinManager()
     wm.show_window(window_title)
     
-def maximize_window(window_title):
+def maximize_window(window_title, timeout="60", exception="True"):
+
+    exception_value = exception
+
+    try:    
+        if exception.lower() == "true":
+            exception_value = True
+        elif exception.lower() == "false":
+            exception_value = False
+    except:
+        pass
+
+    timeout_value = int(timeout)
     
     wm = WinManager()
-    wm.maximize_window(window_title)
+    window_time = wm.maximize_window(window_title, timeout_value)
+    
+    if exception_value is True and window_time == -1:
+        raise Exception("Window " + window_title + " has timed out: " + str(timeout) + " s.")
+    
+    return window_time
+    
+def wait_window(window_title, timeout="60", exception="True"):
+
+    exception_value = exception
+    
+    try:     
+        if exception.lower() == "true":
+            exception_value = True
+        elif exception.lower() == "false":
+            exception_value = False
+    except:
+        pass
+
+    timeout_value = int(timeout)
+
+    wm = WinManager()
+    window_time = wm.wait_window(window_title, timeout_value)
+        
+    if exception_value is True and window_time == -1:
+        raise Exception("Window " + window_title + " has timed out: " + str(timeout) + " s.")
+        
+    return window_time
+    
+def wait_window_close(window_title, timeout="60", exception="True"):
+
+    exception_value = exception
+    
+    try:     
+        if exception.lower() == "true":
+            exception_value = True
+        elif exception.lower() == "false":
+            exception_value = False
+    except:
+        pass
+
+    timeout_value = int(timeout)
+
+    wm = WinManager()
+    window_time = wm.wait_window_close(window_title, timeout_value)
+    
+    if exception_value is True and window_time == -1:
+        raise Exception("Window " + window_title + " has timed out: " + str(timeout) + " s.")
+        
+    return window_time
     
 def check_window(window_title):
     
@@ -114,7 +175,6 @@ def close_window(window_title):
     wm.close_window(window_title)
     
 def add_perfdata(name, value=None, warning_threshold=None, critical_threshold=None, state=0):
-    print "perfdata", value, warning_threshold, critical_threshold, state
     pm = PerfManager()
     pm.add_perfdata(name, value, warning_threshold, critical_threshold, state)
     

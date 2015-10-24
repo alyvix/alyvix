@@ -23,6 +23,7 @@ import re
 
 import win32con
 import win32com.client
+import time
 
 from .base import WinManagerBase
 
@@ -49,13 +50,21 @@ class WinManager(WinManagerBase):
         hwnd = win32gui.GetForegroundWindow()
         win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
 
-    def maximize_window(self, window_title):
+    def maximize_window(self, window_title, timeout=60):
         """
         maximize window(s).
 
         :type window_title: string
         :param window_title: regular expression for the window(s) title
+        :type timeout: int
+        :param timeout: timeout (seconds), default value is 60 seconds
         """
+
+        window_time = self.wait_window(window_title, timeout)
+
+        if window_time > -1:
+            time.sleep(0.250)
+
         hwnd_found_list = self._get_hwnd(window_title)
         for hwnd_found in hwnd_found_list:
             win32gui.ShowWindow(hwnd_found, win32con.SW_RESTORE)
@@ -63,6 +72,8 @@ class WinManager(WinManagerBase):
             win32gui.SetWindowPos(hwnd_found,win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
             win32gui.SetWindowPos(hwnd_found,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_SHOWWINDOW + win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
             win32gui.ShowWindow(hwnd_found, win32con.SW_MAXIMIZE)
+
+        return window_time
 
     def check_if_window_exists(self, window_title):
         """
@@ -76,6 +87,56 @@ class WinManager(WinManagerBase):
             return True
         else:
             return False
+
+    def wait_window(self, window_title, timeout=60):
+        """
+        wait window(s).
+
+        :type window_title: string
+        :param window_title: regular expression for the window(s) title
+        :type timeout: int
+        :param timeout: timeout (seconds), default value is 60 seconds
+        """
+
+        t0 = 0
+        window_time =0
+
+        t0 = time.time()
+        while True:
+            window_exists = self.check_if_window_exists(window_title)
+
+            if window_exists is True:
+                return window_time
+
+            if window_time >= timeout:
+                return -1
+
+            window_time = time.time() - t0
+
+    def wait_window_close(self, window_title, timeout=60):
+        """
+        wait window(s) till exists.
+
+        :type window_title: string
+        :param window_title: regular expression for the window(s) title
+        :type timeout: int
+        :param timeout: timeout (seconds), default value is 60 seconds
+        """
+
+        t0 = 0
+        window_time =0
+
+        t0 = time.time()
+        while True:
+            window_exists = self.check_if_window_exists(window_title)
+
+            if window_exists is False:
+                return window_time
+
+            if window_time >= timeout:
+                return -1
+
+            window_time = time.time() - t0
 
     def close_window(self, window_title):
         """

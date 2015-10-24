@@ -51,6 +51,16 @@ class AlyvixImageFinderView(QWidget):
         QWidget.__init__(self)
         #self.setupUi(self)
         
+        self.object_name = ""
+        self.wait = True
+        self.find = False
+        self.args_number = 0
+        self.timeout = 60
+        self.timeout_exception = True
+        self.enable_performance = True
+        self.warning = 15.00
+        self.critical = 40.00
+        
         self.setMouseTracking(True)
         
         self._bg_pixmap = QPixmap()
@@ -114,7 +124,7 @@ class AlyvixImageFinderView(QWidget):
             self.build_xml()
             self.save_python_file()
             #self.build_perf_data_xml()
-            image_name = self._path + os.sep + self._main_template.name + "_ImageFinder.png"
+            image_name = self._path + os.sep + self.object_name + "_ImageFinder.png"
             self._bg_pixmap.save(image_name,"PNG", -1)
             self.save_template_images(image_name)
             if self.action == "new":
@@ -156,7 +166,7 @@ class AlyvixImageFinderView(QWidget):
                 self.build_xml()
                 self.save_python_file()
                 self.build_perf_data_xml()
-                image_name = self._path + os.sep + self._main_template.name + "_ImageFinder.png"
+                image_name = self._path + os.sep + self.object_name + "_ImageFinder.png"
                 self._bg_pixmap.save(image_name,"PNG", -1)
                 self.save_template_images(image_name)
                 if self.action == "new":
@@ -167,9 +177,9 @@ class AlyvixImageFinderView(QWidget):
     
     def save_template_images(self, image_name):
     
-        #template_image_path = self._path + os.sep + self._main_template.name
-        template_image_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self._path.split(os.sep)[-1] + "_extra" + os.sep + self._main_template.name
-        print "AAAAAAAAAAAAAAAAAAAAAAA:", template_image_path
+        #template_image_path = self._path + os.sep + self.object_name
+        template_image_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self._path.split(os.sep)[-1] + "_extra" + os.sep + self.object_name
+        #print "AAAAAAAAAAAAAAAAAAAAAAA:", template_image_path
         
         if not os.path.exists(template_image_path):
             os.makedirs(template_image_path)
@@ -801,11 +811,11 @@ class AlyvixImageFinderView(QWidget):
         self._code_lines = []
         self._code_lines_for_object_finder = []
             
-        name = self._main_template.name
+        name = self.object_name
         
         if name == "":
             name = time.strftime("image_finder_%d_%m_%y_%H_%M_%S")
-            self._main_template.name = name
+            self.object_name = name
             
         strcode = name + "_object = None"
         self._code_lines.append(strcode)
@@ -815,7 +825,7 @@ class AlyvixImageFinderView(QWidget):
         
         string_function_args = "def " + name + "_build_object("
         
-        args_range = range(1, self._main_template.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -871,7 +881,7 @@ class AlyvixImageFinderView(QWidget):
         
         string_function_args = "def " + name + "_mouse_keyboard("
         
-        args_range = range(1, self._main_template.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -955,7 +965,7 @@ class AlyvixImageFinderView(QWidget):
         
         string_function_args = "def " + name + "("
         
-        args_range = range(1, self._main_template.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -969,7 +979,7 @@ class AlyvixImageFinderView(QWidget):
         
         string_function_args = "    " + name + "_build_object("
         
-        args_range = range(1, self._main_template.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -979,38 +989,38 @@ class AlyvixImageFinderView(QWidget):
         string_function_args = string_function_args + ")"
         self._code_lines.append(string_function_args)
 
-        if self._main_template.find is True:  
+        if self.find is True:  
             self._code_lines.append("    " + name + "_object.find()")
         else:
-            self._code_lines.append("    wait_time = " + name + "_object.wait(" + str(self._main_template.timeout) + ")")
+            self._code_lines.append("    wait_time = " + name + "_object.wait(" + str(self.timeout) + ")")
            
-        if self._main_template.enable_performance is True and self._main_template.find is False:
+        if self.enable_performance is True and self.find is False:
             self._code_lines.append("    if wait_time == -1:")
-            if self._main_template.timeout_exception is True:
-                self._code_lines.append("        raise Exception(\"step " + str(self._main_template.name) + " timed out, execution time: " + str(self._main_template.timeout) + "\")")             
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
             else:
-                self._code_lines.append("        print \"*WARN* step " + str(self._main_template.name) + " timed out, execution time: " + str(self._main_template.timeout) + "\"")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
                 self._code_lines.append("        return False")
-            self._code_lines.append("    elif wait_time < " + repr(self._main_template.warning) + ":")
-            self._code_lines.append("        print \"step " + self._main_template.name + " is ok, execution time:\", wait_time, \"sec.\"")
-            self._code_lines.append("    elif wait_time < " + repr(self._main_template.critical) + ":")
-            self._code_lines.append("        print \"*WARN* step " + str(self._main_template.name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("    elif wait_time < " + repr(self.warning) + ":")
+            self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time, \"sec.\"")
+            self._code_lines.append("    elif wait_time < " + repr(self.critical) + ":")
+            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
             self._code_lines.append("    else:")
-            self._code_lines.append("        print \"*WARN* step " + str(self._main_template.name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
             self._code_lines.append("    p = PerfManager()")
-            self._code_lines.append("    p.add_perfdata(\"" + str(self._main_template.name) + "\", wait_time, " + repr(self._main_template.warning) + ", " + repr(self._main_template.critical) + ")")
-        elif self._main_template.find is False:
+            self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+        elif self.find is False:
             self._code_lines.append("    if wait_time == -1:")
-            if self._main_template.timeout_exception is True:
-                self._code_lines.append("        raise Exception(\"step " + str(self._main_template.name) + " timed out, execution time: " + str(self._main_template.timeout) + "\")")             
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
             else:
-                self._code_lines.append("        print \"*WARN* step " + str(self._main_template.name) + " timed out, execution time: " + str(self._main_template.timeout) + "\"")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
                 self._code_lines.append("        return False")  
-            #self._code_lines.append("        raise Exception(\"step " + str(self._main_template.name) + " timed out, execution time: " + str(self._main_template.timeout) + "\")")
+            #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
         
         string_function_args = "    " + name + "_mouse_keyboard("
         
-        args_range = range(1, self._main_template.args_number + 1)
+        args_range = range(1, self.args_number + 1)
         
         for arg_num in args_range:
             string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
@@ -1020,7 +1030,7 @@ class AlyvixImageFinderView(QWidget):
         string_function_args = string_function_args + ")"
         self._code_lines.append(string_function_args)
         
-        if self._main_template.timeout_exception is False:
+        if self.timeout_exception is False:
             self._code_lines.append("    return True")
         self._code_lines.append("")
         self._code_lines.append("")
@@ -1041,22 +1051,22 @@ class AlyvixImageFinderView(QWidget):
         if self._main_template is None:
             return
 
-        name = str(self._main_template.name)
+        name = str(self.object_name)
         
         if name == "":
             name = time.strftime("image_finder_%d_%m_%y_%H_%M_%S")
-            self._main_template.name = name
+            self.object_name = name
         
         root = ET.Element("image_finder")
         root.set("name", name)
-        root.set("find", str(self._main_template.find))
-        root.set("wait", str(self._main_template.wait))
-        root.set("timeout", str(self._main_template.timeout))
-        root.set("timeout_exception", str(self._main_template.timeout_exception))
-        root.set("enable_performance", str(self._main_template.enable_performance))
-        root.set("warning_value", repr(self._main_template.warning))
-        root.set("critical_value", repr(self._main_template.critical))
-        root.set("args", str(self._main_template.args_number))
+        root.set("find", str(self.find))
+        root.set("wait", str(self.wait))
+        root.set("timeout", str(self.timeout))
+        root.set("timeout_exception", str(self.timeout_exception))
+        root.set("enable_performance", str(self.enable_performance))
+        root.set("warning_value", repr(self.warning))
+        root.set("critical_value", repr(self.critical))
+        root.set("args", str(self.args_number))
 
         main_template_node = ET.SubElement(root, "main_template")
 
@@ -1077,18 +1087,18 @@ class AlyvixImageFinderView(QWidget):
         threshold_node.text = repr(self._main_template.threshold)
         
         path_node = ET.SubElement(main_template_node, "path")
-        #path_node.text = str(self._path + os.sep + self._main_template.name + os.sep + "main_template.png")
+        #path_node.text = str(self._path + os.sep + self.object_name + os.sep + "main_template.png")
         path_node.text = str(self._main_template.path)
         
         """
         find_node = ET.SubElement(main_template_node, "find")
-        find_node.text = str(self._main_template.find)
+        find_node.text = str(self.find)
         
         wait_node = ET.SubElement(main_template_node, "wait")
-        wait_node.text = str(self._main_template.wait)
+        wait_node.text = str(self.wait)
         
         timeout_node = ET.SubElement(main_template_node, "timeout")
-        timeout_node.text = str(self._main_template.timeout)
+        timeout_node.text = str(self.timeout)
         """
         
         click_node = ET.SubElement(main_template_node, "click")
@@ -1148,7 +1158,7 @@ class AlyvixImageFinderView(QWidget):
                 threshold_node.text = repr(sub_template.threshold)
                      
                 path_node = ET.SubElement(sub_template_node, "path")
-                #path_node.text = str(self._path + os.sep + self._main_template.name + os.sep + "sub_template_" + str(cnt) + ".png")
+                #path_node.text = str(self._path + os.sep + self.object_name + os.sep + "sub_template_" + str(cnt) + ".png")
                 path_node.text = str(sub_template.path)
                 
                 roi_x_node = ET.SubElement(sub_template_node, "roi_x")
@@ -1231,7 +1241,7 @@ class AlyvixImageFinderView(QWidget):
         if not os.path.exists(self._path):
             os.makedirs(self._path)
         
-        python_file = open(self._path + os.sep + self._main_template.name + "_ImageFinder.xml", 'w')
+        python_file = open(self._path + os.sep + self.object_name + "_ImageFinder.xml", 'w')
         tree.write(python_file, encoding='utf-8', xml_declaration=True) 
         #python_file.write(rough_string)        
         python_file.close()
@@ -1277,19 +1287,19 @@ class AlyvixImageFinderView(QWidget):
         self._main_template = MainTemplateForGui()
         
         main_template_node = doc.getElementsByTagName("main_template")[0]
-        #self._main_template.name = main_template_node.getElementsByTagName("name")[0].firstChild.nodeValue
+        #self.object_name = main_template_node.getElementsByTagName("name")[0].firstChild.nodeValue
         
-        self._main_template.name = root_node.attributes["name"].value
-        #self._main_template.find = main_template_node.attributes["find"].value
-        #self._main_template.wait = main_template_node.attributes["wait"].value
-        self._main_template.timeout = int(root_node.attributes["timeout"].value)
+        self.object_name = root_node.attributes["name"].value
+        #self.find = main_template_node.attributes["find"].value
+        #self.wait = main_template_node.attributes["wait"].value
+        self.timeout = int(root_node.attributes["timeout"].value)
         
         if root_node.attributes["timeout_exception"].value == "True":
-            self._main_template.timeout_exception = True
+            self.timeout_exception = True
         else:
-            self._main_template.timeout_exception = False
+            self.timeout_exception = False
         
-        self._main_template.args_number = int(root_node.attributes["args"].value)
+        self.args_number = int(root_node.attributes["args"].value)
         
         self._main_template.x = int(main_template_node.getElementsByTagName("x")[0].firstChild.nodeValue)
         self._main_template.y = int(main_template_node.getElementsByTagName("y")[0].firstChild.nodeValue)
@@ -1298,17 +1308,17 @@ class AlyvixImageFinderView(QWidget):
         self._main_template.height = int(main_template_node.getElementsByTagName("height")[0].firstChild.nodeValue)
         self._main_template.threshold = float(main_template_node.getElementsByTagName("threshold")[0].firstChild.nodeValue)
         self._main_template.path = main_template_node.getElementsByTagName("path")[0].firstChild.nodeValue
-        #self._main_template.timeout = int(main_template_node.getElementsByTagName("timeout")[0].firstChild.nodeValue)               
+        #self.timeout = int(main_template_node.getElementsByTagName("timeout")[0].firstChild.nodeValue)               
 
         if "True" in root_node.attributes["find"].value: #main_template_node.getElementsByTagName("find")[0].firstChild.nodeValue:
-            self._main_template.find = True
+            self.find = True
         else:
-            self._main_template.find = False    
+            self.find = False    
             
         if "True" in root_node.attributes["wait"].value: #main_template_node.getElementsByTagName("wait")[0].firstChild.nodeValue:
-            self._main_template.wait = True
+            self.wait = True
         else:
-            self._main_template.wait = False    
+            self.wait = False    
             
         if "True" in main_template_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_template.click = True
@@ -1331,13 +1341,13 @@ class AlyvixImageFinderView(QWidget):
             self._main_template.mousemove = False
             
         if "True" in root_node.attributes["enable_performance"].value:
-            self._main_template.enable_performance = True
+            self.enable_performance = True
         else:
-            self._main_template.enable_performance = False
+            self.enable_performance = False
             
-        self._main_template.warning = float(root_node.attributes["warning_value"].value)
+        self.warning = float(root_node.attributes["warning_value"].value)
             
-        self._main_template.critical = float(root_node.attributes["critical_value"].value)
+        self.critical = float(root_node.attributes["critical_value"].value)
         
         if main_template_node.getElementsByTagName("sendkeys")[0].attributes["encrypted"].value == "True":
             self._main_template.text_encrypted = True
@@ -1467,26 +1477,26 @@ class AlyvixImageFinderView(QWidget):
             
             for item_node in items_node:
                 name = item_node.getElementsByTagName("name")[0].firstChild.nodeValue
-                if name == self._main_template.name and self._main_template.enable_performance is False:
+                if name == self.object_name and self.enable_performance is False:
                     root_node.removeChild(item_node)
-                elif name == self._main_template.name:
+                elif name == self.object_name:
                     perf_is_present = True
                     
-            if perf_is_present is False and self._main_template.enable_performance is True:
+            if perf_is_present is False and self.enable_performance is True:
                 item = doc.createElement("perfdata")
                 
                 name = doc.createElement("name")
-                txt = doc.createTextNode(self._main_template.name)
+                txt = doc.createTextNode(self.object_name)
                 name.appendChild(txt)
                 item.appendChild(name)
 
                 warning = doc.createElement("warning")
-                txt = doc.createTextNode(str(self._main_template.warning))
+                txt = doc.createTextNode(str(self.warning))
                 warning.appendChild(txt)
                 item.appendChild(warning)
                 
                 critical = doc.createElement("critical")
-                txt = doc.createTextNode(str(self._main_template.critical))
+                txt = doc.createTextNode(str(self.critical))
                 critical.appendChild(txt)
                 item.appendChild(critical)
                 
@@ -1502,13 +1512,13 @@ class AlyvixImageFinderView(QWidget):
             main_item_node = ET.SubElement(root, "perfdata")
             
             name_node = ET.SubElement(main_item_node, "name")
-            name_node.text = str(self._main_template.name)
+            name_node.text = str(self.object_name)
             
             warning_node = ET.SubElement(main_item_node, "warning")
-            warning_node.text = str(self._main_template.warning)
+            warning_node.text = str(self.warning)
             
             critical_node = ET.SubElement(main_item_node, "critical")
-            critical_node.text = str(self._main_template.critical)
+            critical_node.text = str(self.critical)
             
             tree = ET.ElementTree(root)
             python_file = open(filename, 'w')
@@ -1619,12 +1629,12 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         if self.parent.action == "edit":
             self.namelineedit.setEnabled(False)
             
-        if self.parent._main_template.timeout_exception is False:
+        if self.parent.timeout_exception is False:
             self.timeout_exception.setChecked(False)
         else:
             self.timeout_exception.setChecked(True)
             
-        if self.parent._main_template.find is True:
+        if self.parent.find is True:
             self.find_radio.setChecked(True)
             self.timeout_label.setEnabled(False)
             self.timeout_spinbox.setEnabled(False)
@@ -1636,7 +1646,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.timeout_exception.setEnabled(True)
             
         """
-        if self.parent._main_template.wait is True:
+        if self.parent.wait is True:
             self.wait_radio.setChecked(True)
         else:
             self.wait_radio.setChecked(False)
@@ -1699,7 +1709,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.listWidget.item(0).setSelected(True)
         
         self.doubleSpinBoxThreshold.setValue(self.parent._main_template.threshold)
-        self.timeout_spinbox.setValue(self.parent._main_template.timeout)      
+        self.timeout_spinbox.setValue(self.parent.timeout)      
         self.inserttext.setText(self.parent._main_template.sendkeys)       
 
         if self.parent._main_template.sendkeys == "":
@@ -1707,13 +1717,13 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.inserttext.setText(unicode(self.parent._main_template.sendkeys, 'utf-8'))       
 
-        if self.parent._main_template.name == "":
+        if self.parent.object_name == "":
             self.namelineedit.setText("Type here the name of the object")
         else:
-            self.namelineedit.setText(self.parent._main_template.name)      
+            self.namelineedit.setText(self.parent.object_name)      
 
         
-        self.spinBoxArgs.setValue(self.parent._main_template.args_number)
+        self.spinBoxArgs.setValue(self.parent.args_number)
         
         self.init_block_code()            
         
@@ -1800,7 +1810,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
     def pushButtonOk_event(self):
     
         answer = QMessageBox.Yes
-        if self.parent._main_template.name == "":
+        if self.parent.object_name == "":
             answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
 
         if answer == QMessageBox.Yes:
@@ -1808,25 +1818,25 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.parent.save_all()
   
     def args_spinbox_change_event(self, event):
-        self.parent._main_template.args_number = self.spinBoxArgs.value()
+        self.parent.args_number = self.spinBoxArgs.value()
         self.parent.build_code_array()
         self.textEdit.setText(unicode(self.parent.build_code_string(), 'utf-8'))
   
     def warning_event(self, event):
-        self.parent._main_template.warning = self.doubleSpinBoxWarning.value()
+        self.parent.warning = self.doubleSpinBoxWarning.value()
         
     def critical_event(self, event):
-        self.parent._main_template.critical = self.doubleSpinBoxCritical.value()
+        self.parent.critical = self.doubleSpinBoxCritical.value()
         
     def enable_performance_event(self, event):
         if self.checkBoxEnablePerformance.isChecked() is True:
-            self.parent._main_template.enable_performance = True
+            self.parent.enable_performance = True
             self.doubleSpinBoxWarning.setEnabled(True)
             self.doubleSpinBoxCritical.setEnabled(True)
             self.labelWarning.setEnabled(True)
             self.labelCritical.setEnabled(True)
         else:
-            self.parent._main_template.enable_performance = False
+            self.parent.enable_performance = False
             self.doubleSpinBoxWarning.setEnabled(False)
             self.doubleSpinBoxCritical.setEnabled(False)
             self.labelWarning.setEnabled(False)
@@ -1841,10 +1851,10 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.parent.build_code_array()
             self.textEdit.setText(unicode(self.parent.build_code_string(), 'utf-8'))
         elif tab_index is 3:
-            self.doubleSpinBoxWarning.setValue(self.parent._main_template.warning)
-            self.doubleSpinBoxCritical.setValue(self.parent._main_template.critical)
+            self.doubleSpinBoxWarning.setValue(self.parent.warning)
+            self.doubleSpinBoxCritical.setValue(self.parent.critical)
             
-            if self.parent._main_template.enable_performance is True:
+            if self.parent.enable_performance is True:
                 self.checkBoxEnablePerformance.setCheckState(Qt.Checked)
                 self.doubleSpinBoxWarning.setEnabled(True)
                 self.doubleSpinBoxCritical.setEnabled(True)
@@ -2007,23 +2017,23 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.timeout_spinbox.setEnabled(True)
             self.timeout_label.setEnabled(True)
             self.timeout_exception.setEnabled(True)
-            self.parent._main_template.wait = True
-            self.parent._main_template.find = False
+            self.parent.wait = True
+            self.parent.find = False
         else:
             self.timeout_spinbox.setEnabled(False)
             self.timeout_exception.setEnabled(False)
             self.timeout_label.setEnabled(False)
-            self.parent._main_template.wait = False
-            self.parent._main_template.find = True
+            self.parent.wait = False
+            self.parent.find = True
             
     def timeout_spinbox_event(self, event):
-        self.parent._main_template.timeout = self.timeout_spinbox.value()
+        self.parent.timeout = self.timeout_spinbox.value()
         
     def timeout_exception_event(self, event):
         if self.timeout_exception.isChecked() is True:
-            self.parent._main_template.timeout_exception = True
+            self.parent.timeout_exception = True
         else:
-            self.parent._main_template.timeout_exception = False
+            self.parent.timeout_exception = False
 
     def update_sub_template_view(self):
         index = self.sub_template_index
@@ -2131,9 +2141,9 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
     @pyqtSlot(QString)
     def namelineedit_event(self, text):
         if text == "Type here the name of the object":
-            self.parent._main_template.name = "".encode('utf-8')
+            self.parent.object_name = "".encode('utf-8')
         else:
-            self.parent._main_template.name = str(text.toUtf8()).replace(" ", "_")
+            self.parent.object_name = str(text.toUtf8()).replace(" ", "_")
         
     def eventFilter(self, obj, event):
         if event.type() == event.MouseButtonPress:
@@ -2212,7 +2222,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
                 self.namelineedit.setText("Type here the name of the object")
                 return True
             elif obj.objectName() == "namelineedit":
-                self.namelineedit.setText(self.parent._main_template.name)
+                self.namelineedit.setText(self.parent.object_name)
                 return True
         
             if self.inserttext.text() == "" and obj.objectName() == "inserttext":
