@@ -262,6 +262,9 @@ class TextFinder(BaseFinder):
             #LogManager.WriteCvImage(datetime.now().strftime("%H_%M_%S_%f") + '_Grey.png', grey_img)
 
             #text=Ocr.Api.GetUTF8Text()
+            
+            if self._log_manager.is_log_enable() is True:
+                textfile_log_name = datetime.datetime.now().strftime("%H_%M_%S.%f")[:-3] + "_resized.txt"
 
             text = self.api.GetHOCRText(0)
 
@@ -322,6 +325,7 @@ class TextFinder(BaseFinder):
 
                     #print span.text," >> line:",lineNr,"coordinates:",int(coordinates[1])/3,int(coordinates[2])/3,int(coordinates[3])/3,int(coordinates[4])/3
                     #print "text found:",phrase
+                    
 
                     #print "tempo ocr", time.time() - timex
                     if result != None:
@@ -404,7 +408,7 @@ class TextFinder(BaseFinder):
 
 
             if self._log_manager.is_log_enable() is True:
-                self._log_manager.save_info_file(self.__find_log_folder, "resized.txt", self.__phrase_backup)
+                self._log_manager.save_info_file(self.__find_log_folder, textfile_log_name, self.__phrase_backup)
 
             #print len(objects_found)
             if len(objects_found) > 0:
@@ -507,6 +511,7 @@ class TextFinder(BaseFinder):
 
             if self._log_manager.is_log_enable() is True:
                 self._log_manager.save_image(self.__find_log_folder, "sub_resized.png", grey_img)
+                textfile_sub_log_name = datetime.datetime.now().strftime("%H_%M_%S.%f")[:-3] + "_sub_resized.txt"
 
             #cv.SaveImage('c:\\alan\\image2.jpg', grey_img)
             tesseract.SetCvImage(grey_img, self.api)
@@ -559,7 +564,7 @@ class TextFinder(BaseFinder):
                     #print "tempo ocr", time.time() - timex
 
                     if self._log_manager.is_log_enable() is True:
-                        self._log_manager.save_info_file(self.__find_log_folder, "resized.txt", self.__phrase_backup)
+                        self._log_manager.save_info_file(self.__find_log_folder, textfile_sub_log_name, phrase)
 
                     if result != None:
 

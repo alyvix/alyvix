@@ -263,11 +263,9 @@ class LogManager:
 
         if self.__enable_log is True:
 
-            current_time = datetime.now().strftime("%H_%M_%S.%f")
-
             folder_name = log_path + os.sep + self.__name_with_time + os.sep + sub_dir
 
-            fullname = folder_name + os.sep + current_time[:-3] + "_" + file_name
+            fullname = folder_name + os.sep + file_name
 
             if not os.path.exists(folder_name):
                 os.makedirs(folder_name)
