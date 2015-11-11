@@ -709,16 +709,16 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         arg_main_component = 0
         if path_main_xml.endswith('_RectFinder.xml'):
             main_obj = AlyvixRectFinderView(m_controller)
-            arg_main_component = main_obj._main_rect_finder.args_number
-            main_obj_name = main_obj._main_rect_finder.name
+            arg_main_component = main_obj.args_number
+            main_obj_name = main_obj.object_name
         elif path_main_xml.endswith('_ImageFinder.xml'):
             main_obj = AlyvixImageFinderView(m_controller)
-            arg_main_component = main_obj._main_template.args_number
-            main_obj_name = main_obj._main_template.name
+            arg_main_component = main_obj.args_number
+            main_obj_name = main_obj.object_name
         elif path_main_xml.endswith('_TextFinder.xml'):
             main_obj = AlyvixTextFinderView(m_controller)
-            arg_main_component = main_obj._main_text.args_number
-            main_obj_name = main_obj._main_text.name
+            arg_main_component = main_obj.args_number
+            main_obj_name = main_obj.object_name
         
         total_args = total_args + arg_main_component
         str_global_obj = "    global " + main_obj_name + "_object"
@@ -771,16 +771,16 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
                 if path_sub_xml.endswith('_RectFinder.xml'):
                     sub_obj = AlyvixRectFinderView(s_controller)
-                    sub_obj_name = sub_obj._main_rect_finder.name
-                    arg_sub_component = sub_obj._main_rect_finder.args_number
+                    sub_obj_name = sub_obj.object_name
+                    arg_sub_component = sub_obj.args_number
                 elif path_sub_xml.endswith('_ImageFinder.xml'):
                     sub_obj = AlyvixImageFinderView(s_controller)
-                    sub_obj_name = sub_obj._main_template.name
-                    arg_sub_component = sub_obj._main_template.args_number
+                    sub_obj_name = sub_obj.object_name
+                    arg_sub_component = sub_obj.args_number
                 elif path_sub_xml.endswith('_TextFinder.xml'):
                     sub_obj = AlyvixTextFinderView(s_controller)
-                    sub_obj_name = sub_obj._main_text.name
-                    arg_sub_component = sub_obj._main_text.args_number
+                    sub_obj_name = sub_obj.object_name
+                    arg_sub_component = sub_obj.args_number
                 
                 total_args = total_args + arg_sub_component
                 str_lines_sub_obj.append("    global " + sub_obj_name + "_object")
@@ -984,15 +984,15 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
                 if path_sub_xml.endswith('_RectFinder.xml'):
                     sub_obj = AlyvixRectFinderView(s_controller)
-                    sub_obj_name = sub_obj._main_rect_finder.name
+                    sub_obj_name = sub_obj.object_name
                     self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
                 elif path_sub_xml.endswith('_ImageFinder.xml'):
                     sub_obj = AlyvixImageFinderView(s_controller)
-                    sub_obj_name = sub_obj._main_template.name
+                    sub_obj_name = sub_obj.object_name
                     self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
                 elif path_sub_xml.endswith('_TextFinder.xml'):
                     sub_obj = AlyvixTextFinderView(s_controller)
-                    sub_obj_name = sub_obj._main_text.name
+                    sub_obj_name = sub_obj.object_name
                     self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
         
         if self._main_object_finder.timeout_exception is False:
