@@ -545,7 +545,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
             self.textEdit.appendPlainText("")
             self.mmanager_declared = True
         
-        self.textEdit.appendPlainText("mm.click(x=0, y=0, mm.button_left, n=1)")
+        self.textEdit.appendPlainText("mm.click(x=0, y=0, button=mm.left_button, n=1)")
         self.textEdit.appendPlainText("")
         
     def pushbutton_mouse_doubleclick_event(self):
@@ -554,7 +554,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
             self.textEdit.appendPlainText("")
             self.mmanager_declared = True
         
-        self.textEdit.appendPlainText("mm.click(x=0, y=0, mm.button_left, n=2)")
+        self.textEdit.appendPlainText("mm.click(x=0, y=0, button=mm.left_button, n=2)")
         self.textEdit.appendPlainText("")
         
     def pushbutton_mouse_right_click_event(self):
@@ -563,7 +563,7 @@ class AlyvixCustomCodeView(QDialog, Ui_Form):
             self.textEdit.appendPlainText("")
             self.mmanager_declared = True
         
-        self.textEdit.appendPlainText("mm.click(x=0, y=0, mm.button_right, n=1)")
+        self.textEdit.appendPlainText("mm.click(x=0, y=0, button=mm.right_button, n=1)")
         self.textEdit.appendPlainText("")
         
     def pushbutton_mouse_move_event(self):
