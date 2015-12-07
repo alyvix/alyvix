@@ -36,7 +36,7 @@ parser.add_argument("--test", help="the test case to run")
 args = parser.parse_args()
 
 #builds a string for logging purposes
-if args.testsuite and  args.test:
+if args.testsuite and args.test:
     check_target = 'test case "%s" in test suite "%s"' % (args.test, args.testsuite)
 else:
     check_target = 'test suite "%s"' % args.testsuite
