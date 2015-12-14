@@ -35,6 +35,12 @@ parser.add_argument("--test", help="the test case to run")
 #parse arguments
 args = parser.parse_args()
 
+#builds a string for logging purposes
+if args.testsuite and args.test:
+    check_target = 'test case "%s" in test suite "%s"' % (args.test, args.testsuite)
+else:
+    check_target = 'test suite "%s"' % args.testsuite
+
 #disable console output
 os.dup2(null_fds[0], 1)
 os.dup2(null_fds[1], 2)
@@ -64,9 +70,16 @@ os.close(null_fds[0])
 os.close(null_fds[1])
 
 try:
-    #print the output
-    print os.getenv("alyvix_std_output")
-    #exit with alyvix exit code
-    sys.exit(int(os.getenv("alyvix_exitcode")))
+    #checks if test/testsuite has generated any output
+    output = os.getenv("alyvix_std_output")
+    exitcode = os.getenv("alyvix_exitcode")
+
+    if output is None and exitcode is None:
+        print("UNKNOWN - %s generated no output or exit code" % check_target)
+        sys.exit(3)
+        
+    #exit with alyvix output/performance data and exit code
+    print(output)
+    sys.exit(int(exitcode))
 except:
     pass
