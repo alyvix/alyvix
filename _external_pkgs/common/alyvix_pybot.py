@@ -20,8 +20,12 @@
 
 import os
 import sys
+import time
+import shutil
+import tempfile
 import argparse
 from robot import run
+from datetime import datetime
 
 save = os.dup(1), os.dup(2)
 
@@ -35,6 +39,25 @@ parser.add_argument("--test", help="the test case to run")
 #parse arguments
 args = parser.parse_args()
 
+if args.outputdir:
+    output_dir = args.outputdir
+else:  
+    #we must always set the output folder (probably due to a Robot Framework Api bug).
+
+    path_tree = args.testsuite.split(os.sep)
+    suite_name =  path_tree[-1].split(".")[0]
+    
+    #save the log folder into the user temp directory
+    output_dir = tempfile.gettempdir() + os.sep + "alyvix_pybot" + os.sep + suite_name
+    
+    if args.test:
+        output_dir = output_dir + os.sep + args.test
+        
+    try:
+        shutil.rmtree(output_dir) #delete all logs of previous run.
+    except:
+        pass
+        
 #builds a string for logging purposes
 if args.testsuite and args.test:
     check_target = 'test case "%s" in test suite "%s"' % (args.test, args.testsuite)
@@ -45,41 +68,27 @@ else:
 os.dup2(null_fds[0], 1)
 os.dup2(null_fds[1], 2)
 
-if args.outputdir:
-    output_dir = args.outputdir
-    output_file = "output.xml"
-    log_file = "log.html"
-    report_file = "report.html"
-else:
-    output_dir = "NONE"
-    output_file = "NONE"
-    log_file = "NONE"
-    report_file = "NONE"
-
 if args.test:
     #run testsuite with only one testcase
-    run(args.testsuite, outputdir=output_dir, output=output_file, log=log_file, report=report_file, test=args.test)
+    run(args.testsuite, outputdir=output_dir, test=args.test)
 else:
     #run testsuite with all testcases
-    run(args.testsuite, outputdir=output_dir, output=output_file, log=log_file, report=report_file)
-
+    run(args.testsuite, outputdir=output_dir)
+    
 #enable console output
 os.dup2(save[0], 1)
 os.dup2(save[1], 2)
 os.close(null_fds[0])
 os.close(null_fds[1])
 
-try:
-    #checks if test/testsuite has generated any output
-    output = os.getenv("alyvix_std_output")
-    exitcode = os.getenv("alyvix_exitcode")
+output = os.getenv("alyvix_std_output")
+exitcode = os.getenv("alyvix_exitcode")
 
-    if output is None and exitcode is None:
-        print("UNKNOWN - %s generated no output or exit code" % check_target)
-        sys.exit(3)
-        
-    #exit with alyvix output/performance data and exit code
-    print(output)
-    sys.exit(int(exitcode))
-except:
-    pass
+#checks if test/testsuite has generated any output
+if output is None and exitcode is None:
+    print("UNKNOWN - %s generated no output or exit code." % check_target)
+    sys.exit(3)
+
+#exit with alyvix output/performance data and exit code
+print(output)
+sys.exit(int(exitcode))
