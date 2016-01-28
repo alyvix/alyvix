@@ -21,6 +21,7 @@
 import numpy
 import cv2
 import cv2.cv as cv
+import time
 
 
 class ScreenManagerBase(object):
@@ -35,14 +36,7 @@ class ScreenManagerBase(object):
 
     def _get_cv_color_mat(self, pilimage):
 
-        cv_im = cv.CreateImageHeader(pilimage.size, cv.IPL_DEPTH_8U, 3)
-
-        cv.SetData(cv_im, pilimage.tostring())
-
-        mat = cv.GetMat(cv_im)
-
-        img = numpy.asarray(mat)
-
+        img = numpy.array(pilimage)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
         return img

@@ -18,10 +18,12 @@
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
 
-#import Image
-from PIL import Image
 import numpy
-from PIL import ImageGrab as _imageGrab
+import win32gui
+import win32ui
+import win32api
+import win32con
+from PIL import Image
 import cv2
 import cv2.cv as cv
 from .base import ScreenManagerBase
@@ -44,7 +46,31 @@ class ScreenManager(ScreenManagerBase):
 
         ret_image = None
 
-        ret_image = _imageGrab.grab()
+        #we use pywin32 api instead of PIL ImageGrab.
+        #ImageGrab is slower than pywin32
+        w = win32api.GetSystemMetrics(0)
+        h = win32api.GetSystemMetrics(1)
+        hwnd = win32gui.GetDesktopWindow()
+        wDC = win32gui.GetWindowDC(hwnd)
+        dcObj=win32ui.CreateDCFromHandle(wDC)
+        cDC=dcObj.CreateCompatibleDC()
+        dataBitMap = win32ui.CreateBitmap()
+        dataBitMap.CreateCompatibleBitmap(dcObj, w, h)
+        cDC.SelectObject(dataBitMap)
+        cDC.BitBlt((0,0),(w, h) , dcObj, (0,0), win32con.SRCCOPY)
+        bmpinfo = dataBitMap.GetInfo()
+        bmpstr = dataBitMap.GetBitmapBits(True)
+
+        ret_image = Image.frombuffer(
+            'RGB',
+            (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
+            bmpstr, 'raw', 'BGRX', 0, 1)
+
+        # Free Resources
+        dcObj.DeleteDC()
+        cDC.DeleteDC()
+        win32gui.ReleaseDC(hwnd, wDC)
+        win32gui.DeleteObject(dataBitMap.GetHandle())
 
         if return_type == self.get_color_mat:
             return self._get_cv_color_mat(ret_image)

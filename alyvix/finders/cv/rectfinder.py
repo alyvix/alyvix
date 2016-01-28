@@ -245,13 +245,6 @@ class RectFinder(BaseFinder):
                 object_found.append([])
                 object_found.append([])
 
-                if self._flag_thread_have_to_exit is True:
-                    self._flag_thread_have_to_exit = False
-                    self._flag_thread_started = False
-                    self._source_image_color = None
-                    self._source_image_gray = None
-                    return []
-
                 x, y, w, h = cv2.boundingRect(c)
                 x = offset_x + x
                 y = offset_y + y
@@ -301,13 +294,6 @@ class RectFinder(BaseFinder):
                             sub_objects_found = []
                             for sub_rect in self.__sub_components:
 
-                                if self._flag_thread_have_to_exit is True:
-                                    self._flag_thread_have_to_exit = False
-                                    self._flag_thread_started = False
-                                    self._source_image_color = None
-                                    self._source_image_gray = None
-                                    return []
-
                                 sub_template_coordinates = self._find_sub_rect((x, y), sub_rect)
 
                                 if sub_template_coordinates is not None:
@@ -332,20 +318,20 @@ class RectFinder(BaseFinder):
                 #gray_source_img = cv2.cvtColor(self._source_image, cv2.COLOR_BGR2GRAY)
                 self._cacheManager.SetLastObjFoundFullImg(self._source_image_gray)
 
-            self._flag_thread_started = False
+            #time.sleep(40)
 
             if source_img_auto_set is True:
                 self._source_image_color = None
                 self._source_image_gray = None
                 source_img_auto_set = False
 
-            if self._flag_check_before_exit is True:
-                self._flag_checked_before_exit = True
+            self._flag_thread_started = False
 
             return self._objects_found
 
         except Exception, err:
             self._log_manager.save_exception("ERROR", "an exception has occurred: " + str(err) + " on line " + str(sys.exc_traceback.tb_lineno))
+            self._flag_thread_started = False
             return None
 
 

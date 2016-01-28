@@ -279,12 +279,14 @@ class TextFinder(BaseFinder):
                 object_found.append([])
                 object_found.append([])
 
+                """
                 if self._flag_thread_have_to_exit is True:
                     self._flag_thread_have_to_exit = False
                     self._flag_thread_started = False
                     self._source_image_color = None
                     self._source_image_gray = None
                     return []
+                """
 
                 try:
                     #print span.attrib,span.text
@@ -368,12 +370,14 @@ class TextFinder(BaseFinder):
                             for sub_text in self.__sub_components:
                                 #print "entering in sub text"
 
+                                """
                                 if self._flag_thread_have_to_exit is True:
                                     self._flag_thread_have_to_exit = False
                                     self._flag_thread_started = False
                                     self._source_image_color = None
                                     self._source_image_gray = None
                                     return []
+                                """
 
                                 sub_template_coordinates = self._find_sub_text((x, y), sub_text)
 
@@ -415,15 +419,20 @@ class TextFinder(BaseFinder):
                 self._objects_found = copy.deepcopy(objects_found)
                 #gray_source_img = cv2.cvtColor(self._source_image, cv2.COLOR_BGR2GRAY)
                 self._cacheManager.SetLastObjFoundFullImg(self._source_image_gray)
-            self._flag_thread_started = False
 
             if source_img_auto_set is True:
                 self._source_image_color = None
                 self._source_image_gray = None
                 source_img_auto_set = False
 
+            """
             if self._flag_check_before_exit is True:
                 self._flag_checked_before_exit = True
+            """
+
+            #time.sleep(40)
+
+            self._flag_thread_started = False
 
             return self._objects_found
 
