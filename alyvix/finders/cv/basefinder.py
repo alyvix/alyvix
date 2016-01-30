@@ -201,8 +201,8 @@ class BaseFinder(object):
         self._flag_thread_started = False
         self._flag_thread_have_to_exit = False
 
-        time_elapsed = 0
-        time_of_last_change = 0
+        time_elapsed = 0.0
+        #time_of_last_change = 0.0
         self._time_checked_before_exit_start = None
 
         #screenCapture = ScreenManager()
@@ -217,7 +217,7 @@ class BaseFinder(object):
         thread_t0 = time.time()
         time_before_loop = time.time()
         while True:
-            txx = time.time()
+            #txx = time.time()
             try:
 
                 if len(self._objects_found) > 0:
@@ -321,7 +321,7 @@ class BaseFinder(object):
 
         main_template = self._last_thread_image[y1:y2, x1:x2] #self._uncompress_image(self._find_thread_images[-1][1])[y1:y2, x1:x2]
 
-        #cv2.imwrite("c:\\test\\MNTIMP.png",main_template)
+        #cv2.imwrite("c:\\log\\buffer_images\\main_template.png",main_template)
 
         check_presence.set_xy(x1 - crop_value[0], y1 - crop_value[1]) #(x1, y1) #(x1 - crop_value[0], y1 - crop_value[1])
 
@@ -416,18 +416,18 @@ class BaseFinder(object):
                 if sub_obj.y + sub_obj.height > max_height:
                     max_height = sub_obj.y + sub_obj.height
 
-            min_x = min_x - (offset_border * 6)
-            min_y = min_y - (offset_border * 6)
-            max_width = max_width + (offset_border * 6 * 2)
-            max_height = max_height + (offset_border * 6 * 2)
+        min_x = min_x - (offset_border * 6)
+        min_y = min_y - (offset_border * 6)
+        max_width = max_width + (offset_border * 6 * 2)
+        max_height = max_height + (offset_border * 6 * 2)
 
-            img_height, img_width = self._last_thread_image.shape
+        img_height, img_width = self._last_thread_image.shape
 
-            if max_width > img_width:
-                max_width = img_width
+        if max_width > img_width:
+            max_width = img_width
 
-            if max_height > img_height:
-                max_height = img_height
+        if max_height > img_height:
+            max_height = img_height
 
         #cv2.imwrite("c:\\log\\buffer_images\\cropped.png", self._uncompress_image(self._find_thread_images[0][1])[min_y:max_height, min_x:max_width] )
 

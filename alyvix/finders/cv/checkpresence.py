@@ -327,7 +327,7 @@ class CheckPresence:
                     main_object_result = MatchResult((x, y, w, h))
                     object_found[0] = main_object_result
                     object_found[1] = None
-                    objects_found.append(object_found)
+                    return True
                 else:
                     #print sub_templates_len
                     total_sub_template_found = 0
