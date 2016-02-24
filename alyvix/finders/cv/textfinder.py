@@ -345,7 +345,8 @@ class TextFinder(BaseFinder):
                             #print "text from Ocr engine:",phrase
                             #print "ocr time:",time.time() - timex,"sec."
                             #phrase = phrase.replace(main_text.text,"")
-                            insensitive_phrase = re.compile(re.escape(main_text.text), re.IGNORECASE)
+                            #insensitive_phrase = re.compile(re.escape(main_text.text), re.IGNORECASE)
+                            insensitive_phrase = re.compile(main_text.text, re.IGNORECASE)
                             phrase = insensitive_phrase.sub('', phrase)
                             #print phrase
 

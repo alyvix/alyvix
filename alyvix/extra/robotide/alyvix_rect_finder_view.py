@@ -1236,7 +1236,7 @@ class AlyvixRectFinderView(QWidget):
                 self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1, 2)")
             elif self._main_rect_finder.rightclick == True:
                 self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 2)")
-            elif self._main_rect_finder.move == True:
+            elif self._main_rect_finder.mousemove == True:
                 self._code_lines.append("    m.move(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
                 
         if self._main_rect_finder.sendkeys != "":
@@ -1270,7 +1270,7 @@ class AlyvixRectFinderView(QWidget):
                         self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1, 2)")
                     elif sub_rect.rightclick == True:
                         self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 2)")
-                    elif sub_rect.doubleclick == True:
+                    elif sub_rect.mousemove == True:
                         self._code_lines.append("    m.move(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
                     
                 if sub_rect.sendkeys != "":
