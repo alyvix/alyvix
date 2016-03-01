@@ -1033,14 +1033,14 @@ class AlyvixTextFinderView(QWidget):
         text_to_find = ""
         
         if self._main_text.quotes_ocr is True:
-            text_to_find = "\"" + self._main_text.text + "\""
+            text_to_find = "\"" + unicode(self._main_text.text, "utf8") + "\""
         else:
-            text_to_find = self._main_text.text
+            text_to_find = self._main_text.text + ".encode('utf8')"
         
         if self._main_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
             str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"},"
         else:
-            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"" + ", \"whitelist\": \"" + self._main_text.whitelist + "\"},"
+            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"" + ", \"whitelist\": \"" + unicode(self._main_text.whitelist, "utf8") + "\"},"
             
         str2 ="                                   {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
             
@@ -1067,15 +1067,15 @@ class AlyvixTextFinderView(QWidget):
                     
                 text_to_find = ""
                 if sub_text.quotes_ocr is True:
-                    text_to_find = "\"" + sub_text.text + "\""
+                    text_to_find = "\"" + unicode(sub_text.text, "utf8") + "\""
                 else:
-                    text_to_find = sub_text.text
+                    text_to_find = sub_text.text + ".encode('utf8')"
             
                 #str1 = "    text_finder.add_sub_component({\"path\": \"" + sub_text.path + "\", \"threshold\":" + repr(sub_text.threshold) + "},"
                 if sub_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
                     str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\"},"
                 else:
-                    str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\", \"whitelist\": \"" + sub_text.whitelist + "\"},"
+                    str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\", \"whitelist\": \"" + unicode(sub_text.whitelist, "utf8") + "\"},"
                     
                 
                 str2 = "                                  {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
@@ -2023,7 +2023,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
         #self.lineEditText.setText(self.parent._main_text.text)
         self.lineEditLang.setText(self.parent._main_text.lang)
-        self.lineEditWhiteList.setText(self.parent._main_text.whitelist)
+        self.lineEditWhiteList.setText(unicode(self.parent._main_text.whitelist, 'utf-8'))
         
         if self.parent.action == "edit":
             self.namelineedit.setEnabled(False)
@@ -2509,7 +2509,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
         #self.lineEditText_2.setText(self.parent._sub_texts_finder[self.sub_text_index].text)
         self.lineEditLang_2.setText(self.parent._sub_texts_finder[self.sub_text_index].lang)
-        self.lineEditWhiteList_2.setText(self.parent._sub_texts_finder[self.sub_text_index].whitelist)
+        self.lineEditWhiteList_2.setText(unicode(self.parent._sub_texts_finder[self.sub_text_index].whitelist, 'utf-8'))
             
         self.roi_x_spinbox.setValue(self.parent._sub_texts_finder[self.sub_text_index].roi_x)
         self.roi_y_spinbox.setValue(self.parent._sub_texts_finder[self.sub_text_index].roi_y)
@@ -2619,6 +2619,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.parent._main_text.whitelist = "".encode('utf-8')
         else:
             self.parent._main_text.whitelist = str(text.toUtf8())
+            #print "type:", type(self.parent._main_text.whitelist), "value:", unicode(self.parent._main_text.whitelist, "utf8")
         
     @pyqtSlot(QString)
     def namelineedit_event(self, text):
