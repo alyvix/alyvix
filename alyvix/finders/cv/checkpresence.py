@@ -240,6 +240,12 @@ class CheckPresence:
                 offset_x = x1
                 offset_y = y1
 
+                if offset_x < 0:
+                    offset_x = 0
+
+                if offset_y < 0:
+                    offset_y = 0
+
                 source_img_height, source_img_width = self._source_image_gray.shape
 
                 if y1 < 0:

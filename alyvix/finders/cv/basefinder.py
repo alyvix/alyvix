@@ -307,6 +307,7 @@ class BaseFinder(object):
         :return: returns true if the object is present
         """
 
+        img_height, img_width = img.shape
         #t0 = time.time()
         check_presence = CheckPresence()
 
@@ -318,6 +319,18 @@ class BaseFinder(object):
         y2 = y1 + self._objects_found[0][0].height + (offset_border * 2)
         x1 = self._objects_found[0][0].x - offset_border #10
         x2 = x1 + self._objects_found[0][0].width + (offset_border * 2)
+
+        if x1 < 0:
+            x1 = 0
+
+        if y1 < 0:
+            y1 = 0
+
+        if x2 > img_width:
+            x2 = img_width
+
+        if y2 > img_height:
+            y2 = img_height
 
         main_template = self._last_thread_image[y1:y2, x1:x2] #self._uncompress_image(self._find_thread_images[-1][1])[y1:y2, x1:x2]
 
@@ -349,6 +362,18 @@ class BaseFinder(object):
                 y2 = y1 + sub_obj.height + (offset_border * 2)
                 x1 = sub_obj.x - offset_border
                 x2 = x1 + sub_obj.width + (offset_border * 2)
+
+                if x1 < 0:
+                    x1 = 0
+
+                if y1 < 0:
+                    y1 = 0
+
+                if x2 > img_width:
+                    x2 = img_width
+
+                if y2 > img_height:
+                    y2 = img_height
 
                 sub_img = self._last_thread_image[y1:y2, x1:x2] #self._uncompress_image(self._find_thread_images[-1][1])[y1:y2, x1:x2]
 
@@ -422,6 +447,12 @@ class BaseFinder(object):
         max_height = max_height + (offset_border * 6 * 2)
 
         img_height, img_width = self._last_thread_image.shape
+
+        if min_x < 0:
+            min_x = 0
+
+        if min_y < 0:
+            min_y = 0
 
         if max_width > img_width:
             max_width = img_width
