@@ -118,8 +118,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self._old_sub_objects = copy.deepcopy(self._sub_objects_finder)
         
         self.__old_code = self.get_old_code()
-        #self.__alyvix_proxy_path = os.getenv("ALYVIX_HOME") + os.sep + "robotproxy"
-        self.__alyvix_proxy_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy"
+        #self._alyvix_proxy_path = os.getenv("ALYVIX_HOME") + os.sep + "robotproxy"
+        self._alyvix_proxy_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy"
         self._robot_file_name = self.parent.robot_file_name
         
         if self.action == "edit":
@@ -297,9 +297,25 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         #print "name button", self._main_object_finder.name
 
         if self._main_object_finder.xml_path != "":
+            filename = self._alyvix_proxy_path + os.sep + "AlyvixProxy" + self._robot_file_name + ".py"
+        
             if self._main_object_finder.name == "":
                 answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
 
+            elif os.path.isfile(filename):
+                
+                python_file = open(filename).read()
+                
+                #print filename
+                
+                obj_name = str(self._main_object_finder.name).lower()
+                
+                #print "obj_name:", obj_name
+                
+                if obj_name + "_mouse_keyboard(" in python_file or obj_name + "_build_object(" in python_file or obj_name + "(" in python_file:
+                    QMessageBox.critical(self, "Error", "Keyword name already exists!")
+                    return
+                
             if answer == QMessageBox.Yes:
                 self.close()
                 self.save_all()
@@ -1021,7 +1037,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     def save_python_file(self):
     
         file_code_string = ""
-        filename = self.__alyvix_proxy_path + os.sep + "AlyvixProxy" + self._robot_file_name + ".py"
+        filename = self._alyvix_proxy_path + os.sep + "AlyvixProxy" + self._robot_file_name + ".py"
         
         if os.path.exists(filename):
             file = codecs.open(filename, encoding="utf-8")  
@@ -1071,7 +1087,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     def remove_code_from_py_file(self):
     
         file_code_string = ""
-        filename = self.__alyvix_proxy_path + os.sep + "AlyvixProxy" + self._robot_file_name + ".py"
+        filename = self._alyvix_proxy_path + os.sep + "AlyvixProxy" + self._robot_file_name + ".py"
         
         if os.path.exists(filename):
             file = codecs.open(filename, encoding="utf-8")  
