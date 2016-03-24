@@ -302,7 +302,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             if self._main_object_finder.name == "":
                 answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
 
-            elif os.path.isfile(filename):
+            elif os.path.isfile(filename) and self.action == "new":
                 
                 python_file = open(filename).read()
                 
