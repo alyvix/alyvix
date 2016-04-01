@@ -19,6 +19,7 @@
 # Official website: http://www.alyvix.com/
 
 import os
+import copy
 
 perfdata_list = []
 timedout_finders = []
@@ -80,6 +81,25 @@ class PerfManager:
             cnt = cnt + 1
 
         perfdata_list.append(perf_data)
+
+    def rename_perfdata(self, old_name, new_name):
+
+        global perfdata_list
+
+        perfdata_list_copy = copy.deepcopy(perfdata_list)
+
+        cnt = 0
+        for perf_data_in_list in perfdata_list:
+            if perf_data_in_list.name == new_name:
+                del perfdata_list_copy[cnt]
+                cnt = cnt - 1
+            elif perf_data_in_list.name == old_name:
+
+                perfdata_list_copy[cnt].name = new_name
+
+            cnt = cnt + 1
+
+        perfdata_list = copy.deepcopy(perfdata_list_copy)
 
     def get_perfdata_string(self):
 

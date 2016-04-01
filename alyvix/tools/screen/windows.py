@@ -23,6 +23,7 @@ import win32gui
 import win32ui
 import win32api
 import win32con
+import ctypes
 from PIL import Image
 import cv2
 import cv2.cv as cv
@@ -33,6 +34,46 @@ class ScreenManager(ScreenManagerBase):
 
     def __init__(self):
         super(ScreenManager, self).__init__()
+
+        """
+        user32 = ctypes.windll.user32
+        try:
+            if not user32.IsProcessDPIAware():
+                user32.SetProcessDPIAware() #disable windows high dpi scaling
+        except:
+            pass
+        """
+
+    def get_scaling_factor(self):
+        """
+        get the dpi scaling factor.
+
+        :rtype: float
+        :return: the dpi scaling factor
+        """
+
+        hwnd = win32gui.GetDesktopWindow()
+        wDC = win32gui.GetWindowDC(hwnd)
+        dcObj=win32ui.CreateDCFromHandle(wDC)
+
+        HORZRES = 8
+        VERTRES = 10
+
+        DESKTOPHORZRES = 118
+        DESKTOPVERTRES = 117
+
+        v_HORZRES = dcObj.GetDeviceCaps( HORZRES)
+        v_VERTRES = dcObj.GetDeviceCaps( VERTRES)
+
+        v_DESKTOPHORZRES = dcObj.GetDeviceCaps( DESKTOPHORZRES)
+        v_DESKTOPVERTRES = dcObj.GetDeviceCaps( DESKTOPVERTRES)
+
+        dcObj.DeleteDC()
+
+        scaling = round(float(v_DESKTOPVERTRES)/float(v_VERTRES), 2)  #two decimal
+
+        return scaling
+
 
     def grab_desktop(self, return_type=0):
         """
@@ -48,11 +89,18 @@ class ScreenManager(ScreenManagerBase):
 
         #we use pywin32 api instead of PIL ImageGrab.
         #ImageGrab is slower than pywin32
-        w = win32api.GetSystemMetrics(0)
-        h = win32api.GetSystemMetrics(1)
+        #w = win32api.GetSystemMetrics(0)
+        #h = win32api.GetSystemMetrics(1)
         hwnd = win32gui.GetDesktopWindow()
         wDC = win32gui.GetWindowDC(hwnd)
         dcObj=win32ui.CreateDCFromHandle(wDC)
+
+        DESKTOPHORZRES = 118
+        DESKTOPVERTRES = 117
+
+        h = dcObj.GetDeviceCaps( DESKTOPVERTRES)
+        w = dcObj.GetDeviceCaps( DESKTOPHORZRES)
+
         cDC=dcObj.CreateCompatibleDC()
         dataBitMap = win32ui.CreateBitmap()
         dataBitMap.CreateCompatibleBitmap(dcObj, w, h)

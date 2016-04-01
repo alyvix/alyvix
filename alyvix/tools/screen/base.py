@@ -34,6 +34,9 @@ class ScreenManagerBase(object):
     def grab_desktop(self, return_type=0):
         raise NotImplementedError
 
+    def get_scaling_factor(self):
+        raise NotImplementedError
+
     def _get_cv_color_mat(self, pilimage):
 
         img = numpy.array(pilimage)

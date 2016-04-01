@@ -63,9 +63,10 @@ class ImageFinder(BaseFinder):
         :param name: the object name
         """
 
-        self._main_component = None
-        self.__sub_components = []
+        #self._main_component = None
+        #self._sub_components = []
         self.__threshold = 0.7
+        self.__timed_out_sub_extra_images = []
 
         the_name = "template_finder"
 
@@ -112,7 +113,7 @@ class ImageFinder(BaseFinder):
         """
         roi = Roi(roi_dict)
         sub_template = _Template(template_dict)
-        self.__sub_components.append((sub_template, roi))
+        self._sub_components.append((sub_template, roi))
 
     def _SetThreshold(self, threshold):
         """
@@ -139,6 +140,12 @@ class ImageFinder(BaseFinder):
             #x = 1 / 0
 
             #print "main comp:",self._main_component
+
+            self._timedout_main_components = []
+            self._timedout_sub_components = []
+
+            self._main_extra_img_log = None
+            self._sub_extra_imgages_log = []
 
             source_img_auto_set = False
 
@@ -204,6 +211,8 @@ class ImageFinder(BaseFinder):
                 self._log_manager.save_image(self.__find_log_folder, "source_img.png", source_image)
                 self._log_manager.save_image(self.__find_log_folder, "main_template.png", main_template.image_data)
 
+            #self._timed_out_images.append(source_image.copy())
+
             objects_found = []
             analyzed_points = []
             self._objects_found = []
@@ -222,7 +231,25 @@ class ImageFinder(BaseFinder):
                 """
                 return []
 
+            result = None
+
             res = cv2.matchTemplate(source_image, main_template.image_data, cv2.TM_CCOEFF_NORMED)
+            #min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(resacascascsacas)
+
+            res_norm = (res *255).round().clip(min=0).astype(numpy.uint8) #numpy.array(res * 255, dtype = numpy.float32) #(res * 255) #.round().astype(numpy.int8)
+            res_norm = cv2.resize(res_norm,(source_image.shape[1], source_image.shape[0]), interpolation = cv2.INTER_CUBIC)
+
+            #cv2.imwrite("c:\\log\\res_norm.png",res_norm)
+            #cv2.imwrite("c:\\log\\res.png",res)
+
+            #loadddd = cv2.imread("c:\\log\\aaaaaaaaaaaaaaaa.png")
+
+            #res_norm.resize(res_norm.shape[0], res_norm.shape[0], 3L, refcheck=False)
+
+            if roi is not None:
+                self._main_extra_img_log = (res_norm, (x1, y1, x2, y2))
+            else:
+                self._main_extra_img_log = (res_norm, None)
 
             loc = numpy.where(res >= main_template.threshold)
 
@@ -232,6 +259,7 @@ class ImageFinder(BaseFinder):
                 object_found = []
                 object_found.append([])
                 object_found.append([])
+                self.__timed_out_sub_extra_images = []
 
                 """
                 if self._flag_thread_have_to_exit is True:
@@ -249,12 +277,13 @@ class ImageFinder(BaseFinder):
 
                 for point_already_analyzed in analyzed_points:
 
-                    tolerance_region = 20
+                    tolerance_region_w = (tpl_w/2)  + (20 * self._scaling_factor)
+                    tolerance_region_h = (tpl_h/2) + (20 * self._scaling_factor)
 
-                    if (x >= point_already_analyzed[0] - tolerance_region and
-                                x <= point_already_analyzed[0] + tolerance_region) and\
-                            (y >= point_already_analyzed[1] - tolerance_region and
-                                     y <= point_already_analyzed[1] + tolerance_region):
+                    if (x >= point_already_analyzed[0] - tolerance_region_w and
+                                x <= point_already_analyzed[0] + tolerance_region_w) and\
+                            (y >= point_already_analyzed[1] - tolerance_region_h and
+                                     y <= point_already_analyzed[1] + tolerance_region_h):
 
                         is_already_found = True
                         #print point[0],point_already_analyzed[0],point[1],point_already_analyzed[1]
@@ -263,13 +292,15 @@ class ImageFinder(BaseFinder):
 
                     analyzed_points.append((x, y, w, h))
 
+                    self._timedout_main_components.append(MatchResult((x, y, w, h)))
+
                     #self._log_manager.set_main_object_points((x, y, w, h))
                     if self._log_manager.is_log_enable() is True:
                         img_copy = source_image.copy()
                         cv2.rectangle(img_copy, ((x-offset_x), (y-offset_y)), ((x-offset_x)+w, (y-offset_y)+h), (0, 0, 255), 2)
                         self._log_manager.save_image(self.__find_log_folder, "object_found.png", img_copy)
 
-                    sub_templates_len = len(self.__sub_components)
+                    sub_templates_len = len(self._sub_components)
 
                     if sub_templates_len == 0:
                         main_object_result = MatchResult((x, y, w, h))
@@ -280,7 +311,9 @@ class ImageFinder(BaseFinder):
                         #print sub_templates_len
                         total_sub_template_found = 0
                         sub_objects_found = []
-                        for sub_template in self.__sub_components:
+                        timed_out_objects = []
+                        timed_out_sub_extra_images = []
+                        for sub_template in self._sub_components:
 
                             """
                             if self._flag_thread_have_to_exit is True:
@@ -296,6 +329,11 @@ class ImageFinder(BaseFinder):
                             if sub_template_coordinates is not None:
                                 sub_objects_found.append(sub_template_coordinates)
                                 total_sub_template_found = total_sub_template_found + 1
+                                timed_out_objects.append((sub_template_coordinates, sub_template[1]))
+                            else:
+                                timed_out_objects.append((None, sub_template[1]))
+
+                            #timed_out_sub_extra_images.append()
 
                             if total_sub_template_found == sub_templates_len:
                                 #good_points.append((x, y, w, h))
@@ -306,7 +344,8 @@ class ImageFinder(BaseFinder):
                                 object_found[1] = sub_objects_found
 
                                 objects_found.append(object_found)
-
+                        self._timedout_sub_components.append(timed_out_objects)
+                        self._sub_extra_imgages_log.append(self.__timed_out_sub_extra_images)
                     #self._log_manager.save_object_image("img_" + str(cnt) + ".png")
                 cnt = cnt + 1
 
@@ -395,6 +434,16 @@ class ImageFinder(BaseFinder):
                 return False
 
             res = cv2.matchTemplate(source_image_cropped, template.image_data, cv2.TM_CCOEFF_NORMED)
+
+            res_norm = (res *255).round().clip(min=0).astype(numpy.uint8) #numpy.array(res * 255, dtype = numpy.float32) #(res * 255) #.round().astype(numpy.int8)
+            res_norm = cv2.resize(res_norm,(source_image_cropped.shape[1], source_image_cropped.shape[0]), interpolation = cv2.INTER_CUBIC)
+
+
+            #res_norm.resize(res_norm.shape[0], res_norm.shape[1], 3L, refcheck=False)
+
+            self.__timed_out_sub_extra_images.append((res_norm, (x1, y1)))
+
+            #cv2.imwrite("c:\\log\\gggg2.png", out)
 
             min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 

@@ -86,10 +86,9 @@ class RectFinder(BaseFinder):
         :param name: the object name
         """
 
-        self._main_component = None
-        self.__sub_components = []
-
-        name = None
+        #self._main_component = None
+        #self._sub_components = []
+        self.__timed_out_sub_extra_images = []
 
         the_name = "rect_finder"
 
@@ -134,7 +133,7 @@ class RectFinder(BaseFinder):
 
         roi = Roi(roi_dict)
         sub_rect = _Rect(rect_dict)
-        self.__sub_components.append((sub_rect, roi))
+        self._sub_components.append((sub_rect, roi))
 
     def find(self):
         """
@@ -144,6 +143,11 @@ class RectFinder(BaseFinder):
         :return: a list that contains x, y, height, width of rectangle(s) found
         """
         try:
+            self._timedout_main_components = []
+            self._timedout_sub_components = []
+
+            self._main_extra_img_log = None
+            self._sub_extra_imgages_log = []
 
             self._objects_found = []
 
@@ -217,7 +221,16 @@ class RectFinder(BaseFinder):
             if self._log_manager.is_log_enable() is True:
                 self._log_manager.save_image(self.__find_log_folder, "source_img.png", source_image)
                 self._log_manager.save_image(self.__find_log_folder, "edges.png", edges)
+
+            #self._rect_extra_timedout_image = edges.copy()
+            if roi is not None:
+                self._main_extra_img_log = (edges.copy(), (x1, y1, x2, y2))
+            else:
+                self._main_extra_img_log = (edges.copy(), None)
+
             #edges = self.__median_canny(self._source_image, 0.2, 0.3)
+
+            #self._timed_out_images.append(source_image.copy())
 
             # find the contours
             contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -244,6 +257,7 @@ class RectFinder(BaseFinder):
                 object_found = []
                 object_found.append([])
                 object_found.append([])
+                self.__timed_out_sub_extra_images = []
 
                 x, y, w, h = cv2.boundingRect(c)
                 x = offset_x + x
@@ -258,12 +272,15 @@ class RectFinder(BaseFinder):
 
                     for point_already_analyzed in analyzed_points:
 
-                        tolerance_region = 20
+                        tolerance_region_w = (((main_rect.min_width + main_rect.max_width)/2)/2)  + (20 * self._scaling_factor)
+                        tolerance_region_h = (((main_rect.min_height + main_rect.max_height)/2)/2) + (20 * self._scaling_factor)
 
-                        if (x >= point_already_analyzed[0] - tolerance_region and
-                                    x <= point_already_analyzed[0] + tolerance_region) and\
-                                (y >= point_already_analyzed[1] - tolerance_region and
-                                    y <= point_already_analyzed[1] + tolerance_region):
+                        #tolerance_region = 20 * self._scaling_factor
+
+                        if (x >= point_already_analyzed[0] - tolerance_region_w and
+                                    x <= point_already_analyzed[0] + tolerance_region_w) and\
+                                (y >= point_already_analyzed[1] - tolerance_region_h and
+                                    y <= point_already_analyzed[1] + tolerance_region_h):
 
                             is_already_found = True
 
@@ -271,13 +288,15 @@ class RectFinder(BaseFinder):
 
                         analyzed_points.append((x, y, w, h))
 
+                        self._timedout_main_components.append(MatchResult((x, y, w, h)))
+
                         #self._log_manager.set_main_object_points((x, y, w, h))
                         if self._log_manager.is_log_enable() is True:
                             img_copy = source_image.copy()
                             cv2.rectangle(img_copy, ((x-offset_x), (y-offset_y)), ((x-offset_x)+w, (y-offset_y)+h), (0, 0, 255), 2)
                             self._log_manager.save_image(self.__find_log_folder, "object_found.png", img_copy)
 
-                        sub_templates_len = len(self.__sub_components)
+                        sub_templates_len = len(self._sub_components)
 
                         if sub_templates_len == 0:
                             #good_points.append((x, y, w, h))
@@ -292,15 +311,22 @@ class RectFinder(BaseFinder):
                             total_sub_template_found = 0
 
                             sub_objects_found = []
-                            for sub_rect in self.__sub_components:
+                            timed_out_objects = []
+
+                            for sub_rect in self._sub_components:
 
                                 sub_template_coordinates = self._find_sub_rect((x, y), sub_rect)
 
                                 if sub_template_coordinates is not None:
                                     sub_objects_found.append(sub_template_coordinates)
                                     total_sub_template_found = total_sub_template_found + 1
+                                    timed_out_objects.append((sub_template_coordinates, sub_rect[1]))
+                                else:
+                                    timed_out_objects.append((None, sub_rect[1]))
 
                                 if total_sub_template_found == sub_templates_len:
+
+
                                     #good_points.append((x, y, w, h))
 
                                     main_object_result = MatchResult((x, y, w, h))
@@ -309,6 +335,9 @@ class RectFinder(BaseFinder):
                                     object_found[1] = sub_objects_found
 
                                     objects_found.append(object_found)
+
+                            self._timedout_sub_components.append(timed_out_objects)
+                            self._sub_extra_imgages_log.append(self.__timed_out_sub_extra_images)
 
                         #self._log_manager.save_object_image("img__result" + str(cnt) + ".png")
                 cnt = cnt + 1
@@ -402,6 +431,9 @@ class RectFinder(BaseFinder):
             if self._log_manager.is_log_enable() is True:
                 self._log_manager.save_image(self.__find_log_folder, "sub_source_img.png", source_image_cropped)
                 self._log_manager.save_image(self.__find_log_folder, "sub_edges.png", edges)
+
+            #self._sub_extra_imgages_log.append((edges.copy(), x1, y1))
+            self.__timed_out_sub_extra_images.append((edges.copy(), (x1, y1)))
 
             # find the contours
             contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)

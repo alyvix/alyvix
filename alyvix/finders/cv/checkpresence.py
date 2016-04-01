@@ -93,14 +93,20 @@ class CheckPresence:
         self._offset_x = 0
         self._offset_y = 0
 
-        #self._log_manager = LogManager()
+        self._log_manager = None
+
+        self.__enable_debug_calcperf = True
+
+        if self.__enable_debug_calcperf is True:
+            self._log_manager = LogManager()
 
         self._name = "check_presence"
 
         if name is not None:
             self._name = name
 
-        #self._log_manager.set_object_name(self._name)
+        if self.__enable_debug_calcperf is True:
+            self._log_manager.set_object_name(self._name)
 
     def set_name(self, name):
         """
@@ -110,7 +116,9 @@ class CheckPresence:
         :param name: the name of the object
         """
         self._name = name
-        #self._log_manager.set_object_name(self._name)
+
+        if self.__enable_debug_calcperf is True:
+            self._log_manager.set_object_name(self._name)
 
     def get_name(self):
         """
@@ -220,7 +228,8 @@ class CheckPresence:
 
             self._objects_found = []
 
-            #self.__find_log_folder = datetime.datetime.now().strftime("%H_%M_%S") + "_" + "searching"
+            if self.__enable_debug_calcperf is True:
+                self.__find_log_folder = datetime.datetime.now().strftime("%H_%M_%S") + "_" + "searching"
 
             offset_x = 0
             offset_y = 0
@@ -273,11 +282,11 @@ class CheckPresence:
             else:
                 source_image = self._source_image_gray
 
-            """
-            if self._log_manager.is_log_enable() is True:
+
+            if self.__enable_debug_calcperf is True:
                 self._log_manager.save_image(self.__find_log_folder, "source_img.png", source_image)
                 self._log_manager.save_image(self.__find_log_folder, "main_template.png", main_template)
-            """
+
 
             objects_found = []
             analyzed_points = []
@@ -319,13 +328,10 @@ class CheckPresence:
 
                 #self._log_manager.set_main_object_points((x, y, w, h))
 
-                """
-                if self._log_manager.is_log_enable() is True:
+                if self.__enable_debug_calcperf is True:
                     img_copy = source_image.copy()
                     cv2.rectangle(img_copy, ((x-offset_x), (y-offset_y)), ((x-offset_x)+w, (y-offset_y)+h), (0, 0, 255), 2)
                     self._log_manager.save_image(self.__find_log_folder, "object_found.png", img_copy)
-                """
-
 
                 sub_templates_len = len(self.__sub_components)
 
@@ -417,11 +423,9 @@ class CheckPresence:
             #print x1,x2,y1,y2
             source_image_cropped = self._source_image_gray[y1:y2, x1:x2]
 
-            """
-            if self._log_manager.is_log_enable() is True:
+            if self.__enable_debug_calcperf is True:
                 self._log_manager.save_image(self.__find_log_folder, "sub_source_img.png", source_image_cropped)
                 self._log_manager.save_image(self.__find_log_folder, "sub_template.png", template)
-            """
 
 
             img_w, img_h = source_image_cropped.shape[::-1]
@@ -440,14 +444,10 @@ class CheckPresence:
                 x = point[0]
                 y = point[1]
 
-
-                """
-                if self._log_manager.is_log_enable() is True:
+                if self.__enable_debug_calcperf is True:
                     img_copy = source_image_cropped.copy()
                     cv2.rectangle(img_copy, (x, y), (x+tmpl_w, y+tmpl_h), (0, 0, 255), 2)
                     self._log_manager.save_image(self.__find_log_folder, "sub_object_found.png", img_copy)
-                """
-
 
                 sub_object_result = MatchResult((x1 + x, y1 + y, tmpl_w, tmpl_h))
                 return sub_object_result

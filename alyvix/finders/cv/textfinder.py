@@ -101,8 +101,8 @@ class TextFinder(BaseFinder):
 
         self.__phrase_backup = ""
 
-        self._main_component = None
-        self.__sub_components = []
+        #self._main_component = None
+        #self._sub_components = []
 
     def get_last_read(self):
         return self.__phrase_backup
@@ -142,7 +142,7 @@ class TextFinder(BaseFinder):
 
         roi = Roi(roi_dict)
         sub_text = _Text(text_dict)
-        self.__sub_components.append((sub_text, roi))
+        self._sub_components.append((sub_text, roi))
 
     def find(self):
         """
@@ -153,6 +153,8 @@ class TextFinder(BaseFinder):
         """
         try:
             #print "into find"
+            self._timedout_main_components = []
+            self._timedout_sub_components = []
 
             self._objects_found = []
 
@@ -341,19 +343,21 @@ class TextFinder(BaseFinder):
                         w = (int(coordinates[3])/3) - (int(coordinates[1])/3)
                         h = (int(coordinates[4])/3) - (int(coordinates[2])/3)
 
+                        self._timedout_main_components.append(MatchResult((x, y, w, h)))
+
                         try:
                             #print "text from Ocr engine:",phrase
                             #print "ocr time:",time.time() - timex,"sec."
                             #phrase = phrase.replace(main_text.text,"")
-                            #insensitive_phrase = re.compile(re.escape(main_text.text), re.IGNORECASE)
                             insensitive_phrase = re.compile(main_text.text, re.IGNORECASE)
+                            #insensitive_phrase = re.compile(re.escape(main_text.text), re.IGNORECASE)
                             phrase = insensitive_phrase.sub('', phrase)
                             #print phrase
 
                         except Exception, err:
                             pass #print err
 
-                        sub_texts_len = len(self.__sub_components)
+                        sub_texts_len = len(self._sub_components)
 
                         if sub_texts_len == 0:
                             #good_points.append((x, y, w, h))
@@ -368,7 +372,8 @@ class TextFinder(BaseFinder):
                             total_sub_template_found = 0
 
                             sub_objects_found = []
-                            for sub_text in self.__sub_components:
+                            timed_out_objects = []
+                            for sub_text in self._sub_components:
                                 #print "entering in sub text"
 
                                 """
@@ -385,6 +390,9 @@ class TextFinder(BaseFinder):
                                 if sub_template_coordinates is not None:
                                     sub_objects_found.append(sub_template_coordinates)
                                     total_sub_template_found = total_sub_template_found + 1
+                                    timed_out_objects.append((sub_template_coordinates, sub_text[1]))
+                                else:
+                                    timed_out_objects.append((None, sub_text[1]))
 
                                 if total_sub_template_found == sub_texts_len:
                                     #good_points.append((x, y, w, h))
@@ -399,6 +407,7 @@ class TextFinder(BaseFinder):
                                     #print "appended"
                                     break_loop = True
 
+                            self._timedout_sub_components.append(timed_out_objects)
                             #if break_loop is True:
                             #    break
 

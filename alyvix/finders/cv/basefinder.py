@@ -31,9 +31,9 @@ from alyvix.tools.log import LogManager
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.configreader import ConfigReader
 from alyvix.finders.cachemanager import CacheManager
+from alyvix.bridge.robot import RobotManager
+from alyvix.tools.info import InfoManager
 from .checkpresence import CheckPresence
-
-#from alyvix.tools.
 
 
 class Roi():
@@ -89,11 +89,28 @@ class BaseFinder(object):
         :type name: string
         :param name: the object name
         """
+        self._main_component = None
+        self._sub_components = []
+
+        self._timedout_main_components = []
+        self._timedout_sub_components = []
+
+        self._main_extra_img_log = None
+        self._sub_extra_imgages_log = []
+
+        self._rect_extra_timedout_image = None
+
+        self._robot_manager = RobotManager()
+
+        self._rf_is_set = self._robot_manager.context_is_set()
+
 
         self._source_image_color = None
         self._source_image_gray = None
         self._objects_found = []
         self._log_manager = None
+
+        self._timed_out_images = []
 
         self._find_thread_images = []
         self._last_thread_image = None
@@ -109,6 +126,9 @@ class BaseFinder(object):
         self._screen_capture = None
         #end perfdata section
 
+        self._info_manager = InfoManager()
+        self._scaling_factor = self._info_manager.get_info("SCALING FACTOR INT")
+
         self._time_checked_before_exit_start = 0
 
         self._objects_finders_caller = []
@@ -120,6 +140,8 @@ class BaseFinder(object):
         self._screen_capture = ScreenManager()
         self._cacheManager = CacheManager()
         self._configReader = ConfigReader()
+
+        self.__enable_debug_calcperf = True
 
     def _compress_image(self, img):
         return cv2.imencode('.png', img)[1]
@@ -190,6 +212,15 @@ class BaseFinder(object):
         :type timeout: int
         """
 
+        #cv2.imwrite()
+
+        #self._robot_manager.write_log_message("wait method: " + self.get_name(), "ERROR", False)
+        #self._robot_manager.write_log_message("wait method: " + self.get_name(), "ERROR", False)
+        #sss = self._robot_manager.get_suite_name()
+        #ttt = self._robot_manager.get_testcase_name()
+
+        #self._robot_manager.method1().method2()
+
         timeout_value = 15
 
         if timeout == -1:
@@ -236,9 +267,31 @@ class BaseFinder(object):
 
                     self._last_thread_image = self._uncompress_image(self._find_thread_images[-1][1])
 
+                    self._log_manager.save_objects_found(self._name, self._last_thread_image, self._objects_found, [x[1] for x in self._sub_components])
+
                     return self._get_performance()
 
-                if time_elapsed > timeout_value:
+
+                if time_elapsed > timeout_value and self._flag_thread_started is False:
+                    self._last_thread_image = self._uncompress_image(self._find_thread_images[-1][1])
+                    #from alyvix.finders.cv.rectfinder import RectFinder
+                    #from alyvix.finders.cv.imagefinder import ImageFinder
+                    #from alyvix.finders.cv.textfinder import TextFinder
+                    from alyvix.finders.cv.objectfinder import ObjectFinder
+
+                    #if not isinstance(self, ObjectFinder):
+                    self._log_manager.save_timedout_objects(self._name + "_timedout", self._last_thread_image, self._timedout_main_components, self._timedout_sub_components, self._main_extra_img_log, self._sub_extra_imgages_log)
+                    #else:
+                    if isinstance(self, ObjectFinder):
+
+                        #self._log_manager.save_timedout_objects(self._name + "_timedout", self._last_thread_image, self._main_component[0]._timedout_main_components, self._main_component[0]._timedout_sub_components, self._main_component[0]._main_extra_img_log, self._main_component[0]._sub_extra_imgages_log, True, self._main_component[0]._name)
+
+                        if len(self._main_component[0]._objects_found) == 0:
+                            self._log_manager.save_timedout_objects(self._name + "_timedout", self._last_thread_image, self._main_component[0]._timedout_main_components, self._main_component[0]._timedout_sub_components, self._main_component[0]._main_extra_img_log, self._main_component[0]._sub_extra_imgages_log, True, self._main_component[0]._name)
+
+                        for t_sub in self._sub_components:
+                            self._log_manager.save_timedout_objects(self._name + "_timedout", self._last_thread_image, t_sub[0]._timedout_main_components, t_sub[0]._timedout_sub_components, t_sub[0]._main_extra_img_log, t_sub[0]._sub_extra_imgages_log, True, t_sub[0]._name)
+
                     return -1
 
                 t0 = time.time()
@@ -246,7 +299,7 @@ class BaseFinder(object):
                 #cv2.imwrite('img2.png', img2)
 
                 #if time.time() - thread_t0 >= thread_interval:
-                if time.time() - thread_t0 >= thread_interval and self._flag_thread_started is False:
+                if time_elapsed < timeout_value and time.time() - thread_t0 >= thread_interval and self._flag_thread_started is False:
                     thread_t0 = time.time()
 
                     self._flag_thread_started = True
@@ -262,11 +315,12 @@ class BaseFinder(object):
                             print e
                     """
 
+
                     #for i in range(len(self._find_thread_images)):
                         #cv2.imwrite("c:\\log\\buffer_images\\_old_" + str(self._find_thread_images[i][0]) + ".png", self._uncompress_image(self._find_thread_images[i][1]))
 
 
-                    self._find_thread_images = self._heartbeat_images #copy.deepcopy(self._heartbeat_images)
+                    self._find_thread_images = copy.deepcopy(self._heartbeat_images)
                     self._heartbeat_images = []
 
                     self.set_source_image_color(img2_color)
@@ -308,6 +362,7 @@ class BaseFinder(object):
         """
 
         img_height, img_width = img.shape
+
         #t0 = time.time()
         check_presence = CheckPresence()
 
@@ -377,7 +432,6 @@ class BaseFinder(object):
 
                 sub_img = self._last_thread_image[y1:y2, x1:x2] #self._uncompress_image(self._find_thread_images[-1][1])[y1:y2, x1:x2]
 
-
                 sub_x = sub_obj.x - (offset_border * 4)
                 sub_y = sub_obj.y - (offset_border * 4)
 
@@ -405,10 +459,10 @@ class BaseFinder(object):
 
         t0 = time.time()
 
-        """
-        for i in range(len(self._find_thread_images)):
-            cv2.imwrite("c:\\log\\buffer_images\\" + str(self._find_thread_images[i][0]) + ".png", self._uncompress_image(self._find_thread_images[i][1]))
-        """
+        if self.__enable_debug_calcperf is True:
+            for i in range(len(self._find_thread_images)):
+                cv2.imwrite("c:\\log\\buffer_images\\" + str(self._find_thread_images[i][0]) + ".png", self._uncompress_image(self._find_thread_images[i][1]))
+
 
         offset_border = self._objects_found[0][0].width
 

@@ -21,6 +21,7 @@
 import os
 from os.path import expanduser
 import xml.dom.minidom as minidom
+from distutils.sysconfig import get_python_lib
 
 class ConfigReader():
 
@@ -69,7 +70,8 @@ class ConfigReader():
         :return: full filename
         """
         try:
-            global_config_file_name = os.getenv("ALYVIX_HOME") + os.sep + "config.xml"
+            #global_config_file_name = os.getenv("ALYVIX_HOME") + os.sep + "config.xml"
+            global_config_file_name = get_python_lib() + os.sep + "alyvix" + os.sep + "config.xml"
             return global_config_file_name
         except:
             return ""
@@ -265,6 +267,39 @@ class ConfigReader():
             log_enabled = False
 
         return log_enabled
+
+    def get_loglevel(self):
+        """
+        get the enable value node of log section inside the configuration file.
+        default value is True.
+
+        :rtype: bool
+        :return: log enabled flag
+        """
+
+        log_level = None
+
+        try:
+            log_node = self.__testcase_root_node.getElementsByTagName("log")[0]
+            log_level = str(log_node.getElementsByTagName("level")[0].firstChild.nodeValue)
+        except:
+            log_level = None
+
+        if log_level is None:
+            try:
+                log_node = self.__user_root_node.getElementsByTagName("log")[0]
+                log_level = str(log_node.getElementsByTagName("level")[0].firstChild.nodeValue)
+            except:
+                log_level = None
+
+        if log_level is None:
+            try:
+                log_node = self.__global_root_node.getElementsByTagName("log")[0]
+                log_level = str(log_node.getElementsByTagName("level")[0].firstChild.nodeValue)
+            except:
+                log_level = "ERROR"
+
+        return log_level
 
     def get_log_max_retention_days(self):
         """

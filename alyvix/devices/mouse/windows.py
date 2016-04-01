@@ -42,19 +42,25 @@ class MouseManager(MouseManagerBase):
 
     def click(self, x, y, button=1, n=1):
 
+        xs = x/self._scaling_factor
+        ys = y/self._scaling_factor
+
         self.ahk.ahkExec("CoordMode, mouse, screen".decode("utf-8"))
 
         if button == self.left_button:
-            self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", " +
+            self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys).decode("utf-8") + ", " +
                              str(n).decode("utf-8"))
         elif button == self.right_button:
-            self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", right")
+            self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys).decode("utf-8") + ", right")
         elif button == self.middle_button:
-            self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", middle")
+            self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys).decode("utf-8") + ", middle")
 
     def move(self, x, y):
+        xs = x/self._scaling_factor
+        ys = y/self._scaling_factor
+
         self.ahk.ahkExec("CoordMode, mouse, screen".decode("utf-8"))
-        self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", 0")
+        self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys).decode("utf-8") + ", 0")
 
     def scroll(self, steps, direction):
 
@@ -68,18 +74,24 @@ class MouseManager(MouseManagerBase):
                 self.ahk.ahkExec("Click WheelUp".decode("utf-8"))
 
     def drag(self, x1, y1, x2, y2, button=1):
+
+        x1s = x1/self._scaling_factor
+        y1s = y1/self._scaling_factor
+        x2s = x2/self._scaling_factor
+        y2s = y2/self._scaling_factor
+
         self.ahk.ahkExec("CoordMode, mouse, screen".decode("utf-8"))
 
         if button == self.left_button:
-            self.ahk.ahkExec("Click " + str(x1).decode("utf-8") + ", " + str(y1).decode("utf-8") + ", 0")
+            self.ahk.ahkExec("Click " + str(x1s).decode("utf-8") + ", " + str(y1s).decode("utf-8") + ", 0")
             time.sleep(1)
             self.ahk.ahkExec("Click down".decode("utf-8"))
             time.sleep(1)
-            self.ahk.ahkExec("Click " + str(x2).decode("utf-8") + ", " + str(y2).decode("utf-8") + ", 0")
+            self.ahk.ahkExec("Click " + str(x2s).decode("utf-8") + ", " + str(y2s).decode("utf-8") + ", 0")
             time.sleep(1)
             self.ahk.ahkExec("Click up".decode("utf-8"))
         elif button == self.right_button:
-            self.ahk.ahkExec("Click " + str(x1).decode("utf-8") + ", " + str(y1).decode("utf-8") + ", 0")
+            self.ahk.ahkExec("Click " + str(x1s).decode("utf-8") + ", " + str(y1s).decode("utf-8") + ", 0")
             self.ahk.ahkExec("Click right down".decode("utf-8"))
-            self.ahk.ahkExec("Click " + str(x2).decode("utf-8") + ", " + str(y2).decode("utf-8") + ", 0")
+            self.ahk.ahkExec("Click " + str(x2s).decode("utf-8") + ", " + str(y2s).decode("utf-8") + ", 0")
             self.ahk.ahkExec("Click right up".decode("utf-8"))

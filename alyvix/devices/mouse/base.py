@@ -19,6 +19,7 @@
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
 
+from alyvix.tools.info import InfoManager
 
 class MouseManagerBase(object):
 
@@ -28,6 +29,8 @@ class MouseManagerBase(object):
         self.middle_button = 3
         self.wheel_up = 4
         self.wheel_down = 5
+        self._info_manager = InfoManager()
+        self._scaling_factor = self._info_manager.get_info("SCALING FACTOR INT")
 
     def click(self, x, y, button=1, n=1):
         raise NotImplementedError

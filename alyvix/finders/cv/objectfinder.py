@@ -31,8 +31,8 @@ from alyvix.tools.screen import ScreenManager
 
 class ObjectFinder(BaseFinder):
 
-    #_main_object = None
-    #_sub_objects = []
+    #_main_component = None
+    #_sub_components = []
     #name = None
 
     def __init__(self, name=None):
@@ -43,8 +43,8 @@ class ObjectFinder(BaseFinder):
         :param name: the object name
         """
 
-        self._main_object = None
-        self._sub_objects = []
+        #self._main_component = None
+        #self._sub_components = []
 
         self._main_indexes_to_keep = []
         self._sub_indexes_to_keep = []
@@ -65,24 +65,26 @@ class ObjectFinder(BaseFinder):
         :param main_template: image of the template
         """
 
-        self._main_object = (main_object, roi_dict)
+        self._main_component = (main_object, roi_dict)
         self.add_name_to_component(main_object, self._name)
 
     def add_sub_object(self, sub_object, roi_dict):
 
-        self._sub_objects.append((sub_object, roi_dict))
+        roi = Roi(roi_dict)
+
+        self._sub_components.append((sub_object, roi))
         self.add_name_to_component(sub_object, self._name)
 
     def add_name_to_component(self, component, name):
 
         if isinstance(component, ObjectFinder):
-            component.add_name_to_component(component._main_object[0], name)
+            component.add_name_to_component(component._main_component[0], name)
 
-            for component_sub_object_tuple in component._sub_objects:
+            for component_sub_object_tuple in component._sub_components:
                 component_sub_object = component_sub_object_tuple[0]
 
                 if isinstance(component_sub_object, ObjectFinder):
-                    component_sub_object.add_name_to_component(component_sub_object._main_object[0], name)
+                    component_sub_object.add_name_to_component(component_sub_object._main_component[0], name)
                 else:
                     name_already_present = False
 
@@ -111,14 +113,17 @@ class ObjectFinder(BaseFinder):
 
     def find(self):
 
+        self._timedout_main_components = []
+        self._timedout_sub_components = []
+
         self._objects_found = []
 
-        main_object = self._main_object[0]
+        main_object = self._main_component[0]
 
         if not isinstance(main_object, ObjectFinder):
             #main_object[1] = [1,1]
-            if self._main_object[1] is not None:
-                roi = Roi(self._main_object[1])
+            if self._main_component[1] is not None:
+                roi = Roi(self._main_component[1])
             else:
                 roi = None
 
@@ -174,7 +179,9 @@ class ObjectFinder(BaseFinder):
             w = object[0].width
             h = object[0].height
 
-            sub_objects_len = len(self._sub_objects)
+            sub_objects_len = len(self._sub_components)
+
+            self._timedout_main_components.append(MatchResult((x, y, w, h)))
 
             if sub_objects_len == 0:
                 #good_points.append((x, y, w, h))
@@ -189,7 +196,8 @@ class ObjectFinder(BaseFinder):
                 total_sub_object_found = 0
 
                 sub_objects_found = []
-                for sub_object in self._sub_objects:
+                timed_out_objects = []
+                for sub_object in self._sub_components:
 
                     """
                     if self._flag_thread_have_to_exit is True:
@@ -204,7 +212,10 @@ class ObjectFinder(BaseFinder):
 
                     if sub_template_coordinates is not None:
                         sub_objects_found.append(sub_template_coordinates)
+                        timed_out_objects.append((sub_template_coordinates, sub_object[1]))
                         total_sub_object_found = total_sub_object_found + 1
+                    else:
+                        timed_out_objects.append((None, sub_object[1]))
 
                     if total_sub_object_found == sub_objects_len:
                         #good_points.append((x, y, w, h))
@@ -217,6 +228,7 @@ class ObjectFinder(BaseFinder):
                         objects_found.append(object_found)
                         self._main_indexes_to_keep.append(cnt)
 
+                self._timedout_sub_components.append(timed_out_objects)
             #self._log_manager.save_object_image("img_" + str(cnt) + ".png")
             cnt = cnt + 1
 
@@ -242,7 +254,7 @@ class ObjectFinder(BaseFinder):
 
     def find_sub_object(self, main_object_xy=None, sub_object=None):
 
-        roi = Roi(sub_object[1])
+        roi = copy.deepcopy(sub_object[1]) #roi = Roi(sub_object[1])
 
         roi.x = main_object_xy[0] + roi.x
         roi.y = main_object_xy[1] + roi.y
@@ -271,7 +283,7 @@ class ObjectFinder(BaseFinder):
             """
         else:
             pass
-            object.set_main_object(object._main_object[0], roi.get_dict())
+            object.set_main_component(object._main_component[0], roi.get_dict())
 
         object.set_source_image_color(self._source_image_color)
         object.set_source_image_gray(self._source_image_gray)
