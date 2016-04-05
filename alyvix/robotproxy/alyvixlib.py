@@ -176,7 +176,16 @@ def close_window(window_title):
     
 def add_perfdata(name, value=None, warning_threshold=None, critical_threshold=None, state=0):
     pm = PerfManager()
-    pm.add_perfdata(name, value, warning_threshold, critical_threshold, state)
+    name_lower = str(name).lower().replace(" ", "_")
+    pm.add_perfdata(name_lower, value, warning_threshold, critical_threshold, state)
+    
+def rename_perfdata(old_name, new_name):
+    
+    old_name_lower = str(old_name).lower().replace(" ", "_")
+    new_name_lower = str(new_name).lower().replace(" ", "_")
+
+    pm = PerfManager()
+    pm.rename_perfdata(old_name_lower, new_name_lower)
     
 def print_perfdata(message=None, print_output="True"):
 
