@@ -22,6 +22,19 @@
 from alyvixcommon import *
 
 
+def overwrite_alyvix_screen(overwrite="true"):
+
+    overwrite_value = overwrite
+
+    if overwrite.lower() == "true":
+        overwrite_value = True
+    elif overwrite.lower()  == "false":
+        overwrite_value = False
+        
+    info_manager = InfoManager()
+    
+    info_manager.set_info("OVERWRITE LOG IMAGES", overwrite_value)
+    
 def alyvix_config(full_filename):
     os.environ["alyvix_testcase_config"] = full_filename
 

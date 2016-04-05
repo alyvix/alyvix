@@ -280,6 +280,11 @@ class LogManager:
             
             scaling_factor = self._info_manager.get_info("SCALING FACTOR INT")
 
+            overwrite_images = self._info_manager.get_info("OVERWRITE LOG IMAGES")
+
+            if overwrite_images is None:
+                overwrite_images = True
+
             img_gray = image_data.copy()
             img_color = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2RGB)
 
@@ -384,10 +389,12 @@ class LogManager:
 
                 index = 1
                 file_name = image_name
-                while os.path.isfile(outputdir + os.sep + file_name + ".png"):
 
-                    file_name = image_name + "_" + str(index)
-                    index = index + 1
+                if overwrite_images is False:
+                    while os.path.isfile(outputdir + os.sep + file_name + ".png"):
+
+                        file_name = image_name + "_" + str(index)
+                        index = index + 1
 
                 file_name = file_name + ".png"
 
@@ -415,8 +422,6 @@ class LogManager:
 
         if self.__enable_log is True or self._robot_context is True:
 
-
-
             if self._robot_context is True:
 
                 outputdir = self._robot_manager.get_output_directory()
@@ -425,6 +430,11 @@ class LogManager:
                 outputdir = "."
 
             scaling_factor = self._info_manager.get_info("SCALING FACTOR INT")
+
+            overwrite_images = self._info_manager.get_info("OVERWRITE LOG IMAGES")
+
+            if overwrite_images is None:
+                overwrite_images = True
 
             img_gray = image_data.copy()
             img_color = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2RGB)
@@ -792,13 +802,20 @@ class LogManager:
                 gif_images_extra.append(Image.fromarray(cv2.cvtColor(extra_img_color,cv2.COLOR_BGR2RGB)))
 
             if save_only_extra is False:
-                file_name = self._check_if_img_exists(outputdir, image_name, "gif")
+
+                if overwrite_images is False:
+                    file_name = self._check_if_img_exists(outputdir, image_name, "gif")
+                else:
+                    file_name = image_name + ".gif"
 
                 writeGif(outputdir + os.sep + file_name, gif_images, duration=1)
 
                 self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "ERROR", True)
 
-            file_name = self._check_if_img_exists(outputdir, image_name + "_extra", "gif")
+            if overwrite_images is False:
+                file_name = self._check_if_img_exists(outputdir, image_name + "_extra", "gif")
+            else:
+                file_name = image_name + "_extra.gif"
 
             if extra_img_color is not None:
                 writeGif(outputdir + os.sep + file_name, gif_images_extra, duration=1)

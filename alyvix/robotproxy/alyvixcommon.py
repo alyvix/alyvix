@@ -31,3 +31,4 @@ from alyvix.finders.cv.objectfinder import ObjectFinder
 from alyvix.tools.perfdata import PerfManager
 from alyvix.tools.process import ProcManager
 from alyvix.tools.window import WinManager
+from alyvix.tools.info import InfoManager
