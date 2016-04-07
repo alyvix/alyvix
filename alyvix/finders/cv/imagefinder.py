@@ -431,7 +431,7 @@ class ImageFinder(BaseFinder):
             tmpl_w, tmpl_h = template.image_data.shape[::-1]
 
             if tmpl_h >= img_h or tmpl_w >= img_w:
-                return False
+                return None
 
             res = cv2.matchTemplate(source_image_cropped, template.image_data, cv2.TM_CCOEFF_NORMED)
 
