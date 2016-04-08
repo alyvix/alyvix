@@ -20,9 +20,12 @@
 
 import os
 import copy
+import tempfile
+from alyvix.tools.info import InfoManager
 
 perfdata_list = []
 timedout_finders = []
+perf_counter = 0
 
 
 class _PerfData:
@@ -32,6 +35,7 @@ class _PerfData:
         self.value = None
         self.warning_threshold = None
         self.critical_threshold = None
+        self.counter = 999999
         self.state = 0
 
 
@@ -39,6 +43,10 @@ class PerfManager:
 
     def __init__(self):
         self.performance_desc_string = ""
+        self._info_manager = InfoManager()
+        self._info_manager.tiny_update()
+
+        self._last_filled_perf = None
 
     def clear_perfdata(self):
         global perfdata_list
@@ -47,12 +55,16 @@ class PerfManager:
     def add_perfdata(self, name, value=None, warning_threshold=None, critical_threshold=None, state=0):
 
         global perfdata_list
+        global perf_counter
 
         perf_data = _PerfData()
         perf_data.name = name
 
         try:
             perf_data.value = float(value)
+            if perf_data.counter == 999999:
+                perf_data.counter = perf_counter
+                perf_counter = perf_counter + 1
         except:
             perf_data.value = ""
 
@@ -72,6 +84,7 @@ class PerfManager:
              perf_data.state = 3
 
         cnt = 0
+
         for perf_data_in_list in perfdata_list:
             if perf_data_in_list.name == perf_data.name:
 
@@ -100,6 +113,28 @@ class PerfManager:
             cnt = cnt + 1
 
         perfdata_list = copy.deepcopy(perfdata_list_copy)
+
+    def order_perfdata(self):
+        global perfdata_list
+        perfdata_ok_list = []
+        perfdata_notok_list = []
+
+        for perf_data_in_list in perfdata_list:
+
+            if perf_data_in_list.counter != 999999:
+                perfdata_ok_list.append(copy.deepcopy(perf_data_in_list))
+            else:
+                perfdata_notok_list.append(copy.deepcopy(perf_data_in_list))
+
+        perfdata_ok_list.sort(key=lambda x: x.counter, reverse=False)
+
+        if len(perfdata_ok_list) > 0:
+            self._last_filled_perf = perfdata_ok_list[-1].name
+
+        perfdata_list = []
+        perfdata_list = perfdata_ok_list + perfdata_notok_list
+
+
 
     def get_perfdata_string(self):
 
@@ -130,6 +165,8 @@ class PerfManager:
         global perfdata_list
         global timedout_finders
 
+        self.order_perfdata()
+
         exitcode = self.get_exitcode()
         performanceData = self.get_perfdata_string()
 
@@ -151,9 +188,14 @@ class PerfManager:
                                            performanceData + os.linesep
             prefix_robot_framework = "*WARN*"
         elif exitcode == 3:
-            self.performance_desc_string = self.performance_desc_string +\
-                                           "UNKNOWN: some unknown error occurred" +\
-                                           performanceData + os.linesep
+            if self._last_filled_perf is not None:
+                self.performance_desc_string = self.performance_desc_string +\
+                                               "UNKNOWN: some error occurred, last filled perf data is " +\
+                                               self._last_filled_perf + " " + performanceData + os.linesep
+            else:
+                self.performance_desc_string = self.performance_desc_string +\
+                                               "UNKNOWN: some error occurred, no perf data was filled" +\
+                                               performanceData + os.linesep
             prefix_robot_framework = "*WARN*"
         elif len(timedout_finders) > 0:
             self.performance_desc_string = self.performance_desc_string +\
@@ -205,6 +247,27 @@ class PerfManager:
 
         os.environ["alyvix_exitcode"] = str(exitcode)
         os.environ["alyvix_std_output"] = self.performance_desc_string
+
+        if self._info_manager.get_info("ROBOT CONTEXT") is True:
+
+            suite_name = self._info_manager.get_info("SUITE NAME")
+
+            test_name = self._info_manager.get_info("TEST CASE NAME")
+
+            result_dir = tempfile.gettempdir() + os.sep + "alyvix_pybot" + os.sep + suite_name + os.sep + "result"
+
+            print result_dir
+
+        if not os.path.exists(result_dir):
+            os.makedirs(result_dir)
+
+        text_file = open(result_dir + os.sep + "message.txt", "w")
+        text_file.write(self.performance_desc_string)
+        text_file.close()
+
+        text_file = open(result_dir + os.sep + "exitcode.txt", "w")
+        text_file.write(str(exitcode))
+        text_file.close()
 
         if print_output is True:
             print prefix_robot_framework + self.performance_desc_string

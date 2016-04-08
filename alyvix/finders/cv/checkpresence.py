@@ -95,7 +95,7 @@ class CheckPresence:
 
         self._log_manager = None
 
-        self.__enable_debug_calcperf = True
+        self.__enable_debug_calcperf = False
 
         if self.__enable_debug_calcperf is True:
             self._log_manager = LogManager()

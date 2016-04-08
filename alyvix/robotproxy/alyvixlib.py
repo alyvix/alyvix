@@ -20,6 +20,8 @@
 # Official website: http://www.alyvix.com/
 
 from alyvixcommon import *
+from robot.api import logger
+from robot.libraries.BuiltIn import BuiltIn
 
 
 def overwrite_alyvix_screen(overwrite="true"):
@@ -186,6 +188,18 @@ def check_window(window_title):
 def close_window(window_title):
     wm = WinManager()
     wm.close_window(window_title)
+
+def alyvix_screenshot(filename):
+
+    variables = BuiltIn().get_variables()
+    outdir = variables['${OUTPUTDIR}']
+
+    sm = ScreenManager()
+    img = sm.grab_desktop()
+    img_name = outdir + os.sep + filename
+    img.save(img_name)
+
+    logger.info('<a href="' + filename + '"><img src="' + filename + '" width="800px"></a>', html=True)
     
 def add_perfdata(name, value=None, warning_threshold=None, critical_threshold=None, state=0):
     pm = PerfManager()
