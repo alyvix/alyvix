@@ -114,6 +114,123 @@ class PerfManager:
 
         perfdata_list = copy.deepcopy(perfdata_list_copy)
 
+    def get_perfdata(self, name, delete_perfdata=False):
+
+        global perfdata_list
+        ret_val = None
+        perfdata_list_copy = copy.deepcopy(perfdata_list)
+
+        cnt = 0
+        for perf_data_in_list in perfdata_list:
+            if perf_data_in_list.name == name:
+
+                if perf_data_in_list.value == "" or perf_data_in_list.value is None:
+                    raise Exception('Perf data value is Null')
+
+                if delete_perfdata is True:
+                    del perfdata_list_copy[cnt]
+
+                ret_val = perf_data_in_list.value
+            cnt = cnt + 1
+
+        perfdata_list = copy.deepcopy(perfdata_list_copy)
+        perfdata_list_copy = []
+        return ret_val
+
+    def delete_perfdata(self, name):
+
+        global perfdata_list
+
+        perfdata_list_copy = copy.deepcopy(perfdata_list)
+
+        cnt = 0
+        for perf_data_in_list in perfdata_list:
+            if perf_data_in_list.name == name:
+
+                del perfdata_list_copy[cnt]
+
+            cnt = cnt + 1
+
+        perfdata_list = copy.deepcopy(perfdata_list_copy)
+        perfdata_list_copy = []
+
+    def sum_perfdata(self, *names, **kwargs):
+
+        global perfdata_list
+
+        sum = None
+
+        value_to_sum = []
+        index_to_delete = []
+        perfdata_list_copy = []
+
+        delete_perf = False
+        perf_name = ""
+        warning_threshold  = None
+        critical_threshold = None
+
+        try:
+            delete_perf = kwargs['delete_perfdata']
+        except:
+            pass
+
+        try:
+            perf_name = kwargs['name']
+        except:
+            pass
+
+        try:
+            warning_threshold = float(kwargs['warning_threshold'])
+        except:
+            pass
+
+        try:
+            critical_threshold = float(kwargs['critical_threshold'])
+        except:
+            pass
+
+        cnt = 0
+        for perf_data_in_list in perfdata_list:
+            for name in names:
+                if perf_data_in_list.name == name and perf_data_in_list.value != ""\
+                        and perf_data_in_list.value is not None:
+                    value_to_sum.append(perf_data_in_list.value)
+                    sum = 0 #init sum
+
+                    if delete_perf is True:
+                        index_to_delete.append(cnt)
+
+                elif perf_data_in_list.name == name and (perf_data_in_list.value == ""\
+                        or perf_data_in_list.value is None):
+                    raise Exception('You cannot sum empty value(s)')
+
+                """
+                elif (delete_perf is True or perf_name != "") and perf_data_in_list.name == name:
+                    index_to_delete.append(cnt)
+                """
+
+            cnt = cnt + 1
+
+        cnt = 0
+        for perf in perfdata_list:
+
+            if cnt not in index_to_delete:
+                perfdata_list_copy.append(perf)
+
+            cnt = cnt + 1
+
+        perfdata_list = copy.deepcopy(perfdata_list_copy)
+        perfdata_list_copy = []
+
+        for perf in value_to_sum:
+
+            sum = sum + perf
+
+        if perf_name != "":
+            self.add_perfdata(perf_name, sum, warning_threshold, critical_threshold)
+
+        return sum
+
     def order_perfdata(self):
         global perfdata_list
         perfdata_ok_list = []
@@ -133,8 +250,6 @@ class PerfManager:
 
         perfdata_list = []
         perfdata_list = perfdata_ok_list + perfdata_notok_list
-
-
 
     def get_perfdata_string(self):
 
@@ -250,13 +365,13 @@ class PerfManager:
 
         if self._info_manager.get_info("ROBOT CONTEXT") is True:
 
-            suite_name = self._info_manager.get_info("SUITE NAME")
+            suite_source = self._info_manager.get_info("SUITE SOURCE")
 
-            test_name = self._info_manager.get_info("TEST CASE NAME")
+            file_name = suite_source.split(os.sep)[-1].split(".")[0]
 
-            result_dir = tempfile.gettempdir() + os.sep + "alyvix_pybot" + os.sep + suite_name + os.sep + "result"
-
-            print result_dir
+            result_dir = tempfile.gettempdir() + os.sep + "alyvix_pybot" + os.sep + file_name + os.sep + "result"
+        else:
+            result_dir = "."
 
         if not os.path.exists(result_dir):
             os.makedirs(result_dir)

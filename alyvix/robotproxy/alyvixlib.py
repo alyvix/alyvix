@@ -213,6 +213,55 @@ def rename_perfdata(old_name, new_name):
 
     pm = PerfManager()
     pm.rename_perfdata(old_name_lower, new_name_lower)
+
+def get_perfdata(name, delete_perfdata="False"):
+    delete_perfdata_value = delete_perfdata
+    name_lower = str(name).lower().replace(" ", "_")
+
+    try:
+        if delete_perfdata.lower() == "true":
+            delete_perfdata_value = True
+        elif delete_perfdata.lower() == "false":
+            delete_perfdata_value = False
+    except:
+        pass
+
+    pm = PerfManager()
+    return pm.get_perfdata(name_lower, delete_perfdata=delete_perfdata_value)
+
+def delete_perfdata(name):
+    name_lower = str(name).lower().replace(" ", "_")
+
+    pm = PerfManager()
+    pm.delete_perfdata(name_lower)
+
+def sum_perfdata(*names, **kwargs):
+
+    kwarglist = []
+
+    for key in kwargs:
+        if key == "delete_perfdata":
+
+            try:
+                if kwargs[key].lower() == "true":
+                    value = True
+                elif kwargs[key].lower()  == "false":
+                    value = False
+
+                kwargs[key] = value
+            except:
+                pass
+
+        if key == "name":
+            kwargs[key] = str(kwargs[key]).lower().replace(" ", "_")
+
+    new_names = []
+
+    for name in names:
+        new_names.append(str(name).lower().replace(" ", "_"))
+
+    pm = PerfManager()
+    return pm.sum_perfdata(*new_names, **kwargs)
     
 def print_perfdata(message=None, print_output="True"):
 

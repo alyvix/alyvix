@@ -35,7 +35,9 @@ SET logtmp=0
 
 SET suitefile=%1
 
-IF "%suitefile%"=="" (
+rem echo sf=%suitefile%
+
+IF [%suitefile%] == [] (
 
     ECHO First argument has to be the full suite file name, it is mandatory.
     ECHO Optional arguments are:
@@ -47,7 +49,7 @@ IF "%suitefile%"=="" (
 )
 
 SET namewithext=
-FOR %%A IN ("%suitefile%") DO (
+FOR %%A IN (%suitefile%) DO (
     rem SET Folder=%%~dpA
     SET namewithext=%%~nxA
 )

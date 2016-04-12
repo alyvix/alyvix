@@ -48,6 +48,7 @@ class InfoManager():
 
         if robot_context:
             self.set_info('SUITE NAME', robot_manager.get_suite_name())
+            self.set_info('SUITE SOURCE', robot_manager.get_suite_source())
             self.set_info('TEST CASE NAME', robot_manager.get_testcase_name())
             self.set_info('OUTPUT DIR', robot_manager.get_output_directory())
             self.set_info('LOG LEVEL', robot_manager.get_loglevel())

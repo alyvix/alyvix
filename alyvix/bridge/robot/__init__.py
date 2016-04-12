@@ -73,6 +73,21 @@ class RobotManager():
 
         return suite_name
 
+    def get_suite_source(self):
+        """
+        get the project name of current robotframework session.
+
+        :rtype: string
+        :return: the robotframework project name
+        """
+
+        if self._data is not None:
+            suite_source = self._data["SUITE_SOURCE"]
+        else:
+            suite_source = None
+
+        return suite_source
+
     def get_testcase_name(self):
         """
         get the testcase name of current robotframework session.
