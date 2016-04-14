@@ -598,18 +598,20 @@ class LogManager:
                         #ex_x1 = sub_extra_images[index][sub_index][1][0]
                         #ex_y1 = sub_extra_images[index][sub_index][1][1]
 
+                        if roi_x < 0:
+                            roi_width = roi_width + roi_x
+                            roi_x = 0
+
                         if len(sub_extra_images) > 0:
                             ex_x2 = roi_x + sub_extra_img_color.shape[1]
                             ex_y2 = roi_y + sub_extra_img_color.shape[0]
 
                             if ex_x2 > img_w:
-                                continue
+                                ex_x2 = img_w
 
                             if ex_y2 > img_h:
-                                continue
+                                ex_y2 = img_h
 
-                        if roi_x < 0:
-                            continue
 
                         if roi_y < 0:
                             continue

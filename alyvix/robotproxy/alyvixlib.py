@@ -189,34 +189,41 @@ def close_window(window_title):
     wm = WinManager()
     wm.close_window(window_title)
 
-def alyvix_screenshot(filename):
+def alyvix_screenshot(filename_arg):
 
     variables = BuiltIn().get_variables()
     outdir = variables['${OUTPUTDIR}']
 
+    filename = filename_arg
+
+    if "." not in filename:
+        ext = ".png"
+        filename = filename + ext
+
     sm = ScreenManager()
     img = sm.grab_desktop()
     img_name = outdir + os.sep + filename
+
     img.save(img_name)
 
     logger.info('<a href="' + filename + '"><img src="' + filename + '" width="800px"></a>', html=True)
     
 def add_perfdata(name, value=None, warning_threshold=None, critical_threshold=None, state=0):
     pm = PerfManager()
-    name_lower = str(name).lower().replace(" ", "_")
-    pm.add_perfdata(name_lower, value, warning_threshold, critical_threshold, state)
+    #name_lower = str(name).lower().replace(" ", "_")
+    pm.add_perfdata(name, value, warning_threshold, critical_threshold, state)
     
 def rename_perfdata(old_name, new_name):
     
-    old_name_lower = str(old_name).lower().replace(" ", "_")
-    new_name_lower = str(new_name).lower().replace(" ", "_")
+    #old_name_lower = str(old_name).lower().replace(" ", "_")
+    #new_name_lower = str(new_name).lower().replace(" ", "_")
 
     pm = PerfManager()
-    pm.rename_perfdata(old_name_lower, new_name_lower)
+    pm.rename_perfdata(old_name, new_name)
 
 def get_perfdata(name, delete_perfdata="False"):
     delete_perfdata_value = delete_perfdata
-    name_lower = str(name).lower().replace(" ", "_")
+    #name_lower = str(name).lower().replace(" ", "_")
 
     try:
         if delete_perfdata.lower() == "true":
@@ -227,13 +234,13 @@ def get_perfdata(name, delete_perfdata="False"):
         pass
 
     pm = PerfManager()
-    return pm.get_perfdata(name_lower, delete_perfdata=delete_perfdata_value)
+    return pm.get_perfdata(name, delete_perfdata=delete_perfdata_value)
 
 def delete_perfdata(name):
-    name_lower = str(name).lower().replace(" ", "_")
+    #name_lower = str(name).lower().replace(" ", "_")
 
     pm = PerfManager()
-    pm.delete_perfdata(name_lower)
+    pm.delete_perfdata(name)
 
 def sum_perfdata(*names, **kwargs):
 
@@ -252,16 +259,20 @@ def sum_perfdata(*names, **kwargs):
             except:
                 pass
 
+        """
         if key == "name":
             kwargs[key] = str(kwargs[key]).lower().replace(" ", "_")
+        """
 
+    """
     new_names = []
 
     for name in names:
         new_names.append(str(name).lower().replace(" ", "_"))
+    """
 
     pm = PerfManager()
-    return pm.sum_perfdata(*new_names, **kwargs)
+    return pm.sum_perfdata(*names, **kwargs)
     
 def print_perfdata(message=None, print_output="True"):
 
