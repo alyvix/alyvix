@@ -199,6 +199,24 @@ class BaseFinder(object):
         """
         self._source_image_gray = image_data.copy()
 
+    def get_source_image_color(self):
+        """
+        get the color image on which the find method will search the object.
+
+        :rtype: numpy.ndarray
+        :return: the source color image
+        """
+        return self._source_image_color
+
+    def get_source_image_gray(self):
+        """
+        get the gray image on which the find method will search the object.
+
+        :rtype: numpy.ndarray
+        :return: the source gray image
+        """
+        return self._source_image_gray
+
     def find(self):
         raise NotImplementedError
 
@@ -251,7 +269,7 @@ class BaseFinder(object):
             #txx = time.time()
             try:
 
-                if len(self._objects_found) > 0:
+                if len(self._objects_found) > 0 and self._flag_thread_started is False:
                     #do analysis cjecl_time()
                     """
                     print "len main:", len(self._objects_found)
@@ -267,7 +285,7 @@ class BaseFinder(object):
 
                     self._last_thread_image = self._uncompress_image(self._find_thread_images[-1][1])
 
-                    self._log_manager.save_objects_found(self._name, self._last_thread_image, self._objects_found, [x[1] for x in self._sub_components])
+                    self._log_manager.save_objects_found(self._name, self.get_source_image_gray(), self._objects_found, [x[1] for x in self._sub_components])
 
                     return self._get_performance()
 
@@ -280,7 +298,7 @@ class BaseFinder(object):
                     from alyvix.finders.cv.objectfinder import ObjectFinder
 
                     #if not isinstance(self, ObjectFinder):
-                    self._log_manager.save_timedout_objects(self._name + "_timedout", self._last_thread_image, self._timedout_main_components, self._timedout_sub_components, self._main_extra_img_log, self._sub_extra_imgages_log)
+                    self._log_manager.save_timedout_objects(self._name + "_timedout", self.get_source_image_gray(), self._timedout_main_components, self._timedout_sub_components, self._main_extra_img_log, self._sub_extra_imgages_log)
                     #else:
                     if isinstance(self, ObjectFinder):
 

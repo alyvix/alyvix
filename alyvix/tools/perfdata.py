@@ -35,7 +35,7 @@ class _PerfData:
         self.value = None
         self.warning_threshold = None
         self.critical_threshold = None
-        self.counter = 999999
+        self.counter = -1
         self.state = 0
 
 
@@ -58,11 +58,11 @@ class PerfManager:
         global perf_counter
 
         perf_data = _PerfData()
-        perf_data.name = name
+        perf_data.name = str(name)
 
         try:
             perf_data.value = float(value)
-            if perf_data.counter == 999999:
+            if perf_data.counter == -1:
                 perf_data.counter = perf_counter
                 perf_counter = perf_counter + 1
         except:
@@ -136,6 +136,10 @@ class PerfManager:
         perfdata_list = copy.deepcopy(perfdata_list_copy)
         perfdata_list_copy = []
         return ret_val
+
+    def get_all_perfdata(self):
+        global perfdata_list
+        return copy.deepcopy(perfdata_list)
 
     def delete_perfdata(self, name):
 
@@ -238,7 +242,7 @@ class PerfManager:
 
         for perf_data_in_list in perfdata_list:
 
-            if perf_data_in_list.counter != 999999:
+            if perf_data_in_list.counter != -1:
                 perfdata_ok_list.append(copy.deepcopy(perf_data_in_list))
             else:
                 perfdata_notok_list.append(copy.deepcopy(perf_data_in_list))

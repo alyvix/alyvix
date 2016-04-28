@@ -95,7 +95,7 @@ class AlyvixTextFinderView(QWidget):
         self.__restored_rect_roi = False
     
         self.parent = parent
-                
+
         self._xml_name = self.parent.xml_name
         self._path = self.parent.path
         self._robot_file_name = self.parent.robot_file_name

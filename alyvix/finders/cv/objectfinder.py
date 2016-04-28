@@ -151,8 +151,12 @@ class ObjectFinder(BaseFinder):
             self.set_source_image_color(src_img_color)
             src_img_gray = cv2.cvtColor(src_img_color, cv2.COLOR_BGR2GRAY)
             self.set_source_image_gray(src_img_gray)
-            main_object.set_source_image_color(self._source_image_color)
-            main_object.set_source_image_gray(self._source_image_gray)
+            #main_object.set_source_image_color(self._source_image_color)
+            #main_object.set_source_image_gray(self._source_image_gray)
+            source_img_auto_set = True
+
+        main_object.set_source_image_color(self._source_image_color)
+        main_object.set_source_image_gray(self._source_image_gray)
 
         objects_found = []
 
@@ -191,6 +195,7 @@ class ObjectFinder(BaseFinder):
 
                 object_found[1] = None
                 objects_found.append(object_found)
+                self._main_indexes_to_keep.append(cnt)
             else:
 
                 total_sub_object_found = 0
@@ -237,8 +242,13 @@ class ObjectFinder(BaseFinder):
             main_object.rebuild_result(self._main_indexes_to_keep)
             self._cacheManager.SetLastObjFoundFullImg(self._source_image_gray)
 
-        self._source_image_color = None
-        self._source_image_gray = None
+        #self._source_image_color = None
+        #self._source_image_gray = None
+
+        if source_img_auto_set is True:
+            self._source_image_gray = None
+            self._source_image_color = None
+            source_img_auto_set = False
 
         """
         if self._flag_check_before_exit is True:

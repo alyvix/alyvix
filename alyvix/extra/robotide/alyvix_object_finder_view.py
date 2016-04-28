@@ -66,10 +66,10 @@ class dummy():
         self.parent = parent
         
     def show(self):
-        self.parent._sub_objects_finder = []
-        self.parent._code_blocks = []
-        self.parent._main_object_finder = None
-        self.parent.build_objects()
+        #self.parent._sub_objects_finder = []
+        #self.parent._code_blocks = []
+        #self.parent._main_object_finder = MainObjectForGui()
+        #self.parent.build_objects()
         self.parent.show()
 
 class AlyvixObjectFinderView(QDialog, Ui_Form):
@@ -1498,60 +1498,60 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         if event.type()== event.FocusOut:
             if obj.objectName() == "roi_y_spinbox":
 
-                absolute_sub_roi_y = self.parent._main_object_finder.y + self.parent._sub_objects_finder[self.sub_object_index].roi_y
-                absolute_sub_rect_y = self.parent._sub_objects_finder[self.sub_object_index].y
+                absolute_sub_roi_y = self._main_object_finder.y + self._sub_objects_finder[self.sub_object_index].roi_y
+                absolute_sub_rect_y = self._sub_objects_finder[self.sub_object_index].y
         
                 if absolute_sub_roi_y > absolute_sub_rect_y:
-                    self.parent._sub_objects_finder[self.sub_object_index].roi_y = self.parent._sub_objects_finder[self.sub_object_index].y - self.parent._main_object_finder.y
-                    self.roi_y_spinbox.setValue(self.parent._sub_objects_finder[self.sub_object_index].roi_y)
-                    self.parent.update()
+                    self._sub_objects_finder[self.sub_object_index].roi_y = self._sub_objects_finder[self.sub_object_index].y - self._main_object_finder.y
+                    self.roi_y_spinbox.setValue(self._sub_objects_finder[self.sub_object_index].roi_y)
+                    self.update()
                     return True
                     
-                if absolute_sub_roi_y + self.parent._sub_objects_finder[self.sub_object_index].roi_height < absolute_sub_rect_y + self.parent._sub_objects_finder[self.sub_object_index].height:
-                    self.parent._sub_objects_finder[self.sub_object_index].roi_y = self.parent._sub_objects_finder[self.sub_object_index].y - self.parent._main_object_finder.y
-                    self.roi_y_spinbox.setValue(self.parent._sub_objects_finder[self.sub_object_index].roi_y)
-                    self.parent.update()
+                if absolute_sub_roi_y + self._sub_objects_finder[self.sub_object_index].roi_height < absolute_sub_rect_y + self._sub_objects_finder[self.sub_object_index].height:
+                    self._sub_objects_finder[self.sub_object_index].roi_y = self._sub_objects_finder[self.sub_object_index].y - self._main_object_finder.y
+                    self.roi_y_spinbox.setValue(self._sub_objects_finder[self.sub_object_index].roi_y)
+                    self.update()
                     return True
                     
             elif obj.objectName() == "roi_height_spinbox":
                 
-                absolute_sub_roi_y = self.parent._main_object_finder.y + self.parent._sub_objects_finder[self.sub_object_index].roi_y
-                absolute_sub_rect_y = self.parent._sub_objects_finder[self.sub_object_index].y
-                if absolute_sub_roi_y + self.parent._sub_objects_finder[self.sub_object_index].roi_height < absolute_sub_rect_y + self.parent._sub_objects_finder[self.sub_object_index].height:
-                    px_to_add = (absolute_sub_rect_y + self.parent._sub_objects_finder[self.sub_object_index].height) - (absolute_sub_roi_y + self.parent._sub_objects_finder[self.sub_object_index].roi_height)
+                absolute_sub_roi_y = self._main_object_finder.y + self._sub_objects_finder[self.sub_object_index].roi_y
+                absolute_sub_rect_y = self._sub_objects_finder[self.sub_object_index].y
+                if absolute_sub_roi_y + self._sub_objects_finder[self.sub_object_index].roi_height < absolute_sub_rect_y + self._sub_objects_finder[self.sub_object_index].height:
+                    px_to_add = (absolute_sub_rect_y + self._sub_objects_finder[self.sub_object_index].height) - (absolute_sub_roi_y + self._sub_objects_finder[self.sub_object_index].roi_height)
                     height = absolute_sub_roi_y - px_to_add
-                    self.parent._sub_objects_finder[self.sub_object_index].roi_height = self.parent._sub_objects_finder[self.sub_object_index].roi_height  + px_to_add
-                    self.roi_height_spinbox.setValue(self.parent._sub_objects_finder[self.sub_object_index].roi_height)
-                    self.parent.update()
+                    self._sub_objects_finder[self.sub_object_index].roi_height = self._sub_objects_finder[self.sub_object_index].roi_height  + px_to_add
+                    self.roi_height_spinbox.setValue(self._sub_objects_finder[self.sub_object_index].roi_height)
+                    self.update()
                     return True
                     
             elif obj.objectName() == "roi_x_spinbox":
 
-                absolute_sub_roi_x = self.parent._main_object_finder.x + self.parent._sub_objects_finder[self.sub_object_index].roi_x
-                absolute_sub_rect_x = self.parent._sub_objects_finder[self.sub_object_index].x
+                absolute_sub_roi_x = self._main_object_finder.x + self._sub_objects_finder[self.sub_object_index].roi_x
+                absolute_sub_rect_x = self._sub_objects_finder[self.sub_object_index].x
         
                 if absolute_sub_roi_x > absolute_sub_rect_x:
-                    self.parent._sub_objects_finder[self.sub_object_index].roi_x = self.parent._sub_objects_finder[self.sub_object_index].x - self.parent._main_object_finder.x
-                    self.roi_x_spinbox.setValue(self.parent._sub_objects_finder[self.sub_object_index].roi_x)
-                    self.parent.update()
+                    self._sub_objects_finder[self.sub_object_index].roi_x = self._sub_objects_finder[self.sub_object_index].x - self._main_object_finder.x
+                    self.roi_x_spinbox.setValue(self._sub_objects_finder[self.sub_object_index].roi_x)
+                    self.update()
                     return True
                     
-                if absolute_sub_roi_x + self.parent._sub_objects_finder[self.sub_object_index].roi_width < absolute_sub_rect_x + self.parent._sub_objects_finder[self.sub_object_index].width:
-                    self.parent._sub_objects_finder[self.sub_object_index].roi_x = self.parent._sub_objects_finder[self.sub_object_index].x - self.parent._main_object_finder.x
-                    self.roi_x_spinbox.setValue(self.parent._sub_objects_finder[self.sub_object_index].roi_x)
-                    self.parent.update()
+                if absolute_sub_roi_x + self._sub_objects_finder[self.sub_object_index].roi_width < absolute_sub_rect_x + self._sub_objects_finder[self.sub_object_index].width:
+                    self._sub_objects_finder[self.sub_object_index].roi_x = self._sub_objects_finder[self.sub_object_index].x - self._main_object_finder.x
+                    self.roi_x_spinbox.setValue(self._sub_objects_finder[self.sub_object_index].roi_x)
+                    self.update()
                     return True
                     
             elif obj.objectName() == "roi_width_spinbox":
                 
-                absolute_sub_roi_x = self.parent._main_object_finder.x + self.parent._sub_objects_finder[self.sub_object_index].roi_x
-                absolute_sub_rect_x = self.parent._sub_objects_finder[self.sub_object_index].x
-                if absolute_sub_roi_x + self.parent._sub_objects_finder[self.sub_object_index].roi_width < absolute_sub_rect_x + self.parent._sub_objects_finder[self.sub_object_index].width:
-                    px_to_add = (absolute_sub_rect_x + self.parent._sub_objects_finder[self.sub_object_index].width) - (absolute_sub_roi_x + self.parent._sub_objects_finder[self.sub_object_index].roi_width)
+                absolute_sub_roi_x = self._main_object_finder.x + self._sub_objects_finder[self.sub_object_index].roi_x
+                absolute_sub_rect_x = self._sub_objects_finder[self.sub_object_index].x
+                if absolute_sub_roi_x + self._sub_objects_finder[self.sub_object_index].roi_width < absolute_sub_rect_x + self._sub_objects_finder[self.sub_object_index].width:
+                    px_to_add = (absolute_sub_rect_x + self._sub_objects_finder[self.sub_object_index].width) - (absolute_sub_roi_x + self._sub_objects_finder[self.sub_object_index].roi_width)
                     height = absolute_sub_roi_x - px_to_add
-                    self.parent._sub_objects_finder[self.sub_object_index].roi_width = self.parent._sub_objects_finder[self.sub_object_index].roi_width  + px_to_add
-                    self.roi_width_spinbox.setValue(self.parent._sub_objects_finder[self.sub_object_index].roi_width)
-                    self.parent.update()
+                    self._sub_objects_finder[self.sub_object_index].roi_width = self._sub_objects_finder[self.sub_object_index].roi_width  + px_to_add
+                    self.roi_width_spinbox.setValue(self._sub_objects_finder[self.sub_object_index].roi_width)
+                    self.update()
                     return True
             elif self.namelineedit.text() == "" and obj.objectName() == "namelineedit":
                 self.namelineedit.setText("Type here the name of the object")
@@ -1828,6 +1828,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.object.set_bg_pixmap(image)
         self.object.showFullScreen()
         self.update()
+
         
             
 class MainObjectForGui:

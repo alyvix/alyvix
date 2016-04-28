@@ -21,6 +21,7 @@
 from alyvix.tools.configreader import ConfigReader
 from alyvix.tools.screen import ScreenManager
 from alyvix.bridge.robot import RobotManager
+import time
 
 config_reader = ConfigReader()
 robot_manager = RobotManager()
@@ -36,6 +37,8 @@ class InfoManager():
         """
         updates all info.
         """
+
+        self.set_info('START TIME', int(time.time()))
 
         float_scaling_factor = screen_manager.get_scaling_factor()
         int_scaling_factor = int(round(float_scaling_factor))

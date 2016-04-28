@@ -47,8 +47,8 @@ class MouseManager(MouseManagerBase):
 
     def click(self, x, y, button=1, n=1):
 
-        xs = x/self._scaling_factor
-        ys = y/self._scaling_factor
+        xs = int(x/self._scaling_factor)
+        ys = int(y/self._scaling_factor)
 
         self.move(xs, ys)
 
@@ -64,8 +64,8 @@ class MouseManager(MouseManagerBase):
 
     def move(self, x, y):
 
-        xs = x/self._scaling_factor
-        ys = y/self._scaling_factor
+        xs = int(x/self._scaling_factor)
+        ys = int(y/self._scaling_factor)
 
         self.load_module()
 
@@ -84,10 +84,10 @@ class MouseManager(MouseManagerBase):
 
     def drag(self, x1, y1, x2, y2, button=1):
 
-        x1s = x1/self._scaling_factor
-        y1s = y1/self._scaling_factor
-        x2s = x2/self._scaling_factor
-        y2s = y2/self._scaling_factor
+        x1s = int(x1/self._scaling_factor)
+        y1s = int(y1/self._scaling_factor)
+        x2s = int(x2/self._scaling_factor)
+        y2s = int(y2/self._scaling_factor)
 
         if button == self.left_button:
             self.load_module()

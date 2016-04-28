@@ -30,7 +30,7 @@ class MouseManagerBase(object):
         self.wheel_up = 4
         self.wheel_down = 5
         self._info_manager = InfoManager()
-        self._scaling_factor = self._info_manager.get_info("SCALING FACTOR INT")
+        self._scaling_factor = self._info_manager.get_info("SCALING FACTOR FLOAT")
 
     def click(self, x, y, button=1, n=1):
         raise NotImplementedError
