@@ -274,10 +274,6 @@ def sum_perfdata(*names, **kwargs):
     pm = PerfManager()
     return pm.sum_perfdata(*names, **kwargs)
 
-def update_alyvixdb(dbname=None):
-    db = DbManager()
-    db.insert_perfdata(str(dbname))
-
 def print_perfdata(message=None, print_output="True"):
 
     message_value = None
