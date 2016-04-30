@@ -144,6 +144,8 @@ class ObjectFinder(BaseFinder):
                 main_object._main_text = (main_text, roi)
             """
 
+        source_img_auto_set = False
+
         if self._source_image_color is None or self._source_image_gray is None:
 
             screen_capture = ScreenManager()
