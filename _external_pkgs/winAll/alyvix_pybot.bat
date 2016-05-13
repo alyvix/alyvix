@@ -30,6 +30,7 @@ SET testcase=
 SET suitename=
 SET checktarget=
 SET outputmsg=
+SET pathavailable=
 SET exitcode=3
 SET logtmp=0
 
@@ -105,7 +106,14 @@ IF [%testcase%] == [] (
     SET checktarget=test case "%testcase%" in test suite "%suitename%"
 )
 
-IF [%outputdir%] == [] (
+RD %outputdir%\dummy > NUL 2>&1
+MKDIR %outputdir%\dummy > NUL 2>&1
+
+IF %ERRORLEVEL% == 0 (
+    SET pathavailable=1
+    rd %outputdir%\dummy
+) ELSE (
+    SET pathavailable=0
     SET outputdir=%temp%\alyvix_pybot\%suitename%\log
     SET logtmp=1
 )
@@ -143,6 +151,11 @@ IF [%testcase%] == [] (
 )
 
 IF EXIST %resultdir%\message.txt (
+
+    IF %pathavailable% == 0 (
+        ECHO | set /p=[PLEASE NOTE: Outputdir is not available] 
+    )
+
     TYPE %resultdir%\message.txt
 ) ELSE (
 

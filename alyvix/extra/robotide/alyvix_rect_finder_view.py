@@ -20,6 +20,7 @@
 
 import sys
 import os
+import ast
 import time
 import cv2
 import copy
@@ -2353,8 +2354,69 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
     def pushButtonOk_event(self):
         answer = QMessageBox.Yes
         filename = self.parent._alyvix_proxy_path + os.sep + "AlyvixProxy" + self.parent._robot_file_name + ".py"
+       
+        arg_list = []       
+        args_range = range(1, self.parent.args_number + 1)
         
-        if self.parent.object_name == "":
+        for arg_num in args_range:
+            arg_list.append("arg" + str(arg_num))
+        
+        if self.parent._main_rect_finder.sendkeys_quotes is False:
+            try:
+                node = ast.parse(self.parent._main_rect_finder.sendkeys)
+                
+                checksyntax = CheckSyntax()
+                var = checksyntax.check(node, arg_list)
+                
+                #print "varr
+                
+                if var is not None and "," in var:
+                    msgbox_str = "The variables " + var + " are not arguments of the keyword. Do you want to save the keyword?"
+                    
+                elif var is not None:
+                    msgbox_str = "The variable " + var + " is not an argument of the keyword. Do you want to save the keyword?"
+                
+                if var is not None:
+                    #QMessageBox.warning(self, "Warning on main conponent", "The variable " + var + " is not an argument of the Keyword")
+                    answer = QMessageBox.warning(self, "Warning on main conponent", msgbox_str, QMessageBox.Yes, QMessageBox.No)
+                    #return True
+                    if answer == QMessageBox.No:
+                        return True
+                
+            except SyntaxError:
+                QMessageBox.critical(self, "Error on main conponent", "Invalid Keystroke syntax on main conponent")
+                return True
+                
+        cnt = 1
+        for sub_rect in self.parent._sub_rects_finder:
+            if sub_rect.sendkeys_quotes is False:
+                try:
+                    node = ast.parse(sub_rect.sendkeys)
+                    
+                    checksyntax = CheckSyntax()
+                    var = checksyntax.check(node, arg_list)
+                    
+                    if var is not None and "," in var:
+                        msgbox_str = "The variables " + var + " are not arguments of the keyword. Do you want to save the keyword?"
+                        
+                    elif var is not None:
+                        msgbox_str = "The variable " + var + " is not an argument of the keyword. Do you want to save the keyword?"
+                    
+                    #print "varrr"
+                
+                    if var is not None:
+                        answer = QMessageBox.warning(self, "Warning on sub component " + str(cnt), msgbox_str, QMessageBox.Yes, QMessageBox.No)
+                        #return True
+                        if answer == QMessageBox.No:
+                            return True
+                    
+                except SyntaxError:
+                    QMessageBox.critical(self, "Error on sub component " + str(cnt), "Invalid Keystroke syntax on sub component " + str(cnt))
+                    return True
+            cnt += 1
+        
+        #if self.parent.object_name == "" or self.parent.object_name == "Type here the name of the object":
+        if str(self.namelineedit.text().toUtf8()) == "" or str(self.namelineedit.text().toUtf8()) == "Type here the name of the object":
             answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
         elif os.path.isfile(filename) and self.parent.action == "new":
             filename = self.parent._alyvix_proxy_path + os.sep + "AlyvixProxy" + self.parent._robot_file_name + ".py"
@@ -3324,3 +3386,35 @@ class LineTextWidget(QFrame):
  
     def getTextEdit(self):
         return self.edit
+        
+class CheckSyntax(ast.NodeVisitor):
+
+    def __init__(self):
+        self.var_list = []
+
+    def generic_visit(self, node):
+        #print type(node).__name__
+        ast.NodeVisitor.generic_visit(self, node)
+
+    def visit_Name(self, node):
+        #print 'Name:', node.id
+        self.var_list.append(node.id)
+        
+    def check(self, node, arg_list):
+        self.visit(node)
+        
+        var_not_in_arg = []
+        
+        for var in self.var_list:
+        
+            if var not in arg_list:
+                var_not_in_arg.append(var)
+                
+        str = ""
+        for var in var_not_in_arg:
+            str = str + var + ", "
+            
+        if str != "":
+            return str[:-2]
+        else:
+            return None

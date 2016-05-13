@@ -52,7 +52,7 @@ class RobotManager():
         """
 
         if self._data is not None:
-            output_directory = self._data["OUTPUT_DIR"]
+            output_directory = str(self._data["OUTPUT_DIR"])
         else:
             output_directory = None
 
@@ -67,7 +67,7 @@ class RobotManager():
         """
 
         if self._data is not None:
-            suite_name = self._data["SUITE_NAME"]
+            suite_name = str(self._data["SUITE_NAME"])
         else:
             suite_name = None
 
@@ -82,7 +82,7 @@ class RobotManager():
         """
 
         if self._data is not None:
-            suite_source = self._data["SUITE_SOURCE"]
+            suite_source = str(self._data["SUITE_SOURCE"])
         else:
             suite_source = None
 
@@ -100,7 +100,7 @@ class RobotManager():
 
         if self._data is not None:
             try:
-                test_name = self._data["TEST_NAME"]
+                test_name = str(self._data["TEST_NAME"])
             except:
                 pass
 
@@ -115,7 +115,7 @@ class RobotManager():
         """
 
         if self._data is not None:
-            log_level = self._data["LOG_LEVEL"]
+            log_level = str(self._data["LOG_LEVEL"])
         else:
             log_level = None
 

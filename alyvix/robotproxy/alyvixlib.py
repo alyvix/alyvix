@@ -274,6 +274,14 @@ def sum_perfdata(*names, **kwargs):
     pm = PerfManager()
     return pm.sum_perfdata(*names, **kwargs)
 
+def store_perfdata(dbname=None):
+    db = DbManager()
+    db.store_perfdata(str(dbname))
+
+def publish_perfdata(start_date, end_date, filename=""):
+    db = DbManager()
+    db.publish_perfdata(str(start_date), str(end_date), str(filename))
+
 def print_perfdata(message=None, print_output="True"):
 
     message_value = None
