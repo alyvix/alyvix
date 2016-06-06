@@ -147,8 +147,15 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.timeout_label.setEnabled(False)
             self.timeout_spinbox.setEnabled(False)
             self.timeout_exception.setEnabled(False)
-        else:
-            self.find_radio.setChecked(False)
+        
+        if self._main_object_finder.wait is True:
+            self.wait_radio.setChecked(True)
+            self.timeout_label.setEnabled(True)
+            self.timeout_spinbox.setEnabled(True)
+            self.timeout_exception.setEnabled(True)
+            
+        if self._main_object_finder.wait_disapp is True:
+            self.wait_disapp_radio.setChecked(True)
             self.timeout_label.setEnabled(True)
             self.timeout_spinbox.setEnabled(True)
             self.timeout_exception.setEnabled(True)
@@ -202,6 +209,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         #self.connect(self.listWidget, SIGNAL('itemChanged(QListWidgetItem*)'), self, SLOT('listWidget_state_changed(QListWidgetItem*)'))
         
         self.connect(self.wait_radio, SIGNAL('toggled(bool)'), self.wait_radio_event)
+        self.connect(self.wait_disapp_radio, SIGNAL('toggled(bool)'), self.wait_disapp_radio_event)
+        self.connect(self.find_radio, SIGNAL('toggled(bool)'), self.find_radio_event)
+        
         self.connect(self.timeout_spinbox, SIGNAL('valueChanged(int)'), self.timeout_spinbox_event)
         self.connect(self.timeout_exception, SIGNAL('stateChanged(int)'), self.timeout_exception_event)
         
@@ -315,6 +325,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 if obj_name + "_mouse_keyboard(" in python_file or obj_name + "_build_object(" in python_file or obj_name + "(" in python_file:
                     QMessageBox.critical(self, "Error", "Keyword name already exists!")
                     return
+            else:
+                self.save_all()
                 
             if answer == QMessageBox.Yes:
                 self.close()
@@ -483,6 +495,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self._main_object_finder.y = main_obj.y
         self._main_object_finder.height = main_obj.height
         self._main_object_finder.width = main_obj.width
+        self._main_object_finder.mouse_or_key_is_set = main_obj.mouse_or_key_is_set
         
         self._main_object_finder.name = root_node.attributes["name"].value
         #self._main_object_finder.find = main_obj_node.attributes["find"].value
@@ -505,6 +518,14 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self._main_object_finder.wait = True
         else:
             self._main_object_finder.wait = False    
+            
+        try:
+            if "True" in root_node.attributes["wait_disapp"].value: #main_template_node.getElementsByTagName("wait")[0].firstChild.nodeValue:
+                self._main_object_finder.wait_disapp = True
+            else:
+                self._main_object_finder.wait_disapp = False
+        except:
+            self._main_object_finder.wait_disapp = False
             
         if "True" in root_node.attributes["enable_performance"].value:
             self._main_object_finder.enable_performance = True
@@ -551,6 +572,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             sub_object.y = main_obj.y
             sub_object.height = main_obj.height
             sub_object.width = main_obj.width
+            sub_object.mouse_or_key_is_set = main_obj.mouse_or_key_is_set
             
             sub_object.roi_x = int(sub_object_node.getElementsByTagName("roi_x")[0].firstChild.nodeValue)
             sub_object.roi_y = int(sub_object_node.getElementsByTagName("roi_y")[0].firstChild.nodeValue)
@@ -686,6 +708,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
     def build_code_array(self):
     
+        mouse_or_key_is_set = False
+        
+        #print "self._main_object_finder.mouse_or_key_is_set:", self._main_object_finder.mouse_or_key_is_set
+        
+        if self._main_object_finder.mouse_or_key_is_set is True:
+            mouse_or_key_is_set = True
+    
         total_args = 0 #self._main_object_finder.args_number
     
         self.building_code = True
@@ -769,6 +798,11 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         cnt = 1
         for sub_object in self._sub_objects_finder:
             if sub_object.height != 0 and sub_object.width !=0:
+            
+                #print "sub_object.mouse_or_key_is_set:", sub_object.mouse_or_key_is_set
+            
+                if sub_object.mouse_or_key_is_set is True:
+                    mouse_or_key_is_set = True
             
                 arg_sub_component = 0
                 #roi_x = str(sub_object.roi_x - self._main_object_finder.x)
@@ -957,13 +991,17 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 
         if self._main_object_finder.find is True:  
             self._code_lines.append("    object_finder.find()")
-        else:
-            self._code_lines.append("    wait_time = object_finder.wait(" + str(self._main_object_finder.timeout) + ")")
+        elif self._main_object_finder.wait is True or mouse_or_key_is_set is True:
+            self._code_lines.append("    timeout = " + str(self._main_object_finder.timeout))
+            self._code_lines.append("    wait_time = object_finder.wait(timeout)")
+        elif self._main_object_finder.wait_disapp is True:
+            self._code_lines.append("    timeout = " + str(self._main_object_finder.timeout))
+            self._code_lines.append("    wait_time = object_finder.wait_disappear(timeout)")
 
         if self._main_object_finder.enable_performance is True and self._main_object_finder.find is False:  
             self._code_lines.append("    if wait_time == -1:")
             if self._main_object_finder.timeout_exception is True:
-                self._code_lines.append("        raise Exception(\"step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\")")             
+                self._code_lines.append("        raise Exception(\"step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\")")                
             else:
                 self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\"")
                 self._code_lines.append("        return False")
@@ -984,12 +1022,16 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\"")
                 self._code_lines.append("        return False")
         
-        self._code_lines.append("    " + main_obj_name + "_mouse_keyboard(" + self._main_object_finder.component_args + ")")
+        if self._main_object_finder.mouse_or_key_is_set:
+            self._code_lines.append("    " + main_obj_name + "_mouse_keyboard(" + self._main_object_finder.component_args + ")")
             
         cnt = 0
         for sub_object in self._sub_objects_finder:
         
             if sub_object.height != 0 and sub_object.width !=0:
+            
+                if sub_object.mouse_or_key_is_set is False:
+                    continue
                 
                 path_sub_xml = sub_object.xml_path
                 sub_obj = None           
@@ -1010,6 +1052,34 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                     sub_obj = AlyvixTextFinderView(s_controller)
                     sub_obj_name = sub_obj.object_name
                     self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
+                    
+        
+        if self._main_object_finder.wait_disapp is True and mouse_or_key_is_set is True:   
+            self._code_lines.append("    timeout = timeout - wait_time")
+            self._code_lines.append("    wait_time_disappear = object_finder.wait_disappear(timeout)")  
+            if self._main_object_finder.enable_performance is True and self._main_object_finder.find is False:  
+                self._code_lines.append("    if wait_time_disappear == -1:")
+                if self._main_object_finder.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\"")
+                    self._code_lines.append("        return False")
+                    
+                self._code_lines.append("    elif wait_time_disappear < " + repr(self._main_object_finder.warning) + ":")
+                self._code_lines.append("        print \"step " + self._main_object_finder.name + " is ok, execution time:\", wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    elif wait_time_disappear < " + repr(self._main_object_finder.critical) + ":")
+                self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+                self._code_lines.append("    else:")
+                self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+                self._code_lines.append("    p = PerfManager()")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self._main_object_finder.name) + "_disappear\", wait_time_disappear, " + repr(self._main_object_finder.warning) + ", " + repr(self._main_object_finder.critical) + ")")
+            elif self._main_object_finder.find is False:
+                self._code_lines.append("    if wait_time_disappear == -1:")
+                if self._main_object_finder.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\"")
+                    self._code_lines.append("        return False")
         
         if self._main_object_finder.timeout_exception is False:
             self._code_lines.append("    return True")
@@ -1218,6 +1288,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self._main_object_finder.y = main_obj.y
         self._main_object_finder.height = main_obj.height
         self._main_object_finder.width = main_obj.width
+        self._main_object_finder.mouse_or_key_is_set = main_obj.mouse_or_key_is_set
         
         #print self._main_object_finder.x
         #print self._main_object_finder.y
@@ -1267,6 +1338,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         sub_object.y = main_obj.y
         sub_object.height = main_obj.height
         sub_object.width = main_obj.width
+        sub_object.mouse_or_key_is_set = main_obj.mouse_or_key_is_set
         self._sub_objects_finder.append(sub_object)
         #self.build_sub_object(sub_object)
         
@@ -1320,6 +1392,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         root.set("name", name)
         root.set("find", str(self._main_object_finder.find))
         root.set("wait", str(self._main_object_finder.wait))
+        root.set("wait_disapp", str(self._main_object_finder.wait_disapp))
         root.set("timeout", str(self._main_object_finder.timeout))
         root.set("timeout_exception", str(self._main_object_finder.timeout_exception))
         root.set("enable_performance", str(self._main_object_finder.enable_performance))
@@ -1451,14 +1524,32 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.labelCritical.setEnabled(False)
     
     def wait_radio_event(self, event):
+        
         if event is True:
             self.timeout_spinbox.setEnabled(True)
             self.timeout_label.setEnabled(True)
+            self.timeout_exception.setEnabled(True)
+            self._main_object_finder.wait_disapp = False
             self._main_object_finder.wait = True
             self._main_object_finder.find = False
-        else:
+        
+    def wait_disapp_radio_event(self, event):
+        
+        if event is True:
+            self.timeout_spinbox.setEnabled(True)
+            self.timeout_label.setEnabled(True)
+            self.timeout_exception.setEnabled(True)
+            self._main_object_finder.wait_disapp = True
+            self._main_object_finder.wait = False
+            self._main_object_finder.find = False
+            
+    def find_radio_event(self, event):
+        
+        if event is True:
             self.timeout_spinbox.setEnabled(False)
+            self.timeout_exception.setEnabled(False)
             self.timeout_label.setEnabled(False)
+            self._main_object_finder.wait_disapp = False
             self._main_object_finder.wait = False
             self._main_object_finder.find = True
             
@@ -1844,6 +1935,7 @@ class MainObjectForGui:
         self.click = False
         self.doubleclick = False
         self.wait = True
+        self.wait_disapp = False
         self.find = False
         self.args_number = 0
         self.component_args = ""
@@ -1851,6 +1943,7 @@ class MainObjectForGui:
         self.timeout_exception = True
         self.sendkeys = ""
         self.enable_performance = True
+        self.mouse_or_key_is_set = False
         self.warning = 15.00
         self.critical = 40.00
         
@@ -1871,6 +1964,7 @@ class SubObjectForGui:
         self.doubleclick = False
         self.sendkeys = ""
         self.component_args = ""
+        self.mouse_or_key_is_set = False
         
 class AlyvixObjectsSelection(QDialog, Ui_Form_2):
     def __init__(self, parent):

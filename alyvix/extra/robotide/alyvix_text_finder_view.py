@@ -57,12 +57,15 @@ class AlyvixTextFinderView(QWidget):
         self.object_name = ""
         self.wait = True
         self.find = False
+        self.wait_disapp = False
         self.args_number = 0
         self.timeout = 60
         self.timeout_exception = True
         self.enable_performance = True
         self.warning = 15.00
         self.critical = 40.00
+        
+        self.mouse_or_key_is_set = False
         
         self.setMouseTracking(True)
         
@@ -982,6 +985,8 @@ class AlyvixTextFinderView(QWidget):
         
     def build_code_array(self):
     
+        self.mouse_or_key_is_set = False
+    
         kmanager_declared = False
         mmanager_declared = False
        
@@ -1107,6 +1112,8 @@ class AlyvixTextFinderView(QWidget):
         
         if self._main_text.click == True or self._main_text.doubleclick == True or self._main_text.rightclick == True or self._main_text.mousemove == True:
         
+            self.mouse_or_key_is_set = True
+        
             self._code_lines.append("    main_text_pos = " + name + "_object.get_result(0)")  
         
             if mmanager_declared is False:
@@ -1126,6 +1133,9 @@ class AlyvixTextFinderView(QWidget):
 
                 
         if self._main_text.sendkeys != "":
+        
+            self.mouse_or_key_is_set = True
+        
             if kmanager_declared is False:
                 self._code_lines.append("    k  = KeyboardManager()")
                 kmanager_declared = True
@@ -1142,6 +1152,8 @@ class AlyvixTextFinderView(QWidget):
         
             if sub_text.height != 0 and sub_text.width !=0:
                 if sub_text.click == True or sub_text.doubleclick == True or sub_text.rightclick == True or sub_text.mousemove == True:
+                
+                    self.mouse_or_key_is_set = True
             
                     self._code_lines.append("    sub_text_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
                 
@@ -1160,6 +1172,9 @@ class AlyvixTextFinderView(QWidget):
                         self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
                         
                 if sub_text.sendkeys != "":
+                
+                    self.mouse_or_key_is_set = True
+                
                     if kmanager_declared is False:
                         self._code_lines.append("    k  = KeyboardManager()")
                         kmanager_declared = True
@@ -1207,13 +1222,18 @@ class AlyvixTextFinderView(QWidget):
 
         if self.find is True:  
             self._code_lines.append("    " + name + "_object.find()")
-        else:
-            self._code_lines.append("    wait_time = " + name + "_object.wait(" + str(self.timeout) + ")")
+        elif self.wait is True or self.mouse_or_key_is_set is True:
+            self._code_lines.append("    timeout = " + str(self.timeout))
+            self._code_lines.append("    wait_time = " + name + "_object.wait(timeout)")
+        elif self.wait_disapp is True:
+            self._code_lines.append("    timeout = " + str(self.timeout))
+            self._code_lines.append("    wait_time = " + name + "_object.wait_disappear(timeout)")
+           
            
         if self.enable_performance is True and self.find is False:
             self._code_lines.append("    if wait_time == -1:")
             if self.timeout_exception is True:
-                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")              
             else:
                 self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
                 self._code_lines.append("        return False")
@@ -1317,6 +1337,35 @@ class AlyvixTextFinderView(QWidget):
                 cnt = cnt + 1
         """
         
+        if self.wait_disapp is True and self.mouse_or_key_is_set is True:
+            self._code_lines.append("    timeout = timeout - wait_time")
+            self._code_lines.append("    wait_time_disappear = " + name + "_object.wait_disappear(timeout)")
+            if self.enable_performance is True and self.find is False:
+                self._code_lines.append("    if wait_time_disappear == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")
+                self._code_lines.append("    elif wait_time_disappear < " + repr(self.warning) + ":")
+                self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    elif wait_time_disappear < " + repr(self.critical) + ":")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    else:")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    p = PerfManager()")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "_disappear\", wait_time_disappear, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+            elif self.find is False:
+                self._code_lines.append("    if wait_time_disappear == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")  
+                #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+            
+            
+        
         if self.timeout_exception is False:
             self._code_lines.append("    return True")
         self._code_lines.append("")
@@ -1348,6 +1397,7 @@ class AlyvixTextFinderView(QWidget):
         root.set("name", name)
         root.set("find", str(self.find))
         root.set("wait", str(self.wait))
+        root.set("wait_disapp", str(self.wait_disapp))
         root.set("timeout", str(self.timeout))
         root.set("timeout_exception", str(self.timeout_exception))
         root.set("enable_performance", str(self.enable_performance))
@@ -1669,23 +1719,35 @@ class AlyvixTextFinderView(QWidget):
         else:
             self.wait = False    
             
+        try:
+            if "True" in root_node.attributes["wait_disapp"].value: #main_template_node.getElementsByTagName("wait")[0].firstChild.nodeValue:
+                self.wait_disapp = True
+            else:
+                self.wait_disapp = False
+        except:
+            self.wait_disapp = False
+            
         if "True" in main_text_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_text.click = True
+            self.mouse_or_key_is_set = True
         else:
             self._main_text.click = False
             
         if "True" in main_text_node.getElementsByTagName("doubleclick")[0].firstChild.nodeValue:
             self._main_text.doubleclick = True
+            self.mouse_or_key_is_set = True
         else:
             self._main_text.doubleclick = False
             
         if "True" in main_text_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
             self._main_text.rightclick = True
+            self.mouse_or_key_is_set = True
         else:
             self._main_text.rightclick = False
             
         if "True" in main_text_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
             self._main_text.mousemove = True
+            self.mouse_or_key_is_set = True
         else:
             self._main_text.mousemove = False
             
@@ -1718,6 +1780,9 @@ class AlyvixTextFinderView(QWidget):
             self._main_text.sendkeys = self._main_text.sendkeys.replace("<![CDATA[","")
             self._main_text.sendkeys = self._main_text.sendkeys.replace("]]>","")
             self._main_text.sendkeys = self._main_text.sendkeys.encode('utf-8')
+            
+            if self._main_text.sendkeys != "":
+                self.mouse_or_key_is_set = True
         except AttributeError:
             self._main_text.sendkeys = ''.encode('utf-8')
         
@@ -1781,21 +1846,25 @@ class AlyvixTextFinderView(QWidget):
                 
             if "True" in sub_text_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_text_obj.click = True
+                self.mouse_or_key_is_set = True
             else:
                 sub_text_obj.click = False
                 
             if "True" in sub_text_node.getElementsByTagName("doubleclick")[0].firstChild.nodeValue:
                 sub_text_obj.doubleclick = True
+                self.mouse_or_key_is_set = True
             else:
                 sub_text_obj.doubleclick = False
                 
             if "True" in sub_text_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
                 sub_text_obj.rightclick = True
+                self.mouse_or_key_is_set = True
             else:
                 sub_text_obj.rightclick = False
                 
             if "True" in sub_text_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
                 sub_text_obj.mousemove = True
+                self.mouse_or_key_is_set = True
             else:
                 sub_text_obj.mousemove = False
                 
@@ -1819,6 +1888,9 @@ class AlyvixTextFinderView(QWidget):
                 sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<![CDATA[","")
                 sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("]]>","")
                 sub_text_obj.sendkeys = sub_text_obj.sendkeys.encode('utf-8')
+                
+                if sub_text.sendkeys != "":
+                    self.mouse_or_key_is_set = True
             except AttributeError:
                 sub_text_obj.sendkeys = ''.encode('utf-8')
                 
@@ -1842,6 +1914,8 @@ class AlyvixTextFinderView(QWidget):
             #print code.encode('utf-8')
             self._code_blocks.append((start_line, code.encode('utf-8'), end_line))
             #print sub_block_node.childNodes[0].nodeValue #sub_block_node.toxml()
+            
+        self._main_text.mouse_or_key_is_set = self.mouse_or_key_is_set
 
     def build_perf_data_xml(self):
     
@@ -1934,11 +2008,13 @@ class MainTextForGui:
         self.mousemove = False
         self.doubleclick = False
         self.wait = True
+        self.wait_disapp = False
         self.find = False
         self.args_number = 0
         self.timeout = 60
         self.timeout_exception = True
         self.sendkeys = ""
+        self.mouse_or_key_is_set = False
         self.sendkeys_quotes = True
         self.text_encrypted = False
         self.enable_performance = True
@@ -2039,8 +2115,15 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.timeout_label.setEnabled(False)
             self.timeout_spinbox.setEnabled(False)
             self.timeout_exception.setEnabled(False)
-        else:
-            self.find_radio.setChecked(False)
+
+        if self.parent.wait is True:
+            self.wait_radio.setChecked(True)
+            self.timeout_label.setEnabled(True)
+            self.timeout_spinbox.setEnabled(True)
+            self.timeout_exception.setEnabled(True)
+            
+        if self.parent.wait_disapp is True:
+            self.wait_disapp_radio.setChecked(True)
             self.timeout_label.setEnabled(True)
             self.timeout_spinbox.setEnabled(True)
             self.timeout_exception.setEnabled(True)
@@ -2140,6 +2223,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.listWidget, SIGNAL('itemChanged(QListWidgetItem*)'), self, SLOT('listWidget_state_changed(QListWidgetItem*)'))
         
         self.connect(self.wait_radio, SIGNAL('toggled(bool)'), self.wait_radio_event)
+        self.connect(self.wait_disapp_radio, SIGNAL('toggled(bool)'), self.wait_disapp_radio_event)
+        self.connect(self.find_radio, SIGNAL('toggled(bool)'), self.find_radio_event)
+        
         self.connect(self.timeout_spinbox, SIGNAL('valueChanged(int)'), self.timeout_spinbox_event)
         self.connect(self.timeout_exception, SIGNAL('stateChanged(int)'), self.timeout_exception_event)
         
@@ -2590,14 +2676,32 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.parent.update()
         
     def wait_radio_event(self, event):
+        
         if event is True:
             self.timeout_spinbox.setEnabled(True)
             self.timeout_label.setEnabled(True)
+            self.timeout_exception.setEnabled(True)
+            self.parent.wait_disapp = False
             self.parent.wait = True
             self.parent.find = False
-        else:
+        
+    def wait_disapp_radio_event(self, event):
+        
+        if event is True:
+            self.timeout_spinbox.setEnabled(True)
+            self.timeout_label.setEnabled(True)
+            self.timeout_exception.setEnabled(True)
+            self.parent.wait_disapp = True
+            self.parent.wait = False
+            self.parent.find = False
+            
+    def find_radio_event(self, event):
+        
+        if event is True:
             self.timeout_spinbox.setEnabled(False)
+            self.timeout_exception.setEnabled(False)
             self.timeout_label.setEnabled(False)
+            self.parent.wait_disapp = False
             self.parent.wait = False
             self.parent.find = True
             

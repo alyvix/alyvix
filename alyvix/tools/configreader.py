@@ -163,6 +163,73 @@ class ConfigReader():
                 diff_interval = 0.25
 
         return diff_interval
+
+    def get_finder_thread_interval_disappear(self):
+        """
+        get the interval between finder threads.
+        this value will be used by the wait method of a finder object.
+
+        :rtype: float
+        :return: thread interval
+        """
+
+        thread_interval = None
+
+        try:
+            finder_node = self.__testcase_root_node.getElementsByTagName("finder")[0]
+            thread_interval = float(finder_node.getElementsByTagName("finder_thread_interval_disappear")[0].firstChild.nodeValue)
+        except:
+            thread_interval = None
+
+        if thread_interval is None:
+            try:
+                finder_node = self.__user_root_node.getElementsByTagName("finder")[0]
+                thread_interval = float(finder_node.getElementsByTagName("finder_thread_interval_disappear")[0].firstChild.nodeValue)
+            except:
+                thread_interval = None
+
+        if thread_interval is None:
+            try:
+                finder_node = self.__global_root_node.getElementsByTagName("finder")[0]
+                thread_interval = float(finder_node.getElementsByTagName("finder_thread_interval_disappear")[0].firstChild.nodeValue)
+            except:
+                thread_interval = 2.0
+
+        return thread_interval
+
+    def get_finder_diff_interval_disappear(self):
+        """
+        get the interval between calls to the method that look for difference.
+        this value indicates the time of each wait loop step.
+        default value is 250ms.
+
+        :rtype: float
+        :return: time of a wait loop step
+        """
+
+        diff_interval = None
+
+        try:
+            finder_node = self.__testcase_root_node.getElementsByTagName("finder")[0]
+            diff_interval = float(finder_node.getElementsByTagName("check_diff_interval_disappear")[0].firstChild.nodeValue)
+        except:
+            diff_interval = None
+
+        if diff_interval is None:
+            try:
+                finder_node = self.__user_root_node.getElementsByTagName("finder")[0]
+                diff_interval = float(finder_node.getElementsByTagName("check_diff_interval_disappear")[0].firstChild.nodeValue)
+            except:
+                diff_interval = None
+
+        if diff_interval is None:
+            try:
+                finder_node = self.__global_root_node.getElementsByTagName("finder")[0]
+                diff_interval = float(finder_node.getElementsByTagName("check_diff_interval_disappear")[0].firstChild.nodeValue)
+            except:
+                diff_interval = 0.25
+
+        return diff_interval
     
     def get_finder_wait_timeout(self):
         """

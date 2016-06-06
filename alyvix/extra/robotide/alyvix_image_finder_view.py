@@ -55,12 +55,15 @@ class AlyvixImageFinderView(QWidget):
         self.object_name = ""
         self.wait = True
         self.find = False
+        self.wait_disapp = False
         self.args_number = 0
         self.timeout = 60
         self.timeout_exception = True
         self.enable_performance = True
         self.warning = 15.00
         self.critical = 40.00
+        
+        self.mouse_or_key_is_set = False
         
         self.setMouseTracking(True)
         
@@ -803,6 +806,8 @@ class AlyvixImageFinderView(QWidget):
         
     def build_code_array(self):
     
+        self.mouse_or_key_is_set = False
+    
         kmanager_declared = False
         mmanager_declared = False
        
@@ -895,7 +900,7 @@ class AlyvixImageFinderView(QWidget):
         self._code_lines.append("    global " + name + "_object")
         
         if self._main_template.click == True or self._main_template.doubleclick == True or self._main_template.rightclick == True or self._main_template.mousemove == True:
-        
+            self.mouse_or_key_is_set = True
             self._code_lines.append("    main_template_pos = " + name + "_object.get_result(0)")  
         
             if mmanager_declared is False:
@@ -915,6 +920,7 @@ class AlyvixImageFinderView(QWidget):
 
                 
         if self._main_template.sendkeys != "":
+            self.mouse_or_key_is_set = True
             if kmanager_declared is False:
                 self._code_lines.append("    k  = KeyboardManager()")
                 kmanager_declared = True
@@ -931,6 +937,8 @@ class AlyvixImageFinderView(QWidget):
         
             if sub_template.height != 0 and sub_template.width !=0:
                 if sub_template.click == True or sub_template.doubleclick == True or sub_template.rightclick == True or sub_template.mousemove == True:
+            
+                    self.mouse_or_key_is_set = True
             
                     self._code_lines.append("    sub_template_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
                 
@@ -949,6 +957,9 @@ class AlyvixImageFinderView(QWidget):
                         self._code_lines.append("    m.move(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2))")
                         
                 if sub_template.sendkeys != "":
+                
+                    self.mouse_or_key_is_set = True
+                
                     if kmanager_declared is False:
                         self._code_lines.append("    k  = KeyboardManager()")
                         kmanager_declared = True
@@ -992,13 +1003,17 @@ class AlyvixImageFinderView(QWidget):
 
         if self.find is True:  
             self._code_lines.append("    " + name + "_object.find()")
-        else:
-            self._code_lines.append("    wait_time = " + name + "_object.wait(" + str(self.timeout) + ")")
+        elif self.wait is True or self.mouse_or_key_is_set is True:
+            self._code_lines.append("    timeout = " + str(self.timeout))
+            self._code_lines.append("    wait_time = " + name + "_object.wait(timeout)")
+        elif self.wait_disapp is True:
+            self._code_lines.append("    timeout = " + str(self.timeout))
+            self._code_lines.append("    wait_time = " + name + "_object.wait_disappear(timeout)")
            
         if self.enable_performance is True and self.find is False:
             self._code_lines.append("    if wait_time == -1:")
             if self.timeout_exception is True:
-                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")         
             else:
                 self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
                 self._code_lines.append("        return False")
@@ -1013,7 +1028,7 @@ class AlyvixImageFinderView(QWidget):
         elif self.find is False:
             self._code_lines.append("    if wait_time == -1:")
             if self.timeout_exception is True:
-                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")            
             else:
                 self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
                 self._code_lines.append("        return False")  
@@ -1031,6 +1046,35 @@ class AlyvixImageFinderView(QWidget):
         string_function_args = string_function_args + ")"
         self._code_lines.append(string_function_args)
         
+        if self.wait_disapp is True and self.mouse_or_key_is_set is True:
+            #timeout = " + str(self.timeout)
+            self._code_lines.append("    timeout = timeout - wait_time")
+            self._code_lines.append("    wait_time_disappear = " + name + "_object.wait_disappear(timeout)")
+            if self.enable_performance is True and self.find is False:
+                self._code_lines.append("    if wait_time_disappear == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")
+                self._code_lines.append("    elif wait_time_disappear < " + repr(self.warning) + ":")
+                self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    elif wait_time_disappear < " + repr(self.critical) + ":")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    else:")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    p = PerfManager()")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "_disappear\", wait_time_disappear, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+            elif self.find is False:
+                self._code_lines.append("    if wait_time_disappear == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")  
+                #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+            
+            
         if self.timeout_exception is False:
             self._code_lines.append("    return True")
         self._code_lines.append("")
@@ -1062,6 +1106,7 @@ class AlyvixImageFinderView(QWidget):
         root.set("name", name)
         root.set("find", str(self.find))
         root.set("wait", str(self.wait))
+        root.set("wait_disapp", str(self.wait_disapp))
         root.set("timeout", str(self.timeout))
         root.set("timeout_exception", str(self.timeout_exception))
         root.set("enable_performance", str(self.enable_performance))
@@ -1319,25 +1364,37 @@ class AlyvixImageFinderView(QWidget):
         if "True" in root_node.attributes["wait"].value: #main_template_node.getElementsByTagName("wait")[0].firstChild.nodeValue:
             self.wait = True
         else:
-            self.wait = False    
+            self.wait = False 
+
+        try:
+            if "True" in root_node.attributes["wait_disapp"].value: #main_template_node.getElementsByTagName("wait")[0].firstChild.nodeValue:
+                self.wait_disapp = True
+            else:
+                self.wait_disapp = False
+        except:
+            self.wait_disapp = False
             
         if "True" in main_template_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_template.click = True
+            self.mouse_or_key_is_set = True
         else:
             self._main_template.click = False
             
         if "True" in main_template_node.getElementsByTagName("doubleclick")[0].firstChild.nodeValue:
             self._main_template.doubleclick = True
+            self.mouse_or_key_is_set = True
         else:
             self._main_template.doubleclick = False
             
         if "True" in main_template_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
             self._main_template.rightclick = True
+            self.mouse_or_key_is_set = True
         else:
             self._main_template.rightclick = False
             
         if "True" in main_template_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
             self._main_template.mousemove = True
+            self.mouse_or_key_is_set = True
         else:
             self._main_template.mousemove = False
             
@@ -1370,6 +1427,8 @@ class AlyvixImageFinderView(QWidget):
             self._main_template.sendkeys = self._main_template.sendkeys.replace("<![CDATA[","")
             self._main_template.sendkeys = self._main_template.sendkeys.replace("]]>","")
             self._main_template.sendkeys = self._main_template.sendkeys.encode('utf-8')
+            if self._main_template.sendkeys != "":
+                self.mouse_or_key_is_set = True
         except AttributeError:
             self._main_template.sendkeys = ''.encode('utf-8')
         
@@ -1402,31 +1461,35 @@ class AlyvixImageFinderView(QWidget):
                 
             if "True" in sub_template_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_template_obj.click = True
+                self.mouse_or_key_is_set = True
             else:
                 sub_template_obj.click = False
                 
             if "True" in sub_template_node.getElementsByTagName("doubleclick")[0].firstChild.nodeValue:
                 sub_template_obj.doubleclick = True
+                self.mouse_or_key_is_set = True
             else:
                 sub_template_obj.doubleclick = False
             
             if "True" in sub_template_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
                 sub_template_obj.rightclick = True
+                self.mouse_or_key_is_set = True
             else:
                 sub_template_obj.rightclick = False
                 
             if "True" in sub_template_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
                 sub_template_obj.mousemove = True
+                self.mouse_or_key_is_set = True
             else:
                 sub_template_obj.mousemove = False
             
             if sub_template_node.getElementsByTagName("sendkeys")[0].attributes["encrypted"].value == "True":
-                sub_template_obj.text_encrypted = True
+                self.mouse_or_key_is_set = True
             else:
                 sub_template_obj.text_encrypted = False
                 
             if sub_template_node.getElementsByTagName("sendkeys")[0].attributes["quotes"].value == "True":
-                sub_template_obj.sendkeys_quotes = True
+                self.mouse_or_key_is_set = True
             else:
                 sub_template_obj.sendkeys_quotes = False
                 
@@ -1440,6 +1503,10 @@ class AlyvixImageFinderView(QWidget):
                 sub_template_obj.sendkeys = sub_template_obj.sendkeys.replace("<![CDATA[","")
                 sub_template_obj.sendkeys = sub_template_obj.sendkeys.replace("]]>","")
                 sub_template_obj.sendkeys = sub_template_obj.sendkeys.encode('utf-8')
+                
+                if sub_template.sendkeys != "":
+                    self.mouse_or_key_is_set = True
+                
             except AttributeError:
                 sub_template_obj.sendkeys = ''.encode('utf-8')
                 
@@ -1463,6 +1530,8 @@ class AlyvixImageFinderView(QWidget):
             #print code.encode('utf-8')
             self._code_blocks.append((start_line, code.encode('utf-8'), end_line))
             #print sub_block_node.childNodes[0].nodeValue #sub_block_node.toxml()
+        
+        self._main_template.mouse_or_key_is_set = self.mouse_or_key_is_set
 
     def build_perf_data_xml(self):
     
@@ -1543,7 +1612,9 @@ class MainTemplateForGui:
         self.rightclick = False
         self.mousemove = False
         self.wait = True
+        self.wait_disapp = False
         self.find = False
+        self.mouse_or_key_is_set = False
         self.args_number = 0
         self.timeout = 60
         self.timeout_exception = True
@@ -1640,8 +1711,15 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.timeout_label.setEnabled(False)
             self.timeout_spinbox.setEnabled(False)
             self.timeout_exception.setEnabled(False)
-        else:
-            self.find_radio.setChecked(False)
+
+        if self.parent.wait is True:
+            self.wait_radio.setChecked(True)
+            self.timeout_label.setEnabled(True)
+            self.timeout_spinbox.setEnabled(True)
+            self.timeout_exception.setEnabled(True)
+            
+        if self.parent.wait_disapp is True:
+            self.wait_disapp_radio.setChecked(True)
             self.timeout_label.setEnabled(True)
             self.timeout_spinbox.setEnabled(True)
             self.timeout_exception.setEnabled(True)
@@ -1734,6 +1812,9 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.listWidget, SIGNAL('itemChanged(QListWidgetItem*)'), self, SLOT('listWidget_state_changed(QListWidgetItem*)'))
         
         self.connect(self.wait_radio, SIGNAL('toggled(bool)'), self.wait_radio_event)
+        self.connect(self.wait_disapp_radio, SIGNAL('toggled(bool)'), self.wait_disapp_radio_event)
+        self.connect(self.find_radio, SIGNAL('toggled(bool)'), self.find_radio_event)
+        
         self.connect(self.timeout_spinbox, SIGNAL('valueChanged(int)'), self.timeout_spinbox_event)
         self.connect(self.timeout_exception, SIGNAL('stateChanged(int)'), self.timeout_exception_event)
         
@@ -2090,16 +2171,32 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.parent.update()
         
     def wait_radio_event(self, event):
+        
         if event is True:
             self.timeout_spinbox.setEnabled(True)
             self.timeout_label.setEnabled(True)
             self.timeout_exception.setEnabled(True)
+            self.parent.wait_disapp = False
             self.parent.wait = True
             self.parent.find = False
-        else:
+        
+    def wait_disapp_radio_event(self, event):
+        
+        if event is True:
+            self.timeout_spinbox.setEnabled(True)
+            self.timeout_label.setEnabled(True)
+            self.timeout_exception.setEnabled(True)
+            self.parent.wait_disapp = True
+            self.parent.wait = False
+            self.parent.find = False
+            
+    def find_radio_event(self, event):
+        
+        if event is True:
             self.timeout_spinbox.setEnabled(False)
             self.timeout_exception.setEnabled(False)
             self.timeout_label.setEnabled(False)
+            self.parent.wait_disapp = False
             self.parent.wait = False
             self.parent.find = True
             

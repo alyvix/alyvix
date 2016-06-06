@@ -113,8 +113,12 @@ class BaseFinder(object):
         self._timed_out_images = []
 
         self._find_thread_images = []
+        self._find_thread_images_disappear = []
+        #self._find_thread_images_copy = []
         self._last_thread_image = None
+        self._last_thread_image_copy = None
         self._heartbeat_images = []
+        self._heartbeat_images_copy = []
 
         #variables for the perfdata
         self._cacheManager = None
@@ -141,7 +145,9 @@ class BaseFinder(object):
         self._cacheManager = CacheManager()
         self._configReader = ConfigReader()
 
-        self.__enable_debug_calcperf = True
+        self.__enable_debug_calcperf = False
+
+        self._timer_for_disappear = 0
 
     def _compress_image(self, img):
         return cv2.imencode('.png', img)[1]
@@ -220,7 +226,7 @@ class BaseFinder(object):
     def find(self):
         raise NotImplementedError
 
-    def wait(self, timeout=-1):
+    def wait(self, timeout=-1, wait_disappear=False):
         """
         wait until the object appears on the screen.
         if timeout value is -1 (default value) then timeout value will be read from config file.
@@ -247,16 +253,23 @@ class BaseFinder(object):
             timeout_value = timeout
 
         self._objects_found = []
+
+        self._heartbeat_images = []
+        self._find_thread_images = []
+
         self._flag_thread_started = False
         self._flag_thread_have_to_exit = False
+
+        self._heartbeat_images_copy = []
 
         time_elapsed = 0.0
         #time_of_last_change = 0.0
         self._time_checked_before_exit_start = None
 
         #screenCapture = ScreenManager()
-        thread_interval = self._configReader.get_finder_thread_interval()
-        check_diff_interval = self._configReader.get_finder_diff_interval()
+        thread_interval = self._info_manager.get_info("FINDER THREAD INTERVAL") #self._configReader.get_finder_thread_interval()
+        #thread_interval = 0.5
+        check_diff_interval = self._info_manager.get_info("CHECK DIFF INTERVAL")
 
         img1 = self._cacheManager.GetLastObjFoundFullImg()
 
@@ -287,7 +300,14 @@ class BaseFinder(object):
 
                     self._log_manager.save_objects_found(self._name, self.get_source_image_gray(), self._objects_found, [x[1] for x in self._sub_components])
 
-                    return self._get_performance()
+                    if wait_disappear is True:
+                        self._heartbeat_images_copy = copy.deepcopy(self._heartbeat_images)
+                        self._last_thread_image_copy = copy.deepcopy(self._last_thread_image)
+                        self._timer_for_disappear = time_elapsed
+                        #self._find_thread_images_copy = copy.deepcopy(self._find_thread_images)
+                        return -2
+                    else:
+                        return self._get_performance()
 
 
                 if time_elapsed > timeout_value and self._flag_thread_started is False:
@@ -371,7 +391,210 @@ class BaseFinder(object):
 
             #print "time loop:", time.time() - txx
 
-    def _check_object_presence(self, img, offset_border, crop_value):
+    def wait_disappear(self, timeout=-1):
+
+        time.sleep(5)
+
+        """
+        wait until the object appears on the screen.
+        if timeout value is -1 (default value) then timeout value will be read from config file.
+        if configuration file doesn't exist, then timeout value will be 15 sec.
+
+        :param timeout: timeout in seconds
+        :type timeout: int
+        """
+
+        self._heartbeat_images = []
+        self._find_thread_images = []
+        self._objects_found = []
+
+        wait_time = self.wait(timeout, wait_disappear=True)
+
+        if wait_time == -1:
+            return -1
+
+        #disappear_timeout = timeout - wait_time
+
+        obj_found = copy.deepcopy(self._objects_found)
+        last_thread_img = copy.deepcopy(self._last_thread_image)
+
+
+        #cv2.imwrite()
+
+        #self._robot_manager.write_log_message("wait method: " + self.get_name(), "ERROR", False)
+        #self._robot_manager.write_log_message("wait method: " + self.get_name(), "ERROR", False)
+        #sss = self._robot_manager.get_suite_name()
+        #ttt = self._robot_manager.get_testcase_name()
+
+        #self._robot_manager.method1().method2()
+
+        timeout_value = 15
+
+        if timeout == -1:
+            timeout_value = self._configReader.get_finder_wait_timeout()
+        else:
+            timeout_value = timeout
+
+        timeout_value = timeout_value - wait_time
+
+        self._objects_found = []
+        self._flag_thread_started = False
+        self._flag_thread_have_to_exit = False
+
+        time_elapsed = 0.0
+        #time_of_last_change = 0.0
+        self._time_checked_before_exit_start = None
+
+        #screenCapture = ScreenManager()
+        thread_interval = self._info_manager.get_info("FINDER THREAD INTERVAL DISAPPEAR")
+        check_diff_interval = self._info_manager.get_info("CHECK DIFF INTERVAL DISAPPEAR")
+
+        img1 = self._cacheManager.GetLastObjFoundFullImg()
+
+        if img1 is None:
+            img1 = self._screen_capture.grab_desktop(self._screen_capture.get_gray_mat)
+
+        thread_t0 = time.time()
+        time_before_loop = time.time()
+
+        one_thread_started = False
+
+        while True:
+            #txx = time.time()
+            try:
+
+                try: #for object finder only
+                    self._main_indexes_to_keep = []
+                    self._sub_indexes_to_keep = []
+                except:
+                    pass
+
+                if len(self._objects_found) == 0 and self._flag_thread_started is False and one_thread_started is True:
+                    #do analysis cjecl_time()
+                    """
+                    print "len main:", len(self._objects_found)
+
+                    print "main x, y, w, h:", self._objects_found[0][0].x, self._objects_found[0][0].y, self._objects_found[0][0].width, self._objects_found[0][0].height
+
+
+                    if self._objects_found[0][1] is not None:
+                        print "len secodn:", len(self._objects_found[0][1])
+                        for sub_obj in self._objects_found[0][1]:
+                            print "sub x, y, w, h:", sub_obj.x, sub_obj.y, sub_obj.width, sub_obj.height
+                    """
+
+                    self._objects_found = copy.deepcopy(obj_found)
+
+                    self._last_thread_image = self._uncompress_image(self._find_thread_images_disappear[-1][1])
+
+                    self._log_manager.save_timedout_objects(self._name, self.get_source_image_gray(), self._timedout_main_components, self._timedout_sub_components, self._main_extra_img_log, self._sub_extra_imgages_log, disappear_mode=True)
+
+                    #for i in range(len(self._find_thread_images)):
+                    #    cv2.imwrite("c:\\log\\buffer_images\\_oldd_" + str(self._find_thread_images[i][0]) + ".png", self._uncompress_image(self._find_thread_images[i][1]))
+
+
+                    #perf_appear = self._get_performance(wait_disappear=True)
+
+                    perf_disappear = self._get_disappear_performance()
+
+                    return perf_disappear
+
+                    #return self._get_disappear_performance()
+                    #return self._get_performance()
+
+
+                if time_elapsed > timeout_value and self._flag_thread_started is False:
+                    self._last_thread_image = self._uncompress_image(self._find_thread_images_disappear[-1][1])
+                    #from alyvix.finders.cv.rectfinder import RectFinder
+                    #from alyvix.finders.cv.imagefinder import ImageFinder
+                    #from alyvix.finders.cv.textfinder import TextFinder
+                    from alyvix.finders.cv.objectfinder import ObjectFinder
+
+                    #if not isinstance(self, ObjectFinder):
+                    #self._log_manager.save_timedout_objects(self._name + "_timedout", self.get_source_image_gray(), self._timedout_main_components, self._timedout_sub_components, self._main_extra_img_log, self._sub_extra_imgages_log)
+                    self._log_manager.save_objects_found(self._name + "_timedout", self.get_source_image_gray(), self._objects_found, [x[1] for x in self._sub_components], disappear_mode=True)
+
+                    #else:
+                    """
+                    if isinstance(self, ObjectFinder):
+
+                        #self._log_manager.save_timedout_objects(self._name + "_timedout", self._last_thread_image, self._main_component[0]._timedout_main_components, self._main_component[0]._timedout_sub_components, self._main_component[0]._main_extra_img_log, self._main_component[0]._sub_extra_imgages_log, True, self._main_component[0]._name)
+
+                        if len(self._main_component[0]._objects_found) == 0:
+                            self._log_manager.save_timedout_objects(self._name + "_timedout", self._last_thread_image, self._main_component[0]._timedout_main_components, self._main_component[0]._timedout_sub_components, self._main_component[0]._main_extra_img_log, self._main_component[0]._sub_extra_imgages_log, True, self._main_component[0]._name)
+
+                        for t_sub in self._sub_components:
+                            self._log_manager.save_timedout_objects(self._name + "_timedout", self._last_thread_image, t_sub[0]._timedout_main_components, t_sub[0]._timedout_sub_components, t_sub[0]._main_extra_img_log, t_sub[0]._sub_extra_imgages_log, True, t_sub[0]._name)
+                    """
+                    return -1
+
+                t0 = time.time()
+
+                #cv2.imwrite('img2.png', img2)
+
+                #if time.time() - thread_t0 >= thread_interval:
+                if time_elapsed < timeout_value and time.time() - thread_t0 >= thread_interval and self._flag_thread_started is False:
+                    thread_t0 = time.time()
+
+                    self._flag_thread_started = True
+
+                    """
+                    folder = 'c:\\log\\buffer_images'
+                    for the_file in os.listdir(folder):
+                        file_path = os.path.join(folder, the_file)
+                        try:
+                            if os.path.isfile(file_path):
+                                os.unlink(file_path)
+                        except Exception, e:
+                            print e
+                    """
+
+
+                    #for i in range(len(self._find_thread_images)):
+                    #    cv2.imwrite("c:\\log\\buffer_images\\_old_" + str(self._find_thread_images[i][0]) + ".png", self._uncompress_image(self._find_thread_images[i][1]))
+
+
+                    if one_thread_started is False:
+                        self._find_thread_images_disappear = copy.deepcopy(self._heartbeat_images_copy)
+                        self._find_thread_images_disappear.extend(copy.deepcopy(self._heartbeat_images))
+                    else:
+                        self._find_thread_images_disappear = copy.deepcopy(self._heartbeat_images)
+
+                    self._heartbeat_images = []
+
+                    self.set_source_image_color(img2_color)
+                    self.set_source_image_gray(img2_gray)
+                    if self._log_manager.is_log_enable() is True:
+                        self._log_manager.delete_all_items(keep_items=20, exclude_item="difference")
+                    worker = Thread(target=self.find)
+                    worker.setDaemon(True)
+                    worker.start()
+                    one_thread_started = True
+
+                img2_color = self._screen_capture.grab_desktop(self._screen_capture.get_color_mat)
+                img2_gray = cv2.cvtColor(img2_color, cv2.COLOR_BGR2GRAY)
+                #self._timer_for_disappear += time_elapsed
+                self._heartbeat_images.append((self._timer_for_disappear + time_elapsed, self._compress_image(img2_gray)))
+
+
+                t1 = time.time() - t0
+                time_sleep = check_diff_interval - t1
+                if time_sleep < 0:
+                    time_sleep = 0
+
+                time.sleep(time_sleep)
+
+                time_elapsed = time.time() - time_before_loop
+                #print time_elapsed
+
+            except Exception, err:
+                #print str(err) + " on line " + str(sys.exc_traceback.tb_lineno)
+                self._log_manager.save_exception("ERROR", "an exception has occurred: " + str(err) + " on line " + str(sys.exc_traceback.tb_lineno))
+                return None
+
+
+
+    def _check_object_presence(self, img, offset_border, crop_value, wait_disappear=False):
         """
         check if the object is present into the image.
 
@@ -405,9 +628,12 @@ class BaseFinder(object):
         if y2 > img_height:
             y2 = img_height
 
-        main_template = self._last_thread_image[y1:y2, x1:x2] #self._uncompress_image(self._find_thread_images[-1][1])[y1:y2, x1:x2]
+        if wait_disappear is False:
+            main_template = self._last_thread_image[y1:y2, x1:x2] #self._uncompress_image(self._find_thread_images[-1][1])[y1:y2, x1:x2]
+        else:
+            main_template = self._last_thread_image_copy[y1:y2, x1:x2] #self._uncompress_image(self._find_thread_images[-1][1])[y1:y2, x1:x2]
 
-        #cv2.imwrite("c:\\log\\buffer_images\\main_template.png",main_template)
+        cv2.imwrite("c:\\log\\buffer_images\\main_template.png",main_template)
 
         check_presence.set_xy(x1 - crop_value[0], y1 - crop_value[1]) #(x1, y1) #(x1 - crop_value[0], y1 - crop_value[1])
 
@@ -448,7 +674,10 @@ class BaseFinder(object):
                 if y2 > img_height:
                     y2 = img_height
 
-                sub_img = self._last_thread_image[y1:y2, x1:x2] #self._uncompress_image(self._find_thread_images[-1][1])[y1:y2, x1:x2]
+                if wait_disappear is False:
+                    sub_img = self._last_thread_image[y1:y2, x1:x2] #self._uncompress_image(self._find_thread_images[-1][1])[y1:y2, x1:x2]
+                else:
+                    sub_img = self._last_thread_image_copy[y1:y2, x1:x2]
 
                 sub_x = sub_obj.x - (offset_border * 4)
                 sub_y = sub_obj.y - (offset_border * 4)
@@ -467,7 +696,7 @@ class BaseFinder(object):
 
         return is_pesent
 
-    def _get_performance(self):
+    def _get_performance(self, wait_disappear=False):
         """
         get the performance.
 
@@ -534,7 +763,7 @@ class BaseFinder(object):
 
         #cv2.imwrite("c:\\log\\buffer_images\\cropped.png", self._uncompress_image(self._find_thread_images[0][1])[min_y:max_height, min_x:max_width] )
 
-        if self._check_object_presence(self._uncompress_image(self._find_thread_images[0][1]), offset_border, (min_x, min_y, max_width, max_height)) is True:
+        if self._check_object_presence(self._uncompress_image(self._find_thread_images[0][1]), offset_border, (min_x, min_y, max_width, max_height), wait_disappear) is True:
             return self._find_thread_images[0][0]
 
         frame_step = 10
@@ -557,7 +786,7 @@ class BaseFinder(object):
             index = (len(self._find_thread_images) - (frame_step * i))
             #print index
 
-            if self._check_object_presence(self._uncompress_image(self._find_thread_images[index][1]), offset_border, (min_x, min_y, max_width, max_height)) is True:
+            if self._check_object_presence(self._uncompress_image(self._find_thread_images[index][1]), offset_border, (min_x, min_y, max_width, max_height), wait_disappear) is True:
                 last_found_index = index
             else: #elif last_notfound_index == 0:
                 last_notfound_index = index
@@ -571,13 +800,125 @@ class BaseFinder(object):
         for i in range(last_found_index):
             if i > last_notfound_index:
                 #print "index searching:", i
-                if self._check_object_presence(self._uncompress_image(self._find_thread_images[i][1]), offset_border, (min_x, min_y, max_width, max_height)) is True:
+                if self._check_object_presence(self._uncompress_image(self._find_thread_images[i][1]), offset_border, (min_x, min_y, max_width, max_height), wait_disappear) is True:
                     #print "get performance time:", time.time() - t0
                     return self._find_thread_images[i][0]
 
         #print "get performance time:", time.time() - t0
 
         return self._find_thread_images[-1][0]
+
+    def _get_disappear_performance(self):
+        """
+        get the performance.
+
+        :rtype: float
+        :return: returns the performance in seconds
+        """
+
+        t0 = time.time()
+
+        if self.__enable_debug_calcperf is True:
+            for i in range(len(self._find_thread_images_disappear)):
+                cv2.imwrite("c:\\log\\buffer_images\\" + str(self._find_thread_images_disappear[i][0]) + ".png", self._uncompress_image(self._find_thread_images_disappear[i][1]))
+
+
+        offset_border = self._objects_found[0][0].width
+
+        if offset_border > self._objects_found[0][0].height:
+            offset_border = self._objects_found[0][0].height
+
+        offset_border = int(offset_border/10)
+
+        if offset_border < 8:
+            offset_border = 8
+
+        min_x = self._objects_found[0][0].x
+        min_y = self._objects_found[0][0].y
+        max_width = self._objects_found[0][0].x + self._objects_found[0][0].width
+        max_height = self._objects_found[0][0].y + self._objects_found[0][0].height
+
+        if self._objects_found[0][1] is not None:
+
+            for sub_obj in self._objects_found[0][1]:
+
+                if sub_obj.x < min_x:
+                    min_x = sub_obj.x
+
+                if sub_obj.y < min_y:
+                    min_y = sub_obj.y
+
+                if sub_obj.x + sub_obj.width > max_width:
+                    max_width = sub_obj.x + sub_obj.width
+
+                if sub_obj.y + sub_obj.height > max_height:
+                    max_height = sub_obj.y + sub_obj.height
+
+        min_x = min_x - (offset_border * 6)
+        min_y = min_y - (offset_border * 6)
+        max_width = max_width + (offset_border * 6 * 2)
+        max_height = max_height + (offset_border * 6 * 2)
+
+        img_height, img_width = self._last_thread_image.shape
+
+        if min_x < 0:
+            min_x = 0
+
+        if min_y < 0:
+            min_y = 0
+
+        if max_width > img_width:
+            max_width = img_width
+
+        if max_height > img_height:
+            max_height = img_height
+
+        cv2.imwrite("c:\\log\\buffer_images\\cropped.png", self._uncompress_image(self._find_thread_images_disappear[0][1])[min_y:max_height, min_x:max_width] )
+
+        if self._check_object_presence(self._uncompress_image(self._find_thread_images_disappear[0][1]), offset_border, (min_x, min_y, max_width, max_height), wait_disappear=True) is False:
+            return self._find_thread_images_disappear[0][0]
+
+        frame_step = 10
+        loop_step = round(float(len(self._find_thread_images_disappear))/float(frame_step))
+        loop_step = int(loop_step)
+
+        #print "loop step", int(loop_step)
+
+        if loop_step < 1:
+            loop_step = 1
+
+        last_found_index = 0
+        last_notfound_index = len(self._find_thread_images_disappear) -1
+
+        for i in range(loop_step):
+
+            if i == 0:
+                continue
+
+            index = (len(self._find_thread_images_disappear) - (frame_step * i))
+            #print index
+
+            if self._check_object_presence(self._uncompress_image(self._find_thread_images_disappear[index][1]), offset_border, (min_x, min_y, max_width, max_height), wait_disappear=True) is False:
+                last_notfound_index = index
+            else: #elif last_notfound_index == 0:
+                last_found_index = index
+                break
+
+
+
+        #print "last found", last_found_index
+        #print "last not found", last_notfound_index
+
+        for i in range(last_notfound_index):
+            if i > last_found_index:
+                #print "index searching:", i
+                if self._check_object_presence(self._uncompress_image(self._find_thread_images_disappear[i][1]), offset_border, (min_x, min_y, max_width, max_height), wait_disappear=True) is False:
+                    #print "get performance time:", time.time() - t0
+                    return self._find_thread_images_disappear[i][0]
+
+        #print "get performance time:", time.time() - t0
+
+        return self._find_thread_images_disappear[-1][0]
 
     def get_result(self, main_obj_index=0, sub_obj_index = None):
         """

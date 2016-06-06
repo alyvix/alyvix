@@ -49,6 +49,11 @@ class InfoManager():
         robot_context = robot_manager.context_is_set()
         self.set_info('ROBOT CONTEXT', robot_context)
 
+        self.set_info('FINDER THREAD INTERVAL', config_reader.get_finder_thread_interval())
+        self.set_info('FINDER THREAD INTERVAL DISAPPEAR', config_reader.get_finder_thread_interval_disappear())
+        self.set_info('CHECK DIFF INTERVAL', config_reader.get_finder_diff_interval())
+        self.set_info('CHECK DIFF INTERVAL DISAPPEAR', config_reader.get_finder_diff_interval_disappear())
+
         if robot_context:
             self.set_info('SUITE NAME', robot_manager.get_suite_name())
             self.set_info('SUITE SOURCE', robot_manager.get_suite_source())

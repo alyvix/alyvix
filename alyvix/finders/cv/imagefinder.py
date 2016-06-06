@@ -135,6 +135,7 @@ class ImageFinder(BaseFinder):
         :rtype: list[(int, int, int, int)]
         :return: x, y, height, width of main template(s)
         """
+        #tzero = time.time()
         try:
 
             #x = 1 / 0
@@ -366,6 +367,8 @@ class ImageFinder(BaseFinder):
             #time.sleep(40)
 
             self._flag_thread_started = False
+
+            #print time.time() - tzero
 
             return self._objects_found
 

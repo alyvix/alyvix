@@ -259,7 +259,7 @@ class LogManager:
             #import traceback
             #self.save_exception("ERROR", traceback.format_exc())
 
-    def save_objects_found(self, image_name, image_data, objects_found, roi):
+    def save_objects_found(self, image_name, image_data, objects_found, roi, disappear_mode=False):
         """
         save the image into the test case log folder.
 
@@ -399,9 +399,13 @@ class LogManager:
                 file_name = file_name + ".png"
 
                 cv2.imwrite(outputdir + os.sep + file_name, img_color)  #, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
-                self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "INFO", True)
 
-    def save_timedout_objects(self, image_name, image_data, main_components, sub_components, main_extra_img, sub_extra_images, save_only_extra=False, object_name=None):
+                if disappear_mode is False:
+                    self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "INFO", True)
+                else:
+                    self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "ERROR", True)
+
+    def save_timedout_objects(self, image_name, image_data, main_components, sub_components, main_extra_img, sub_extra_images, save_only_extra=False, object_name=None, disappear_mode=False):
         """
         save the image into the test case log folder.
 
@@ -812,7 +816,10 @@ class LogManager:
 
                 writeGif(outputdir + os.sep + file_name, gif_images, duration=1)
 
-                self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "ERROR", True)
+                if disappear_mode is False:
+                    self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "ERROR", True)
+                else:
+                    self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "INFO", True)
 
             if overwrite_images is False:
                 file_name = self._check_if_img_exists(outputdir, image_name + "_extra", "gif")

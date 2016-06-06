@@ -36,6 +36,12 @@ def overwrite_alyvix_screen(overwrite="true"):
     info_manager = InfoManager()
     
     info_manager.set_info("OVERWRITE LOG IMAGES", overwrite_value)
+
+def set_alyvix_info(name, value):
+
+    info_manager = InfoManager()
+
+    info_manager.set_info(name, value)
     
 def alyvix_config(full_filename):
     os.environ["alyvix_testcase_config"] = full_filename
