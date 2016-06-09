@@ -111,6 +111,7 @@ class AlyvixImageFinderView(QWidget):
         
         self.build_objects()
         self.__old_code = self.get_old_code()
+        self.__old_code_v220 = self.get_old_code_v220()
         #print self.__old_code
         
         self._old_main_template = copy.deepcopy(self._main_template)
@@ -696,6 +697,7 @@ class AlyvixImageFinderView(QWidget):
         current_code_string = unicode(self.build_code_string(), 'utf-8')
         #current_code_string = current_code_string.replace(os.linesep + os.linesep, os.linesep)
         
+        file_code_string = file_code_string.replace(unicode(self.__old_code_v220, 'utf-8'), "")
         file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), "")
         
         string = file_code_string
@@ -738,6 +740,7 @@ class AlyvixImageFinderView(QWidget):
         elif self.action == "new":
             file_code_string = file_code_string + current_code_string
         elif self.action == "edit":
+            file_code_string = file_code_string.replace(unicode(self.__old_code_v220, 'utf-8'), current_code_string)
             file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), current_code_string)
             """
             print self.__old_code
@@ -759,6 +762,13 @@ class AlyvixImageFinderView(QWidget):
             return "".encode('utf-8')
         
         self.build_code_array()
+        return self.build_code_string()
+        
+    def get_old_code_v220(self):
+        if self._main_template is None:
+            return "".encode('utf-8')
+        
+        self.build_code_array_v220()
         return self.build_code_string()
     
     def build_code_string(self):
@@ -803,7 +813,253 @@ class AlyvixImageFinderView(QWidget):
 
         #string = string[:-1]
         return string.encode('UTF-8')
+    
+    def build_code_array_v220(self):
+    
+        kmanager_declared = False
+        mmanager_declared = False
+       
+        if self._main_template is None:
+            return
+            
+        self._code_lines = []
+        self._code_lines_for_object_finder = []
+            
+        name = self.object_name
         
+        if name == "":
+            name = time.strftime("image_finder_%d_%m_%y_%H_%M_%S")
+            self.object_name = name
+            
+        strcode = name + "_object = None"
+        self._code_lines.append(strcode)
+        self._code_lines_for_object_finder.append(strcode)
+
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")  
+        self._code_lines.append("    " + name + "_object = ImageFinder(\"" + name + "\")")
+
+        template_image_path = self._path + os.sep + name
+        
+        #self._main_template.path = template_image_path + os.sep + "main_template.png"
+        template_image_path = "alyvix" + os.sep + os.sep  + "robotproxy" + os.sep + os.sep + self._path.split(os.sep)[-1] + "_extra" + os.sep + os.sep + name
+        self._main_template.path = template_image_path + os.sep + "main_template.png"
+       
+        #self._main_template.path = self._main_template.path.replace("\\","\\\\")
+        
+        strcode = "    "  + name + "_object.set_main_component({\"path\": get_python_lib() + os.sep + \"" + self._main_template.path + "\", \"threshold\":" + repr(self._main_template.threshold) + "})"
+        
+        self._code_lines.append(strcode)
+        self._code_lines_for_object_finder.append(strcode)
+        
+        #self._code_lines.append("\n")
+        
+        cnt = 1
+        for sub_template in self._sub_templates_finder:
+            if sub_template.height != 0 and sub_template.width !=0:
+            
+                sub_template.path = template_image_path + os.sep + os.sep + "sub_template_" + str(cnt) + ".png"
+
+                #roi_x = str(sub_template.roi_x - self._main_template.x)
+                roi_x = str(sub_template.roi_x)
+                roi_y = str(sub_template.roi_y)
+                
+                roi_width = str(sub_template.roi_width)
+                roi_height = str(sub_template.roi_height)
+                    
+                str1 = "    " + name + "_object.add_sub_component({\"path\": get_python_lib() + os.sep + \"" + sub_template.path + "\", \"threshold\":" + repr(sub_template.threshold) + "},"
+                str2 = "                                  {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
+    
+                self._code_lines.append(str1)
+                self._code_lines.append(str2)
+                self._code_lines_for_object_finder.append(str1)
+                self._code_lines_for_object_finder.append(str2)
+    
+                #self._code_lines.append("\n")
+                cnt = cnt + 1
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "_mouse_keyboard("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")
+        
+        if self._main_template.click == True or self._main_template.doubleclick == True or self._main_template.rightclick == True or self._main_template.mousemove == True:
+        
+            self._code_lines.append("    main_template_pos = " + name + "_object.get_result(0)")  
+        
+            if mmanager_declared is False:
+                self._code_lines.append("    m = MouseManager()")
+                mmanager_declared = True
+                
+            self._code_lines.append("    time.sleep(2)")
+                                
+            if self._main_template.click == True:
+                self._code_lines.append("    m.click(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2), 1)")
+            elif self._main_template.doubleclick == True:
+                self._code_lines.append("    m.click(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2), 1, 2)")
+            elif self._main_template.rightclick == True:
+                self._code_lines.append("    m.click(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2), 2)")
+            elif self._main_template.mousemove == True:
+                self._code_lines.append("    m.move(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2))")
+
+                
+        if self._main_template.sendkeys != "":
+            if kmanager_declared is False:
+                self._code_lines.append("    k  = KeyboardManager()")
+                kmanager_declared = True
+            keys = unicode(self._main_template.sendkeys, 'utf-8')
+            self._code_lines.append("    time.sleep(2)")
+            
+            if self._main_template.sendkeys_quotes is True:
+                self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_template.text_encrypted) + ")")
+            else:
+                self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_template.text_encrypted) + ")")
+                
+        cnt = 0
+        for sub_template in self._sub_templates_finder:
+        
+            if sub_template.height != 0 and sub_template.width !=0:
+                if sub_template.click == True or sub_template.doubleclick == True or sub_template.rightclick == True or sub_template.mousemove == True:
+            
+                    self._code_lines.append("    sub_template_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
+                
+                    if mmanager_declared is False:
+                        self._code_lines.append("    m = MouseManager()")
+                        mmanager_declared = True
+                    self._code_lines.append("    time.sleep(2)")
+                                        
+                    if sub_template.click == True:
+                        self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2), 1)")
+                    elif sub_template.doubleclick == True:
+                        self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2), 1, 2)")
+                    elif sub_template.rightclick == True:
+                        self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2), 2)")
+                    elif sub_template.mousemove == True:
+                        self._code_lines.append("    m.move(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2))")
+                        
+                if sub_template.sendkeys != "":
+                    if kmanager_declared is False:
+                        self._code_lines.append("    k  = KeyboardManager()")
+                        kmanager_declared = True
+                    keys = unicode(sub_template.sendkeys, 'utf-8')
+                    self._code_lines.append("    time.sleep(2)")
+                    
+                    if sub_template.sendkeys_quotes is True:
+                        self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_template.text_encrypted) + ")")
+                    else:
+                        self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_template.text_encrypted) + ")")
+                                    
+                cnt = cnt + 1
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")  
+        
+        string_function_args = "    " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+
+        if self.find is True:  
+            self._code_lines.append("    " + name + "_object.find()")
+        else:
+            self._code_lines.append("    wait_time = " + name + "_object.wait(" + str(self.timeout) + ")")
+           
+        if self.enable_performance is True and self.find is False:
+            self._code_lines.append("    if wait_time == -1:")
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                self._code_lines.append("        return False")
+            self._code_lines.append("    elif wait_time < " + repr(self.warning) + ":")
+            self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time, \"sec.\"")
+            self._code_lines.append("    elif wait_time < " + repr(self.critical) + ":")
+            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("    else:")
+            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("    p = PerfManager()")
+            self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+        elif self.find is False:
+            self._code_lines.append("    if wait_time == -1:")
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                self._code_lines.append("        return False")  
+            #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+        
+        string_function_args = "    " + name + "_mouse_keyboard("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+        
+        if self.timeout_exception is False:
+            self._code_lines.append("    return True")
+        self._code_lines.append("")
+        self._code_lines.append("")
+
+        #x = 2
+        
+        #tmp_array =  self._code_lines[:x] + ["aaaaaaaaa"] +  self._code_lines[x:]
+        
+        #self._code_lines = tmp_array
+
+        """
+        for element in self._code_lines:
+            print element
+        """ 
+    
     def build_code_array(self):
     
         self.mouse_or_key_is_set = False

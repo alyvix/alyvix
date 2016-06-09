@@ -336,7 +336,7 @@ class Ui_Form(object):
         self.tab_perfdata = QtGui.QWidget()
         self.tab_perfdata.setObjectName(_fromUtf8("tab_perfdata"))
         self.gridLayoutWidget_3 = QtGui.QWidget(self.tab_perfdata)
-        self.gridLayoutWidget_3.setGeometry(QtCore.QRect(19, 30, 497, 22))
+        self.gridLayoutWidget_3.setGeometry(QtCore.QRect(19, 10, 497, 61))
         self.gridLayoutWidget_3.setObjectName(_fromUtf8("gridLayoutWidget_3"))
         self.gridLayout_3 = QtGui.QGridLayout(self.gridLayoutWidget_3)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))

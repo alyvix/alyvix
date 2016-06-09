@@ -122,6 +122,7 @@ class AlyvixTextFinderView(QWidget):
         #self.update_path_and_name(path)
         
         self.build_objects()
+        self.__old_code_v220 = self.get_old_code_v220()
         self.__old_code = self.get_old_code()
         #print self.__old_code
         
@@ -875,6 +876,7 @@ class AlyvixTextFinderView(QWidget):
         current_code_string = unicode(self.build_code_string(), 'utf-8')
         #current_code_string = current_code_string.replace(os.linesep + os.linesep, os.linesep)
         
+        file_code_string = file_code_string.replace(unicode(self.__old_code_v220, 'utf-8'), "")
         file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), "")
         
         string = file_code_string
@@ -917,6 +919,7 @@ class AlyvixTextFinderView(QWidget):
         elif self.action == "new":
             file_code_string = file_code_string + current_code_string
         elif self.action == "edit":
+            file_code_string = file_code_string.replace(unicode(self.__old_code_v220, 'utf-8'), current_code_string)
             file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), current_code_string)
             """
             print self.__old_code
@@ -932,6 +935,13 @@ class AlyvixTextFinderView(QWidget):
         file = codecs.open(filename, 'w', 'utf-8')
         file.write(unicode(string, 'utf-8'))
         file.close()    
+    
+    def get_old_code_v220(self):
+        if self._main_text is None:
+            return "".encode('utf-8')
+        
+        self.build_code_array_v220()
+        return self.build_code_string()
     
     def get_old_code(self):
         if self._main_text is None:
@@ -982,6 +992,359 @@ class AlyvixTextFinderView(QWidget):
 
         #string = string[:-1]
         return string.encode('UTF-8')
+        
+    def build_code_array_v220(self):
+    
+        kmanager_declared = False
+        mmanager_declared = False
+       
+        if self._main_text is None:
+            return
+            
+        self._code_lines = []
+        self._code_lines_for_object_finder = []
+            
+        name = self.object_name
+        
+        if name == "":
+            name = time.strftime("text_finder_%d_%m_%y_%H_%M_%S")
+            self.object_name = name
+            
+        #self._code_lines.append("def " + name + "():")
+        
+        strcode = name + "_object = None" #TextFinder(\"" + name + "\")"
+        self._code_lines.append(strcode)
+        self._code_lines_for_object_finder.append(strcode)
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+            
+        
+        #strcode = "    text_finder = TextFinder(\"" + name + "\")"
+        #self._code_lines.append(strcode)
+        #self._code_lines_for_object_finder.append(strcode)
+        
+        roi_x = str(self._main_text.roi_x)
+        roi_y = str(self._main_text.roi_y)
+        roi_width = str(self._main_text.roi_width)
+        roi_height = str(self._main_text.roi_height)
+        
+        self._code_lines.append("    global " + name + "_object")  
+        self._code_lines.append("    " + name + "_object = TextFinder(\"" + name + "\")")
+        
+        text_to_find = ""
+        
+        if self._main_text.quotes_ocr is True:
+            text_to_find = "\"" + unicode(self._main_text.text, "utf8") + "\""
+        else:
+            text_to_find = self._main_text.text + ".encode('utf8')"
+        
+        if self._main_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
+            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"},"
+        else:
+            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"" + ", \"whitelist\": \"" + unicode(self._main_text.whitelist, "utf8") + "\"},"
+            
+        str2 ="                                   {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
+            
+        self._code_lines.append(str1)
+        self._code_lines.append(str2)
+        self._code_lines_for_object_finder.append(str1)
+        self._code_lines_for_object_finder.append(str2)
+        
+        #self._code_lines.append("\n")
+        
+        cnt = 1
+        for sub_text in self._sub_texts_finder:
+            if sub_text.height != 0 and sub_text.width !=0:
+            
+                #sub_text.path = template_text_path + os.sep + "sub_text_" + str(cnt) + ".png"
+                #sub_text.path = sub_text.path.replace("\\","\\\\")
+            
+                #roi_x = str(sub_text.roi_x - self._main_text.x)
+                roi_x = str(sub_text.roi_x)
+                roi_y = str(sub_text.roi_y)
+                
+                roi_width = str(sub_text.roi_width)
+                roi_height = str(sub_text.roi_height)
+                    
+                text_to_find = ""
+                if sub_text.quotes_ocr is True:
+                    text_to_find = "\"" + unicode(sub_text.text, "utf8") + "\""
+                else:
+                    text_to_find = sub_text.text + ".encode('utf8')"
+            
+                #str1 = "    text_finder.add_sub_component({\"path\": \"" + sub_text.path + "\", \"threshold\":" + repr(sub_text.threshold) + "},"
+                if sub_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
+                    str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\"},"
+                else:
+                    str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\", \"whitelist\": \"" + unicode(sub_text.whitelist, "utf8") + "\"},"
+                    
+                
+                str2 = "                                  {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
+    
+                self._code_lines.append(str1)
+                self._code_lines.append(str2)
+                self._code_lines_for_object_finder.append(str1)
+                self._code_lines_for_object_finder.append(str2)
+    
+                #self._code_lines.append("\n")
+                cnt = cnt + 1
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "_mouse_keyboard("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")
+        
+        if self._main_text.click == True or self._main_text.doubleclick == True or self._main_text.rightclick == True or self._main_text.mousemove == True:
+        
+            self._code_lines.append("    main_text_pos = " + name + "_object.get_result(0)")  
+        
+            if mmanager_declared is False:
+                self._code_lines.append("    m = MouseManager()")
+                mmanager_declared = True
+                
+            self._code_lines.append("    time.sleep(2)")
+                                
+            if self._main_text.click == True:
+                self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1)")
+            elif self._main_text.doubleclick == True:
+                self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1, 2)")
+            elif self._main_text.rightclick == True:
+                self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 2)")
+            elif self._main_text.mousemove == True:
+                self._code_lines.append("    m.move(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+
+                
+        if self._main_text.sendkeys != "":
+            if kmanager_declared is False:
+                self._code_lines.append("    k  = KeyboardManager()")
+                kmanager_declared = True
+            keys = unicode(self._main_text.sendkeys, 'utf-8')
+            self._code_lines.append("    time.sleep(2)")
+            
+            if self._main_text.sendkeys_quotes is True:
+                self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_text.text_encrypted) + ")")
+            else:
+                self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_text.text_encrypted) + ")")
+            
+        cnt = 0
+        for sub_text in self._sub_texts_finder:
+        
+            if sub_text.height != 0 and sub_text.width !=0:
+                if sub_text.click == True or sub_text.doubleclick == True or sub_text.rightclick == True or sub_text.mousemove == True:
+            
+                    self._code_lines.append("    sub_text_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
+                
+                    if mmanager_declared is False:
+                        self._code_lines.append("    m = MouseManager()")
+                        mmanager_declared = True
+                    self._code_lines.append("    time.sleep(2)")
+                                        
+                    if sub_text.click == True:
+                        self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1)")
+                    elif sub_text.doubleclick == True:
+                        self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1, 2)")
+                    elif sub_text.rightclick == True:
+                        self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 2)")
+                    elif sub_text.mousemove == True:
+                        self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                        
+                if sub_text.sendkeys != "":
+                    if kmanager_declared is False:
+                        self._code_lines.append("    k  = KeyboardManager()")
+                        kmanager_declared = True
+                    keys = unicode(sub_text.sendkeys, 'utf-8')
+                    self._code_lines.append("    time.sleep(2)")
+                    
+                    if sub_text.sendkeys_quotes is True:
+                        self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_text.text_encrypted) + ")")
+                    else:
+                        self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_text.text_encrypted) + ")")
+                              
+                                    
+                cnt = cnt + 1
+                
+        #if kmanager_declared is False and mmanager_declared is False:
+        #    self._code_lines.append("    pass")
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")  
+
+        string_function_args = "    " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+
+        if self.find is True:  
+            self._code_lines.append("    " + name + "_object.find()")
+        else:
+            self._code_lines.append("    wait_time = " + name + "_object.wait(" + str(self.timeout) + ")")
+           
+        if self.enable_performance is True and self.find is False:
+            self._code_lines.append("    if wait_time == -1:")
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                self._code_lines.append("        return False")
+            self._code_lines.append("    elif wait_time < " + repr(self.warning) + ":")
+            self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time, \"sec.\"")
+            self._code_lines.append("    elif wait_time < " + repr(self.critical) + ":")
+            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("    else:")
+            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+            self._code_lines.append("    p = PerfManager()")
+            self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+        elif self.find is False:
+            self._code_lines.append("    if wait_time == -1:")
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                self._code_lines.append("        return False")  
+            #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+ 
+        string_function_args = "    " + name + "_mouse_keyboard("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+ 
+        """
+        if self._main_text.click == True or self._main_text.doubleclick == True or self._main_text.rightclick == True or self._main_text.mousemove == True:
+        
+            self._code_lines.append("    main_text_pos = " + name + "_object.get_result(0)")  
+        
+            if mmanager_declared is False:
+                self._code_lines.append("    m = MouseManager()")
+                mmanager_declared = True
+                
+            self._code_lines.append("    time.sleep(2)")
+                                
+            if self._main_text.click == True:
+                self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1)")
+            elif self._main_text.doubleclick == True:
+                self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1, 2)")
+            elif self._main_text.rightclick == True:
+                self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 2)")
+            elif self._main_text.mousemove == True:
+                self._code_lines.append("    m.move(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+
+                
+        if self._main_text.sendkeys != "":
+            if kmanager_declared is False:
+                self._code_lines.append("    k  = KeyboardManager()")
+                kmanager_declared = True
+            keys = unicode(self._main_text.sendkeys, 'utf-8')
+            self._code_lines.append("    time.sleep(2)")
+            
+            if self._main_text.sendkeys_quotes is True:
+                self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_text.text_encrypted) + ")")
+            else:
+                self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_text.text_encrypted) + ")")
+            
+        cnt = 0
+        for sub_text in self._sub_texts_finder:
+        
+            if sub_text.height != 0 and sub_text.width !=0:
+                if sub_text.click == True or sub_text.doubleclick == True or sub_text.rightclick == True or sub_text.mousemove == True:
+            
+                    self._code_lines.append("    sub_text_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
+                
+                    if mmanager_declared is False:
+                        self._code_lines.append("    mouse = MouseManager()")
+                        mmanager_declared = True
+                    self._code_lines.append("    time.sleep(2)")
+                                        
+                    if sub_text.click == True:
+                        self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1)")
+                    elif sub_text.doubleclick == True:
+                        self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1, 2)")
+                    elif sub_text.rightclick == True:
+                        self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 2)")
+                    elif sub_text.mousemove == True:
+                        self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                        
+                if sub_text.sendkeys != "":
+                    if kmanager_declared is False:
+                        self._code_lines.append("    k  = KeyboardManager()")
+                        kmanager_declared = True
+                    keys = unicode(sub_text.sendkeys, 'utf-8')
+                    self._code_lines.append("    time.sleep(2)")
+                    
+                    if sub_text.sendkeys_quotes is True:
+                        self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_text.text_encrypted) + ")")
+                    else:
+                        self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_text.text_encrypted) + ")")
+                              
+                                    
+                cnt = cnt + 1
+        """
+        
+        if self.timeout_exception is False:
+            self._code_lines.append("    return True")
+        self._code_lines.append("")
+        self._code_lines.append("")
+
+        #x = 2
+        
+        #tmp_array =  self._code_lines[:x] + ["aaaaaaaaa"] +  self._code_lines[x:]
+        
+        #self._code_lines = tmp_array
+
+        """
+        for element in self._code_lines:
+            print element
+        """ 
         
     def build_code_array(self):
     

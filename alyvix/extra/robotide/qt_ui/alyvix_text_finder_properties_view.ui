@@ -758,9 +758,9 @@
      <property name="geometry">
       <rect>
        <x>19</x>
-       <y>30</y>
+       <y>10</y>
        <width>497</width>
-       <height>22</height>
+       <height>61</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
