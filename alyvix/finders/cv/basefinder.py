@@ -149,6 +149,8 @@ class BaseFinder(object):
 
         self._timer_for_disappear = 0
 
+        self._object_is_found_flag = False
+
     def _compress_image(self, img):
         return cv2.imencode('.png', img)[1]
 
@@ -266,6 +268,8 @@ class BaseFinder(object):
         #time_of_last_change = 0.0
         self._time_checked_before_exit_start = None
 
+        self._object_is_found_flag = False
+
         #screenCapture = ScreenManager()
         thread_interval = self._info_manager.get_info("FINDER THREAD INTERVAL") #self._configReader.get_finder_thread_interval()
         #thread_interval = 0.5
@@ -307,6 +311,8 @@ class BaseFinder(object):
                         #self._find_thread_images_copy = copy.deepcopy(self._find_thread_images)
                         return -2
                     else:
+                        self._object_is_found_flag = True
+                        self._last_thread_image_copy = copy.deepcopy(self._last_thread_image)
                         return self._get_performance()
 
 
@@ -393,7 +399,7 @@ class BaseFinder(object):
 
     def wait_disappear(self, timeout=-1):
 
-        time.sleep(5)
+        #time.sleep(5)
 
         """
         wait until the object appears on the screen.
@@ -404,11 +410,11 @@ class BaseFinder(object):
         :type timeout: int
         """
 
-        self._heartbeat_images = []
-        self._find_thread_images = []
-        self._objects_found = []
 
-        wait_time = self.wait(timeout, wait_disappear=True)
+        if self._object_is_found_flag is True:
+            wait_time = 0
+        else:
+            wait_time = self.wait(timeout, wait_disappear=True)
 
         if wait_time == -1:
             return -1
@@ -418,6 +424,9 @@ class BaseFinder(object):
         obj_found = copy.deepcopy(self._objects_found)
         last_thread_img = copy.deepcopy(self._last_thread_image)
 
+        self._heartbeat_images = []
+        self._find_thread_images = []
+        self._objects_found = []
 
         #cv2.imwrite()
 
@@ -820,7 +829,7 @@ class BaseFinder(object):
 
         if self.__enable_debug_calcperf is True:
             for i in range(len(self._find_thread_images_disappear)):
-                cv2.imwrite("c:\\log\\buffer_images\\" + str(self._find_thread_images_disappear[i][0]) + ".png", self._uncompress_image(self._find_thread_images_disappear[i][1]))
+                cv2.imwrite("c:\\log\\buffer_disapp_images\\" + str(self._find_thread_images_disappear[i][0]) + ".png", self._uncompress_image(self._find_thread_images_disappear[i][1]))
 
 
         offset_border = self._objects_found[0][0].width

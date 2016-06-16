@@ -24,3 +24,5 @@ from alyvix.tools.info import InfoManager
 #update all info
 info_manager = InfoManager()
 info_manager.update()
+
+info_manager.set_info('OVERLAPPING TOLERANCE FACTOR', 10)

@@ -1628,14 +1628,18 @@ class AlyvixRectFinderView(QWidget):
             else:
                 self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
                 self._code_lines.append("        return False")
-            self._code_lines.append("    elif wait_time < " + repr(self.warning) + ":")
-            self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time, \"sec.\"")
-            self._code_lines.append("    elif wait_time < " + repr(self.critical) + ":")
-            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
-            self._code_lines.append("    else:")
-            self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
-            self._code_lines.append("    p = PerfManager()")
-            self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+            if self.wait_disapp is True and self.mouse_or_key_is_set is True:
+                pass
+            else:
+                self._code_lines.append("    elif wait_time < " + repr(self.warning) + ":")
+                self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time, \"sec.\"")
+                self._code_lines.append("    elif wait_time < " + repr(self.critical) + ":")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+                self._code_lines.append("    else:")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+
+                self._code_lines.append("    p = PerfManager()")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ")")
         elif self.find is False:
             self._code_lines.append("    if wait_time == -1:")
             if self.timeout_exception is True:
@@ -1667,14 +1671,14 @@ class AlyvixRectFinderView(QWidget):
                 else:
                     self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
                     self._code_lines.append("        return False")
-                self._code_lines.append("    elif wait_time_disappear < " + repr(self.warning) + ":")
-                self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time_disappear, \"sec.\"")
-                self._code_lines.append("    elif wait_time_disappear < " + repr(self.critical) + ":")
-                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    elif wait_time + wait_time_disappear < " + repr(self.warning) + ":")
+                self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time + wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    elif wait_time + wait_time_disappear < " + repr(self.critical) + ":")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time + wait_time_disappear, \"sec.\"")
                 self._code_lines.append("    else:")
-                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time_disappear, \"sec.\"")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time + wait_time_disappear, \"sec.\"")
                 self._code_lines.append("    p = PerfManager()")
-                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "_disappear\", wait_time_disappear, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time + wait_time_disappear, " + repr(self.warning) + ", " + repr(self.critical) + ")")
             elif self.find is False:
                 self._code_lines.append("    if wait_time_disappear == -1:")
                 if self.timeout_exception is True:

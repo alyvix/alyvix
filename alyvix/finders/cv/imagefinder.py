@@ -29,6 +29,7 @@ from alyvix.finders.cv.basefinder import BaseFinder
 from alyvix.finders.cv.basefinder import Roi
 from alyvix.finders.cv.basefinder import MatchResult
 from alyvix.tools.screen import ScreenManager
+from alyvix.tools.info import InfoManager
 
 
 class _Template():
@@ -67,6 +68,14 @@ class ImageFinder(BaseFinder):
         #self._sub_components = []
         self.__threshold = 0.7
         self.__timed_out_sub_extra_images = []
+
+        self._info_manager = InfoManager()
+        self._overlapping_factor = self._info_manager.get_info("OVERLAPPING TOLERANCE FACTOR")
+
+        try:
+            self._overlapping_factor = int(self._overlapping_factor)
+        except:
+            self._overlapping_factor = 10
 
         the_name = "template_finder"
 
@@ -278,8 +287,11 @@ class ImageFinder(BaseFinder):
 
                 for point_already_analyzed in analyzed_points:
 
-                    tolerance_region_w = (tpl_w/2)  + (20 * self._scaling_factor)
-                    tolerance_region_h = (tpl_h/2) + (20 * self._scaling_factor)
+                    #tolerance_region_w = (tpl_w/2)  + (20 * self._scaling_factor)
+                    #tolerance_region_h = (tpl_h/2) + (20 * self._scaling_factor)
+
+                    tolerance_region_w = (tpl_w/2)  + (self._overlapping_factor * self._scaling_factor)
+                    tolerance_region_h = (tpl_h/2) + (self._overlapping_factor * self._scaling_factor)
 
                     if (x >= point_already_analyzed[0] - tolerance_region_w and
                                 x <= point_already_analyzed[0] + tolerance_region_w) and\

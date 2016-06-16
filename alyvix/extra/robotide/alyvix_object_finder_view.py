@@ -1005,15 +1005,17 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             else:
                 self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\"")
                 self._code_lines.append("        return False")
-                
-            self._code_lines.append("    elif wait_time < " + repr(self._main_object_finder.warning) + ":")
-            self._code_lines.append("        print \"step " + self._main_object_finder.name + " is ok, execution time:\", wait_time, \"sec.\"")
-            self._code_lines.append("    elif wait_time < " + repr(self._main_object_finder.critical) + ":")
-            self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
-            self._code_lines.append("    else:")
-            self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
-            self._code_lines.append("    p = PerfManager()")
-            self._code_lines.append("    p.add_perfdata(\"" + str(self._main_object_finder.name) + "\", wait_time, " + repr(self._main_object_finder.warning) + ", " + repr(self._main_object_finder.critical) + ")")
+            if self._main_object_finder.wait_disapp is True and mouse_or_key_is_set is True:
+                pass
+            else:    
+                self._code_lines.append("    elif wait_time < " + repr(self._main_object_finder.warning) + ":")
+                self._code_lines.append("        print \"step " + self._main_object_finder.name + " is ok, execution time:\", wait_time, \"sec.\"")
+                self._code_lines.append("    elif wait_time < " + repr(self._main_object_finder.critical) + ":")
+                self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+                self._code_lines.append("    else:")
+                self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+                self._code_lines.append("    p = PerfManager()")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self._main_object_finder.name) + "\", wait_time, " + repr(self._main_object_finder.warning) + ", " + repr(self._main_object_finder.critical) + ")")
         elif self._main_object_finder.find is False:
             self._code_lines.append("    if wait_time == -1:")
             if self._main_object_finder.timeout_exception is True:
@@ -1065,14 +1067,14 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                     self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\"")
                     self._code_lines.append("        return False")
                     
-                self._code_lines.append("    elif wait_time_disappear < " + repr(self._main_object_finder.warning) + ":")
-                self._code_lines.append("        print \"step " + self._main_object_finder.name + " is ok, execution time:\", wait_time_disappear, \"sec.\"")
-                self._code_lines.append("    elif wait_time_disappear < " + repr(self._main_object_finder.critical) + ":")
-                self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+                self._code_lines.append("    elif wait_time + wait_time_disappear < " + repr(self._main_object_finder.warning) + ":")
+                self._code_lines.append("        print \"step " + self._main_object_finder.name + " is ok, execution time:\", wait_time + wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    elif wait_time + wait_time_disappear < " + repr(self._main_object_finder.critical) + ":")
+                self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance warning threshold:\", wait_time + wait_time_disappear, \"sec.\"")
                 self._code_lines.append("    else:")
-                self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+                self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance critical threshold:\", wait_time + wait_time_disappear, \"sec.\"")
                 self._code_lines.append("    p = PerfManager()")
-                self._code_lines.append("    p.add_perfdata(\"" + str(self._main_object_finder.name) + "_disappear\", wait_time_disappear, " + repr(self._main_object_finder.warning) + ", " + repr(self._main_object_finder.critical) + ")")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self._main_object_finder.name) + "\", wait_time + wait_time_disappear, " + repr(self._main_object_finder.warning) + ", " + repr(self._main_object_finder.critical) + ")")
             elif self._main_object_finder.find is False:
                 self._code_lines.append("    if wait_time_disappear == -1:")
                 if self._main_object_finder.timeout_exception is True:
