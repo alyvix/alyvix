@@ -2226,7 +2226,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             
             #print "obj_name:", obj_name
             
-            if obj_name + "_mouse_keyboard(" in python_file or obj_name + "_build_object(" in python_file or obj_name + "(" in python_file:
+            if obj_name + "_mouse_keyboard(" in python_file or obj_name + "_build_object(" in python_file or "def " + obj_name + "(" in python_file:
                 QMessageBox.critical(self, "Error", "Keyword name already exists!")
                 return
         

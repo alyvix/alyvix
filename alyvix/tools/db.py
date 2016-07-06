@@ -24,8 +24,10 @@ import sys
 import time
 import sqlite3
 import datetime
+import ConfigParser
 from alyvix.tools.info import InfoManager
 from alyvix.tools.perfdata import PerfManager
+from distutils.sysconfig import get_python_lib
 
 _db_file_name = None
 
@@ -326,111 +328,171 @@ class DbManager():
 
         self.close()
 
-    def publish_perfdata(self, start_date, end_date, filename=None):
+    def publish_perfdata(self, type="csv", start_date=None, end_date=None, filename=None,
+                         testcase_name=None, max_age=24):
 
-        start_date_dt = None
-        end_date_dt = None
-
-        for fmt in ('%Y-%m-%d', '%Y-%m-%d %H:%M' , '%Y-%m-%d %H:%M:%S'):
+        if type == "perfmon":
             try:
-                start_date_dt = datetime.datetime.strptime(start_date, fmt)
-            except ValueError:
+                full_file_name = get_python_lib() + os.sep + "alyvix" + os.sep + "extra" + os.sep + "alyvixservice.ini"
+
+                config = ConfigParser.ConfigParser()
+                config.read(full_file_name)
+
+                db_file = self._info_manager.get_info("DB FILE")
+
+                if db_file is not None:
+
+                    self._db_home = os.path.split( self._info_manager.get_info("DB FILE"))[0]
+                    self._db_name = os.path.split( self._info_manager.get_info("DB FILE"))[1]
+
+                if testcase_name is None or testcase_name == "":
+                    testcase_name = self._info_manager.get_info('TEST CASE NAME')
+
+                if testcase_name is None or testcase_name == "":
+                    testcase_name = self._info_manager.get_info('SUITE NAME')
+
+                try:
+                    if not config.has_section('db_path'):
+                        config.add_section('db_path')
+                except:
+                    pass
+
+                try:
+                    if not config.has_section('db_max_age'):
+                        config.add_section('db_max_age')
+                except:
+                    pass
+
+                try:
+                    config.get('general', "polling_frequency")
+                except:
+                    try:
+                        config.add_section('general')
+                    except:
+                        config.set('general', 'polling_frequency', '500')
+
+                try:
+                    config.get('general', "push_frequency")
+                except:
+                    try:
+                        config.add_section('general')
+                    except:
+                        config.set('general', 'push_frequency', '2')
+
+                config.set('db_path', testcase_name, self._db_home + os.sep + self._db_name)
+
+                config.set('db_max_age', testcase_name, str(max_age))
+
+                with open(full_file_name, 'w') as configfile:
+                    config.write(configfile)
+            except:
                 pass
 
-        for fmt in ('%Y-%m-%d', '%Y-%m-%d %H:%M' , '%Y-%m-%d %H:%M:%S'):
-            try:
-                end_date_dt = datetime.datetime.strptime(end_date, fmt)
-            except ValueError:
-                pass
+        if type == "csv":
 
-        if start_date_dt is None:
-            raise Exception('invalid start date!')
+            start_date_dt = None
+            end_date_dt = None
 
-        if end_date_dt is None:
-            raise Exception('invalid end date!')
+            for fmt in ('%Y-%m-%d', '%Y-%m-%d %H:%M' , '%Y-%m-%d %H:%M:%S'):
+                try:
+                    start_date_dt = datetime.datetime.strptime(start_date, fmt)
+                except ValueError:
+                    pass
 
-        if start_date_dt >= end_date_dt:
-            raise Exception('end date must be greate than start date!')
+            for fmt in ('%Y-%m-%d', '%Y-%m-%d %H:%M' , '%Y-%m-%d %H:%M:%S'):
+                try:
+                    end_date_dt = datetime.datetime.strptime(end_date, fmt)
+                except ValueError:
+                    pass
 
-        db_file = self._info_manager.get_info("DB FILE")
+            if start_date_dt is None:
+                raise Exception('invalid start date!')
 
-        if db_file is not None:
+            if end_date_dt is None:
+                raise Exception('invalid end date!')
 
-            self._db_home = os.path.split( self._info_manager.get_info("DB FILE"))[0]
-            self._db_name = os.path.split( self._info_manager.get_info("DB FILE"))[1]
+            if start_date_dt >= end_date_dt:
+                raise Exception('end date must be greate than start date!')
 
+            db_file = self._info_manager.get_info("DB FILE")
 
-        csv_name = filename
+            if db_file is not None:
 
-        if csv_name is None or filename == "":
-            csv_home = os.path.split(sys.executable)[0] + os.sep + "share" + os.sep + "alyvix"
-            csv_name = "alyvix_data"
-
-            if self._info_manager.get_info("ROBOT CONTEXT") is True:
-
-                csv_home = os.path.dirname(os.path.abspath(self._info_manager.get_info("SUITE SOURCE")))
-
-                csv_name = self._info_manager.get_info("SUITE NAME")
-
-            csv_name = csv_home + os.sep + csv_name + ".csv"
+                self._db_home = os.path.split( self._info_manager.get_info("DB FILE"))[0]
+                self._db_name = os.path.split( self._info_manager.get_info("DB FILE"))[1]
 
 
-        csv_file = open(csv_name, 'w')
-        csv_writer = csv.writer(csv_file)
+            csv_name = filename
 
-        self.connect()
+            if csv_name is None or filename == "":
+                csv_home = os.path.split(sys.executable)[0] + os.sep + "share" + os.sep + "alyvix"
+                csv_name = "alyvix_data"
 
-        #get last row of sorting table
-        query = "select * from sorting ORDER BY start_time DESC LIMIT 1"
-        last_sorting_rows = self._cursor.execute(query).fetchone()
+                if self._info_manager.get_info("ROBOT CONTEXT") is True:
 
-        #print self._cursor.description
+                    csv_home = os.path.dirname(os.path.abspath(self._info_manager.get_info("SUITE SOURCE")))
 
-        perf_to_query = []
+                    csv_name = self._info_manager.get_info("SUITE NAME")
 
-        for key in last_sorting_rows.keys():
+                csv_name = csv_home + os.sep + csv_name + ".csv"
 
-            if key == "start_time":
-                continue
 
-            value = last_sorting_rows[key]
+            csv_file = open(csv_name, 'w')
+            csv_writer = csv.writer(csv_file)
 
-            if value is not None:
-                perf_to_query.append(key.replace("_index", ""))
+            self.connect()
 
-        query = "select datetime(start_time, 'unixepoch','localtime') as start_time"
+            #get last row of sorting table
+            query = "select * from sorting ORDER BY start_time DESC LIMIT 1"
+            last_sorting_rows = self._cursor.execute(query).fetchone()
 
-        for column in perf_to_query:
-            query = query + ", " + column
+            #print self._cursor.description
 
-        query = query + " from runs where CAST(strftime('%s', datetime(start_time, 'unixepoch', 'localtime')) AS INT) between CAST(strftime('%s', '" + start_date + "') AS INT) and CAST(strftime('%s', '" + end_date + "') AS INT)"
+            perf_to_query = []
 
-        rows = self._cursor.execute(query).fetchall()
+            for key in last_sorting_rows.keys():
 
-        csv_header = []
-        csv_header.append("start_time")
+                if key == "start_time":
+                    continue
 
-        for perf_column in perf_to_query:
-            csv_header.append(perf_column)
+                value = last_sorting_rows[key]
 
-        csv_writer.writerow(csv_header)
+                if value is not None:
+                    perf_to_query.append(key.replace("_index", ""))
 
-        for row in rows:
+            query = "select datetime(start_time, 'unixepoch','localtime') as start_time"
 
-            csv_row = []
+            for column in perf_to_query:
+                query = query + ", " + column
 
-            #start_date_dt = datetime.datetime.utcfromtimestamp(row["start_time"])
+            query = query + " from runs where CAST(strftime('%s', datetime(start_time, 'unixepoch', 'localtime')) AS INT) between CAST(strftime('%s', '" + start_date + "') AS INT) and CAST(strftime('%s', '" + end_date + "') AS INT)"
 
-            #start_date_str = start_date_dt.strftime("%Y-%m-%d %H:%M:%S")
+            rows = self._cursor.execute(query).fetchall()
 
-            csv_row.append(row["start_time"])
+            csv_header = []
+            csv_header.append("start_time")
 
             for perf_column in perf_to_query:
-                csv_row.append(row[perf_column])
+                csv_header.append(perf_column)
 
-            csv_writer.writerow(csv_row)
+            csv_writer.writerow(csv_header)
 
-        self.close()
+            for row in rows:
 
-        csv_file.close()
+                csv_row = []
+
+                #start_date_dt = datetime.datetime.utcfromtimestamp(row["start_time"])
+
+                #start_date_str = start_date_dt.strftime("%Y-%m-%d %H:%M:%S")
+
+                csv_row.append(row["start_time"])
+
+                for perf_column in perf_to_query:
+                    csv_row.append(row[perf_column])
+
+                csv_writer.writerow(csv_row)
+
+            self.close()
+
+            csv_file.close()
 

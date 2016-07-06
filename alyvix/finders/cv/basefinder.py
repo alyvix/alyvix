@@ -147,7 +147,7 @@ class BaseFinder(object):
 
         self.__enable_debug_calcperf = False
 
-        self._timer_for_disappear = 0
+        #self._timer_for_disappear = 0
 
         self._object_is_found_flag = False
 
@@ -302,12 +302,13 @@ class BaseFinder(object):
 
                     self._last_thread_image = self._uncompress_image(self._find_thread_images[-1][1])
 
-                    self._log_manager.save_objects_found(self._name, self.get_source_image_gray(), self._objects_found, [x[1] for x in self._sub_components])
+                    if wait_disappear is False:
+                        self._log_manager.save_objects_found(self._name, self.get_source_image_gray(), self._objects_found, [x[1] for x in self._sub_components])
 
                     if wait_disappear is True:
                         self._heartbeat_images_copy = copy.deepcopy(self._heartbeat_images)
                         self._last_thread_image_copy = copy.deepcopy(self._last_thread_image)
-                        self._timer_for_disappear = time_elapsed
+                        #self._timer_for_disappear = self._heartbeat_images[-1][0]
                         #self._find_thread_images_copy = copy.deepcopy(self._find_thread_images)
                         return -2
                     else:
@@ -410,14 +411,18 @@ class BaseFinder(object):
         :type timeout: int
         """
 
+        timer_offset = 0
 
         if self._object_is_found_flag is True:
             wait_time = 0
         else:
             wait_time = self.wait(timeout, wait_disappear=True)
+            timer_offset = self._heartbeat_images_copy[-1][0]
 
         if wait_time == -1:
             return -1
+
+        find_thread_images_of_wait = copy.deepcopy(self._find_thread_images)
 
         #disappear_timeout = timeout - wait_time
 
@@ -496,7 +501,7 @@ class BaseFinder(object):
 
                     self._last_thread_image = self._uncompress_image(self._find_thread_images_disappear[-1][1])
 
-                    self._log_manager.save_timedout_objects(self._name, self.get_source_image_gray(), self._timedout_main_components, self._timedout_sub_components, self._main_extra_img_log, self._sub_extra_imgages_log, disappear_mode=True)
+                    #self._log_manager.save_timedout_objects(self._name, self.get_source_image_gray(), self._timedout_main_components, self._timedout_sub_components, self._main_extra_img_log, self._sub_extra_imgages_log, disappear_mode=True)
 
                     #for i in range(len(self._find_thread_images)):
                     #    cv2.imwrite("c:\\log\\buffer_images\\_oldd_" + str(self._find_thread_images[i][0]) + ".png", self._uncompress_image(self._find_thread_images[i][1]))
@@ -506,7 +511,26 @@ class BaseFinder(object):
 
                     perf_disappear = self._get_disappear_performance()
 
-                    return perf_disappear
+                    self._find_thread_images = copy.deepcopy(find_thread_images_of_wait)
+
+                    self._last_thread_image = copy.deepcopy(self._last_thread_image_copy)
+
+                    perf_wait = None
+                    if self._object_is_found_flag is True:
+                        perf_wait = 0.0
+                    else:
+                        self._log_manager.save_objects_found(self._name, self._last_thread_image_copy, self._objects_found, [x[1] for x in self._sub_components])
+
+                        perf_wait = self._get_performance()
+
+                    self._log_manager.save_timedout_objects(self._name, self.get_source_image_gray(), self._timedout_main_components, self._timedout_sub_components, self._main_extra_img_log, self._sub_extra_imgages_log, disappear_mode=True)
+
+                    perf_disappear = perf_disappear - perf_wait
+
+                    #print "PERF WAIT:", perf_wait
+                    #print "PERF DISAPP", perf_disappear
+
+                    return perf_wait + perf_disappear
 
                     #return self._get_disappear_performance()
                     #return self._get_performance()
@@ -562,12 +586,15 @@ class BaseFinder(object):
                     #for i in range(len(self._find_thread_images)):
                     #    cv2.imwrite("c:\\log\\buffer_images\\_old_" + str(self._find_thread_images[i][0]) + ".png", self._uncompress_image(self._find_thread_images[i][1]))
 
-
                     if one_thread_started is False:
+                        #timer_offset = self._heartbeat_images_copy[-1][0]
                         self._find_thread_images_disappear = copy.deepcopy(self._heartbeat_images_copy)
+
                         self._find_thread_images_disappear.extend(copy.deepcopy(self._heartbeat_images))
                     else:
                         self._find_thread_images_disappear = copy.deepcopy(self._heartbeat_images)
+
+                    #self._find_thread_images_disappear = copy.deepcopy(self._heartbeat_images)
 
                     self._heartbeat_images = []
 
@@ -583,7 +610,7 @@ class BaseFinder(object):
                 img2_color = self._screen_capture.grab_desktop(self._screen_capture.get_color_mat)
                 img2_gray = cv2.cvtColor(img2_color, cv2.COLOR_BGR2GRAY)
                 #self._timer_for_disappear += time_elapsed
-                self._heartbeat_images.append((self._timer_for_disappear + time_elapsed, self._compress_image(img2_gray)))
+                self._heartbeat_images.append((time_elapsed + timer_offset, self._compress_image(img2_gray)))
 
 
                 t1 = time.time() - t0

@@ -284,9 +284,11 @@ def store_perfdata(dbname=None):
     db = DbManager()
     db.store_perfdata(str(dbname))
 
-def publish_perfdata(start_date, end_date, filename=""):
+def publish_perfdata(type="csv", start_date="", end_date="", filename="",
+                         testcase_name="", max_age=24):
     db = DbManager()
-    db.publish_perfdata(str(start_date), str(end_date), str(filename))
+    db.publish_perfdata(type=str(type), start_date=str(start_date), end_date=str(end_date), filename=str(filename),
+                        testcase_name=str(testcase_name), max_age=int(max_age))
 
 def print_perfdata(message=None, print_output="True"):
 
