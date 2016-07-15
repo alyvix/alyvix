@@ -162,7 +162,7 @@ namespace AlyvixWpmService
 
         }
 
-        private void OnTimedWpmEvent(Object source, ElapsedEventArgs e)
+        private static void OnTimedWpmEvent(Object source, ElapsedEventArgs e)
         {
             wpmTimer.Stop();
 
@@ -281,6 +281,14 @@ namespace AlyvixWpmService
 
                             CounterCreationDataCollection ccds = new CounterCreationDataCollection();
 
+                            CounterCreationData counter = new CounterCreationData();
+                            counter.CounterName = "Performance Data"; //perf.name;
+                            counter.CounterHelp = "performance Data"; //perf.name;
+                            counter.CounterType = PerformanceCounterType.NumberOfItems32;
+
+                            ccds.Add(counter);
+
+
                             while (r.Read())
                             {
                                 for (int j = 0; j < r.FieldCount; j++)
@@ -306,19 +314,13 @@ namespace AlyvixWpmService
 
                                         try
                                         {
-                                            perf.value = Convert.ToDouble(r[j]) / Convert.ToDouble(1000);
+                                            perf.value = Convert.ToDouble(r[j]); // Convert.ToDouble(1000);
+                                            //perf.value = Convert.ToInt32(r[j]);
                                         }
                                         catch
                                         {
                                             perf.value = -1;
                                         }
-
-                                        CounterCreationData counter = new CounterCreationData();
-                                        counter.CounterName = perf.name;
-                                        counter.CounterHelp = perf.name;
-                                        counter.CounterType = PerformanceCounterType.NumberOfItems32;
-
-                                        ccds.Add(counter);
 
                                         perfToSend.Add(perf);
 
@@ -344,19 +346,20 @@ namespace AlyvixWpmService
                                 continue;
                             }
 
+
                             bool performanceAreTheSame = true;
 
                             PerformanceCounterCategory existingAlyCat = new PerformanceCounterCategory("Alyvix - " + testCaseName);
 
                             try
                             {
-                                foreach (PerformanceCounter perfcount in existingAlyCat.GetCounters())
+                                foreach (string perfcount in existingAlyCat.GetInstanceNames())
                                 {
                                     bool perfIsPresent = false;
 
                                     foreach (Performance perf in perfToSend)
                                     {
-                                        if (perf.name == perfcount.CounterName)
+                                        if (perf.name == perfcount)
                                             perfIsPresent = true;
                                     }
 
@@ -368,7 +371,7 @@ namespace AlyvixWpmService
 
                                 }
 
-                                if (perfToSend.Count != existingAlyCat.GetCounters().Length)
+                                if (perfToSend.Count != existingAlyCat.GetInstanceNames().Length)
                                 {
                                     performanceAreTheSame = false;
                                 }
@@ -378,26 +381,35 @@ namespace AlyvixWpmService
                                 performanceAreTheSame = false;
                             }
 
-
                             if (performanceAreTheSame == false)
                             {
                                 try
                                 {
+
                                     PerformanceCounterCategory.Delete("Alyvix - " + testCaseName);
                                 }
                                 catch
-                                { }
+                                {
+
+                                }
+                            }
+
+
+                            if (!PerformanceCounterCategory.Exists("Alyvix - " + testCaseName))
+                            {
 
                                 try
                                 {
                                     PerformanceCounterCategory.Create("Alyvix - " + testCaseName,
                                         "Alyvix - " + testCaseName,
-                                        PerformanceCounterCategoryType.SingleInstance,
+                                        PerformanceCounterCategoryType.MultiInstance,
                                         ccds);
 
-                                    System.Threading.Thread.Sleep(1000);
+                                    //System.Threading.Thread.Sleep(1000);
                                 }
-                                catch { }
+                                catch (Exception ex)
+                                {
+                                }
 
                             }
 
@@ -407,12 +419,12 @@ namespace AlyvixWpmService
                                 PerformanceCounter perfCounter = new PerformanceCounter();
                                 try
                                 {
-                                    perfCounter = new PerformanceCounter("Alyvix - " + testCaseName, perf.name);
+                                    perfCounter = new PerformanceCounter("Alyvix - " + testCaseName, "Performance Data", perf.name);
                                     perfCounter.ReadOnly = false;
                                     perfCounter.RawValue = (long)perf.value;
                                     //perfCounter.Increment();
                                 }
-                                catch
+                                catch (Exception ex)
                                 {
                                 }
                                 finally

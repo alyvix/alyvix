@@ -114,3 +114,20 @@ Affected parameters are:
    logtoconsole = 
    assemblypath = C:\Users\developer\Documents\Visual Studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Release\AlyvixWpmService.exe
    logfile = C:\Users\developer\Documents\Visual Studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Release\AlyvixWpmService.InstallLog
+Uninstalling assembly 'C:\Users\developer\Documents\Visual Studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Release\AlyvixWpmService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   assemblypath = C:\Users\developer\Documents\Visual Studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Release\AlyvixWpmService.exe
+   logfile = C:\Users\developer\Documents\Visual Studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Release\AlyvixWpmService.InstallLog
+Removing EventLog source Alyvix Wpm Service.
+An exception occurred during the uninstallation of the System.Diagnostics.EventLogInstaller installer.
+System.Security.SecurityException: Requested registry access is not allowed.
+An exception occurred while uninstalling. This exception will be ignored and the uninstall will continue. However, the application might not be fully uninstalled after the uninstall is complete.
+Uninstalling assembly 'C:\Users\developer\Documents\Visual Studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Release\AlyvixWpmService.exe'.
+Affected parameters are:
+   logtoconsole = 
+   assemblypath = C:\Users\developer\Documents\Visual Studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Release\AlyvixWpmService.exe
+   logfile = C:\Users\developer\Documents\Visual Studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Release\AlyvixWpmService.InstallLog
+Removing EventLog source Alyvix Wpm Service.
+Service Alyvix Wpm Service is being removed from the system...
+Service Alyvix Wpm Service was successfully removed from the system.
