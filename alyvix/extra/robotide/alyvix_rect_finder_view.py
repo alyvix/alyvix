@@ -1503,6 +1503,8 @@ class AlyvixRectFinderView(QWidget):
         self._code_lines.append(string_function_args)
         
         self._code_lines.append("    global " + name + "_object")
+        self._code_lines.append("    info_manager = InfoManager()")
+        self._code_lines.append("    sleep_factor = info_manager.get_info(\"ACTIONS DELAY\")")  
         
         if self._main_rect_finder.click == True or self._main_rect_finder.doubleclick == True or self._main_rect_finder.rightclick == True or self._main_rect_finder.mousemove == True:
         
@@ -1514,7 +1516,7 @@ class AlyvixRectFinderView(QWidget):
                 self._code_lines.append("    m = MouseManager()")
                 mmanager_declared = True
                 
-            self._code_lines.append("    time.sleep(2)")
+            self._code_lines.append("    time.sleep(sleep_factor)")
                                 
             if self._main_rect_finder.click == True:
                 self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1)")
@@ -1532,7 +1534,7 @@ class AlyvixRectFinderView(QWidget):
                 self._code_lines.append("    k  = KeyboardManager()")
                 kmanager_declared = True
             keys = unicode(self._main_rect_finder.sendkeys, 'utf-8')
-            self._code_lines.append("    time.sleep(2)")
+            self._code_lines.append("    time.sleep(sleep_factor)")
             
             if self._main_rect_finder.sendkeys_quotes is True:
                 self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_rect_finder.text_encrypted) + ")")
@@ -1552,7 +1554,7 @@ class AlyvixRectFinderView(QWidget):
                     if mmanager_declared is False:
                         self._code_lines.append("    m = MouseManager()")
                         mmanager_declared = True
-                    self._code_lines.append("    time.sleep(2)")
+                    self._code_lines.append("    time.sleep(sleep_factor)")
                                         
                     if sub_rect.click == True:
                         self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1)")
@@ -1571,7 +1573,7 @@ class AlyvixRectFinderView(QWidget):
                         self._code_lines.append("    k  = KeyboardManager()")
                         kmanager_declared = True
                     keys = unicode(sub_rect.sendkeys, 'utf-8')
-                    self._code_lines.append("    time.sleep(2)")
+                    self._code_lines.append("    time.sleep(sleep_factor)")
                     
                     if sub_rect.sendkeys_quotes is True:
                         self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_rect.text_encrypted) + ")")
@@ -2795,7 +2797,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             
             #print "obj_name:", obj_name
             
-            if obj_name + "_mouse_keyboard(" in python_file or obj_name + "_build_object(" in python_file or "def " + obj_name + "(" in python_file:
+            if "def " + obj_name + "_mouse_keyboard(" in python_file or "def " + obj_name + "_build_object(" in python_file or "def " + obj_name + "(" in python_file:
                 QMessageBox.critical(self, "Error", "Keyword name already exists!")
                 return
         

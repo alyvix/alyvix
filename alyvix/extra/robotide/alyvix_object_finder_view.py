@@ -77,6 +77,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         QDialog.__init__(self)
         
         self.setMouseTracking(True)
+		
+        self._main_deleted = False
+        self._roi_restored_after_deleted_main = 0
 
         # Set up the user interface from Designer.
         self.setupUi(self)
@@ -322,7 +325,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 
                 #print "obj_name:", obj_name
                 
-                if obj_name + "_mouse_keyboard(" in python_file or obj_name + "_build_object(" in python_file or "def " + obj_name + "(" in python_file:
+                if "def " + obj_name + "_mouse_keyboard(" in python_file or "def " + obj_name + "_build_object(" in python_file or "def " + obj_name + "(" in python_file:
                     QMessageBox.critical(self, "Error", "Keyword name already exists!")
                     return
             else:
@@ -1203,20 +1206,46 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     def remove_obj(self):
     
         selected_index = self.listWidget.currentRow()
+        
+        if selected_index == -1:
+            return True
     
-        if selected_index == 0:
+        if selected_index == 0 and self._main_deleted is False:
             item = QListWidgetItem()
             item.setText("")
             self.listWidget.takeItem(0)
             self.listWidget.insertItem(0, item)
         
             self.button_selected = "set_main_object"
+            
+            self.delete_all_sub_roi()
+            
+            self._main_deleted = True
             self.open_select_obj_window()
-        else:
+        elif self._main_deleted is False:
+            # print "selected_indexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", selected_index
             item = self.listWidget.takeItem(selected_index)
             self.listWidget.removeItemWidget(item)
-            del self._sub_objects_finder[-1]
+            del self._sub_objects_finder[selected_index - 1]
         self.parent.update_list()
+        
+                
+    def delete_all_sub_roi(self):
+    
+        for sub_obj in self._sub_objects_finder:
+            
+            if sub_obj.roi_height == 0 or sub_obj.roi_width == 0:
+                return
+            
+            #print sub_obj.roi_x, sub_obj.roi_y, sub_obj.roi_height,sub_obj.roi_width
+            
+            #self.parent._deleted_sub_objects.append(copy.deepcopy(sub_obj))
+            
+            sub_obj.roi_x = 0
+            sub_obj.roi_y = 0
+            sub_obj.roi_height = 0
+            sub_obj.roi_width = 0
+            
         
     def edit_obj(self):
     
@@ -1243,6 +1272,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     
     def open_select_obj_window(self):
         self.select_main_object_view = AlyvixObjectsSelection(self)
+        self.hide()
         self.select_main_object_view.show()
         
     def set_main_object(self, xml_name):
@@ -1885,6 +1915,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     
         selected_index = self.listWidget.currentRow()
     
+        if selected_index == -1:
+            return True
+    
         if selected_index == 0:
             item = QListWidgetItem()
             item.setText("")
@@ -1895,8 +1928,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.open_select_obj_window()
         else:
             item = self.listWidget.takeItem(selected_index)
+            #print selected_index
             self.listWidget.removeItemWidget(item)
-            del self._sub_objects_finder[-1]
+            del self._sub_objects_finder[selected_index - 1]
         
     def edit_obj_2(self):
     
@@ -2049,7 +2083,9 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
             self.add_sub_object()
             
     def push_button_cancel_event(self):
-        self.close()
+        if self.parent._main_deleted is False:
+            self.parent.show()
+            self.close()
                 
     def set_main_object(self):
             
@@ -2064,6 +2100,16 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         
         self.parent.set_main_object(xml_name)
         
+        if self.parent._main_deleted is True:
+            self.parent.pv = PaintingView(self.parent)
+            image = QImage(self.parent._main_object_finder.xml_path.replace("xml", "png"))   
+            self.parent.pv.set_bg_pixmap(image)
+            self.parent.pv.showFullScreen()
+            
+        else:
+            
+            self.parent.show()
+        
         self.close()
         
     def add_sub_object(self):
@@ -2076,6 +2122,8 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         xml_name = self.parent._path + os.sep + xml_name
         
         self.parent.add_sub_object(xml_name)
+        
+        #self.parent.show()
         
         self.close()
         
@@ -2230,9 +2278,9 @@ class PaintingView(QWidget):
             self.delete_sub_roi()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
             self.restore_sub_roi()    
-        if event.key() == Qt.Key_Escape:
-            if self.parent._sub_objects_finder[-1].roi_height != 0 and self.parent._sub_objects_finder[-1].roi_width != 0:
-                #self.parent.show()
+        if (event.key() == Qt.Key_Escape) or (event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O):
+            if self.parent._sub_objects_finder[-1].roi_height != 0 and self.parent._sub_objects_finder[-1].roi_width != 0 and self.parent._main_deleted is False:
+                self.parent.show()
                 self.close()
         
     def set_bg_pixmap(self, image):
@@ -2287,6 +2335,7 @@ class PaintingView(QWidget):
         
         self.update()
         
+        
     def restore_sub_roi(self):
     
         if len(self.parent._deleted_sub_objects) > 0:
@@ -2309,14 +2358,35 @@ class PaintingView(QWidget):
         
         if rect_attributes is not None:
         
+                    
             x, y, width, height = rect_attributes
-
-            sub_obj = self.parent._sub_objects_finder[-1]            
-            sub_obj.roi_x = x - self.parent._main_object_finder.x
-            sub_obj.roi_y = y - self.parent._main_object_finder.y
-            sub_obj.roi_height = height
-            sub_obj.roi_width = width
             
+            if self.parent._main_deleted is False:
+
+                sub_obj = self.parent._sub_objects_finder[-1]            
+                sub_obj.roi_x = x - self.parent._main_object_finder.x
+                sub_obj.roi_y = y - self.parent._main_object_finder.y
+                sub_obj.roi_height = height
+                sub_obj.roi_width = width
+                
+            else:
+            
+                for sub_obj in self.parent._sub_objects_finder:
+                
+                    if x < sub_obj.x and y < sub_obj.y and x + width > sub_obj.x + sub_obj.width and y + height > sub_obj.y + sub_obj.height:       
+                        sub_obj.roi_x = x - self.parent._main_object_finder.x
+                        sub_obj.roi_y = y - self.parent._main_object_finder.y
+                        sub_obj.roi_height = height
+                        sub_obj.roi_width = width
+                        
+                        self.parent._roi_restored_after_deleted_main = self.parent._roi_restored_after_deleted_main + 1
+                        
+                        if self.parent._roi_restored_after_deleted_main == len(self.parent._sub_objects_finder):
+                            self.parent._roi_restored_after_deleted_main = 0
+                            self.parent._main_deleted = False
+                        
+                        break
+                
     def convert_mouse_position_into_rect(self):
             
         #self.__click_position
