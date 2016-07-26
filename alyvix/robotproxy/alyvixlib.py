@@ -219,13 +219,13 @@ def add_perfdata(name, value=None, warning_threshold=None, critical_threshold=No
     #name_lower = str(name).lower().replace(" ", "_")
     pm.add_perfdata(name, value, warning_threshold, critical_threshold, state)
     
-def rename_perfdata(old_name, new_name):
+def rename_perfdata(old_name, new_name, warning_threshold="", critical_threshold=""):
     
     #old_name_lower = str(old_name).lower().replace(" ", "_")
     #new_name_lower = str(new_name).lower().replace(" ", "_")
 
     pm = PerfManager()
-    pm.rename_perfdata(old_name, new_name)
+    pm.rename_perfdata(old_name, new_name, warning_threshold, critical_threshold)
 
 def get_perfdata(name, delete_perfdata="False"):
     delete_perfdata_value = delete_perfdata

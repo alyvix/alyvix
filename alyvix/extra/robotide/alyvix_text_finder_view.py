@@ -150,6 +150,16 @@ class AlyvixTextFinderView(QWidget):
             #self.save_template_images(image_name)
             if self.action == "new":
                 self.parent.add_new_item_on_list()
+                
+        try:
+            if self.parent.parent.is_object_finder_menu:
+                if self.mouse_or_key_is_set is True:
+                    
+                    self.parent.parent._main_object_finder.mouse_or_key_is_set = True
+                    #print "build_objjjjjjjjjjjjjjjjjjjjj"
+        except:
+            pass
+            
         self.parent.show()
         self.close()
         

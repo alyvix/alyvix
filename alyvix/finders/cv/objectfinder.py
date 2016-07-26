@@ -57,6 +57,8 @@ class ObjectFinder(BaseFinder):
         super(ObjectFinder, self).__init__(the_name)
         #BaseFinder.__init__(self, the_name)
 
+        self._is_object_finder = True
+
     def set_main_object(self, main_object, roi_dict=None):
         """
         Set the template image that the find method has to find into the source Image.
@@ -71,6 +73,8 @@ class ObjectFinder(BaseFinder):
     def add_sub_object(self, sub_object, roi_dict):
 
         roi = Roi(roi_dict)
+
+        sub_object._is_object_finder = True
 
         self._sub_components.append((sub_object, roi))
         self.add_name_to_component(sub_object, self._name)
@@ -112,6 +116,9 @@ class ObjectFinder(BaseFinder):
                 component.set_name_with_caller()
 
     def find(self):
+
+        for sub_object in self._sub_components:
+            sub_object[0]._objects_found_of_sub_object_finder = []
 
         self._timedout_main_components = []
         self._timedout_sub_components = []
@@ -215,6 +222,8 @@ class ObjectFinder(BaseFinder):
                         return []
                     """
 
+                    #sub_object._objects_found = []
+
                     sub_template_coordinates = copy.deepcopy(self.find_sub_object((x, y), sub_object))
 
                     if sub_template_coordinates is not None:
@@ -242,6 +251,7 @@ class ObjectFinder(BaseFinder):
         if len(objects_found) > 0:
             self._objects_found = copy.deepcopy(objects_found)
             main_object.rebuild_result(self._main_indexes_to_keep)
+            self.rebuild_result_for_sub_component(self._main_indexes_to_keep)
             self._cacheManager.SetLastObjFoundFullImg(self._source_image_gray)
 
         #self._source_image_color = None
@@ -274,6 +284,10 @@ class ObjectFinder(BaseFinder):
         new_roi_dict = roi.get_dict()
 
         object = sub_object[0]
+
+        object._is_object_finder = True
+
+        #object._objects_found = []
 
         if not isinstance(object, ObjectFinder):
 

@@ -95,7 +95,7 @@ class PerfManager:
 
         perfdata_list.append(perf_data)
 
-    def rename_perfdata(self, old_name, new_name):
+    def rename_perfdata(self, old_name, new_name, warning_threshold="", critical_threshold=""):
 
         global perfdata_list
 
@@ -109,6 +109,18 @@ class PerfManager:
             elif perf_data_in_list.name == old_name:
 
                 perfdata_list_copy[cnt].name = new_name
+
+                try:
+                    new_warning_threshold = float(warning_threshold)
+                    perfdata_list_copy[cnt].warning_threshold = new_warning_threshold
+                except:
+                    pass
+
+                try:
+                    new_critical_threshold = float(critical_threshold)
+                    perfdata_list_copy[cnt].critical_threshold = new_critical_threshold
+                except:
+                    pass
 
             cnt = cnt + 1
 

@@ -364,6 +364,8 @@ class ImageFinder(BaseFinder):
 
             if len(objects_found) > 0:
                 self._objects_found = copy.deepcopy(objects_found)
+                if self._is_object_finder is True:
+                    self._objects_found_of_sub_object_finder.extend(copy.deepcopy(objects_found))
                 self._cacheManager.SetLastObjFoundFullImg(self._source_image_gray)
 
             if source_img_auto_set is True:

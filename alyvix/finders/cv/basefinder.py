@@ -151,6 +151,9 @@ class BaseFinder(object):
 
         self._object_is_found_flag = False
 
+        self._is_object_finder = False
+        self._objects_found_of_sub_object_finder = []
+
     def _compress_image(self, img):
         return cv2.imencode('.png', img)[1]
 
@@ -301,6 +304,8 @@ class BaseFinder(object):
                     """
 
                     self._last_thread_image = self._uncompress_image(self._find_thread_images[-1][1])
+
+                    #time.sleep(3600)
 
                     if wait_disappear is False:
                         self._log_manager.save_objects_found(self._name, self.get_source_image_gray(), self._objects_found, [x[1] for x in self._sub_components])
@@ -993,6 +998,42 @@ class BaseFinder(object):
 
         self._objects_found = []
         self._objects_found = copy.deepcopy(objects_to_keep)
+
+    def rebuild_result_for_sub_component(self, indexes_to_keep):
+
+        if len(self._sub_components) == 0:
+            return
+
+        for sub_obj in self._sub_components:
+            sub_obj[0]._objects_found = []
+
+        for result in self._objects_found:
+
+            sub_list = result[1]
+
+            #sub_main_coords = result[1]
+
+            cnt_sub_obj = 0
+            for sub_obj in self._sub_components:
+
+                objects_to_keep = []
+
+                sub_main_coords = sub_list[cnt_sub_obj]
+
+                #sub_obj[0]._objects_found.extend(sub_main_coords)
+
+                for extended_obj_found in sub_obj[0]._objects_found_of_sub_object_finder:
+
+                    if extended_obj_found[0].x == sub_main_coords.x \
+                            and extended_obj_found[0].y == sub_main_coords.y \
+                            and extended_obj_found[0].width == sub_main_coords.width \
+                            and  extended_obj_found[0].height == sub_main_coords.height:
+                        objects_to_keep.append(copy.deepcopy(extended_obj_found))
+
+                sub_obj[0]._objects_found.extend(objects_to_keep)
+                sub_obj[0]._is_object_finder = False
+
+                cnt_sub_obj += 1
 
     def replace_result(self, results):
         self._objects_found = copy.deepcopy(results)

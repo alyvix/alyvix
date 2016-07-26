@@ -93,6 +93,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.action = self.parent.action
         self._xml_name = self.parent.xml_name
         
+        self.is_object_finder_menu = True
+        
         self.building_code = False
         
         self.button_selected = "set_main_object"
@@ -1035,7 +1037,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
             if sub_object.height != 0 and sub_object.width !=0:
             
-                if sub_object.mouse_or_key_is_set is False:
+                if mouse_or_key_is_set is False:
                     continue
                 
                 path_sub_xml = sub_object.xml_path
@@ -1057,6 +1059,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                     sub_obj = AlyvixTextFinderView(s_controller)
                     sub_obj_name = sub_obj.object_name
                     self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
+            cnt+=1
                     
         
         if self._main_object_finder.wait_disapp is True and mouse_or_key_is_set is True:   

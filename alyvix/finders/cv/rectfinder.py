@@ -344,6 +344,8 @@ class RectFinder(BaseFinder):
 
             if len(objects_found) > 0:
                 self._objects_found = copy.deepcopy(objects_found)
+                if self._is_object_finder is True:
+                    self._objects_found_of_sub_object_finder.extend(copy.deepcopy(objects_found))
                 #gray_source_img = cv2.cvtColor(self._source_image, cv2.COLOR_BGR2GRAY)
                 self._cacheManager.SetLastObjFoundFullImg(self._source_image_gray)
 
