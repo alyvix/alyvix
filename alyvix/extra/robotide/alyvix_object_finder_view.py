@@ -1188,8 +1188,21 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         file.close()    
     
     def open_select_obj_main(self):
-        self.button_selected = "set_main_object"
-        self.open_select_obj_window()
+        if len(self._sub_objects_finder) == 0:
+            self.button_selected = "set_main_object"
+            self.open_select_obj_window()
+        else:
+            item = QListWidgetItem()
+            item.setText("")
+            self.listWidget.takeItem(0)
+            self.listWidget.insertItem(0, item)
+        
+            self.button_selected = "set_main_object"
+            
+            self.delete_all_sub_roi()
+            
+            self._main_deleted = True
+            self.open_select_obj_window()
         
     def open_select_obj_sub(self):
         
@@ -2103,14 +2116,15 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         
         self.parent.set_main_object(xml_name)
         
-        if self.parent._main_deleted is True:
+        if self.parent._main_deleted is True and len(self.parent._sub_objects_finder) > 0:
             self.parent.pv = PaintingView(self.parent)
             image = QImage(self.parent._main_object_finder.xml_path.replace("xml", "png"))   
             self.parent.pv.set_bg_pixmap(image)
             self.parent.pv.showFullScreen()
-            
+        elif self.parent._main_deleted is True:
+            self.parent._main_deleted = False
+            self.parent.show()
         else:
-            
             self.parent.show()
         
         self.close()
