@@ -103,12 +103,12 @@ class PerfManager:
 
         cnt = 0
         for perf_data_in_list in perfdata_list:
-            if perf_data_in_list.name == new_name:
+            if perf_data_in_list.name == str(new_name):
                 del perfdata_list_copy[cnt]
                 cnt = cnt - 1
-            elif perf_data_in_list.name == old_name:
+            elif perf_data_in_list.name == str(old_name):
 
-                perfdata_list_copy[cnt].name = new_name
+                perfdata_list_copy[cnt].name = str(new_name)
 
                 try:
                     new_warning_threshold = float(warning_threshold)
