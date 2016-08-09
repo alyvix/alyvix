@@ -89,6 +89,8 @@ class AlyvixRectFinderView(QWidget):
         self.__flag_need_to_delete_roi = False
         self.__flag_need_to_restore_roi = False
         self._flag_show_min_max = False
+        self._old_min_width = None
+        self._old_min_height = None
         self._self_show_tolerance = False
 
         self.__index_deleted_rect_inside_roi = -1
@@ -341,10 +343,32 @@ class AlyvixRectFinderView(QWidget):
                 min_height = self._main_rect_finder.min_height
                     
                 if self._main_rect_finder.min_width > self._main_rect_finder.max_width:
+                
+                    #self._main_rect_finder.min_width = self._main_rect_finder.max_width
                     min_width = self._main_rect_finder.max_width
+                    #self.rect_view_properties.min_width_spinbox.setValue(min_width)
 
+            
                 if self._main_rect_finder.min_height > self._main_rect_finder.max_height:
-                    min_height = self._main_rect_finder.max_height
+                                        
+                    #self._main_rect_finder.min_height = self._main_rect_finder.max_height
+                    min_height  = self._main_rect_finder.max_height
+                    #self.rect_view_properties.min_height_spinbox.setValue(min_height)
+                    
+                
+                """
+                    if self._old_min_height is None:
+                        self._old_min_height = self._main_rect_finder.min_height
+                        
+                    self._main_rect_finder.min_height = self._main_rect_finder.max_height
+                    min_height  = self._main_rect_finder.min_height
+                    
+                else:
+                    if self._old_min_height is not None:
+                        self._main_rect_finder.min_height = self._old_min_height
+                        min_height = self._main_rect_finder.min_height 
+                        self._old_min_height  = None
+                """
                 
                 OuterPath.addRect(self._main_rect_finder.x,
                     self._main_rect_finder.y,
@@ -547,9 +571,13 @@ class AlyvixRectFinderView(QWidget):
                         max_height = rect_finder.roi_height - (rect_finder.y  - (rect_finder.roi_y + + self._main_rect_finder.y))
                     
                     if rect_finder.min_width > max_width:
+                        #rect_finder.min_width = max_width
                         min_width = max_width
+                        #self.rect_view_properties.min_width_spinbox_2.setValue(min_width)
                         
                     if rect_finder.min_height > max_height:
+                        #rect_finder.min_height = max_height
+                        #self.rect_view_properties.min_height_spinbox_2.setValue(max_height)
                         min_height = max_height
                         
                     
@@ -2866,36 +2894,40 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.parent._main_rect_finder.min_width = self.min_width_spinbox.value()
         
         if self.parent._main_rect_finder.min_width > self.parent._main_rect_finder.max_width:
-            self.parent._main_rect_finder.min_width = self.parent._main_rect_finder.max_width
-            self.min_width_spinbox.setValue(self.parent._main_rect_finder.min_width)
+            self.parent._main_rect_finder.max_width = self.parent._main_rect_finder.min_width
+            self.max_width_spinbox.setValue(self.parent._main_rect_finder.min_width)
             
         self.parent.update()
+
         
     def max_width_spinbox_change_event(self, event):
-    
-        if self.max_width_spinbox.value() < self.min_width_spinbox.value():
-            self.max_width_spinbox.setValue(self.parent._main_rect_finder.min_width)
-            return
             
         self.parent._main_rect_finder.max_width = self.max_width_spinbox.value()
+        
+        if self.parent._main_rect_finder.min_width > self.parent._main_rect_finder.max_width:
+            self.parent._main_rect_finder.min_width = self.parent._main_rect_finder.max_width
+            self.min_width_spinbox.setValue(self.parent._main_rect_finder.max_width)
+            
         self.parent.update()
         
     def min_height_spinbox_change_event(self, event):
         self.parent._main_rect_finder.min_height = self.min_height_spinbox.value()
-        
+             
         if self.parent._main_rect_finder.min_height > self.parent._main_rect_finder.max_height:
-            self.parent._main_rect_finder.min_height = self.parent._main_rect_finder.max_height
-            self.min_height_spinbox.setValue(self.parent._main_rect_finder.min_height)
+            self.parent._main_rect_finder.max_height = self.parent._main_rect_finder.min_height
+            self.max_height_spinbox.setValue(self.parent._main_rect_finder.min_height)
+            
             
         self.parent.update()
         
     def max_height_spinbox_change_event(self, event):
     
-        if self.max_height_spinbox.value() < self.min_height_spinbox.value():
-            self.max_height_spinbox.setValue(self.parent._main_rect_finder.min_height)
-            return
-        
         self.parent._main_rect_finder.max_height = self.max_height_spinbox.value()
+
+        if self.parent._main_rect_finder.min_height > self.parent._main_rect_finder.max_height:
+            self.parent._main_rect_finder.min_height = self.parent._main_rect_finder.max_height
+            self.min_height_spinbox.setValue(self.parent._main_rect_finder.max_height)
+
         self.parent.update()
         
     def show_min_max_event(self, event):
@@ -3041,6 +3073,12 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
 
     def update_sub_rect_view(self):
         index = self.sub_rect_index
+    
+        print self.parent._sub_rects_finder[index].min_width
+        print self.parent._sub_rects_finder[index].max_width 
+        print self.parent._sub_rects_finder[index].min_height
+        print self.parent._sub_rects_finder[index].max_height
+    
         self.min_width_spinbox_2.setValue(self.parent._sub_rects_finder[index].min_width)
         self.max_width_spinbox_2.setValue(self.parent._sub_rects_finder[index].max_width)    
         self.min_height_spinbox_2.setValue(self.parent._sub_rects_finder[index].min_height)
@@ -3526,37 +3564,40 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
     def min_width_spinbox_change_event_2(self, event):
         self.parent._sub_rects_finder[self.sub_rect_index].min_width = self.min_width_spinbox_2.value()
         
+        #print "min w", self.parent._sub_rects_finder[self.sub_rect_index].min_width, "max w", self.max_width_spinbox_2.value()
+        
         if self.parent._sub_rects_finder[self.sub_rect_index].min_width > self.parent._sub_rects_finder[self.sub_rect_index].max_width:
-            self.parent._sub_rects_finder[self.sub_rect_index].min_width = self.parent._sub_rects_finder[self.sub_rect_index].max_width   
-            self.min_width_spinbox_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].min_width)
+            self.parent._sub_rects_finder[self.sub_rect_index].max_width = self.parent._sub_rects_finder[self.sub_rect_index].min_width
+            self.max_width_spinbox_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].min_width)
         
         self.parent.update()
         
     def max_width_spinbox_change_event_2(self, event):
-        
-        if self.max_width_spinbox_2.value() < self.min_width_spinbox_2.value():
-            self.max_width_spinbox_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].min_width)
-            return
             
         self.parent._sub_rects_finder[self.sub_rect_index].max_width = self.max_width_spinbox_2.value()
+        
+        if self.parent._sub_rects_finder[self.sub_rect_index].min_width > self.parent._sub_rects_finder[self.sub_rect_index].max_width:
+            self.parent._sub_rects_finder[self.sub_rect_index].min_width = self.parent._sub_rects_finder[self.sub_rect_index].max_width
+            self.min_width_spinbox_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].max_width)
+        
         self.parent.update()
         
     def min_height_spinbox_change_event_2(self, event):
         self.parent._sub_rects_finder[self.sub_rect_index].min_height = self.min_height_spinbox_2.value()
         
         if self.parent._sub_rects_finder[self.sub_rect_index].min_height > self.parent._sub_rects_finder[self.sub_rect_index].max_height:
-            self.parent._sub_rects_finder[self.sub_rect_index].min_height = self.parent._sub_rects_finder[self.sub_rect_index].max_height
-            self.min_height_spinbox_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].min_height)
-
+            self.parent._sub_rects_finder[self.sub_rect_index].max_height = self.parent._sub_rects_finder[self.sub_rect_index].min_height
+            self.max_height_spinbox_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].min_height)
+        
         self.parent.update()
         
     def max_height_spinbox_change_event_2(self, event):
-        
-        if self.max_height_spinbox_2.value() < self.min_height_spinbox_2.value():
-            self.max_height_spinbox_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].min_height)
-            return
-            
         self.parent._sub_rects_finder[self.sub_rect_index].max_height = self.max_height_spinbox_2.value()
+        
+        if self.parent._sub_rects_finder[self.sub_rect_index].min_height > self.parent._sub_rects_finder[self.sub_rect_index].max_height:
+            self.parent._sub_rects_finder[self.sub_rect_index].min_height = self.parent._sub_rects_finder[self.sub_rect_index].max_height
+            self.min_height_spinbox_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].max_height)
+        
         self.parent.update()
         
     def show_min_max_event_2(self, event):

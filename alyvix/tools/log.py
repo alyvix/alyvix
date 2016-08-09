@@ -55,6 +55,18 @@ class LogManager:
 
         self._robot_context = self._info_manager.get_info("ROBOT CONTEXT")
 
+        if self._robot_context:
+            if self._info_manager.get_robot_log_deleted_flag() is False:
+                filelist = [f for f in os.listdir( self._info_manager.get_info('OUTPUT DIR'))]
+                for f in filelist:
+                    try:
+                        os.remove(self._info_manager.get_info('OUTPUT DIR') + os.sep + f)
+                    except:
+                        pass
+
+                self._info_manager.set_robot_log_deleted_flag(True)
+
+
     def set_object_name(self, name):
         """
         set the object name.

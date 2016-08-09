@@ -19,7 +19,7 @@
      <x>9</x>
      <y>10</y>
      <width>589</width>
-     <height>393</height>
+     <height>392</height>
     </rect>
    </property>
    <property name="currentIndex">
@@ -48,13 +48,6 @@
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="5" column="1">
-        <widget class="QSpinBox" name="min_height_spinbox">
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-        </widget>
-       </item>
        <item row="8" column="2">
         <widget class="QLabel" name="width_tolerance_label">
          <property name="enabled">
@@ -112,33 +105,6 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="2">
-        <widget class="QLabel" name="max_height_label">
-         <property name="text">
-          <string>Max Height</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="min_height_label">
-         <property name="text">
-          <string>Min Height</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="3">
-        <widget class="QSpinBox" name="max_height_spinbox">
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-        </widget>
-       </item>
        <item row="3" column="0" colspan="3">
         <widget class="QRadioButton" name="use_tolerance">
          <property name="layoutDirection">
@@ -152,13 +118,6 @@
          </attribute>
         </widget>
        </item>
-       <item row="6" column="1">
-        <widget class="QSpinBox" name="min_width_spinbox">
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-        </widget>
-       </item>
        <item row="8" column="1">
         <widget class="QSpinBox" name="height_tolerance_spinbox">
          <property name="enabled">
@@ -166,23 +125,6 @@
          </property>
          <property name="maximum">
           <number>999</number>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="3">
-        <widget class="QSpinBox" name="max_width_spinbox">
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="2">
-        <widget class="QLabel" name="max_width_label">
-         <property name="text">
-          <string>Max Width</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
@@ -200,16 +142,6 @@
          <attribute name="buttonGroup">
           <string notr="true">buttonGroup</string>
          </attribute>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="min_width_label">
-         <property name="text">
-          <string>Min Width</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
         </widget>
        </item>
        <item row="8" column="3">
@@ -432,6 +364,74 @@
          </attribute>
         </widget>
        </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="max_height_label">
+         <property name="text">
+          <string>Max Height</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="max_width_label">
+         <property name="text">
+          <string>Max Width</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QSpinBox" name="max_height_spinbox">
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QSpinBox" name="max_width_spinbox">
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="2">
+        <widget class="QLabel" name="min_height_label">
+         <property name="text">
+          <string>Min Height</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="2">
+        <widget class="QLabel" name="min_width_label">
+         <property name="text">
+          <string>Min Width</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="3">
+        <widget class="QSpinBox" name="min_height_spinbox">
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="3">
+        <widget class="QSpinBox" name="min_width_spinbox">
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </widget>
@@ -566,13 +566,6 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
-        <widget class="QSpinBox" name="min_height_spinbox_2">
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-        </widget>
-       </item>
        <item row="7" column="1">
         <widget class="QSpinBox" name="height_tolerance_spinbox_2">
          <property name="enabled">
@@ -606,36 +599,6 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="2">
-        <widget class="QLabel" name="max_width_label_2">
-         <property name="text">
-          <string>Max Width</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2">
-        <widget class="QLabel" name="max_height_label_2">
-         <property name="text">
-          <string>Max Height</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="min_width_label_2">
-         <property name="text">
-          <string>Min Width</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
        <item row="7" column="2">
         <widget class="QLabel" name="width_tolerance_label_2">
          <property name="enabled">
@@ -646,37 +609,6 @@
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="min_height_label_2">
-         <property name="text">
-          <string>Min Height</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QSpinBox" name="min_width_spinbox_2">
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="3">
-        <widget class="QSpinBox" name="max_height_spinbox_2">
-         <property name="maximum">
-          <number>9999</number>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="3">
-        <widget class="QSpinBox" name="max_width_spinbox_2">
-         <property name="maximum">
-          <number>9999</number>
          </property>
         </widget>
        </item>
@@ -852,6 +784,74 @@
          <attribute name="buttonGroup">
           <string notr="true">buttonGroup_4</string>
          </attribute>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="max_height_label_2">
+         <property name="text">
+          <string>Max Height</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="max_width_label_2">
+         <property name="text">
+          <string>Max Width</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QSpinBox" name="max_height_spinbox_2">
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QSpinBox" name="max_width_spinbox_2">
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QSpinBox" name="min_height_spinbox_2">
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="3">
+        <widget class="QSpinBox" name="min_width_spinbox_2">
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <widget class="QLabel" name="min_height_label_2">
+         <property name="text">
+          <string>Min Height</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="2">
+        <widget class="QLabel" name="min_width_label_2">
+         <property name="text">
+          <string>Min Width</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
         </widget>
        </item>
       </layout>

@@ -31,6 +31,8 @@ _log_folder = None
 
 _dict = {}
 
+robot_log_deleted = False
+
 class InfoManager():
 
     def update(self):
@@ -53,6 +55,8 @@ class InfoManager():
         self.set_info('FINDER THREAD INTERVAL DISAPPEAR', config_reader.get_finder_thread_interval_disappear())
         self.set_info('CHECK DIFF INTERVAL', config_reader.get_finder_diff_interval())
         self.set_info('CHECK DIFF INTERVAL DISAPPEAR', config_reader.get_finder_diff_interval_disappear())
+
+        self.set_info("OVERWRITE LOG IMAGES", False)
 
         if robot_context:
             self.set_info('SUITE NAME', robot_manager.get_suite_name())
@@ -105,3 +109,11 @@ class InfoManager():
         except:
             return None
 
+    def set_robot_log_deleted_flag(self, value):
+        global robot_log_deleted
+        robot_log_deleted = value
+
+
+    def get_robot_log_deleted_flag(self):
+        global robot_log_deleted
+        return robot_log_deleted
