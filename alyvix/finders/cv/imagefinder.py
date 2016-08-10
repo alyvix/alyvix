@@ -145,6 +145,7 @@ class ImageFinder(BaseFinder):
         :return: x, y, height, width of main template(s)
         """
         #tzero = time.time()
+        time_before_find = time.time()
         try:
 
             #x = 1 / 0
@@ -381,6 +382,10 @@ class ImageFinder(BaseFinder):
             #time.sleep(40)
 
             self._flag_thread_started = False
+
+            if  self._calc_last_finder_time is True:
+                self._last_finder_time = time.time() - time_before_find
+                self._calc_last_finder_time = False
 
             #print time.time() - tzero
 

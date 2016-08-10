@@ -42,6 +42,9 @@ class InfoManager():
 
         self.set_info('START TIME', int(time.time()))
 
+        self.set_info('WAIT FINISH', None)
+        self.set_info('DISAPP START', None)
+
         float_scaling_factor = screen_manager.get_scaling_factor()
         int_scaling_factor = int(round(float_scaling_factor))
 

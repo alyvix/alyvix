@@ -117,6 +117,8 @@ class ObjectFinder(BaseFinder):
 
     def find(self):
 
+        time_before_find = time.time()
+
         for sub_object in self._sub_components:
             sub_object[0]._objects_found_of_sub_object_finder = []
 
@@ -271,6 +273,10 @@ class ObjectFinder(BaseFinder):
 
         self._flag_thread_started = False
         main_object._flag_thread_started = False
+
+        if self._calc_last_finder_time is True:
+            self._last_finder_time = time.time() - time_before_find
+            self._calc_last_finder_time = False
 
         return self._objects_found
 

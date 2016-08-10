@@ -142,6 +142,7 @@ class RectFinder(BaseFinder):
         :rtype: list[[MatchResult, list[MatchResult]]]
         :return: a list that contains x, y, height, width of rectangle(s) found
         """
+        time_before_find = time.time()
         try:
             self._timedout_main_components = []
             self._timedout_sub_components = []
@@ -357,6 +358,10 @@ class RectFinder(BaseFinder):
                 source_img_auto_set = False
 
             self._flag_thread_started = False
+
+            if  self._calc_last_finder_time is True:
+                self._last_finder_time = time.time() - time_before_find
+                self._calc_last_finder_time = False
 
             return self._objects_found
 

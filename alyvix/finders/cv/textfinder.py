@@ -152,6 +152,7 @@ class TextFinder(BaseFinder):
         :return: a list that contains x, y, height, width of rectangle(s) found
         """
         try:
+            time_before_find = time.time()
             #print "into find"
             self._timedout_main_components = []
             self._timedout_sub_components = []
@@ -445,6 +446,10 @@ class TextFinder(BaseFinder):
             #time.sleep(40)
 
             self._flag_thread_started = False
+
+            if  self._calc_last_finder_time is True:
+                self._last_finder_time = time.time() - time_before_find
+                self._calc_last_finder_time = False
 
             return self._objects_found
 

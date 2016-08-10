@@ -145,6 +145,9 @@ class BaseFinder(object):
         self._cacheManager = CacheManager()
         self._configReader = ConfigReader()
 
+        self._calc_last_finder_time = False
+        self._last_finder_time = None
+
         self.__enable_debug_calcperf = False
 
         #self._timer_for_disappear = 0
@@ -252,6 +255,8 @@ class BaseFinder(object):
 
         timeout_value = 15
 
+        self._calc_last_finder_time = True
+
         if timeout == -1:
             timeout_value = self._configReader.get_finder_wait_timeout()
         else:
@@ -291,6 +296,7 @@ class BaseFinder(object):
 
                 if len(self._objects_found) > 0 and self._flag_thread_started is False:
                     #do analysis cjecl_time()
+                    self._info_manager.set_info('WAIT FINISH', time.time())
                     """
                     print "len main:", len(self._objects_found)
 
@@ -418,7 +424,10 @@ class BaseFinder(object):
 
         timer_offset = 0
 
+        add_wait_delay = False
+
         if self._object_is_found_flag is True:
+            add_wait_delay = True
             wait_time = 0
         else:
             wait_time = self.wait(timeout, wait_disappear=True)
@@ -489,6 +498,7 @@ class BaseFinder(object):
                     pass
 
                 if len(self._objects_found) == 0 and self._flag_thread_started is False and one_thread_started is True:
+                    txxxxxxxx = time.time()
                     #do analysis cjecl_time()
                     """
                     print "len main:", len(self._objects_found)
@@ -535,7 +545,13 @@ class BaseFinder(object):
                     #print "PERF WAIT:", perf_wait
                     #print "PERF DISAPP", perf_disappear
 
-                    return perf_wait + perf_disappear
+                    wait_delay_time = self._info_manager.get_info('DISAPP START')  - self._info_manager.get_info('WAIT FINISH')
+                    wait_delay_time = wait_delay_time + self._last_finder_time
+
+                    self._info_manager.set_info('DISAPP START', None)
+                    self._last_finder_time = None
+
+                    return perf_wait + perf_disappear + wait_delay_time
 
                     #return self._get_disappear_performance()
                     #return self._get_performance()
@@ -617,6 +633,9 @@ class BaseFinder(object):
                 #self._timer_for_disappear += time_elapsed
                 self._heartbeat_images.append((time_elapsed + timer_offset, self._compress_image(img2_gray)))
 
+                if self._info_manager.get_info('DISAPP START') is None and add_wait_delay is True:
+                    self._info_manager.set_info('DISAPP START', time.time())
+                    #a = self._info_manager.get_info('DISAPP START')  - self._info_manager.get_info('WAIT FINISH')
 
                 t1 = time.time() - t0
                 time_sleep = check_diff_interval - t1
