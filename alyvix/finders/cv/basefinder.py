@@ -545,10 +545,16 @@ class BaseFinder(object):
                     #print "PERF WAIT:", perf_wait
                     #print "PERF DISAPP", perf_disappear
 
-                    wait_delay_time = self._info_manager.get_info('DISAPP START')  - self._info_manager.get_info('WAIT FINISH')
-                    wait_delay_time = wait_delay_time + self._last_finder_time
+                    wait_delay_time = 0
 
-                    self._info_manager.set_info('DISAPP START', None)
+                    try:
+                        wait_delay_time = self._info_manager.get_info('DISAPP START')  - self._info_manager.get_info('WAIT FINISH')
+                        wait_delay_time = wait_delay_time + self._last_finder_time
+
+                        self._info_manager.set_info('DISAPP START', None)
+                    except:
+                        pass
+
                     self._last_finder_time = None
 
                     return perf_wait + perf_disappear + wait_delay_time
