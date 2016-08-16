@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>584</width>
-    <height>392</height>
+    <height>394</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,7 +44,7 @@
         <x>0</x>
         <y>0</y>
         <width>380</width>
-        <height>300</height>
+        <height>306</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout">
@@ -318,6 +318,16 @@
          </attribute>
         </widget>
        </item>
+       <item row="12" column="0">
+        <widget class="QPushButton" name="pushButtonXYoffset">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>XY Offset</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </widget>
@@ -357,7 +367,7 @@
         <x>0</x>
         <y>0</y>
         <width>380</width>
-        <height>277</height>
+        <height>283</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
@@ -623,6 +633,16 @@
          </property>
          <property name="checked">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="0">
+        <widget class="QPushButton" name="pushButtonXYoffset_2">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>XY Offset</string>
          </property>
         </widget>
        </item>

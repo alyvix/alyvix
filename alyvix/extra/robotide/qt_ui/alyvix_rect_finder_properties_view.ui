@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>607</width>
-    <height>440</height>
+    <height>441</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>9</x>
      <y>10</y>
      <width>589</width>
-     <height>392</height>
+     <height>394</height>
     </rect>
    </property>
    <property name="currentIndex">
@@ -429,6 +429,16 @@
         <widget class="QSpinBox" name="min_width_spinbox">
          <property name="maximum">
           <number>9999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="14" column="0">
+        <widget class="QPushButton" name="pushButtonXYoffset">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>XY Offset</string>
          </property>
         </widget>
        </item>
@@ -851,6 +861,16 @@
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="0">
+        <widget class="QPushButton" name="pushButtonXYoffset_2">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>XY Offset</string>
          </property>
         </widget>
        </item>

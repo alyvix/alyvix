@@ -89,6 +89,7 @@ class AlyvixRectFinderView(QWidget):
         self.__flag_need_to_delete_roi = False
         self.__flag_need_to_restore_roi = False
         self._flag_show_min_max = False
+        self.set_xy_offset = None  #-1 for main, other int for sub index
         self._old_min_width = None
         self._old_min_height = None
         self._self_show_tolerance = False
@@ -194,7 +195,7 @@ class AlyvixRectFinderView(QWidget):
                 self.esc_pressed = True
                 self.parent.show()
                 self.close()
-        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O:
+        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O and self.set_xy_offset is None:
             self.rect_view_properties = AlyvixRectFinderPropertiesView(self)
             self.rect_view_properties.show()
             """
@@ -226,7 +227,7 @@ class AlyvixRectFinderView(QWidget):
         if False is True:
             #self.BringWindowToFront()
             return
-        if self.is_mouse_inside_rect(self._main_rect_finder):
+        if self.is_mouse_inside_rect(self._main_rect_finder) and self.set_xy_offset is None:
             self.rect_view_properties = AlyvixRectFinderPropertiesView(self)
             self.rect_view_properties.show()
         
@@ -234,13 +235,24 @@ class AlyvixRectFinderView(QWidget):
         if event.buttons() == Qt.LeftButton:
         
             self.__click_position = QPoint(QCursor.pos())
-            self.__capturing = True
+            
+            if self.set_xy_offset is not None:
+                if self.set_xy_offset == -1:
+                    self._main_rect_finder.x_offset = self.__click_position.x() - self._main_rect_finder.x
+                    self._main_rect_finder.y_offset = self.__click_position.y() - self._main_rect_finder.y
+                else:
+                    self._sub_rects_finder[self.set_xy_offset].x_offset = self.__click_position.x() - self._sub_rects_finder[self.set_xy_offset].x
+                    self._sub_rects_finder[self.set_xy_offset].y_offset = self.__click_position.y() - self._sub_rects_finder[self.set_xy_offset].y
+            else:
+                self.__capturing = True
             
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.__capturing = False
             
-            if self.__flag_capturing_main_rect is True:
+            if self.set_xy_offset is not None:
+                self.set_xy_offset = None
+            elif self.__flag_capturing_main_rect is True:
                 self.__flag_capturing_main_rect = False
                 self.__flag_capturing_sub_rect_roi = True
                 self.add_main_rect()
@@ -286,15 +298,18 @@ class AlyvixRectFinderView(QWidget):
             if self.is_mouse_inside_rect(sub_rect_finder):
                 self.__flag_mouse_is_inside_rect = True
  
-        if self.__capturing is False:
-            self.draw_cross_lines(qp)
-            
-        elif self.__flag_capturing_main_rect is True:
-            self.draw_capturing_rectangle_lines(qp)
-        elif self.__flag_capturing_sub_rect_roi is True:
-            self.draw_capturing_roi_lines(qp)
-        elif self.__flag_capturing_sub_rect is True:
-            self.draw_capturing_rectangle_lines(qp)
+        
+        if self.set_xy_offset is None:
+            if self.__capturing is False:
+                self.draw_cross_lines(qp)
+            elif self.set_xy_offset is not None:
+                pass
+            elif self.__flag_capturing_main_rect is True:
+                self.draw_capturing_rectangle_lines(qp)
+            elif self.__flag_capturing_sub_rect_roi is True:
+                self.draw_capturing_roi_lines(qp)
+            elif self.__flag_capturing_sub_rect is True:
+                self.draw_capturing_rectangle_lines(qp)
         qp.end()
         
     def is_mouse_inside_rect(self, rect):
@@ -330,6 +345,20 @@ class AlyvixRectFinderView(QWidget):
                     self._main_rect_finder.y,
                     self._main_rect_finder.width,
                     self._main_rect_finder.height))  
+                    
+                if self._main_rect_finder.click is True or self._main_rect_finder.rightclick is True or self._main_rect_finder.mousemove is True or self._main_rect_finder.doubleclick is True:
+                    if self._main_rect_finder.x_offset is None and self._main_rect_finder.y_offset is None:
+                        click_pos = QPoint(self._main_rect_finder.x + (self._main_rect_finder.width/2), self._main_rect_finder.y + (self._main_rect_finder.height/2))
+                    else:
+                        click_pos = QPoint(self._main_rect_finder.x + self._main_rect_finder.x_offset, self._main_rect_finder.y + self._main_rect_finder.y_offset)
+                        
+                    old_brush = qp.brush()
+                        
+                    qp.setBrush(QColor(255, 0, 255, 130))
+                    qp.drawLine(self._main_rect_finder.x + (self._main_rect_finder.width/2), self._main_rect_finder.y + (self._main_rect_finder.height/2), click_pos.x(), click_pos.y())
+                    qp.drawEllipse(click_pos, 10, 10)
+                    qp.setBrush(old_brush)
+            
             elif self._main_rect_finder.show_min_max is True:
                 pen = QPen()
                 pen.setBrush(QColor(108, 0, 255, 255))
@@ -555,7 +584,21 @@ class AlyvixRectFinderView(QWidget):
                         rect_finder.y,
                         rect_finder.width,
                         rect_finder.height))
-                
+                        
+                    if rect_finder.click is True or rect_finder.rightclick is True or rect_finder.mousemove is True or rect_finder.doubleclick is True:
+                        
+                        if rect_finder.x_offset is None and rect_finder.y_offset is None:
+                            click_pos = QPoint(rect_finder.x + (rect_finder.width/2), rect_finder.y + (rect_finder.height/2))
+                        else:
+                            click_pos = QPoint(rect_finder.x + rect_finder.x_offset, rect_finder.y + rect_finder.y_offset)
+                            
+                        old_brush = qp.brush()
+                            
+                        qp.setBrush(QColor(172, 96, 246, 130))
+                        qp.drawLine(rect_finder.x + (rect_finder.width/2), rect_finder.y + (rect_finder.height/2), click_pos.x(), click_pos.y())
+                        qp.drawEllipse(click_pos, 10, 10)
+                        qp.setBrush(old_brush)
+                    
                 elif rect_finder.show_min_max is True: 
                                   
                     min_width = rect_finder.min_width
@@ -1555,16 +1598,26 @@ class AlyvixRectFinderView(QWidget):
                 mmanager_declared = True
                 
             self._code_lines.append("    time.sleep(sleep_factor)")
-                                
-            if self._main_rect_finder.click == True:
-                self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1)")
-            elif self._main_rect_finder.doubleclick == True:
-                self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1, 2)")
-            elif self._main_rect_finder.rightclick == True:
-                self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 2)")
-            elif self._main_rect_finder.mousemove == True:
-                self._code_lines.append("    m.move(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
-                
+            
+            if self._main_rect_finder.x_offset is None and self._main_rect_finder.y_offset is None: 
+                if self._main_rect_finder.click == True:
+                    self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1)")
+                elif self._main_rect_finder.doubleclick == True:
+                    self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1, 2)")
+                elif self._main_rect_finder.rightclick == True:
+                    self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 2)")
+                elif self._main_rect_finder.mousemove == True:
+                    self._code_lines.append("    m.move(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
+            else:
+                if self._main_rect_finder.click == True:
+                    self._code_lines.append("    m.click(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "), 1)")
+                elif self._main_rect_finder.doubleclick == True:
+                    self._code_lines.append("    m.click(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "), 1, 2)")
+                elif self._main_rect_finder.rightclick == True:
+                    self._code_lines.append("    m.click(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "), 2)")
+                elif self._main_rect_finder.mousemove == True:
+                    self._code_lines.append("    m.move(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+                    
         if self._main_rect_finder.sendkeys != "":
             self.mouse_or_key_is_set = True
         
@@ -1593,16 +1646,27 @@ class AlyvixRectFinderView(QWidget):
                         self._code_lines.append("    m = MouseManager()")
                         mmanager_declared = True
                     self._code_lines.append("    time.sleep(sleep_factor)")
-                                        
-                    if sub_rect.click == True:
-                        self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1)")
-                    elif sub_rect.doubleclick == True:
-                        self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1, 2)")
-                    elif sub_rect.rightclick == True:
-                        self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 2)")
-                    elif sub_rect.mousemove == True:
-                        self._code_lines.append("    m.move(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
                     
+
+                    if sub_rect.x_offset is None and sub_rect.y_offset is None:    
+                        if sub_rect.click == True:
+                            self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1)")
+                        elif sub_rect.doubleclick == True:
+                            self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1, 2)")
+                        elif sub_rect.rightclick == True:
+                            self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 2)")
+                        elif sub_rect.mousemove == True:
+                            self._code_lines.append("    m.move(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
+                    else:
+                        if sub_rect.click == True:
+                            self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "), 1)")
+                        elif sub_rect.doubleclick == True:
+                            self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "), 1, 2)")
+                        elif sub_rect.rightclick == True:
+                            self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "), 2)")
+                        elif sub_rect.mousemove == True:
+                            self._code_lines.append("    m.move(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "))")
+                        
                 if sub_rect.sendkeys != "":
                 
                     self.mouse_or_key_is_set = True
@@ -1890,6 +1954,12 @@ class AlyvixRectFinderView(QWidget):
         
         mousemove_node = ET.SubElement(main_rect_node, "mousemove")
         mousemove_node.text = str(self._main_rect_finder.mousemove)
+        
+        x_offset_node = ET.SubElement(main_rect_node, "x_offset")
+        x_offset_node.text = str(self._main_rect_finder.x_offset)
+        
+        y_offset_node = ET.SubElement(main_rect_node, "y_offset")
+        y_offset_node.text = str(self._main_rect_finder.y_offset)
 
         sendkeys_node = ET.SubElement(main_rect_node, "sendkeys")
         sendkeys_node.set("encrypted", str(self._main_rect_finder.text_encrypted))
@@ -1979,6 +2049,12 @@ class AlyvixRectFinderView(QWidget):
 
                 mousemove_node = ET.SubElement(sub_rect_node, "mousemove")
                 mousemove_node.text = str(sub_rect.mousemove)
+                
+                x_offset_node = ET.SubElement(sub_rect_node, "x_offset")
+                x_offset_node.text = str(sub_rect.x_offset)
+
+                y_offset_node = ET.SubElement(sub_rect_node, "y_offset")
+                y_offset_node.text = str(sub_rect.y_offset)
                 
                 sendkeys_node = ET.SubElement(sub_rect_node, "sendkeys")
                 sendkeys_node.set("encrypted", str(sub_rect.text_encrypted))
@@ -2163,6 +2239,22 @@ class AlyvixRectFinderView(QWidget):
         else:
             self._main_rect_finder.mousemove = False
             
+        try:
+            if "None" in main_rect_node.getElementsByTagName("x_offset")[0].firstChild.nodeValue:
+                self._main_rect_finder.x_offset = None
+            else:
+                self._main_rect_finder.x_offset = int(main_rect_node.getElementsByTagName("x_offset")[0].firstChild.nodeValue)
+        except:
+            pass
+            
+        try:
+            if "None" in main_rect_node.getElementsByTagName("y_offset")[0].firstChild.nodeValue:
+                self._main_rect_finder.y_offset = None
+            else:
+                self._main_rect_finder.y_offset = int(main_rect_node.getElementsByTagName("y_offset")[0].firstChild.nodeValue)
+        except:
+            pass
+            
         if "True" in root_node.attributes["enable_performance"].value:
             self.enable_performance = True
         else:
@@ -2264,6 +2356,22 @@ class AlyvixRectFinderView(QWidget):
                 self.mouse_or_key_is_set = True
             else:
                 sub_rect_obj.mousemove = False
+                
+            try:
+                if "None" in sub_rect_node.getElementsByTagName("x_offset")[0].firstChild.nodeValue:
+                    sub_rect_obj.x_offset = None
+                else:
+                    sub_rect_obj.x_offset = int(sub_rect_node.getElementsByTagName("x_offset")[0].firstChild.nodeValue)
+            except:
+                pass
+                    
+            try:
+                if "None" in sub_rect_node.getElementsByTagName("y_offset")[0].firstChild.nodeValue:
+                    sub_rect_obj.y_offset = None
+                else:
+                    sub_rect_obj.y_offset = int(sub_rect_node.getElementsByTagName("y_offset")[0].firstChild.nodeValue)
+            except:
+                pass
                 
             if sub_rect_node.getElementsByTagName("sendkeys")[0].attributes["encrypted"].value == "True":
                 sub_rect_obj.text_encrypted = True
@@ -2401,6 +2509,9 @@ class MainRectForGui:
         self.doubleclick = False
         self.rightclick = False
         self.mousemove = False
+        self.xy_offset = None
+        self.x_offset = None
+        self.y_offset = None
         self.wait = True
         self.wait_disapp = False
         self.find = False
@@ -2445,6 +2556,9 @@ class SubRectForGui:
         self.doubleclick = False
         self.rightclick = False
         self.mousemove = False
+        self.xy_offset = None
+        self.x_offset = None
+        self.y_offset = None
         self.sendkeys = ""
         self.sendkeys_quotes = True
         self.text_encrypted = False
@@ -2577,21 +2691,25 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
 
         if self.parent._main_rect_finder.click is True:
             self.clickRadio.setChecked(True)
+            self.pushButtonXYoffset.setEnabled(True)
         else:
             self.clickRadio.setChecked(False)
             
         if self.parent._main_rect_finder.doubleclick is True:
             self.doubleclickRadio.setChecked(True)
+            self.pushButtonXYoffset.setEnabled(True)
         else:
             self.doubleclickRadio.setChecked(False)
             
         if self.parent._main_rect_finder.rightclick is True:
             self.rightclickRadio.setChecked(True)
+            self.pushButtonXYoffset.setEnabled(True)
         else:
             self.rightclickRadio.setChecked(False)
             
         if self.parent._main_rect_finder.mousemove is True:
             self.movemouseRadio.setChecked(True)
+            self.pushButtonXYoffset.setEnabled(True)
         else:
             self.movemouseRadio.setChecked(False)
             
@@ -2600,6 +2718,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             and self.parent._main_rect_finder.mousemove is False\
             and self.parent._main_rect_finder.rightclick is False:
             self.dontclickRadio.setChecked(True)
+            self.pushButtonXYoffset.setEnabled(False)
         else:
             self.dontclickRadio.setChecked(False)
             
@@ -2685,6 +2804,8 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.movemouseRadio, SIGNAL('toggled(bool)'), self.movemouseRadio_event)
         self.connect(self.dontclickRadio, SIGNAL('toggled(bool)'), self.dontclickRadio_event)
         
+        self.connect(self.pushButtonXYoffset, SIGNAL('clicked()'), self.pushButtonXYoffset_event)
+        
         self.connect(self.inserttext, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event(QString)"))
         #self.connect(self.inserttext, SIGNAL("textChanged()"), self, self.inserttext_event)
         
@@ -2738,6 +2859,8 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.movemouseRadio_2, SIGNAL('toggled(bool)'), self.movemouseRadio_event_2)
         self.connect(self.rightclickRadio_2, SIGNAL('toggled(bool)'), self.rightclickRadio_event_2)
         self.connect(self.dontclickRadio_2, SIGNAL('toggled(bool)'), self.dontclickRadio_event_2)
+        
+        self.connect(self.pushButtonXYoffset_2, SIGNAL('clicked()'), self.pushButtonXYoffset_event_2)
         
         self.connect(self.inserttext_2, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event_2(QString)"))
         self.connect(self.text_encrypted_2, SIGNAL('stateChanged(int)'), self.text_encrypted_event_2)
@@ -3127,21 +3250,25 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             
         if self.parent._sub_rects_finder[self.sub_rect_index].click is True:
             self.clickRadio_2.setChecked(True)
+            self.pushButtonXYoffset_2.setEnabled(True)
         else:
             self.clickRadio_2.setChecked(False)
             
         if self.parent._sub_rects_finder[self.sub_rect_index].doubleclick is True:
             self.doubleclickRadio_2.setChecked(True)
+            self.pushButtonXYoffset_2.setEnabled(True)
         else:
             self.doubleclickRadio_2.setChecked(False)
             
         if self.parent._sub_rects_finder[self.sub_rect_index].rightclick is True:
             self.rightclickRadio_2.setChecked(True)
+            self.pushButtonXYoffset_2.setEnabled(True)
         else:
             self.rightclickRadio_2.setChecked(False)
             
         if self.parent._sub_rects_finder[self.sub_rect_index].mousemove is True:
             self.movemouseRadio_2.setChecked(True)
+            self.pushButtonXYoffset_2.setEnabled(True)
         else:
             self.movemouseRadio_2.setChecked(False)
             
@@ -3150,6 +3277,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             and self.parent._sub_rects_finder[self.sub_rect_index].rightclick is False \
             and self.parent._sub_rects_finder[self.sub_rect_index].mousemove is False:
             self.dontclickRadio_2.setChecked(True)
+            self.pushButtonXYoffset_2.setEnabled(False)
         else:
             self.dontclickRadio_2.setChecked(False)
             
@@ -3164,24 +3292,36 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.parent._main_rect_finder.click = False
         else:
             self.parent._main_rect_finder.click = True
+            self.pushButtonXYoffset.setEnabled(True)
+            
+        self.parent.update()
         
     def doubleclickRadio_event(self, event):
         if event is False:
             self.parent._main_rect_finder.doubleclick = False
         else:
             self.parent._main_rect_finder.doubleclick = True 
+            self.pushButtonXYoffset.setEnabled(True)
+            
+        self.parent.update()
             
     def rightclickRadio_event(self, event):
         if event is False:
             self.parent._main_rect_finder.rightclick = False
         else:
             self.parent._main_rect_finder.rightclick = True 
+            self.pushButtonXYoffset.setEnabled(True)
+            
+        self.parent.update()
             
     def movemouseRadio_event(self, event):
         if event is False:
             self.parent._main_rect_finder.mousemove = False
         else:
             self.parent._main_rect_finder.mousemove = True 
+            self.pushButtonXYoffset.setEnabled(True)
+            
+        self.parent.update()
              
     def dontclickRadio_event(self, event):
         if event is True:
@@ -3189,6 +3329,13 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.parent._main_rect_finder.doubleclick = False
             self.parent._main_rect_finder.rightclick = False
             self.parent._main_rect_finder.mousemove = False
+            self.pushButtonXYoffset.setEnabled(False)
+            
+        self.parent.update()
+            
+    def pushButtonXYoffset_event(self):
+        self.parent.set_xy_offset = -1  #-1 for main, other int for sub index
+        self.hide()
             
     @pyqtSlot(QString)
     def inserttext_event(self, text):
@@ -3686,30 +3833,50 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.parent._sub_rects_finder[self.sub_rect_index].click = False
         else:
             self.parent._sub_rects_finder[self.sub_rect_index].click = True
+            self.pushButtonXYoffset_2.setEnabled(True)
+            
+        self.parent.update()
         
     def doubleclickRadio_event_2(self, event):
         if event is False:
             self.parent._sub_rects_finder[self.sub_rect_index].doubleclick = False
         else:
             self.parent._sub_rects_finder[self.sub_rect_index].doubleclick = True 
+            self.pushButtonXYoffset_2.setEnabled(True)
+            
+        self.parent.update()
             
     def movemouseRadio_event_2(self, event):
         if event is False:
             self.parent._sub_rects_finder[self.sub_rect_index].mousemove = False
         else:
             self.parent._sub_rects_finder[self.sub_rect_index].mousemove = True 
+            self.pushButtonXYoffset_2.setEnabled(True)
+            
+        self.parent.update()
             
     def rightclickRadio_event_2(self, event):
         if event is False:
             self.parent._sub_rects_finder[self.sub_rect_index].rightclick = False
         else:
             self.parent._sub_rects_finder[self.sub_rect_index].rightclick = True 
+            self.pushButtonXYoffset_2.setEnabled(True)
+            
+        self.parent.update()
              
     def dontclickRadio_event_2(self, event):
         if event is True:
             self.parent._sub_rects_finder[self.sub_rect_index].click = False
             self.parent._sub_rects_finder[self.sub_rect_index].doubleclick = False
+            self.parent._sub_rects_finder[self.sub_rect_index].rightclick = False
+            self.parent._sub_rects_finder[self.sub_rect_index].mousemove = False
+            self.pushButtonXYoffset_2.setEnabled(False)
             
+        self.parent.update()
+            
+    def pushButtonXYoffset_event_2(self):
+        self.parent.set_xy_offset = self.sub_rect_index  #-1 for main, other int for sub index
+        self.hide()
 
 class LineTextWidget(QFrame):
  
