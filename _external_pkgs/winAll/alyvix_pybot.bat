@@ -44,6 +44,7 @@ IF [%suitefile%] == [] (
     ECHO Optional arguments are:
     ECHO     --test testcase_name
     ECHO     --outputdir log_folder
+    ECHO     --exitcode the_exitcode
     
     EXIT /B 3
 
@@ -78,6 +79,10 @@ IF NOT "%1"=="" (
         SET testcase=%2
         SHIFT
     )
+    IF "%1"=="--exitcode" (
+        SET exitcode=%2
+        SHIFT
+    )
     SHIFT
     GOTO :loop
 )
@@ -92,7 +97,7 @@ IF NOT EXIST %suitefile% (
     ECHO         --test testcase_name
     ECHO         --outputdir log_folder
     
-    EXIT /B 3
+    EXIT /B %exitcode%
 
 )
 
@@ -110,8 +115,15 @@ RD %outputdir%\dummy > NUL 2>&1
 MKDIR %outputdir%\dummy > NUL 2>&1
 
 IF %ERRORLEVEL% == 0 (
-    SET pathavailable=1
-    rd %outputdir%\dummy
+    IF [%outputdir%] == [] (
+        SET pathavailable=0
+        SET outputdir=%temp%\alyvix_pybot\%suitename%\log
+        SET logtmp=1
+    ) ELSE (
+        SET pathavailable=1
+        rd %outputdir%\dummy
+    )
+
 ) ELSE (
     SET pathavailable=0
     SET outputdir=%temp%\alyvix_pybot\%suitename%\log
@@ -139,6 +151,7 @@ SET outputmsg=UNKNOWN - %s generated no output or exit code
 rem ECHO suite = %suite%
 rem ECHO outputdir = %outputdir%
 rem ECHO testcase = %testcase%
+
 
 IF [%testcase%] == [] (
 

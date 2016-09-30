@@ -5,3 +5,4 @@ C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\Alyvix
 C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Release\System.Data.SQLite.xml
 C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\obj\Release\AlyvixWpmService.exe
 C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\obj\Release\AlyvixWpmService.pdb
+C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\obj\Release\AlyvixWpmService.csprojResolveAssemblyReference.cache

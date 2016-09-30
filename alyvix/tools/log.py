@@ -396,6 +396,8 @@ class LogManager:
 
                 index = index + 1
 
+            #click_points = self._info_manager.get_info("INTERACTION")
+
             if self._robot_context is True:
                 outputdir = self._robot_manager.get_output_directory()
 
@@ -412,10 +414,17 @@ class LogManager:
 
                 cv2.imwrite(outputdir + os.sep + file_name, img_color)  #, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
 
+                self._info_manager.set_info("LAST_LOG_IMG",outputdir + os.sep + file_name)
+
                 if disappear_mode is False:
                     self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "INFO", True)
                 else:
                     self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "ERROR", True)
+
+    def save_click_coordinates(self, x, y):
+        pass
+
+
 
     def save_timedout_objects(self, image_name, image_data, main_components, sub_components, main_extra_img, sub_extra_images, save_only_extra=False, object_name=None, disappear_mode=False):
         """

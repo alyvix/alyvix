@@ -61,6 +61,8 @@ class InfoManager():
 
         self.set_info("OVERWRITE LOG IMAGES", False)
 
+        #self.set_info("INTERACTION", [])
+
         if robot_context:
             self.set_info('SUITE NAME', robot_manager.get_suite_name())
             self.set_info('SUITE SOURCE', robot_manager.get_suite_source())

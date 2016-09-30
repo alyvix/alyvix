@@ -1,7 +1,3 @@
-# alyvix-api
-Source code of Alyvix Api
+# Alyvix
 
-Api Docs are here: http://violetatom.github.io/alyvix/
-
-
-Hello World!
+Alyvix official repository

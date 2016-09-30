@@ -20,6 +20,7 @@
 # Official website: http://www.alyvix.com/
 
 from alyvix.tools.info import InfoManager
+from alyvix.tools.log import LogManager
 
 class MouseManagerBase(object):
 
@@ -30,6 +31,7 @@ class MouseManagerBase(object):
         self.wheel_up = 4
         self.wheel_down = 5
         self._info_manager = InfoManager()
+        self._log_manager = LogManager()
         self._scaling_factor = self._info_manager.get_info("SCALING FACTOR FLOAT")
 
     def click(self, x, y, button=1, n=1):

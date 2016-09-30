@@ -81,7 +81,7 @@ class PerfManager:
         try:
             perf_data.state = int(state)
         except:
-             perf_data.state = 3
+             perf_data.state = int(os.getenv("exitcode"))
 
         cnt = 0
 
@@ -291,6 +291,11 @@ class PerfManager:
 
     def get_output(self, message=None, print_output=True):
 
+        try:
+            test_exitcode = int(os.getenv("exitcode"))
+        except:
+            os.environ["exitcode"] = "3"
+
         prefix_robot_framework = ""
 
         global perfdata_list
@@ -318,7 +323,7 @@ class PerfManager:
                                            "WARNING: one or more steps are in warning state" +\
                                            performanceData + os.linesep
             prefix_robot_framework = "*WARN*"
-        elif exitcode == 3:
+        elif exitcode == int(os.getenv("exitcode")):
             if self._last_filled_perf is not None:
                 self.performance_desc_string = self.performance_desc_string +\
                                                "UNKNOWN: some error occurred, last filled perf data is " +\
@@ -423,7 +428,8 @@ class PerfManager:
             elif value != "" and warning != "" and value >= warning:
                 state = 1
             elif value == "" and warning == "" and critical == "" and state == 0:
-                state = 3
+                #state = 3
+                state = int(os.getenv("exitcode"))
 
             if state > exitcode:
                 exitcode = state

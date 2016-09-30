@@ -62,6 +62,24 @@ class MouseManager(MouseManagerBase):
         elif button == self.middle_button:
             self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys).decode("utf-8") + ", middle")
 
+        self._log_manager.save_click_coordinates(x, y)
+
+    def click_2(self, x, y, button=1, n_clicks=1, click_delay=10):
+
+        xs = int(x / self._scaling_factor)
+        ys = int(y / self._scaling_factor)
+
+        self.move(xs, ys)
+
+        self.load_module()
+
+        if button == self.left_button:
+            for cnt_click in xrange(n_clicks):
+                self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys).decode("utf-8"))
+                time.sleep(click_delay//1000)
+
+        self._log_manager.save_click_coordinates(x, y)
+
     def move(self, x, y):
 
         xs = int(x/self._scaling_factor)
@@ -70,6 +88,8 @@ class MouseManager(MouseManagerBase):
         self.load_module()
 
         self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys).decode("utf-8") + ", 0")
+
+        self._log_manager.save_click_coordinates(x, y)
 
     def scroll(self, steps, direction):
 
@@ -81,6 +101,19 @@ class MouseManager(MouseManagerBase):
                 self.ahk.ahkExec("Click WheelDown".decode("utf-8"))
             elif direction == self.wheel_up:
                 self.ahk.ahkExec("Click WheelUp".decode("utf-8"))
+
+    def hold(self, x, y):
+        self.load_module()
+        self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", 0")
+        time.sleep(0.25)
+        self.ahk.ahkExec("Click down".decode("utf-8"))
+
+    def release(self, x, y):
+        self.load_module()
+        self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", 0")
+        time.sleep(0.25)
+        self.ahk.ahkExec("Click up".decode("utf-8"))
+
 
     def drag(self, x1, y1, x2, y2, button=1):
 
