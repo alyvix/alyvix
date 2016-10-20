@@ -271,7 +271,7 @@ class LogManager:
             #import traceback
             #self.save_exception("ERROR", traceback.format_exc())
 
-    def save_objects_found(self, image_name, image_data, objects_found, roi, disappear_mode=False):
+    def save_objects_found(self, image_name, image_data, objects_found, roi, main_xy_coordinates, sub_xy_coordinates , finder_type = None, disappear_mode=False):
         """
         save the image into the test case log folder.
 
@@ -287,139 +287,341 @@ class LogManager:
         :param roi: sub components roi
         """
 
-        if self.__enable_log is True or self._robot_context is True:
-            
-            
-            scaling_factor = self._info_manager.get_info("SCALING FACTOR INT")
+        try:
+            if self.__enable_log is True or self._robot_context is True:
 
-            overwrite_images = self._info_manager.get_info("OVERWRITE LOG IMAGES")
+                scaling_factor = self._info_manager.get_info("SCALING FACTOR INT")
 
-            if overwrite_images is None:
-                overwrite_images = True
+                overwrite_images = self._info_manager.get_info("OVERWRITE LOG IMAGES")
 
-            img_gray = image_data.copy()
-            img_color = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2RGB)
+                if overwrite_images is None:
+                    overwrite_images = True
 
+                img_gray = image_data.copy()
+                img_color = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2RGB)
 
-            img_h, img_w = img_gray.shape
+                img_h, img_w = img_gray.shape
 
-            #main_color = [(0, 0, 255), (0, 255, 0), (0, 255, 255), (255, 0, 0)]   #red, green, yellow ,blue
-            #sub_color = [(255, 0, 255), (255, 255, 0), (0, 170, 255), (255, 85, 170) ]  #violet, light blue, orange, dark violet
+                # main_color = [(0, 0, 255), (0, 255, 0), (0, 255, 255), (255, 0, 0)]   #red, green, yellow ,blue
+                # sub_color = [(255, 0, 255), (255, 255, 0), (0, 170, 255), (255, 85, 170) ]  #violet, light blue, orange, dark violet
 
-            rect_border_color = (0, 0, 255)
-            rect_fill_color = (255, 0, 255)
+                if finder_type is None:
+                    rect_border_color = (0, 0, 255)
+                    rect_fill_color = (255, 0, 255)
+                elif finder_type == 3:  # obj finder
 
-            """
-            main_rect_border = (0, 0, 255)
-            main_rect_fill = (255, 0, 255)
+                    self._info_manager.set_info('LOG OBJ FINDER TYPE', None)
 
-            sub_rect_border = (198, 0, 255)
-            sub_rect_fill = (246, 96, 172)
-            """
+                    # self._info_manager.set_info("obj finder last log image", img_color)
+                    self._info_manager.set_info('LOG OBJ FINDER COLOR COUNTER', 0)
+                    rect_border_color = self._info_manager.get_info('LOG OBJ FINDER FILL COLOR')[0]
+                    rect_fill_color = rect_border_color
 
-            index = 1
-            for object in objects_found:
+                    self._info_manager.set_info('LOG OBJ FINDER COLOR COUNTER', 1)
 
-                main_x = object[0].x
-                main_y = object[0].y
-                w = object[0].width
-                h = object[0].height
-
-                x2 = main_x + object[0].width
-                y2 = main_y + object[0].height
-
-                """
-                if index >= 3:
-                    color = main_color[3]
                 else:
-                    color = main_color[index]
+                    rect_border_color = self._info_manager.get_info('LOG OBJ FINDER FILL COLOR')[
+                        self._info_manager.get_info('LOG OBJ FINDER COLOR COUNTER')]
+                    rect_fill_color = rect_border_color
+
+
                 """
+                main_rect_border = (0, 0, 255)
+                main_rect_fill = (255, 0, 255)
 
-                text_color = rect_border_color  #(255, 255, 255)
-
-                cv2.rectangle(img_color, (main_x, main_y), (main_x+w, main_y+h), rect_border_color, scaling_factor)
-
-                image = numpy.zeros((img_h, img_w, 3), numpy.uint8)
-                image[:] = rect_fill_color
-                alpha = 0.5
-                cv2.addWeighted(image[main_y:y2, main_x:x2], alpha, img_color[main_y:y2, main_x:x2], 1.0 - alpha, 0,
-                                img_color[main_y:y2, main_x:x2])
-
-                font = cv2.FONT_HERSHEY_PLAIN
-                text = str(index) + ":0"
-
-                cv2.putText(img_color, text, (main_x, main_y), font, scaling_factor, text_color, scaling_factor, cv2.CV_AA)
-
-                sub_index = 0
-                if object[1] is not None:
-
-                    for sub_obj in object[1]:
-
-                        """
-                        if index >= 3:
-                            color = sub_color[3]
-                        else:
-                            color = sub_color[index]
-                        """
-
-                        text_color = rect_border_color  #(255, 255, 255)
-
-                        x = sub_obj.x
-                        y = sub_obj.y
-                        w = sub_obj.width
-                        h = sub_obj.height
-
-                        x2 = x + sub_obj.width
-                        y2 = y + sub_obj.height
-
-                        roi_x = main_x + roi[sub_index].x
-                        roi_y = main_y + roi[sub_index].y
-                        roi_width = roi[sub_index].width
-                        roi_height = roi[sub_index].height
-                        cv2.rectangle(img_color, (roi_x, roi_y), (roi_x+roi_width, roi_y+roi_height),
-                                      rect_border_color, scaling_factor)
-
-                        cv2.rectangle(img_color, (x, y), (x+w, y+h), rect_border_color, scaling_factor)
-
-                        image = numpy.zeros((img_h, img_w, 3), numpy.uint8)
-                        image[:] = rect_fill_color
-                        alpha = 0.5
-                        cv2.addWeighted(image[y:y2, x:x2], alpha, img_color[y:y2, x:x2], 1.0 - alpha, 0, img_color[y:y2, x:x2])
-
-                        text = str(index) + ":" + str(sub_index + 1)
-
-                        #cv2.rectangle(img_color, (box_text_x, box_text_y - 2), (box_text_x+text_size[0], box_text_y+text_size[1]), color, -1)
-                        #cv2.putText(img_color, text, (x + scaling_factor,y - scaling_factor), font, scaling_factor, (0, 0, 0), scaling_factor, cv2.CV_AA)
-                        cv2.putText(img_color, text, (roi_x,roi_y), font, scaling_factor, text_color, scaling_factor, cv2.CV_AA)
-                        cv2.putText(img_color, text, (x,y), font, scaling_factor, text_color, scaling_factor, cv2.CV_AA)
-                        sub_index = sub_index + 1
-
-                index = index + 1
-
-            #click_points = self._info_manager.get_info("INTERACTION")
-
-            if self._robot_context is True:
-                outputdir = self._robot_manager.get_output_directory()
+                sub_rect_border = (198, 0, 255)
+                sub_rect_fill = (246, 96, 172)
+                """
 
                 index = 1
-                file_name = image_name
+                for object in objects_found:
 
-                if overwrite_images is False:
-                    while os.path.isfile(outputdir + os.sep + file_name + ".png"):
+                    main_x = object[0].x
+                    main_y = object[0].y
+                    w = object[0].width
+                    h = object[0].height
 
-                        file_name = image_name + "_" + str(index)
-                        index = index + 1
+                    x2 = main_x + object[0].width
+                    y2 = main_y + object[0].height
 
-                file_name = file_name + ".png"
+                    if main_xy_coordinates is not None:
+                        main_click_x = main_xy_coordinates[0]
+                        main_click_y = main_xy_coordinates[1]
+                        main_offset = main_xy_coordinates[2]
 
-                cv2.imwrite(outputdir + os.sep + file_name, img_color)  #, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+                    if main_xy_coordinates is not None:
+                        if main_offset is False:
+                            main_click_x = main_click_x + (main_x + (w / 2))
+                            main_click_y = main_click_y + (main_y + (h / 2))
+                        else:
+                            main_click_x = main_click_x + main_x
+                            main_click_y = main_click_y + main_y
 
-                self._info_manager.set_info("LAST_LOG_IMG",outputdir + os.sep + file_name)
+                    """
+                    if index >= 3:
+                        color = main_color[3]
+                    else:
+                        color = main_color[index]
+                    """
 
-                if disappear_mode is False:
-                    self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "INFO", True)
-                else:
-                    self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "ERROR", True)
+                    text_color = rect_border_color  # (255, 255, 255)
+
+                    cv2.rectangle(img_color, (main_x, main_y), (main_x + w, main_y + h), rect_border_color,
+                                  scaling_factor)
+
+                    image = numpy.zeros((img_h, img_w, 3), numpy.uint8)
+                    image[:] = rect_fill_color
+                    alpha = 0.5
+
+                    if main_xy_coordinates is not None:
+                        circle_img = image_data.copy()
+                        circle_img_color = cv2.cvtColor(circle_img, cv2.COLOR_GRAY2RGB)
+
+                        cv2.circle(circle_img_color, (main_click_x, main_click_y), 10, rect_fill_color, -1)
+
+                    cv2.addWeighted(image[main_y:y2, main_x:x2], alpha, img_color[main_y:y2, main_x:x2], 1.0 - alpha, 0,
+                                    img_color[main_y:y2, main_x:x2])
+
+                    if main_xy_coordinates is not None:
+
+                        try:
+                            cv2.addWeighted(
+                                circle_img_color[main_click_y - 10:main_click_y + 20, main_click_x - 10:main_click_x + 20],
+                                alpha,
+                                img_color[main_click_y - 10:main_click_y + 20, main_click_x - 10:main_click_x + 20],
+                                1.0 - alpha, 0,
+                                img_color[main_click_y - 10:main_click_y + 20, main_click_x - 10:main_click_x + 20])
+                        except:
+                            pass
+
+                        cv2.circle(img_color, (main_click_x, main_click_y), 11, rect_border_color, scaling_factor)
+
+                        cv2.line(img_color, ((main_x + (w / 2)), (main_y + (h / 2))), (main_click_x, main_click_y),
+                                 rect_border_color, scaling_factor)
+
+                    font = cv2.FONT_HERSHEY_PLAIN
+
+                    if finder_type == 3:
+                        text = "M_" + str(index)
+                        #text = str(index) + ":M"
+                    else:
+                        text = str(index) + ":0"
+
+
+                    cv2.putText(img_color, text, (main_x, main_y), font, scaling_factor, text_color, scaling_factor,
+                                cv2.CV_AA)
+
+                    sub_index = 0
+                    if object[1] is not None:
+
+                        for sub_obj in object[1]:
+
+                            if finder_type == 3:  # obj finder
+
+                                # self._info_manager.set_info("obj finder last log image", img_color)
+                                rect_border_color = self._info_manager.get_info('LOG OBJ FINDER FILL COLOR')[
+                                    self._info_manager.get_info('LOG OBJ FINDER COLOR COUNTER')]
+                                rect_fill_color = rect_border_color
+
+                                self._info_manager.set_info('LOG OBJ FINDER COLOR COUNTER',
+                                                            self._info_manager.get_info(
+                                                                'LOG OBJ FINDER COLOR COUNTER') + 1)
+
+                                if self._info_manager.get_info('LOG OBJ FINDER COLOR COUNTER') >= \
+                                        len(self._info_manager.get_info('LOG OBJ FINDER FILL COLOR')):
+                                    self._info_manager.set_info('LOG OBJ FINDER COLOR COUNTER', 0)
+
+                            text_color = rect_border_color  # (255, 255, 255)
+
+                            x = sub_obj.x
+                            y = sub_obj.y
+                            w = sub_obj.width
+                            h = sub_obj.height
+
+                            x2 = x + sub_obj.width
+                            y2 = y + sub_obj.height
+
+                            if len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
+                                sub_click_x = sub_xy_coordinates[sub_index][0]
+                                sub_click_y = sub_xy_coordinates[sub_index][1]
+                                sub_offset = sub_xy_coordinates[sub_index][2]
+
+                            if len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
+                                if sub_offset is False:
+                                    sub_click_x = sub_click_x + (x + (w / 2))
+                                    sub_click_y = sub_click_y + (y + (h / 2))
+                                else:
+                                    sub_click_x = sub_click_x + x
+                                    sub_click_y = sub_click_y + y
+
+                            roi_x = main_x + roi[sub_index].x
+                            roi_y = main_y + roi[sub_index].y
+                            roi_width = roi[sub_index].width
+                            roi_height = roi[sub_index].height
+                            cv2.rectangle(img_color, (roi_x, roi_y), (roi_x + roi_width, roi_y + roi_height),
+                                          rect_border_color, scaling_factor)
+
+                            cv2.rectangle(img_color, (x, y), (x + w, y + h), rect_border_color, scaling_factor)
+
+                            image = numpy.zeros((img_h, img_w, 3), numpy.uint8)
+                            image[:] = rect_fill_color
+                            alpha = 0.5
+
+                            if len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
+                                circle_img = image_data.copy()
+                                circle_img_color = cv2.cvtColor(circle_img, cv2.COLOR_GRAY2RGB)
+
+                                cv2.circle(circle_img_color, (sub_click_x, sub_click_y), 10, rect_fill_color, -1)
+
+                            cv2.addWeighted(image[y:y2, x:x2], alpha, img_color[y:y2, x:x2], 1.0 - alpha, 0,
+                                            img_color[y:y2, x:x2])
+
+                            if len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
+                                cv2.addWeighted(circle_img_color[sub_click_y - 10:sub_click_y + 20,
+                                                sub_click_x - 10:sub_click_x + 20],
+                                                alpha,
+                                                img_color[sub_click_y - 10:sub_click_y + 20,
+                                                sub_click_x - 10:sub_click_x + 20], 1.0 - alpha, 0,
+                                                img_color[sub_click_y - 10:sub_click_y + 20,
+                                                sub_click_x - 10:sub_click_x + 20])
+
+                                cv2.circle(img_color, (sub_click_x, sub_click_y), 11, rect_border_color, scaling_factor)
+
+                                cv2.line(img_color, ((x + (w / 2)), (y + (h / 2))), (sub_click_x, sub_click_y),
+                                         rect_border_color, scaling_factor)
+
+                            if finder_type == 3:
+                                text = "S_" + str(sub_index + 1)
+                                #text = str(index) + ":S_" + str(sub_index + 1)
+                            else:
+                                text = str(index) + ":" + str(sub_index + 1)
+
+                            # cv2.rectangle(img_color, (box_text_x, box_text_y - 2), (box_text_x+text_size[0], box_text_y+text_size[1]), color, -1)
+                            # cv2.putText(img_color, text, (x + scaling_factor,y - scaling_factor), font, scaling_factor, (0, 0, 0), scaling_factor, cv2.CV_AA)
+                            cv2.putText(img_color, text, (roi_x, roi_y), font, scaling_factor, text_color,
+                                        scaling_factor, cv2.CV_AA)
+                            cv2.putText(img_color, text, (x, y), font, scaling_factor, text_color, scaling_factor,
+                                        cv2.CV_AA)
+                            sub_index = sub_index + 1
+
+                    index = index + 1
+
+                # click_points = self._info_manager.get_info("INTERACTION")
+
+                if self._robot_context is True:
+                    outputdir = self._robot_manager.get_output_directory()
+
+                    index = 1
+                    file_name = image_name
+
+                    if overwrite_images is False:
+                        while os.path.isfile(outputdir + os.sep + file_name + ".png"):
+                            file_name = image_name + "_" + str(index)
+                            index = index + 1
+
+                    file_name = file_name + ".png"
+
+                    if finder_type is None:
+                        cv2.imwrite(outputdir + os.sep + file_name, img_color)  # , [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+
+                    self._info_manager.set_info("LAST_LOG_IMG", outputdir + os.sep + file_name)
+
+                    if disappear_mode is False:
+                        if finder_type is None:
+                            self._robot_manager.write_log_message(
+                                "<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>",
+                                "INFO", True)
+                        elif finder_type == 0:  # img finder inside obj finder
+                            self._info_manager.set_info("image finder last log image", (
+                            file_name, img_color, self._info_manager.get_info('last log image order')))
+                            self._info_manager.set_info('last log image order',
+                                                        self._info_manager.get_info('last log image order') + 1)
+                        elif finder_type == 1:  # rect finder inside obj finder
+                            self._info_manager.set_info("rect finder last log image", (
+                            file_name, img_color, self._info_manager.get_info('last log image order')))
+                            self._info_manager.set_info('last log image order',
+                                                        self._info_manager.get_info('last log image order') + 1)
+                        elif finder_type == 2:  # text finder inside obj finder
+                            self._info_manager.set_info("text finder last log image", (
+                            file_name, img_color, self._info_manager.get_info('last log image order')))
+                            self._info_manager.set_info('last log image order',
+                                                        self._info_manager.get_info('last log image order') + 1)
+                        elif finder_type == 3:  # obj finder
+                            # self._info_manager.set_info("obj finder last log image", img_color)
+
+                            object_list = []
+
+                            try:
+                                rect_img_data = self._info_manager.get_info("rect finder last log image")[1]
+                                rect_img_name = self._info_manager.get_info("rect finder last log image")[0]
+                                rect_img_order = self._info_manager.get_info("rect finder last log image")[2]
+
+                                object_list.append(self._info_manager.get_info("rect finder last log image"))
+
+                                cv2.imwrite(outputdir + os.sep + rect_img_name, rect_img_data)
+                                # self._robot_manager.write_log_message(
+                                #     "<a href=\"" + rect_img_name + "\"><img width=\"800\" src=\"" + rect_img_name + "\"></a>",
+                                #     "INFO", True)
+                            except:
+                                pass
+
+                            try:
+                                image_img_data = self._info_manager.get_info("image finder last log image")[1]
+                                image_img_name = self._info_manager.get_info("image finder last log image")[0]
+                                image_img_order = self._info_manager.get_info("image finder last log image")[2]
+
+                                object_list.append(self._info_manager.get_info("image finder last log image"))
+
+                                cv2.imwrite(outputdir + os.sep + image_img_name, image_img_data)
+                                # self._robot_manager.write_log_message(
+                                #     "<a href=\"" + image_img_name + "\"><img width=\"800\" src=\"" + image_img_name + "\"></a>",
+                                #     "INFO", True)
+                            except:
+                                pass
+
+                            try:
+                                text_img_data = self._info_manager.get_info("text finder last log image")[1]
+                                text_img_name = self._info_manager.get_info("text finder last log image")[0]
+                                text_img_order = self._info_manager.get_info("text finder last log image")[2]
+
+                                object_list.append(self._info_manager.get_info("text finder last log image"))
+
+                                cv2.imwrite(outputdir + os.sep + text_img_name, text_img_data)
+                                # self._robot_manager.write_log_message(
+                                #     "<a href=\"" + text_img_name + "\"><img width=\"800\" src=\"" + text_img_name + "\"></a>",
+                                #     "INFO", True)
+                            except:
+                                pass
+
+                            gif_images = []
+
+                            gif_images.append(Image.fromarray(cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)))
+
+                            object_list_sorted = sorted(object_list, key=lambda x: x[2])
+
+                            for tuple_image in object_list_sorted:
+                                gif_images.append(Image.fromarray(cv2.cvtColor(tuple_image[1], cv2.COLOR_BGR2RGB)))
+
+                            writeGif(outputdir + os.sep + file_name.replace("png", "gif"), gif_images,
+                                     duration=int(self._info_manager.get_info('GIF FRAME TIMING')))
+
+                            self._robot_manager.write_log_message(
+                                "<a href=\"" + file_name.replace("png",
+                                                                 "gif") + "\"><img width=\"800\" src=\"" + file_name.replace(
+                                    "png", "gif") + "\"></a>", "INFO",
+                                True)
+
+                    else:
+                        self._robot_manager.write_log_message(
+                            "<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "ERROR",
+                            True)
+
+        except Exception, err:
+            self.save_exception("ERROR", "an exception has occurred: " + str(
+                err) + " on line " + str(sys.exc_traceback.tb_lineno))
+            self._flag_thread_started = False
+            return None
+
 
     def save_click_coordinates(self, x, y):
         pass
@@ -835,7 +1037,8 @@ class LogManager:
                 else:
                     file_name = image_name + ".gif"
 
-                writeGif(outputdir + os.sep + file_name, gif_images, duration=1)
+                writeGif(outputdir + os.sep + file_name, gif_images,
+                         duration=int(self._info_manager.get_info('GIF FRAME TIMING')))
 
                 if disappear_mode is False:
                     self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "ERROR", True)

@@ -344,7 +344,11 @@ class GifWriter:
                 y0, y1 = 0, 2
             
             # Cut out and store
-            im2 = im[y0:y1,x0:x1]
+            try:
+                im2 = im[y0[0]:y1[0],x0[0]:x1[0]]
+            except:
+                im2 = im[y0:y1,x0:x1]
+
             prev = im
             ims2.append(im2)
             xy.append((x0,y0))

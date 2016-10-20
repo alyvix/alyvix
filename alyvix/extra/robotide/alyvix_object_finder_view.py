@@ -127,6 +127,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self._alyvix_proxy_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy"
         self._robot_file_name = self.parent.robot_file_name
         
+        self._redraw_index = None
+        
         if self.action == "edit":
             filename = self._main_object_finder.xml_path
             filename = filename.split(os.sep)[-1]
@@ -269,6 +271,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         #self.inserttext_2.installEventFilter(self)
         
         self.connect(self.pushButtonEditObj_2, SIGNAL('clicked()'), self.edit_obj_2)
+        self.connect(self.pushButtonRoiRedraw, SIGNAL('clicked()'), self.redraw_roi_event)
         self.connect(self.pushButtonRemoveObj_2, SIGNAL('clicked()'), self.remove_obj_2)
         
         self.textEditCustomLines.installEventFilter(self)
@@ -495,7 +498,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             main_obj = main_obj._main_text
             
         self._main_object_finder = MainObjectForGui()
-        self._main_object_finder.xml_path = xml_name
+        self._main_object_finder.xml_path = self._path + os.sep + os.path.basename(xml_name) #xml_name
+        #print "xml path:", self._main_object_finder.xml_path
+        #print self._path + os.sep + os.path.basename(self._main_object_finder.xml_path)
         self._main_object_finder.x = main_obj.x
         self._main_object_finder.y = main_obj.y
         self._main_object_finder.height = main_obj.height
@@ -571,7 +576,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 main_obj = main_obj._main_text
             
             sub_object = SubObjectForGui()
-            sub_object.xml_path = filename
+            sub_object.xml_path = self._path + os.sep + os.path.basename(filename)
                 
             sub_object.x = main_obj.x
             sub_object.y = main_obj.y
@@ -1971,6 +1976,46 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.object.set_bg_pixmap(image)
         self.object.showFullScreen()
         self.update()
+        
+    def redraw_roi_event(self):
+    
+        self._sub_objects_finder[self.sub_object_index].roi_x = 0
+        self._sub_objects_finder[self.sub_object_index].roi_y = 0
+        self._sub_objects_finder[self.sub_object_index].roi_width = 0
+        self._sub_objects_finder[self.sub_object_index].roi_height = 0
+        
+        self._redraw_index = self.sub_object_index
+        
+        self.pv = PaintingView(self)
+        image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
+        self.pv.set_bg_pixmap(image)
+        self.pv.showFullScreen()
+        #self.update()
+    
+        """
+    
+        s_controller = dummy()
+        s_controller.set_parent(self)
+        s_controller.action = "edit"
+        s_controller.path = self.parent.path
+        s_controller.robot_file_name =  self._robot_file_name
+        s_controller.xml_name = str(self.listWidget.currentItem().data(Qt.UserRole).toString())
+        
+        image = QImage(s_controller.path + os.sep + s_controller.xml_name.replace("xml", "png"))
+        
+        if s_controller.xml_name.endswith('_RectFinder.xml'):
+            self.object = AlyvixRectFinderView(s_controller)
+        elif s_controller.xml_name.endswith('_ImageFinder.xml'):
+            self.object = AlyvixImageFinderView(s_controller)
+        elif s_controller.xml_name.endswith('_TextFinder.xml'):
+            self.object = AlyvixTextFinderView(s_controller)
+        
+        self.hide()
+        
+        self.object.set_bg_pixmap(image)
+        self.object.showFullScreen()
+        self.update()
+        """
 
         
             
@@ -2380,7 +2425,11 @@ class PaintingView(QWidget):
             
             if self.parent._main_deleted is False:
 
-                sub_obj = self.parent._sub_objects_finder[-1]            
+                if self.parent._redraw_index != None:
+                    sub_obj = self.parent._sub_objects_finder[self.parent._redraw_index]
+                    self.parent._redraw_index = None
+                else:
+                    sub_obj = self.parent._sub_objects_finder[-1]
                 sub_obj.roi_x = x - self.parent._main_object_finder.x
                 sub_obj.roi_y = y - self.parent._main_object_finder.y
                 sub_obj.roi_height = height

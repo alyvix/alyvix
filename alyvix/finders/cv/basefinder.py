@@ -98,6 +98,11 @@ class BaseFinder(object):
         self._main_extra_img_log = None
         self._sub_extra_imgages_log = []
 
+        self.main_xy_coordinates = None
+        self.main_xy_coordinates_release = None
+        self.sub_xy_coordinates = []
+        self.sub_xy_coordinates_release = []
+
         self._rect_extra_timedout_image = None
 
         self._robot_manager = RobotManager()
@@ -314,7 +319,15 @@ class BaseFinder(object):
                     #time.sleep(3600)
 
                     if wait_disappear is False:
-                        self._log_manager.save_objects_found(self._name, self.get_source_image_gray(), self._objects_found, [x[1] for x in self._sub_components])
+                        from alyvix.finders.cv.objectfinder import ObjectFinder
+
+                        if isinstance(self, ObjectFinder):
+                            self._log_manager.save_objects_found(self._name, self.get_source_image_gray(), self._objects_found, [x[1] for x in self._sub_components], self.main_xy_coordinates, self.sub_xy_coordinates, finder_type=3)
+                        else:
+                            self._log_manager.save_objects_found(self._name, self.get_source_image_gray(),
+                                                                 self._objects_found,
+                                                                 [x[1] for x in self._sub_components],
+                                                                 self.main_xy_coordinates, self.sub_xy_coordinates, finder_type=None)
 
                     if wait_disappear is True:
                         self._heartbeat_images_copy = copy.deepcopy(self._heartbeat_images)

@@ -67,8 +67,12 @@ class ObjectFinder(BaseFinder):
         :param main_template: image of the template
         """
 
+        main_object._is_object_finder = True
+
         self._main_component = (main_object, roi_dict)
         self.add_name_to_component(main_object, self._name)
+
+        #self._is_object_finder = True
 
     def add_sub_object(self, sub_object, roi_dict):
 
@@ -116,6 +120,9 @@ class ObjectFinder(BaseFinder):
                 component.set_name_with_caller()
 
     def find(self):
+
+        self._info_manager.set_info('last log image order', 0)
+        self._info_manager.set_info('LOG OBJ FINDER COLOR COUNTER', 0)
 
         time_before_find = time.time()
 
@@ -173,8 +180,15 @@ class ObjectFinder(BaseFinder):
 
         main_object.find()
 
+        #self._info_manager.set_info(1)
+
         cnt = 0
         for object in main_object._objects_found:
+
+            self._info_manager.set_info('LOG OBJ FINDER COLOR COUNTER', 1)
+
+            #self._info_manager.set_info('LOG OBJ FINDER COLOR COUNTER', 0)
+
 
             """
             if self._flag_thread_have_to_exit is True:
@@ -228,6 +242,13 @@ class ObjectFinder(BaseFinder):
 
                     sub_template_coordinates = copy.deepcopy(self.find_sub_object((x, y), sub_object))
 
+                    self._info_manager.set_info('LOG OBJ FINDER COLOR COUNTER',
+                                                self._info_manager.get_info('LOG OBJ FINDER COLOR COUNTER') + 1)
+
+                    if self._info_manager.get_info('LOG OBJ FINDER COLOR COUNTER') >= \
+                            len(self._info_manager.get_info('LOG OBJ FINDER FILL COLOR')):
+                        self._info_manager.set_info('LOG OBJ FINDER COLOR COUNTER', 0)
+
                     if sub_template_coordinates is not None:
                         sub_objects_found.append(sub_template_coordinates)
                         timed_out_objects.append((sub_template_coordinates, sub_object[1]))
@@ -251,6 +272,7 @@ class ObjectFinder(BaseFinder):
             cnt = cnt + 1
 
         if len(objects_found) > 0:
+            self._info_manager.set_info('LOG OBJ IS FOUND', True)
             self._objects_found = copy.deepcopy(objects_found)
             main_object.rebuild_result(self._main_indexes_to_keep)
             self.rebuild_result_for_sub_component(self._main_indexes_to_keep)

@@ -28,3 +28,19 @@ info_manager.update()
 info_manager.set_info('OVERLAPPING TOLERANCE FACTOR', 10)
 
 info_manager.set_info('ACTIONS DELAY', 2)
+
+info_manager.set_info('last log image order', 0)
+
+info_manager.set_info('LOG OBJ FINDER FILL COLOR',
+                      [(0, 0, 255), (0, 255, 255), (0, 255, 0), (255, 255, 0), (255, 0, 0), (255, 0, 255)])
+
+info_manager.set_info('LOG OBJ FINDER BORDER COLOR',
+                      [(0, 0, 255), (0, 255, 255), (0, 255, 0), (255, 255, 0), (255, 0, 0), (255, 0, 255)])
+
+info_manager.set_info('LOG OBJ FINDER COLOR COUNTER', 0)
+
+info_manager.set_info('LOG OBJ FINDER TYPE', None)
+
+info_manager.set_info('LOG OBJ IS FOUND', False)
+
+info_manager.set_info('GIF FRAME TIMING', 2)

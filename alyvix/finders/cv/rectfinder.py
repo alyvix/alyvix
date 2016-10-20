@@ -347,7 +347,17 @@ class RectFinder(BaseFinder):
                 self._objects_found = copy.deepcopy(objects_found)
                 if self._is_object_finder is True:
                     self._objects_found_of_sub_object_finder.extend(copy.deepcopy(objects_found))
-                #gray_source_img = cv2.cvtColor(self._source_image, cv2.COLOR_BGR2GRAY)
+                    #gray_source_img = cv2.cvtColor(self._source_image, cv2.COLOR_BGR2GRAY)
+                    # if wait_disappear is False:
+                    #if self._info_manager.get_info('LOG OBJ IS FOUND') is False:
+                    if self._info_manager.get_info('LOG OBJ FINDER TYPE') is None:
+                        self._info_manager.set_info('LOG OBJ FINDER TYPE', 1)
+
+
+                    self._log_manager.save_objects_found(self._name, self.get_source_image_gray(),
+                                                         self._objects_found, [x[1] for x in self._sub_components],
+                                                         self.main_xy_coordinates, self.sub_xy_coordinates, finder_type=1)
+
                 self._cacheManager.SetLastObjFoundFullImg(self._source_image_gray)
 
             #time.sleep(40)
