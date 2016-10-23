@@ -37,6 +37,7 @@ class _PerfData:
         self.critical_threshold = None
         self.counter = -1
         self.state = 0
+        self.timestamp = None
 
 
 class PerfManager:
@@ -52,7 +53,7 @@ class PerfManager:
         global perfdata_list
         perfdata_list = []
 
-    def add_perfdata(self, name, value=None, warning_threshold=None, critical_threshold=None, state=0):
+    def add_perfdata(self, name, value=None, warning_threshold=None, critical_threshold=None, state=0, timestamp=None):
 
         global perfdata_list
         global perf_counter
@@ -82,6 +83,11 @@ class PerfManager:
             perf_data.state = int(state)
         except:
              perf_data.state = int(os.getenv("exitcode"))
+
+        try:
+            perf_data.timestamp = int(timestamp)
+        except:
+            perf_data.timestamp = None
 
         cnt = 0
 

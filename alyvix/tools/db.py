@@ -72,6 +72,7 @@ class DbManager():
         self._create_runs_table()
         self._create_thresholds_table()
         self._create_sorting_table()
+        self._create_timestamp_table()
 
     def _create_runs_table(self):
         query = "CREATE TABLE runs (start_time integer primary key"
@@ -91,6 +92,13 @@ class DbManager():
         query = "CREATE TABLE sorting (start_time integer primary key"
         for perf in self._perf_manager.get_all_perfdata():
             query = query + ", " + perf.name + "_index integer"
+        query += ")"
+        self._cursor.execute(query)
+
+    def _create_timestamp_table(self):
+        query = "CREATE TABLE timestamp (start_time integer primary key"
+        for perf in self._perf_manager.get_all_perfdata():
+            query = query + ", " + perf.name + "_time integer"
         query += ")"
         self._cursor.execute(query)
 
@@ -163,6 +171,25 @@ class DbManager():
                 query = "ALTER TABLE sorting ADD COLUMN " + perf.name + "_index integer;"
                 self._cursor.execute(query)
 
+    def _check_timestamp_columns(self):
+        query = "PRAGMA table_info(timestamp);"
+        rows = self._cursor.execute(query).fetchall()
+
+        for perf in self._perf_manager.get_all_perfdata():
+
+            perf_name_present = False
+
+            for row in rows:
+
+                if row[1] == perf.name + "_time":
+                    perf_name_present = True
+                    break
+
+            #check and add new columns
+            if perf_name_present is False:
+
+                query = "ALTER TABLE timestamp ADD COLUMN " + perf.name + "_time integer;"
+                self._cursor.execute(query)
 
     def _insert_runs(self):
 
@@ -301,6 +328,26 @@ class DbManager():
             query = query + ")"
             self._cursor.execute(query)
 
+    def _insert_timestamp(self):
+
+        # check and add new columns
+        self._check_timestamp_columns()
+
+        start_time = self._info_manager.get_info("START TIME")
+        query = "INSERT INTO timestamp (start_time"
+        for perf in self._perf_manager.get_all_perfdata():
+            query = query + ", " + perf.name + "_time"
+        query = query + ") VALUES (" + str(start_time)
+
+        for perf in self._perf_manager.get_all_perfdata():
+            if perf.timestamp is not None and perf.timestamp != "":
+                query = query + ", " + str(perf.timestamp)
+            else:
+                query = query + ", null"
+
+        query += ")"
+        self._cursor.execute(query)
+
     def store_perfdata(self, dbname=None):
 
         if dbname != None and dbname != "":
@@ -325,6 +372,7 @@ class DbManager():
         self._insert_runs()
         self._insert_thresholds()
         self._insert_sorting()
+        self._insert_timestamp()
 
         self.close()
 
