@@ -899,8 +899,6 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         string_function_args = string_function_args + "):"
         self._code_lines.append(string_function_args)
         
-        self._code_lines.append("    timestamp_value=time.time()")
-        
         #self._code_lines.append("\n")
         strcode = "    object_finder = ObjectFinder(\"" + name + "\")"
         self._code_lines.append(strcode)
@@ -1027,7 +1025,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 self._code_lines.append("    else:")
                 self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
                 self._code_lines.append("    p = PerfManager()")
-                self._code_lines.append("    p.add_perfdata(\"" + str(self._main_object_finder.name) + "\", wait_time, " + repr(self._main_object_finder.warning) + ", " + repr(self._main_object_finder.critical) + ", timestamp=timestamp_value)")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self._main_object_finder.name) + "\", wait_time, " + repr(self._main_object_finder.warning) + ", " + repr(self._main_object_finder.critical) + ")")
         elif self._main_object_finder.find is False:
             self._code_lines.append("    if wait_time == -1:")
             if self._main_object_finder.timeout_exception is True:
@@ -1087,7 +1085,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 self._code_lines.append("    else:")
                 self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " has exceeded the performance critical threshold:\", wait_time + wait_time_disappear, \"sec.\"")
                 self._code_lines.append("    p = PerfManager()")
-                self._code_lines.append("    p.add_perfdata(\"" + str(self._main_object_finder.name) + "\", wait_time + wait_time_disappear, " + repr(self._main_object_finder.warning) + ", " + repr(self._main_object_finder.critical) + ", timestamp=timestamp_value)")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self._main_object_finder.name) + "\", wait_time + wait_time_disappear, " + repr(self._main_object_finder.warning) + ", " + repr(self._main_object_finder.critical) + ")")
             elif self._main_object_finder.find is False:
                 self._code_lines.append("    if wait_time_disappear == -1:")
                 if self._main_object_finder.timeout_exception is True:

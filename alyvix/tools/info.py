@@ -45,6 +45,8 @@ class InfoManager():
         self.set_info('WAIT FINISH', None)
         self.set_info('DISAPP START', None)
 
+        self.set_info('KEYWORD TIMESTAMP', [])
+
         float_scaling_factor = screen_manager.get_scaling_factor()
         int_scaling_factor = int(round(float_scaling_factor))
 
@@ -60,6 +62,26 @@ class InfoManager():
         self.set_info('CHECK DIFF INTERVAL DISAPPEAR', config_reader.get_finder_diff_interval_disappear())
 
         self.set_info("OVERWRITE LOG IMAGES", False)
+
+        self.set_info('OVERLAPPING TOLERANCE FACTOR', 10)
+
+        self.set_info('ACTIONS DELAY', 2)
+
+        self.set_info('last log image order', 0)
+
+        self.set_info('LOG OBJ FINDER FILL COLOR',
+                              [(0, 0, 255), (0, 255, 255), (0, 255, 0), (255, 255, 0), (255, 0, 0), (255, 0, 255)])
+
+        self.set_info('LOG OBJ FINDER BORDER COLOR',
+                              [(0, 0, 255), (0, 255, 255), (0, 255, 0), (255, 255, 0), (255, 0, 0), (255, 0, 255)])
+
+        self.set_info('LOG OBJ FINDER COLOR COUNTER', 0)
+
+        self.set_info('LOG OBJ FINDER TYPE', None)
+
+        self.set_info('LOG OBJ IS FOUND', False)
+
+        self.set_info('GIF FRAME TIMING', 2)
 
         #self.set_info("INTERACTION", [])
 

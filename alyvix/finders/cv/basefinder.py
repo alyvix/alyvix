@@ -89,6 +89,9 @@ class BaseFinder(object):
         :type name: string
         :param name: the object name
         """
+
+        keyword_timestamp_value = int(time.time())
+
         self._main_component = None
         self._sub_components = []
 
@@ -161,6 +164,23 @@ class BaseFinder(object):
 
         self._is_object_finder = False
         self._objects_found_of_sub_object_finder = []
+
+        current_keyword_timestamp_array = self._info_manager.get_info('KEYWORD TIMESTAMP')
+
+        #current_keyword_timestamp_array_copy = copy.deepcopy(current_keyword_timestamp_array)
+
+        timestamp_modified = False
+        for cnt_kts in xrange(len(current_keyword_timestamp_array)):
+            if current_keyword_timestamp_array[cnt_kts][0] == self._name:
+                timestamp_modified = True
+                current_keyword_timestamp_array[cnt_kts] = (self._name, keyword_timestamp_value)
+                break
+
+        if timestamp_modified is False:
+            current_keyword_timestamp_array.append((self._name, keyword_timestamp_value))
+
+        self._info_manager.set_info('KEYWORD TIMESTAMP',
+                                    current_keyword_timestamp_array)
 
     def _compress_image(self, img):
         return cv2.imencode('.png', img)[1]
@@ -548,6 +568,22 @@ class BaseFinder(object):
                     if self._object_is_found_flag is True:
                         perf_wait = 0.0
                     else:
+                        """
+                        from alyvix.finders.cv.objectfinder import ObjectFinder
+
+                        if isinstance(self, ObjectFinder):
+                            self._log_manager.save_objects_found(self._name, self.get_source_image_gray(),
+                                                                 self._objects_found,
+                                                                 [x[1] for x in self._sub_components],
+                                                                 self.main_xy_coordinates, self.sub_xy_coordinates,
+                                                                 finder_type=3)
+                        else:
+                            self._log_manager.save_objects_found(self._name, self.get_source_image_gray(),
+                                                                 self._objects_found,
+                                                                 [x[1] for x in self._sub_components],
+                                                                 self.main_xy_coordinates, self.sub_xy_coordinates,
+                                                                 finder_type=None)
+                        """
                         self._log_manager.save_objects_found(self._name, self._last_thread_image_copy, self._objects_found, [x[1] for x in self._sub_components])
 
                         perf_wait = self._get_performance()

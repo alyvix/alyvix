@@ -2258,8 +2258,6 @@ class AlyvixTextFinderView(QWidget):
         string_function_args = string_function_args + "):"
         self._code_lines.append(string_function_args)
         
-        self._code_lines.append("    timestamp_value=time.time()")
-        
         self._code_lines.append("    global " + name + "_object")  
 
         string_function_args = "    " + name + "_build_object("
@@ -2302,7 +2300,7 @@ class AlyvixTextFinderView(QWidget):
                 self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
 
                 self._code_lines.append("    p = PerfManager()")
-                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ", timestamp=timestamp_value)")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ")")
         elif self.find is False:
             self._code_lines.append("    if wait_time == -1:")
             if self.timeout_exception is True:
@@ -2412,7 +2410,7 @@ class AlyvixTextFinderView(QWidget):
                 self._code_lines.append("    else:")
                 self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time + wait_time_disappear, \"sec.\"")
                 self._code_lines.append("    p = PerfManager()")
-                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time + wait_time_disappear, " + repr(self.warning) + ", " + repr(self.critical) + ", timestamp=timestamp_value)")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time + wait_time_disappear, " + repr(self.warning) + ", " + repr(self.critical) + ")")
             elif self.find is False:
                 self._code_lines.append("    if wait_time_disappear == -1:")
                 if self.timeout_exception is True:

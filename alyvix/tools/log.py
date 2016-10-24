@@ -271,7 +271,7 @@ class LogManager:
             #import traceback
             #self.save_exception("ERROR", traceback.format_exc())
 
-    def save_objects_found(self, image_name, image_data, objects_found, roi, main_xy_coordinates, sub_xy_coordinates , finder_type = None, disappear_mode=False):
+    def save_objects_found(self, image_name, image_data, objects_found, roi, main_xy_coordinates=None, sub_xy_coordinates=None , finder_type = None, disappear_mode=False):
         """
         save the image into the test case log folder.
 
@@ -441,12 +441,12 @@ class LogManager:
                             x2 = x + sub_obj.width
                             y2 = y + sub_obj.height
 
-                            if len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
+                            if sub_xy_coordinates is not None and len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
                                 sub_click_x = sub_xy_coordinates[sub_index][0]
                                 sub_click_y = sub_xy_coordinates[sub_index][1]
                                 sub_offset = sub_xy_coordinates[sub_index][2]
 
-                            if len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
+                            if sub_xy_coordinates is not None and len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
                                 if sub_offset is False:
                                     sub_click_x = sub_click_x + (x + (w / 2))
                                     sub_click_y = sub_click_y + (y + (h / 2))
@@ -467,7 +467,7 @@ class LogManager:
                             image[:] = rect_fill_color
                             alpha = 0.5
 
-                            if len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
+                            if sub_xy_coordinates is not None and len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
                                 circle_img = image_data.copy()
                                 circle_img_color = cv2.cvtColor(circle_img, cv2.COLOR_GRAY2RGB)
 
@@ -476,7 +476,7 @@ class LogManager:
                             cv2.addWeighted(image[y:y2, x:x2], alpha, img_color[y:y2, x:x2], 1.0 - alpha, 0,
                                             img_color[y:y2, x:x2])
 
-                            if len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
+                            if sub_xy_coordinates is not None and len(sub_xy_coordinates) > 0 and sub_xy_coordinates[sub_index] is not None:
                                 cv2.addWeighted(circle_img_color[sub_click_y - 10:sub_click_y + 20,
                                                 sub_click_x - 10:sub_click_x + 20],
                                                 alpha,

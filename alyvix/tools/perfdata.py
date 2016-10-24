@@ -53,7 +53,7 @@ class PerfManager:
         global perfdata_list
         perfdata_list = []
 
-    def add_perfdata(self, name, value=None, warning_threshold=None, critical_threshold=None, state=0, timestamp=None):
+    def add_perfdata(self, name, value=None, warning_threshold=None, critical_threshold=None, state=0):
 
         global perfdata_list
         global perf_counter
@@ -84,10 +84,14 @@ class PerfManager:
         except:
              perf_data.state = int(os.getenv("exitcode"))
 
-        try:
-            perf_data.timestamp = int(timestamp)
-        except:
-            perf_data.timestamp = None
+        perf_data.timestamp = None
+
+        keywords_timestamp_array = self._info_manager.get_info('KEYWORD TIMESTAMP')
+
+        for cnt_kts in xrange(len(keywords_timestamp_array)):
+            if keywords_timestamp_array[cnt_kts][0] == name:
+                perf_data.timestamp = keywords_timestamp_array[cnt_kts][1]
+                break
 
         cnt = 0
 
