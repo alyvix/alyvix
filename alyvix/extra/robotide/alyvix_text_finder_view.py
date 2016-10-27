@@ -3889,12 +3889,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
-            self.widget.setGeometry(QRect(173, 9, 381, 363))
+            self.widget.setGeometry(QRect(173, 9, 381, 382))
 
         else:
             self.widget.hide()
             self.widget_2.show()
-            self.widget_2.setGeometry(QRect(173, 9, 381, 348))
+            self.widget_2.setGeometry(QRect(173, 9, 381, 375))
             self.sub_text_index = selected_index - 1
             self.update_sub_text_view()
 

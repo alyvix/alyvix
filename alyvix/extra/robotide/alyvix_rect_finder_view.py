@@ -3791,12 +3791,12 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
-            self.widget.setGeometry(QRect(168, 9, 413, 398))
+            self.widget.setGeometry(QRect(168, 9, 413, 433))
 
         else:
             self.widget.hide()
             self.widget_2.show()
-            self.widget_2.setGeometry(QRect(168, 9, 414, 381))
+            self.widget_2.setGeometry(QRect(168, 9, 414, 434))
             self.sub_rect_index = selected_index - 1
             self.update_sub_rect_view()
 
