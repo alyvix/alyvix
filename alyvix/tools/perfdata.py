@@ -24,6 +24,7 @@ import tempfile
 from alyvix.tools.info import InfoManager
 
 perfdata_list = []
+deleted_on_rename_list = []
 timedout_finders = []
 perf_counter = 0
 
@@ -114,6 +115,7 @@ class PerfManager:
         cnt = 0
         for perf_data_in_list in perfdata_list:
             if perf_data_in_list.name == str(new_name):
+                deleted_on_rename_list.append(copy.deepcopy(perfdata_list_copy[cnt]))
                 del perfdata_list_copy[cnt]
                 cnt = cnt - 1
             elif perf_data_in_list.name == str(old_name):
@@ -423,6 +425,9 @@ class PerfManager:
 
         global perfdata_list
         exitcode = 0
+
+        if len(perfdata_list) == 0 and len(deleted_on_rename_list) != 0:
+            perfdata_list = copy.deepcopy(deleted_on_rename_list)
 
         for perfdata in perfdata_list:
 

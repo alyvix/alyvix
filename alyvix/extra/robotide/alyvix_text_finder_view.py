@@ -198,7 +198,8 @@ class AlyvixTextFinderView(QWidget):
                 self.esc_pressed = True
                 self.parent.show()
                 self.close()
-        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O and self.set_xy_offset is None:
+        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
+            self.set_xy_offset = None
             self.image_view_properties = AlyvixTextFinderPropertiesView(self)
             self.image_view_properties.show()
             """
@@ -284,7 +285,7 @@ class AlyvixTextFinderView(QWidget):
             if self.set_xy_offset is not None:
                 
                 self.last_xy_offset_index = self.set_xy_offset
-                self.set_xy_offset = None
+                #self.set_xy_offset = None
             
             elif self.__flag_capturing_main_text_rect_roi is True:
                 self.last_xy_offset_index = None

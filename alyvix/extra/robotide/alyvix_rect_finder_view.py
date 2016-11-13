@@ -211,7 +211,8 @@ class AlyvixRectFinderView(QWidget):
                 self.esc_pressed = True
                 self.parent.show()
                 self.close()
-        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O and self.set_xy_offset is None:
+        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
+            self.set_xy_offset = None
             self.rect_view_properties = AlyvixRectFinderPropertiesView(self)
             self.rect_view_properties.show()
             """
@@ -268,7 +269,7 @@ class AlyvixRectFinderView(QWidget):
             
             if self.set_xy_offset is not None:
                 self.last_xy_offset_index = self.set_xy_offset
-                self.set_xy_offset = None
+                #self.set_xy_offset = None
                 
             elif self.__flag_capturing_main_rect is True:
                 self.last_xy_offset_index = None
@@ -4058,6 +4059,8 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             
     def pushButtonXYoffset_event(self):
         self.parent.set_xy_offset = -1  #-1 for main, other int for sub index
+        self.parent._main_rect_finder.show_min_max = False
+        self.parent._main_rect_finder.show_tolerance = False
         self.hide()
         
     def holdreleaseRadio_event(self, event):  
@@ -4666,6 +4669,8 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             
     def pushButtonXYoffset_event_2(self):
         self.parent.set_xy_offset = self.sub_rect_index  #-1 for main, other int for sub index
+        self.parent._sub_rects_finder[self.sub_rect_index].show_min_max = False
+        self.parent._sub_rects_finder[self.sub_rect_index].show_tolerance = False
         self.hide()
         
     def holdreleaseRadio_event_2(self, event):  

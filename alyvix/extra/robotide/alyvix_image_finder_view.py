@@ -186,7 +186,8 @@ class AlyvixImageFinderView(QWidget):
                 self.parent.show()
                 self.close()
                 
-        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O and self.set_xy_offset is None:
+        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
+            self.set_xy_offset = None
             self.image_view_properties = AlyvixImageFinderPropertiesView(self)
             self.image_view_properties.show()
             """
@@ -273,7 +274,7 @@ class AlyvixImageFinderView(QWidget):
             
             if self.set_xy_offset is not None:
                 self.last_xy_offset_index = self.set_xy_offset
-                self.set_xy_offset = None
+                #self.set_xy_offset = None
             
             elif self.__flag_capturing_main_image_rect is True:
                 self.last_xy_offset_index = None
