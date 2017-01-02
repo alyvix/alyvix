@@ -246,7 +246,7 @@ Point</string>
           <number>1</number>
          </property>
          <property name="maximum">
-          <number>9999</number>
+          <number>60000</number>
          </property>
          <property name="value">
           <number>10</number>
@@ -530,7 +530,7 @@ Point</string>
           <number>1</number>
          </property>
          <property name="maximum">
-          <number>9999</number>
+          <number>60000</number>
          </property>
          <property name="value">
           <number>10</number>

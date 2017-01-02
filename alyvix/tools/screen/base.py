@@ -37,6 +37,9 @@ class ScreenManagerBase(object):
     def get_scaling_factor(self):
         raise NotImplementedError
 
+    def is_resolution_ok(self):
+        raise NotImplementedError
+
     def _get_cv_color_mat(self, pilimage):
 
         img = numpy.array(pilimage)

@@ -176,21 +176,7 @@ class AlyvixTextFinderView(QWidget):
         
     def keyPressEvent(self, event):
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
-            if self.last_xy_offset_index != None:
-            
-                if self.last_xy_offset_index == -1:
-                    self._main_text.x_offset = None
-                    self._main_text.y_offset = None
-                else:
-                    self._sub_texts_finder[self.last_xy_offset_index].x_offset = None
-                    self._sub_texts_finder[self.last_xy_offset_index].y_offset = None
-            
-                self.set_xy_offset = self.last_xy_offset_index
-                self.last_xy_offset_index = None
-                
-                self.update()
-            else:
-                self.delete_rect()
+            self.delete_rect()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
             self.restore_rect()
         if event.key() == Qt.Key_Escape:
@@ -199,9 +185,13 @@ class AlyvixTextFinderView(QWidget):
                 self.parent.show()
                 self.close()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
-            self.set_xy_offset = None
-            self.image_view_properties = AlyvixTextFinderPropertiesView(self)
-            self.image_view_properties.show()
+            if len(self._sub_texts_finder) == 0 and self._main_text is None:
+                self.parent.show()
+                self.close()
+            else:
+                self.set_xy_offset = None
+                self.image_view_properties = AlyvixTextFinderPropertiesView(self)
+                self.image_view_properties.show()
             """
             self.parent.show()
             self.close()
@@ -795,7 +785,7 @@ class AlyvixTextFinderView(QWidget):
         if len(self._sub_texts_finder) > 0:
             
             index = -1 #self.__index_deleted_rect_inside_roi
-            if  self.__flag_need_to_delete_roi is False and self._sub_texts_finder[index].x != 0 and self._sub_texts_finder[index].y != 0 \
+            if  self._sub_texts_finder[index].x != 0 and self._sub_texts_finder[index].y != 0 \
                 and self._sub_texts_finder[index].width != 0 and self._sub_texts_finder[index].height != 0:
                 
                 self._sub_texts_finder[index].deleted_x = self._sub_texts_finder[index].x
@@ -3331,9 +3321,14 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.clickRadio.setChecked(True)
             self.pushButtonXYoffset.setEnabled(True)
             self.clicknumber_spinbox.setEnabled(True)
-            self.clickdelay_spinbox.setEnabled(True)
             self.labelClickNumber.setEnabled(True)
-            self.labelClickDelay.setEnabled(True)
+            
+            if self.parent._main_text.number_of_clicks > 1:
+                self.labelClickDelay.setEnabled(True)
+                self.clickdelay_spinbox.setEnabled(True)
+            else:
+                self.labelClickDelay.setEnabled(False)
+                self.clickdelay_spinbox.setEnabled(False)
             
         else:
             self.clickRadio.setChecked(False)
@@ -3446,6 +3441,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
 
         
         self.spinBoxArgs.setValue(self.parent.args_number)
+        
+        if self.parent._main_text.x_offset != None or self.parent._main_text.y_offset != None:
+            self.pushButtonXYoffset.setText("Reset\nPoint")
         
         self.init_block_code()            
            
@@ -3967,6 +3965,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
     def update_sub_text_view(self):
         index = self.sub_text_index
         
+        if self.parent._sub_texts_finder[index].x_offset != None or self.parent._sub_texts_finder[index].y_offset != None:
+            self.pushButtonXYoffset_2.setText("Reset\nPoint")
+        
         if self.parent._sub_texts_finder[index].sendkeys == "":
             self.inserttext_2.setText("Insert here the Keystroke to send")
         else:
@@ -4005,9 +4006,13 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.clickRadio_2.setChecked(True)
             self.pushButtonXYoffset_2.setEnabled(True)
             self.clicknumber_spinbox_2.setEnabled(True)
-            self.clickdelay_spinbox_2.setEnabled(True)
             self.labelClickNumber_2.setEnabled(True)
-            self.labelClickDelay_2.setEnabled(True)
+            if self.parent._sub_texts_finder[self.sub_text_index].number_of_clicks > 1:
+                self.labelClickDelay_2.setEnabled(True)
+                self.clickdelay_spinbox_2.setEnabled(True)
+            else:
+                self.labelClickDelay_2.setEnabled(False)
+                self.clickdelay_spinbox_2.setEnabled(False)
         else:
             self.clickRadio_2.setChecked(False)
             self.pushButtonXYoffset_2.setEnabled(False)
@@ -4075,8 +4080,14 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.pushButtonXYoffset.setEnabled(True) 
             self.labelClickNumber.setEnabled(True)
             self.clicknumber_spinbox.setEnabled(True)
-            self.labelClickDelay.setEnabled(True)
-            self.clickdelay_spinbox.setEnabled(True)
+            
+            if self.clicknumber_spinbox.value() > 1:
+                self.labelClickDelay.setEnabled(True)
+                self.clickdelay_spinbox.setEnabled(True)
+            else:
+                self.labelClickDelay.setEnabled(False)
+                self.clickdelay_spinbox.setEnabled(False)
+                
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
             
@@ -4140,8 +4151,14 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.parent.update()
             
     def pushButtonXYoffset_event(self):
-        self.parent.set_xy_offset = -1  #-1 for main, other int for sub index
-        self.hide()
+        if str(self.pushButtonXYoffset.text()) != "Reset\nPoint":
+            self.parent.set_xy_offset = -1  #-1 for main, other int for sub index
+            self.hide()
+        else:
+            self.parent._main_text.x_offset = None
+            self.parent._main_text.y_offset = None
+            self.pushButtonXYoffset.setText("Interaction\nPoint")
+            self.parent.update()
         
     def holdreleaseRadio_event(self, event):  
         if event is False:
@@ -4184,6 +4201,14 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
     def clicknumber_spinbox_change_event (self, event):
         self.parent._main_text.number_of_clicks = self.clicknumber_spinbox.value()
+        
+        if self.clicknumber_spinbox.value() > 1 and self.parent._main_text.click is True:
+            self.labelClickDelay.setEnabled(True)
+            self.clickdelay_spinbox.setEnabled(True)
+        else:
+            self.labelClickDelay.setEnabled(False)
+            self.clickdelay_spinbox.setEnabled(False)
+        
         self.parent.build_code_array()
     
             
@@ -4802,8 +4827,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.pushButtonXYoffset_2.setEnabled(True)
             self.labelClickNumber_2.setEnabled(True)
             self.clicknumber_spinbox_2.setEnabled(True)
-            self.labelClickDelay_2.setEnabled(True)
-            self.clickdelay_spinbox_2.setEnabled(True)
+            if self.clicknumber_spinbox_2.value() > 1: # and self.parent._sub_texts_finder[self.sub_text_index].click is True:
+                self.labelClickDelay_2.setEnabled(True)
+                self.clickdelay_spinbox_2.setEnabled(True)
+            else:
+                self.labelClickDelay_2.setEnabled(False)
+                self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
             
@@ -4866,8 +4895,14 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.parent.update()
             
     def pushButtonXYoffset_event_2(self):
-        self.parent.set_xy_offset = self.sub_text_index  #-1 for main, other int for sub index
-        self.hide()
+        if str(self.pushButtonXYoffset_2.text()) != "Reset\nPoint":
+            self.parent.set_xy_offset = self.sub_text_index  #-1 for main, other int for sub index
+            self.hide()
+        else:
+            self.parent._sub_texts_finder[self.sub_text_index].x_offset = None
+            self.parent._sub_texts_finder[self.sub_text_index].y_offset = None
+            self.pushButtonXYoffset_2.setText("Interaction\nPoint")
+            self.parent.update()
         
     def holdreleaseRadio_event_2(self, event):  
         if event is False:
@@ -4911,6 +4946,14 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
     def clicknumber_spinbox_change_event_2 (self, event):
         self.parent._sub_texts_finder[self.sub_text_index].number_of_clicks = self.clicknumber_spinbox_2.value()
+        
+        if self.clicknumber_spinbox_2.value() > 1 and self.parent._sub_texts_finder[self.sub_text_index].click is True:
+            self.labelClickDelay_2.setEnabled(True)
+            self.clickdelay_spinbox_2.setEnabled(True)
+        else:
+            self.labelClickDelay_2.setEnabled(False)
+            self.clickdelay_spinbox_2.setEnabled(False)
+            
         self.parent.build_code_array()
             
 

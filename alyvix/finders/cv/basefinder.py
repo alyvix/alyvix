@@ -150,6 +150,10 @@ class BaseFinder(object):
         self._log_manager = LogManager()
         self._log_manager.set_object_name(self._name)
         self._screen_capture = ScreenManager()
+        if self._screen_capture.is_resolution_ok() is False:
+            raise Exception(
+                "Alyvix Background Service is installed but the screen resolution doesn't match with the config file")
+
         self._cacheManager = CacheManager()
         self._configReader = ConfigReader()
 

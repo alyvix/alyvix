@@ -55,6 +55,8 @@ class DbManager():
 
         self._db_name = self._db_name + ".db"
 
+        self._info_manager.set_info("DB FILE", self._db_home + os.sep + self._db_name)
+
         self._connection = None
         self._cursor = None
         self._db_is_new = False
@@ -351,10 +353,10 @@ class DbManager():
     def store_perfdata(self, dbname=None):
 
         if dbname != None and dbname != "":
-            self._db_home = os.path.split(dbname)[0]
-            self._db_name = os.path.split(dbname)[1]
+            self._db_home = os.path.split(str(dbname))[0]
+            self._db_name = os.path.split(str(dbname))[1]
 
-            self._info_manager.set_info("DB FILE", self._db_home + os.sep + self._db_name)
+        self._info_manager.set_info("DB FILE", self._db_home + os.sep + self._db_name)
 
         #if not os.path.isfile(self._db_home + os.sep + self._db_name):
         if not os.path.isdir(self._db_home):
@@ -377,7 +379,7 @@ class DbManager():
         self.close()
 
     def publish_perfdata(self, type="csv", start_date=None, end_date=None, filename=None,
-                         testcase_name=None, max_age=24):
+                         testcase_name=None, max_age=24, suffix=None):
 
         if type == "perfmon":
             try:
@@ -453,6 +455,37 @@ class DbManager():
                 except ValueError:
                     pass
 
+            if end_date_dt is None:
+                try:
+                    if end_date.lower() == "now":
+                        end_date_dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                except:
+                    pass
+
+            if start_date_dt is None:
+
+                if "days" in start_date:
+
+                    try:
+                        d_start_day = start_date.replace("days", "")
+                        d_start_day = d_start_day.replace(" ", "")
+                        d_start_day = int(d_start_day)
+
+                        delta_date = datetime.datetime.today() - datetime.timedelta(days=d_start_day)
+                        start_date_dt = delta_date.strftime("%Y-%m-%d %H:%M:%S")
+                    except:
+                        pass
+                elif "hours" in start_date:
+                    try:
+                        h_start_day = start_date.replace("hours", "")
+                        h_start_day = h_start_day.replace(" ", "")
+                        h_start_day = int(h_start_day)
+
+                        delta_date = datetime.datetime.today() - datetime.timedelta(hours=h_start_day)
+                        start_date_dt = delta_date.strftime("%Y-%m-%d %H:%M:%S")
+                    except:
+                        pass
+
             if start_date_dt is None:
                 raise Exception('invalid start date!')
 
@@ -469,6 +502,12 @@ class DbManager():
                 self._db_home = os.path.split( self._info_manager.get_info("DB FILE"))[0]
                 self._db_name = os.path.split( self._info_manager.get_info("DB FILE"))[1]
 
+            try:
+                if os.path.isfile(db_file) is False:
+                    return
+            except:
+                return
+
 
             csv_name = filename
 
@@ -484,9 +523,8 @@ class DbManager():
 
                 csv_name = csv_home + os.sep + csv_name + ".csv"
 
-
-            csv_file = open(csv_name, 'w')
-            csv_writer = csv.writer(csv_file)
+            if suffix== "timestamp":
+                csv_name = csv_name.replace(".csv", "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S") + ".csv")
 
             self.connect()
 
@@ -506,12 +544,18 @@ class DbManager():
                 value = last_sorting_rows[key]
 
                 if value is not None:
-                    perf_to_query.append(key.replace("_index", ""))
+                    new_value = 999999
+                    if value != -1:
+                        new_value = value
+
+                    perf_to_query.append((key.replace("_index", ""), new_value))
+
+            perf_to_query = sorted(perf_to_query, key=lambda x: x[1])
 
             query = "select datetime(start_time, 'unixepoch','localtime') as start_time"
 
             for column in perf_to_query:
-                query = query + ", " + column
+                query = query + ", " + column[0]
 
             query = query + " from runs where CAST(strftime('%s', datetime(start_time, 'unixepoch', 'localtime')) AS INT) between CAST(strftime('%s', '" + start_date + "') AS INT) and CAST(strftime('%s', '" + end_date + "') AS INT)"
 
@@ -521,7 +565,10 @@ class DbManager():
             csv_header.append("start_time")
 
             for perf_column in perf_to_query:
-                csv_header.append(perf_column)
+                csv_header.append(perf_column[0])
+
+            csv_file = open(csv_name, 'w')
+            csv_writer = csv.writer(csv_file, lineterminator='\n')
 
             csv_writer.writerow(csv_header)
 
@@ -536,7 +583,7 @@ class DbManager():
                 csv_row.append(row["start_time"])
 
                 for perf_column in perf_to_query:
-                    csv_row.append(row[perf_column])
+                    csv_row.append(row[perf_column[0]])
 
                 csv_writer.writerow(csv_row)
 

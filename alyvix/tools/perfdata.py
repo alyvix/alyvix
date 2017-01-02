@@ -49,12 +49,13 @@ class PerfManager:
         self._info_manager.tiny_update()
 
         self._last_filled_perf = None
+        self.not_ok_perfdata = 0
 
     def clear_perfdata(self):
         global perfdata_list
         perfdata_list = []
 
-    def add_perfdata(self, name, value=None, warning_threshold=None, critical_threshold=None, state=0):
+    def add_perfdata(self, name, value=None, warning_threshold=None, critical_threshold=None, state=None):
 
         global perfdata_list
         global perf_counter
@@ -80,10 +81,25 @@ class PerfManager:
         except:
              perf_data.critical_threshold = ""
 
-        try:
-            perf_data.state = int(state)
-        except:
-             perf_data.state = int(os.getenv("exitcode"))
+
+        if state is not None:
+            try:
+                perf_data.state = int(state)
+            except:
+                perf_data.state = 3
+        else:
+            try:
+                perf_data.state = int(os.getenv("exitcode"))
+            except:
+                perf_data.state = 3
+
+        if perf_data.value != "" and perf_data.critical_threshold != "" and perf_data.value >= perf_data.critical_threshold:
+            perf_data.state = 2
+        elif perf_data.value != "" and perf_data.warning_threshold != "" and perf_data.value >= perf_data.warning_threshold:
+            perf_data.state = 1
+        elif perf_data.value != "":
+            perf_data.state = 0
+
 
         perf_data.timestamp = None
 
@@ -111,6 +127,11 @@ class PerfManager:
         global perfdata_list
 
         perfdata_list_copy = copy.deepcopy(perfdata_list)
+
+        for perf_data_in_list in perfdata_list:
+            if perf_data_in_list.name == str(old_name):
+                if perf_data_in_list.value == "":
+                    raise Exception(old_name + " value is null! cannot rename it")
 
         cnt = 0
         for perf_data_in_list in perfdata_list:
@@ -230,12 +251,7 @@ class PerfManager:
 
                 elif perf_data_in_list.name == name and (perf_data_in_list.value == ""\
                         or perf_data_in_list.value is None):
-                    raise Exception('You cannot sum empty value(s)')
-
-                """
-                elif (delete_perf is True or perf_name != "") and perf_data_in_list.name == name:
-                    index_to_delete.append(cnt)
-                """
+                    raise Exception(name + " value is null! cannot sum empty value(s)")
 
             cnt = cnt + 1
 
@@ -270,6 +286,7 @@ class PerfManager:
                 perfdata_ok_list.append(copy.deepcopy(perf_data_in_list))
             else:
                 perfdata_notok_list.append(copy.deepcopy(perf_data_in_list))
+                self.not_ok_perfdata = self.not_ok_perfdata + 1
 
         perfdata_ok_list.sort(key=lambda x: x.counter, reverse=False)
 
@@ -303,11 +320,6 @@ class PerfManager:
 
     def get_output(self, message=None, print_output=True):
 
-        try:
-            test_exitcode = int(os.getenv("exitcode"))
-        except:
-            os.environ["exitcode"] = "3"
-
         prefix_robot_framework = ""
 
         global perfdata_list
@@ -325,31 +337,54 @@ class PerfManager:
 
         if message is not None:
             self.performance_desc_string = self.performance_desc_string + message + performanceData + os.linesep
+        elif exitcode == 3 and self.not_ok_perfdata == len(perfdata_list):
+            self.performance_desc_string = self.performance_desc_string + \
+                                           "UNKNOWN: some error occurred, no perf data was filled" + \
+                                           performanceData + os.linesep
+            prefix_robot_framework = "*WARN*"
+        elif exitcode == 3 and self.not_ok_perfdata > 0:
+            self.performance_desc_string = self.performance_desc_string + \
+                                           "UNKNOWN: some error occurred, last filled perf data is " + \
+                                           self._last_filled_perf + " " + performanceData + os.linesep
+            prefix_robot_framework = "*WARN*"
+        elif exitcode == 2 and self.not_ok_perfdata == len(perfdata_list):
+            self.performance_desc_string = self.performance_desc_string + \
+                                           "CRITICAL: some error occurred, no perf data was filled" + \
+                                           performanceData + os.linesep
+            prefix_robot_framework = "*WARN*"
+        elif exitcode == 2 and self.not_ok_perfdata > 0:
+            self.performance_desc_string = self.performance_desc_string +\
+                                               "CRITICAL: some error occurred, last filled perf data is " +\
+                                               self._last_filled_perf + " " + performanceData + os.linesep
+            prefix_robot_framework = "*WARN*"
         elif exitcode == 2:
             self.performance_desc_string = self.performance_desc_string +\
                                            "CRITICAL: one or more steps are in critical state" +\
                                            performanceData + os.linesep
+            prefix_robot_framework = "*WARN*"
+        elif exitcode == 1 and self.not_ok_perfdata == len(perfdata_list):
+            self.performance_desc_string = self.performance_desc_string + \
+                                           "WARNING: some error occurred, no perf data was filled" + \
+                                           performanceData + os.linesep
+            prefix_robot_framework = "*WARN*"
+        elif exitcode == 1 and self.not_ok_perfdata > 0:
+            self.performance_desc_string = self.performance_desc_string +\
+                                               "WARNING: some error occurred, last filled perf data is " +\
+                                               self._last_filled_perf + " " + performanceData + os.linesep
             prefix_robot_framework = "*WARN*"
         elif exitcode == 1:
             self.performance_desc_string = self.performance_desc_string +\
                                            "WARNING: one or more steps are in warning state" +\
                                            performanceData + os.linesep
             prefix_robot_framework = "*WARN*"
-        elif exitcode == int(os.getenv("exitcode")):
-            if self._last_filled_perf is not None:
-                self.performance_desc_string = self.performance_desc_string +\
-                                               "UNKNOWN: some error occurred, last filled perf data is " +\
-                                               self._last_filled_perf + " " + performanceData + os.linesep
-            else:
-                self.performance_desc_string = self.performance_desc_string +\
-                                               "UNKNOWN: some error occurred, no perf data was filled" +\
-                                               performanceData + os.linesep
-            prefix_robot_framework = "*WARN*"
-        elif len(timedout_finders) > 0:
-            self.performance_desc_string = self.performance_desc_string +\
-                                           "CRITICAL: one or more steps are in timeout state" +\
+        elif exitcode == 0 and self.not_ok_perfdata == len(perfdata_list):
+            self.performance_desc_string = self.performance_desc_string + \
+                                           "Ok: some error occurred, no perf data was filled" + \
                                            performanceData + os.linesep
-            prefix_robot_framework = "*WARN*"
+        elif exitcode == 0 and self.not_ok_perfdata > 0:
+            self.performance_desc_string = self.performance_desc_string +\
+                                               "OK: some error occurred, last filled perf data is " +\
+                                               self._last_filled_perf + " " + performanceData + os.linesep
         else:
             self.performance_desc_string = self.performance_desc_string +\
                                            "OK: all steps are ok" +\
@@ -359,42 +394,31 @@ class PerfManager:
 
             name = perfdata.name
             value = perfdata.value
-            warning = perfdata.warning_threshold
-            critical = perfdata.critical_threshold
-            #state = perfdata.state
+            state = perfdata.state
 
-            #only for Alyvix
-            state = 3
-            if value != "" and critical != "" and value >= critical:
-                state = 2
-            elif value != "" and warning != "" and value >= warning:
-                state = 1
-            elif value != "":
-                state = 0
-            elif value == "" and warning == "" and critical == "" and state == 0:
-                state = 3
-
-            if state == 0:
+            if state == 0 and value == "":
+                self.performance_desc_string = self.performance_desc_string +\
+                                               "OK: " + name + " time is null." + os.linesep
+            elif state == 0:
                 self.performance_desc_string = self.performance_desc_string +\
                                                "OK: " + name + " time is " + str(value) + " sec." + os.linesep
+            elif state == 1 and value == "":
+                self.performance_desc_string = self.performance_desc_string +\
+                                               "WARNING: " + name + " time is null." + os.linesep
             elif state == 1:
                 self.performance_desc_string = self.performance_desc_string +\
                                                "WARNING: " + name + " time is " + str(value) + " sec." + os.linesep
-            elif state == 2:
+            elif state == 2 and value == "":
                 self.performance_desc_string = self.performance_desc_string +\
-                                               "CRITICAL: " + name + " time is " + str(value) + " sec." +\
+                                               "CRITICAL: " + name + " time is null." + os.linesep
+            elif state == 2:
+                self.performance_desc_string = self.performance_desc_string + \
+                                               "CRITICAL: " + name + " time is " + str(value) + " sec." + \
                                                os.linesep
             else:
-                if value != "":
-                    self.performance_desc_string = self.performance_desc_string +\
-                                                   "UNKNOWN: " + name + " time is " + str(value) + " sec." + os.linesep
-                elif value == "":
-                    self.performance_desc_string = self.performance_desc_string +\
+                self.performance_desc_string = self.performance_desc_string +\
                                                    "UNKNOWN: " + name + " time is null." + os.linesep
 
-
-        os.environ["alyvix_exitcode"] = str(exitcode)
-        os.environ["alyvix_std_output"] = self.performance_desc_string
 
         if self._info_manager.get_info("ROBOT CONTEXT") is True:
 
@@ -424,33 +448,29 @@ class PerfManager:
     def get_exitcode(self):
 
         global perfdata_list
-        exitcode = 0
+        exitcode = 3
 
         if len(perfdata_list) == 0 and len(deleted_on_rename_list) != 0:
             perfdata_list = copy.deepcopy(deleted_on_rename_list)
 
         for perfdata in perfdata_list:
 
-            name = perfdata.name
-            value = perfdata.value
-            warning = perfdata.warning_threshold
-            critical = perfdata.critical_threshold
             state = perfdata.state
 
-            #only for Alyvix
-            if value != "" and critical != "" and value >= critical:
-                state = 2
-            elif value != "" and warning != "" and value >= warning:
-                state = 1
-            elif value == "" and warning == "" and critical == "" and state == 0:
-                #state = 3
-                state = int(os.getenv("exitcode"))
-
-            if state > exitcode:
-                exitcode = state
+            if state == 1 or state == 2:
+                if exitcode == 3:
+                    exitcode = state
+                elif state > exitcode:
+                    exitcode = state
 
             if exitcode == 2:
                 break
+
+        if self.not_ok_perfdata > 0:
+            try:
+                exitcode = int(os.getenv("exitcode"))
+            except:
+                exitcode = 3
 
         return exitcode
 

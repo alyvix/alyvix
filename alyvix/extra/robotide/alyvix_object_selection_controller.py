@@ -23,7 +23,7 @@ import os
 import time
 import cv2
 
-from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem
+from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox
 from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect
 
 from PyQt4.QtWebKit import QWebSettings
@@ -463,6 +463,16 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
 if __name__ == "__main__":
 
     app = QApplication(sys.argv)
-    window = AlyvixMainMenuController()
-    window.show()
+    screen_manager = ScreenManager()
+    if screen_manager.is_resolution_ok() is False:
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText("Alyvix Background Service is installed but the screen resolution doesn't match with the config file")
+        #msg.setInformativeText("This is additional information")
+        msg.setWindowTitle("Error")
+        #msg.setDetailedText("The details are as follows:")
+        msg.show()
+    else:
+        window = AlyvixMainMenuController()
+        window.show()
     sys.exit(app.exec_())

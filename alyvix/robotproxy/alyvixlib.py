@@ -214,7 +214,7 @@ def alyvix_screenshot(filename_arg):
 
     logger.info('<a href="' + filename + '"><img src="' + filename + '" width="800px"></a>', html=True)
     
-def add_perfdata(name, value=None, warning_threshold=None, critical_threshold=None, state=0):
+def add_perfdata(name, value=None, warning_threshold=None, critical_threshold=None, state=None):
     pm = PerfManager()
     #name_lower = str(name).lower().replace(" ", "_")
     pm.add_perfdata(name, value, warning_threshold, critical_threshold, state)
@@ -282,13 +282,13 @@ def sum_perfdata(*names, **kwargs):
 
 def store_perfdata(dbname=None):
     db = DbManager()
-    db.store_perfdata(str(dbname))
+    db.store_perfdata(dbname)
 
 def publish_perfdata(type="csv", start_date="", end_date="", filename="",
-                         testcase_name="", max_age=24):
+                         testcase_name="", max_age=24, suffix=None):
     db = DbManager()
     db.publish_perfdata(type=str(type), start_date=str(start_date), end_date=str(end_date), filename=str(filename),
-                        testcase_name=str(testcase_name), max_age=int(max_age))
+                        testcase_name=str(testcase_name), max_age=int(max_age), suffix=str(suffix))
 
 def print_perfdata(message=None, print_output="True"):
 

@@ -115,6 +115,15 @@ class AlyvixImageFinderView(QWidget):
         self.__old_code = self.get_old_code()
         self.__old_code_v220 = self.get_old_code_v220()
         self.__old_code_v230 = self.get_old_code_v230()
+        
+        """
+        text_file = open("c:\\alylog\\Output.txt", "w")
+
+        text_file.write(self.__old_code_v230)
+
+        text_file.close()
+        """
+
         #print self.__old_code
         
         self._old_main_template = copy.deepcopy(self._main_template)
@@ -162,20 +171,6 @@ class AlyvixImageFinderView(QWidget):
     def keyPressEvent(self, event):
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
             
-            if self.last_xy_offset_index != None:
-            
-                if self.last_xy_offset_index == -1:
-                    self._main_template.x_offset = None
-                    self._main_template.y_offset = None
-                else:
-                    self._sub_templates_finder[self.last_xy_offset_index].x_offset = None
-                    self._sub_templates_finder[self.last_xy_offset_index].y_offset = None
-            
-                self.set_xy_offset = self.last_xy_offset_index
-                self.last_xy_offset_index = None
-                
-                self.update()
-            else:
                 self.delete_rect()
                 
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
@@ -187,9 +182,15 @@ class AlyvixImageFinderView(QWidget):
                 self.close()
                 
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
-            self.set_xy_offset = None
-            self.image_view_properties = AlyvixImageFinderPropertiesView(self)
-            self.image_view_properties.show()
+        
+            if len(self._sub_templates_finder) == 0 and self._main_template is None:
+                self.parent.show()
+                self.close()
+            else:
+        
+                self.set_xy_offset = None
+                self.image_view_properties = AlyvixImageFinderPropertiesView(self)
+                self.image_view_properties.show()
             """
             self.parent.show()
             self.close()
@@ -677,7 +678,7 @@ class AlyvixImageFinderView(QWidget):
         if len(self._sub_templates_finder) > 0:
             
             index = -1 #self.__index_deleted_rect_inside_roi
-            if  self.__flag_need_to_delete_roi is False and self._sub_templates_finder[index].x != 0 and self._sub_templates_finder[index].y != 0 \
+            if self._sub_templates_finder[index].x != 0 and self._sub_templates_finder[index].y != 0 \
                 and self._sub_templates_finder[index].width != 0 and self._sub_templates_finder[index].height != 0:
                 
                 self._sub_templates_finder[index].deleted_x = self._sub_templates_finder[index].x
@@ -820,6 +821,15 @@ class AlyvixImageFinderView(QWidget):
             file_code_string = file_code_string.replace(unicode(self.__old_code_v220, 'utf-8'), current_code_string)
             file_code_string = file_code_string.replace(unicode(self.__old_code_v230, 'utf-8'), current_code_string)
             file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), current_code_string)
+            
+            """
+            text_file = open("c:\\alylog\\new_Output.txt", "w")
+
+            text_file.write(current_code_string)
+
+            text_file.close()
+            """
+
             """
             print self.__old_code
             print "---"
@@ -853,7 +863,7 @@ class AlyvixImageFinderView(QWidget):
         if self._main_template is None:
             return "".encode('utf-8')
         
-        self.build_code_array_v230
+        self.build_code_array_v230()
         return self.build_code_string()
     
     def build_code_string(self):
@@ -2709,9 +2719,13 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.clickRadio.setChecked(True)
             self.pushButtonXYoffset.setEnabled(True)
             self.clicknumber_spinbox.setEnabled(True)
-            self.clickdelay_spinbox.setEnabled(True)
             self.labelClickNumber.setEnabled(True)
-            self.labelClickDelay.setEnabled(True)
+            if self.parent._main_template.number_of_clicks > 1:
+                self.labelClickDelay.setEnabled(True)
+                self.clickdelay_spinbox.setEnabled(True)
+            else:
+                self.labelClickDelay.setEnabled(False)
+                self.clickdelay_spinbox.setEnabled(False)
             
         else:
             self.clickRadio.setChecked(False)
@@ -2815,6 +2829,9 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
 
         
         self.spinBoxArgs.setValue(self.parent.args_number)
+        
+        if self.parent._main_template.x_offset != None or self.parent._main_template.y_offset != None:
+            self.pushButtonXYoffset.setText("Reset\nPoint")
         
         self.init_block_code()            
         
@@ -3248,7 +3265,8 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         index = self.sub_template_index
         self.doubleSpinBoxThreshold_2.setValue(self.parent._sub_templates_finder[index].threshold)
         
-        
+        if self.parent._sub_templates_finder[index].x_offset != None or self.parent._sub_templates_finder[index].y_offset != None:
+            self.pushButtonXYoffset_2.setText("Reset\nPoint")
         
         if self.parent._sub_templates_finder[index].sendkeys == "":
             self.inserttext_2.setText("Insert here the Keystroke to send")
@@ -3275,9 +3293,13 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.clickRadio_2.setChecked(True)
             self.pushButtonXYoffset_2.setEnabled(True)
             self.clicknumber_spinbox_2.setEnabled(True)
-            self.clickdelay_spinbox_2.setEnabled(True)
             self.labelClickNumber_2.setEnabled(True)
-            self.labelClickDelay_2.setEnabled(True)
+            if self.parent._sub_templates_finder[self.sub_template_index].number_of_clicks > 1:
+                self.labelClickDelay_2.setEnabled(True)
+                self.clickdelay_spinbox_2.setEnabled(True)
+            else:
+                self.labelClickDelay_2.setEnabled(False)
+                self.clickdelay_spinbox_2.setEnabled(False)
         else:
             self.clickRadio_2.setChecked(False)
             self.pushButtonXYoffset_2.setEnabled(False)
@@ -3345,8 +3367,14 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.pushButtonXYoffset.setEnabled(True) 
             self.labelClickNumber.setEnabled(True)
             self.clicknumber_spinbox.setEnabled(True)
-            self.labelClickDelay.setEnabled(True)
-            self.clickdelay_spinbox.setEnabled(True)
+
+            if self.clicknumber_spinbox.value() > 1:
+                self.labelClickDelay.setEnabled(True)
+                self.clickdelay_spinbox.setEnabled(True)
+            else:
+                self.labelClickDelay.setEnabled(False)
+                self.clickdelay_spinbox.setEnabled(False)
+                
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
             
@@ -3409,8 +3437,14 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.parent.update()
             
     def pushButtonXYoffset_event(self):
-        self.parent.set_xy_offset = -1  #-1 for main, other int for sub index
-        self.hide()
+        if str(self.pushButtonXYoffset.text()) != "Reset\nPoint":
+            self.parent.set_xy_offset = -1  #-1 for main, other int for sub index
+            self.hide()
+        else:
+            self.parent._main_template.x_offset = None
+            self.parent._main_template.y_offset = None
+            self.pushButtonXYoffset.setText("Interaction\nPoint")
+            self.parent.update()
     
     def holdreleaseRadio_event(self, event):  
         if event is False:
@@ -3434,7 +3468,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             else: 
                 self.holdreleaseSpinBox.setEnabled(True)
             
-            print "combo indexxxxxxx", combo_index
+            #print "combo indexxxxxxx", combo_index
             self.parent._main_template.hold_and_release = combo_index
             
     def holdreleaseComboBox_event(self, event):
@@ -3454,6 +3488,14 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         
     def clicknumber_spinbox_change_event (self, event):
         self.parent._main_template.number_of_clicks = self.clicknumber_spinbox.value()
+        
+        if self.clicknumber_spinbox.value() > 1 and self.parent._main_template.click is True:
+            self.labelClickDelay.setEnabled(True)
+            self.clickdelay_spinbox.setEnabled(True)
+        else:
+            self.labelClickDelay.setEnabled(False)
+            self.clickdelay_spinbox.setEnabled(False)
+        
         self.parent.build_code_array()
             
     @pyqtSlot(QString)
@@ -3952,8 +3994,12 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.pushButtonXYoffset_2.setEnabled(True)
             self.labelClickNumber_2.setEnabled(True)
             self.clicknumber_spinbox_2.setEnabled(True)
-            self.labelClickDelay_2.setEnabled(True)
-            self.clickdelay_spinbox_2.setEnabled(True)
+            if self.clicknumber_spinbox_2.value() > 1: # and self.parent._sub_templates_finder[self.sub_template_index].click is True:
+                self.labelClickDelay_2.setEnabled(True)
+                self.clickdelay_spinbox_2.setEnabled(True)
+            else:
+                self.labelClickDelay_2.setEnabled(False)
+                self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
         
@@ -4013,8 +4059,14 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.parent.update()
             
     def pushButtonXYoffset_event_2(self):
-        self.parent.set_xy_offset = self.sub_template_index  #-1 for main, other int for sub index
-        self.hide()
+        if str(self.pushButtonXYoffset_2.text()) != "Reset\nPoint":
+            self.parent.set_xy_offset = self.sub_template_index  #-1 for main, other int for sub index
+            self.hide()
+        else:
+            self.parent._sub_templates_finder[self.sub_template_index].x_offset = None
+            self.parent._sub_templates_finder[self.sub_template_index].y_offset = None
+            self.pushButtonXYoffset_2.setText("Interaction\nPoint")
+            self.parent.update()
         
     def holdreleaseRadio_event_2(self, event):  
         if event is False:
@@ -4057,6 +4109,14 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         
     def clicknumber_spinbox_change_event_2 (self, event):
         self.parent._sub_templates_finder[self.sub_template_index].number_of_clicks = self.clicknumber_spinbox_2.value()
+        
+        if self.clicknumber_spinbox_2.value() > 1 and self.parent._sub_templates_finder[self.sub_template_index].click is True:
+            self.labelClickDelay_2.setEnabled(True)
+            self.clickdelay_spinbox_2.setEnabled(True)
+        else:
+            self.labelClickDelay_2.setEnabled(False)
+            self.clickdelay_spinbox_2.setEnabled(False)
+        
         self.parent.build_code_array()
             
 

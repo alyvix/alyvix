@@ -31,7 +31,7 @@ SET suitename=
 SET checktarget=
 SET outputmsg=
 SET pathavailable=
-SET exitcode=3
+SET exitcode=
 SET logtmp=0
 
 SET suitefile=%1
@@ -96,8 +96,9 @@ IF NOT EXIST %suitefile% (
     ECHO     Optional arguments are:
     ECHO         --test testcase_name
     ECHO         --outputdir log_folder
+    ECHO         --exitcode the_exitcode
     
-    EXIT /B %exitcode%
+    EXIT /B 3
 
 )
 

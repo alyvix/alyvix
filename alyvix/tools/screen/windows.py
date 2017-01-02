@@ -18,6 +18,7 @@
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
 
+import os
 import numpy
 import win32gui
 import win32ui
@@ -27,6 +28,8 @@ import ctypes
 from PIL import Image
 import cv2
 import cv2.cv as cv
+import win32con
+import win32service
 from .base import ScreenManagerBase
 
 
@@ -127,3 +130,58 @@ class ScreenManager(ScreenManagerBase):
             return self._get_cv_gray_mat(mat)
         else:
             return ret_image
+
+    def is_resolution_ok(self):
+
+        try:
+            height = None
+            width = None
+            scm = win32service.OpenSCManager('localhost', None, win32service.SC_MANAGER_CONNECT)
+            s = win32service.OpenService(scm, 'Alyvix Background Service', win32service.SERVICE_QUERY_CONFIG)
+            cfg = win32service.QueryServiceConfig(s)
+            config_file = os.path.dirname(str(cfg[3]).replace("\"","")) + os.sep + "AlyvixBackgroundService.exe.config"
+
+            lines = []
+            with open(str(config_file)) as f:
+                lines = f.readlines()
+
+            for line in lines:
+                if "height" in line:
+                    height = line.replace("<add key=\"height\" value=\"","")
+                    height = height.replace("\"/>", "")
+                    height = height.replace(" ","")
+                    height = height.replace("\t","")
+                    height = int(height)
+
+                if "width" in line:
+                    width = line.replace("<add key=\"width\" value=\"", "")
+                    width = width.replace("\"/>", "")
+                    width = width.replace(" ", "")
+                    width = width.replace("\t", "")
+                    width = int(width)
+
+            if height is not None and width is not None:
+                hwnd = win32gui.GetDesktopWindow()
+                wDC = win32gui.GetWindowDC(hwnd)
+                dcObj = win32ui.CreateDCFromHandle(wDC)
+
+                HORZRES = 8
+                VERTRES = 10
+
+                DESKTOPHORZRES = 118
+                DESKTOPVERTRES = 117
+
+                v_HORZRES = dcObj.GetDeviceCaps(HORZRES)
+                v_VERTRES = dcObj.GetDeviceCaps(VERTRES)
+
+                v_DESKTOPHORZRES = dcObj.GetDeviceCaps(DESKTOPHORZRES)
+                v_DESKTOPVERTRES = dcObj.GetDeviceCaps(DESKTOPVERTRES)
+
+                dcObj.DeleteDC()
+
+                if height != v_DESKTOPVERTRES or width != v_DESKTOPHORZRES:
+                    return False
+        except:
+            pass
+
+        return True
