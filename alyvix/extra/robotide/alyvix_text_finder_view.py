@@ -1205,8 +1205,10 @@ class AlyvixTextFinderView(QWidget):
                 
             self._code_lines.append("    time.sleep(2)")
                                 
-            if self._main_text.click == True:
+            if self._main_text.click == True and self._main_text.number_of_clicks == 1:
                 self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1)")
+            elif self._main_text.click == True and self._main_text.number_of_clicks == 2:
+                self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1, 2)")
             elif self._main_text.rightclick == True:
                 self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 2)")
             elif self._main_text.mousemove == True:
@@ -1238,10 +1240,13 @@ class AlyvixTextFinderView(QWidget):
                         mmanager_declared = True
                     self._code_lines.append("    time.sleep(2)")
                                         
-                    if sub_text.click == True:
+                    if sub_text.click == True and sub_text.number_of_clicks == 1:
                         self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1)")
+                    elif sub_text.click == True and sub_text.number_of_clicks == 2:
+                        self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1, 2)")
                     elif sub_text.rightclick == True:
                         self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 2)")
+                    
                     elif sub_text.mousemove == True:
                         self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
                         
@@ -1560,9 +1565,9 @@ class AlyvixTextFinderView(QWidget):
                 
             self._code_lines.append("    time.sleep(sleep_factor)")
                                 
-            if self._main_text.click == True:
+            if self._main_text.click == True and self._main_text.number_of_clicks == 1:
                 self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1)")
-            elif self._main_text.doubleclick == True:
+            elif self._main_text.click == True and self._main_text.number_of_clicks == 2:
                 self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1, 2)")
             elif self._main_text.rightclick == True:
                 self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 2)")
@@ -1600,9 +1605,9 @@ class AlyvixTextFinderView(QWidget):
                         mmanager_declared = True
                     self._code_lines.append("    time.sleep(sleep_factor)")
                                         
-                    if sub_text.click == True:
+                    if sub_text.click == True and sub_text.number_of_clicks == 1:
                         self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1)")
-                    elif sub_text.doubleclick == True:
+                    elif sub_text.click == True and sub_text.number_of_clicks == 2:
                         self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1, 2)")
                     elif sub_text.rightclick == True:
                         self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 2)")

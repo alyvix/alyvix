@@ -23,6 +23,8 @@ Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 Official website: http://www.alyvix.com/
 :comment
 
+ver > nul
+
 SET resultdir=
 SET suitefile=
 SET outputdir=
@@ -102,7 +104,6 @@ IF NOT EXIST %suitefile% (
 
 )
 
-
 IF [%testcase%] == [] (
 
     SET checktarget=test suite "%suitename%"
@@ -112,23 +113,28 @@ IF [%testcase%] == [] (
     SET checktarget=test case "%testcase%" in test suite "%suitename%"
 )
 
-RD %outputdir%\dummy > NUL 2>&1
-MKDIR %outputdir%\dummy > NUL 2>&1
+IF [%outputdir%] == [] (
+    
+    SET outputdir=%temp%\alyvix_pybot\%suitename%\log
+    SET pathavailable=1
+    SET logtmp=1
 
-IF %ERRORLEVEL% == 0 (
-    IF [%outputdir%] == [] (
+) ELSE (
+
+    if not exist "%outputdir%\dummy\" (
+        MKDIR "%outputdir%\dummy" > NUL 2>&1
+    )
+
+    IF EXIST "%outputdir%\dummy\" (
+        RD %outputdir%\dummy /s /q > NUL 2>&1
+        SET pathavailable=1
+
+    ) ELSE (
         SET pathavailable=0
         SET outputdir=%temp%\alyvix_pybot\%suitename%\log
         SET logtmp=1
-    ) ELSE (
-        SET pathavailable=1
-        rd %outputdir%\dummy
     )
 
-) ELSE (
-    SET pathavailable=0
-    SET outputdir=%temp%\alyvix_pybot\%suitename%\log
-    SET logtmp=1
 )
 
 SET resultdir=%temp%\alyvix_pybot\%suitename%\result

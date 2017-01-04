@@ -1346,9 +1346,9 @@ class AlyvixRectFinderView(QWidget):
                 
             self._code_lines.append("    time.sleep(2)")
                                 
-            if self._main_rect_finder.click == True:
+            if self._main_rect_finder.click == True and self._main_rect_finder.number_of_clicks == 1:
                 self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1)")
-            elif self._main_rect_finder.doubleclick == True:
+            elif self._main_rect_finder.click == True and self._main_rect_finder.number_of_clicks == 2:
                 self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1, 2)")
             elif self._main_rect_finder.rightclick == True:
                 self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 2)")
@@ -1380,9 +1380,9 @@ class AlyvixRectFinderView(QWidget):
                         mmanager_declared = True
                     self._code_lines.append("    time.sleep(2)")
                                         
-                    if sub_rect.click == True:
+                    if sub_rect.click == True and sub_rect.number_of_clicks == 1:
                         self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1)")
-                    elif sub_rect.doubleclick == True:
+                    elif sub_rect.click == True and sub_rect.number_of_clicks == 2:
                         self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1, 2)")
                     elif sub_rect.rightclick == True:
                         self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 2)")
@@ -1620,9 +1620,9 @@ class AlyvixRectFinderView(QWidget):
                 
             self._code_lines.append("    time.sleep(sleep_factor)")
                                 
-            if self._main_rect_finder.click == True:
+            if self._main_rect_finder.click == True and self._main_rect_finder.number_of_clicks == 1:
                 self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1)")
-            elif self._main_rect_finder.doubleclick == True:
+            elif self._main_rect_finder.click == True and self._main_rect_finder.number_of_clicks == 2:
                 self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1, 2)")
             elif self._main_rect_finder.rightclick == True:
                 self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 2)")
@@ -1658,9 +1658,9 @@ class AlyvixRectFinderView(QWidget):
                         mmanager_declared = True
                     self._code_lines.append("    time.sleep(sleep_factor)")
                                         
-                    if sub_rect.click == True:
+                    if sub_rect.click == True and sub_rect.number_of_clicks == 1:
                         self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1)")
-                    elif sub_rect.doubleclick == True:
+                    elif sub_rect.click == True and sub_rect.number_of_clicks == 2:
                         self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1, 2)")
                     elif sub_rect.rightclick == True:
                         self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 2)")

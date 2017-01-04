@@ -117,12 +117,13 @@ class AlyvixImageFinderView(QWidget):
         self.__old_code_v230 = self.get_old_code_v230()
         
         """
-        text_file = open("c:\\alylog\\Output.txt", "w")
+        text_file = open("c:\\alylog\\old_code.txt", "w")
 
         text_file.write(self.__old_code_v230)
 
         text_file.close()
         """
+        
 
         #print self.__old_code
         
@@ -823,12 +824,13 @@ class AlyvixImageFinderView(QWidget):
             file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), current_code_string)
             
             """
-            text_file = open("c:\\alylog\\new_Output.txt", "w")
+            text_file = open("c:\\alylog\\new_code.txt", "w")
 
             text_file.write(current_code_string)
 
             text_file.close()
             """
+            
 
             """
             print self.__old_code
@@ -1012,8 +1014,10 @@ class AlyvixImageFinderView(QWidget):
                 
             self._code_lines.append("    time.sleep(2)")
                                 
-            if self._main_template.click == True:
+            if self._main_template.click == True and self._main_template.number_of_clicks == 1:
                 self._code_lines.append("    m.click(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2), 1)")
+            elif self._main_template.click == True and self._main_template.number_of_clicks == 2:
+                self._code_lines.append("    m.click(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2), 1, 2)")
             elif self._main_template.rightclick == True:
                 self._code_lines.append("    m.click(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2), 2)")
             elif self._main_template.mousemove == True:
@@ -1045,8 +1049,10 @@ class AlyvixImageFinderView(QWidget):
                         mmanager_declared = True
                     self._code_lines.append("    time.sleep(2)")
                                         
-                    if sub_template.click == True:
+                    if sub_template.click == True and sub_template.number_of_clicks == 1:
                         self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2), 1)")
+                    elif sub_template.click == True and sub_template.number_of_clicks == 2:
+                        self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2), 1, 2)")
                     elif sub_template.rightclick == True:
                         self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2), 2)")
                     elif sub_template.mousemove == True:
@@ -1258,9 +1264,9 @@ class AlyvixImageFinderView(QWidget):
                 
             self._code_lines.append("    time.sleep(sleep_factor)")
                                 
-            if self._main_template.click == True:
+            if self._main_template.click == True and self._main_template.number_of_clicks == 1:
                 self._code_lines.append("    m.click(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2), 1)")
-            elif self._main_template.doubleclick == True:
+            elif self._main_template.click == True and self._main_template.number_of_clicks == 2:
                 self._code_lines.append("    m.click(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2), 1, 2)")
             elif self._main_template.rightclick == True:
                 self._code_lines.append("    m.click(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2), 2)")
@@ -1296,9 +1302,9 @@ class AlyvixImageFinderView(QWidget):
                         mmanager_declared = True
                     self._code_lines.append("    time.sleep(sleep_factor)")
                                         
-                    if sub_template.click == True:
+                    if sub_template.click == True and sub_template.number_of_clicks == 1:
                         self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2), 1)")
-                    elif sub_template.doubleclick == True:
+                    elif sub_template.click == True and sub_template.number_of_clicks == 2:
                         self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2), 1, 2)")
                     elif sub_template.rightclick == True:
                         self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2), 2)")

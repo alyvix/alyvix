@@ -1193,21 +1193,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         file.close()    
     
     def open_select_obj_main(self):
-        if len(self._sub_objects_finder) == 0:
-            self.button_selected = "set_main_object"
-            self.open_select_obj_window()
-        else:
-            item = QListWidgetItem()
-            item.setText("")
-            self.listWidget.takeItem(0)
-            self.listWidget.insertItem(0, item)
-        
-            self.button_selected = "set_main_object"
-            
-            self.delete_all_sub_roi()
-            
-            self._main_deleted = True
-            self.open_select_obj_window()
+
+        self.button_selected = "set_main_object"
+        self.open_select_obj_window()
         
     def open_select_obj_sub(self):
         
@@ -2139,14 +2127,25 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
                 
     def push_button_select_event(self):
         if self.parent.button_selected == "set_main_object":
+            if len(self.parent._sub_objects_finder) != 0:
+
+                item = QListWidgetItem()
+                item.setText("")
+                self.parent.listWidget.takeItem(0)
+                self.parent.listWidget.insertItem(0, item)
+                
+                self.parent.delete_all_sub_roi()
+                
+                self.parent._main_deleted = True
+
             self.set_main_object()
         elif self.parent.button_selected == "add_sub_object":
             self.add_sub_object()
             
     def push_button_cancel_event(self):
-        if self.parent._main_deleted is False:
-            self.parent.show()
-            self.close()
+
+        self.parent.show()
+        self.close()
                 
     def set_main_object(self):
             
