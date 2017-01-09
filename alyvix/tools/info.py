@@ -83,6 +83,8 @@ class InfoManager():
 
         self.set_info('GIF FRAME TIMING', 2)
 
+        self.set_info('CHECK BG', config_reader.get_bg_res_check())
+
         #self.set_info("INTERACTION", [])
 
         if robot_context:

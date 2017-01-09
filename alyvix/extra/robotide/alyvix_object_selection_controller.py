@@ -36,6 +36,7 @@ from alyvix_object_finder_view import AlyvixObjectFinderView
 from alyvix_code_view import AlyvixCustomCodeView
 
 from alyvix.tools.screen import ScreenManager
+from alyvix.tools.configreader import ConfigReader
 
 from stat import S_ISREG, ST_CTIME, ST_MODE
 
@@ -464,15 +465,21 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     screen_manager = ScreenManager()
-    if screen_manager.is_resolution_ok() is False:
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Critical)
-        msg.setText("Alyvix Background Service is installed but the screen resolution doesn't match with the config file")
-        #msg.setInformativeText("This is additional information")
-        msg.setWindowTitle("Error")
-        #msg.setDetailedText("The details are as follows:")
-        msg.show()
+    config_reader = ConfigReader()
+    if config_reader.get_bg_res_check() == True:
+        if screen_manager.is_resolution_ok() is False:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Alyvix Background Service is installed but the screen resolution doesn't match with the config file")
+            #msg.setInformativeText("This is additional information")
+            msg.setWindowTitle("Error")
+            #msg.setDetailedText("The details are as follows:")
+            msg.show()
+        else:
+            window = AlyvixMainMenuController()
+            window.show()
     else:
         window = AlyvixMainMenuController()
         window.show()
+
     sys.exit(app.exec_())

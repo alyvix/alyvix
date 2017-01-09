@@ -55,7 +55,7 @@ class DbManager():
 
         self._db_name = self._db_name + ".db"
 
-        self._info_manager.set_info("DB FILE", self._db_home + os.sep + self._db_name)
+        #self._info_manager.set_info("DB FILE", self._db_home + os.sep + self._db_name)
 
         self._connection = None
         self._cursor = None
@@ -458,7 +458,7 @@ class DbManager():
             if end_date_dt is None:
                 try:
                     if end_date.lower() == "now":
-                        end_date_dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        end_date_dt = datetime.datetime.now()
                 except:
                     pass
 
@@ -472,7 +472,7 @@ class DbManager():
                         d_start_day = int(d_start_day)
 
                         delta_date = datetime.datetime.today() - datetime.timedelta(days=d_start_day)
-                        start_date_dt = delta_date.strftime("%Y-%m-%d %H:%M:%S")
+                        start_date_dt = delta_date
                     except:
                         pass
                 elif "hours" in start_date:
@@ -482,7 +482,7 @@ class DbManager():
                         h_start_day = int(h_start_day)
 
                         delta_date = datetime.datetime.today() - datetime.timedelta(hours=h_start_day)
-                        start_date_dt = delta_date.strftime("%Y-%m-%d %H:%M:%S")
+                        start_date_dt = delta_date
                     except:
                         pass
 
@@ -557,7 +557,7 @@ class DbManager():
             for column in perf_to_query:
                 query = query + ", " + column[0]
 
-            query = query + " from runs where CAST(strftime('%s', datetime(start_time, 'unixepoch', 'localtime')) AS INT) between CAST(strftime('%s', '" + start_date + "') AS INT) and CAST(strftime('%s', '" + end_date + "') AS INT)"
+            query = query + " from runs where CAST(strftime('%s', datetime(start_time, 'unixepoch', 'localtime')) AS INT) between CAST(strftime('%s', '" + start_date_dt.strftime("%Y-%m-%d %H:%M:%S") + "') AS INT) and CAST(strftime('%s', '" + end_date_dt.strftime("%Y-%m-%d %H:%M:%S") + "') AS INT)"
 
             rows = self._cursor.execute(query).fetchall()
 
