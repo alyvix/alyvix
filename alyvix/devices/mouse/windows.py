@@ -87,6 +87,8 @@ class MouseManager(MouseManagerBase):
 
         self.load_module()
 
+        self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys+5).decode("utf-8") + ", 0")
+        time.sleep(0.25)
         self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys).decode("utf-8") + ", 0")
 
         self._log_manager.save_click_coordinates(x, y)
@@ -103,14 +105,25 @@ class MouseManager(MouseManagerBase):
                 self.ahk.ahkExec("Click WheelUp".decode("utf-8"))
 
     def hold(self, x, y):
+
+        xs = int(x/self._scaling_factor)
+        ys = int(y/self._scaling_factor)
+
         self.load_module()
-        self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", 0")
+        self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys).decode("utf-8") + ", 0")
         time.sleep(0.25)
         self.ahk.ahkExec("Click down".decode("utf-8"))
+        time.sleep(0.25)
+        self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys+5).decode("utf-8") + ", 0")
+        time.sleep(0.25)
 
     def release(self, x, y):
+
+        xs = int(x/self._scaling_factor)
+        ys = int(y/self._scaling_factor)
+
         self.load_module()
-        self.ahk.ahkExec("Click " + str(x).decode("utf-8") + ", " + str(y).decode("utf-8") + ", 0")
+        self.ahk.ahkExec("Click " + str(xs).decode("utf-8") + ", " + str(ys).decode("utf-8") + ", 0")
         time.sleep(0.25)
         self.ahk.ahkExec("Click up".decode("utf-8"))
 

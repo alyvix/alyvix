@@ -356,6 +356,11 @@ class DbManager():
             self._db_home = os.path.split(str(dbname))[0]
             self._db_name = os.path.split(str(dbname))[1]
 
+            if self._db_home == "" and self._info_manager.get_info("ROBOT CONTEXT") is True:
+                self._db_home = os.path.dirname(os.path.abspath(self._info_manager.get_info("SUITE SOURCE")))
+            elif self._db_home == "":
+                self._db_home = os.path.split(sys.executable)[0] + os.sep + "share" + os.sep + "alyvix"
+
         self._info_manager.set_info("DB FILE", self._db_home + os.sep + self._db_name)
 
         #if not os.path.isfile(self._db_home + os.sep + self._db_name):
@@ -381,7 +386,7 @@ class DbManager():
     def publish_perfdata(self, type="csv", start_date=None, end_date=None, filename=None,
                          testcase_name=None, max_age=24, suffix=None):
 
-        if type == "perfmon":
+        if type.lower() == "perfmon":
             try:
                 full_file_name = get_python_lib() + os.sep + "alyvix" + os.sep + "extra" + os.sep + "alyvixservice.ini"
 
@@ -438,7 +443,7 @@ class DbManager():
             except:
                 pass
 
-        if type == "csv":
+        elif type.lower() == "csv":
 
             start_date_dt = None
             end_date_dt = None
@@ -508,23 +513,42 @@ class DbManager():
             except:
                 return
 
+            if self._info_manager.get_info("ROBOT CONTEXT") is True:
+                csv_default_home = os.path.dirname(os.path.abspath(self._info_manager.get_info("SUITE SOURCE")))
+                csv_default_name = self._info_manager.get_info("SUITE NAME") + ".csv"
+            else:
+                csv_default_home = os.path.split(sys.executable)[0] + os.sep + "share" + os.sep + "alyvix"
+                csv_default_name = "alyvix_data.csv"
 
             csv_name = filename
 
             if csv_name is None or filename == "":
-                csv_home = os.path.split(sys.executable)[0] + os.sep + "share" + os.sep + "alyvix"
-                csv_name = "alyvix_data"
 
-                if self._info_manager.get_info("ROBOT CONTEXT") is True:
+                csv_name = csv_default_home + os.sep + csv_default_name
 
-                    csv_home = os.path.dirname(os.path.abspath(self._info_manager.get_info("SUITE SOURCE")))
+            else:
 
-                    csv_name = self._info_manager.get_info("SUITE NAME")
+                path_and_name, file_extension = os.path.splitext(csv_name)
 
-                csv_name = csv_home + os.sep + csv_name + ".csv"
+                if file_extension != "":
+                    if file_extension != ".csv":
+                        raise Exception('file extension must be csv!')
+                else:
+                    file_extension = ".csv"
 
-            if suffix== "timestamp":
-                csv_name = csv_name.replace(".csv", "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S") + ".csv")
+                path = os.path.dirname(path_and_name)
+
+                if path == "":
+                    path = csv_default_home
+                    path_and_name = path + os.sep + path_and_name
+
+                csv_name = path_and_name + file_extension
+
+            if suffix is not None:
+                if suffix.lower() == "timestamp":
+                    csv_name = csv_name.replace(".csv", "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S") + ".csv")
+                else:
+                    raise Exception('invalid suffix type!')
 
             self.connect()
 
@@ -590,4 +614,5 @@ class DbManager():
             self.close()
 
             csv_file.close()
-
+        else:
+            raise Exception('invalid publish perf output type!')

@@ -1289,6 +1289,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         filename = filename.split(os.sep)[-1]
         
         #self.update_lock_list(filename)
+        
+        #self._finders_to_exclude.append(xml_name)
                     
         item = QListWidgetItem()
         
@@ -2072,6 +2074,13 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         #dirs = os.listdir(self.full_file_name)
         #dirs = [d for d in os.listdir(self.path) if os.path.isdir(os.path.join(self.path, d))]
         
+        
+        obj_to_exclude = []
+
+        for parent_item_index in range(self.parent.listWidget.count()):
+            parent_item = self.parent.listWidget.item(parent_item_index).data(Qt.UserRole).toString()
+            obj_to_exclude.append(parent_item)
+        
         # path to the directory (relative or absolute)
         dirpath = self.parent._path
 
@@ -2108,6 +2117,11 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
                     item_name = item_node.getElementsByTagName("name")[0].firstChild.nodeValue
                     if owner != self.parent._main_object_finder.name + "_ObjectFinder.xml" and item_name == filename:
                         continue_the_loop = True
+                        
+                                
+            for name_to_exclude in obj_to_exclude:
+                if filename == name_to_exclude:
+                    continue_the_loop = True
                     
             if filename.endswith('.xml'):
                 if filename.endswith('_ObjectFinder.xml') or filename.endswith('list.xml') or filename.endswith('data.xml') or continue_the_loop is True:
@@ -2127,6 +2141,7 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
                 
     def push_button_select_event(self):
         if self.parent.button_selected == "set_main_object":
+            #print "set_main_object"
             if len(self.parent._sub_objects_finder) != 0:
 
                 item = QListWidgetItem()

@@ -189,16 +189,23 @@ class AlyvixRectFinderView(QWidget):
         
     def keyPressEvent(self, event):
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
-            self.delete_rect()
+            if self.set_xy_offset is None:
+                self.delete_rect()
+
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
             self.restore_rect()
         if event.key() == Qt.Key_Escape:
             if self._main_rect_finder is None and self.esc_pressed is False:
                 self.esc_pressed = True
+                try:
+                    self.rect_view_properties.close()
+                except:
+                    pass
                 self.parent.show()
                 self.close()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
             if len(self._sub_rects_finder) == 0 and self._main_rect_finder is None:
+                self.rect_view_properties.close()
                 self.parent.show()
                 self.close()
             else:

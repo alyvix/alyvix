@@ -30,8 +30,11 @@ from PyQt4.QtWebKit import QWebSettings
 
 from alyvix_object_selection_view import Ui_Form
 from alyvix_rect_finder_view import AlyvixRectFinderView
+from alyvix_rect_finder_view import AlyvixRectFinderPropertiesView
 from alyvix_image_finder_view import AlyvixImageFinderView
+from alyvix_image_finder_view import AlyvixImageFinderPropertiesView
 from alyvix_text_finder_view import AlyvixTextFinderView
+from alyvix_text_finder_view import AlyvixTextFinderPropertiesView
 from alyvix_object_finder_view import AlyvixObjectFinderView
 from alyvix_code_view import AlyvixCustomCodeView
 
@@ -316,6 +319,28 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #self.alyvix_rect_finder_controller.set_path(self.full_file_name)
         self.alyvix_finder_controller.set_bg_pixmap(image)
         self.alyvix_finder_controller.showFullScreen()
+        
+                
+        try:
+            if self.alyvix_finder_controller._main_rect_finder is not None:
+                self.alyvix_finder_controller.rect_view_properties = AlyvixRectFinderPropertiesView(self.alyvix_finder_controller)
+                self.alyvix_finder_controller.rect_view_properties.show()
+        except:
+            pass
+            
+        try:
+            if self.alyvix_finder_controller._main_text is not None:
+                self.alyvix_finder_controller.image_view_properties = AlyvixTextFinderPropertiesView(self.alyvix_finder_controller)
+                self.alyvix_finder_controller.image_view_properties.show()
+        except:
+            pass
+            
+        try:
+            if self.alyvix_finder_controller._main_template is not None:
+                self.alyvix_finder_controller.image_view_properties = AlyvixImageFinderPropertiesView(self.alyvix_finder_controller)
+                self.alyvix_finder_controller.image_view_properties.show()
+        except:
+            pass
  
     def add_new_item_on_list(self): 
     
@@ -402,6 +427,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_rect_finder_controller = AlyvixRectFinderView(self)
         self.alyvix_rect_finder_controller.set_bg_pixmap(image)
         self.alyvix_rect_finder_controller.showFullScreen()
+          
         
     def open_imagefinder_view(self):
         self.xml_name = None

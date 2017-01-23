@@ -335,7 +335,12 @@ class PerfManager:
         else:
             performanceData = ""
 
-        if message is not None:
+        if self._info_manager.get_info("RESOLUTION BGS OK") is False:
+            self.performance_desc_string = self.performance_desc_string + \
+               "Alyvix Background Service is installed but the screen resolution doesn't match with the config file"\
+               + performanceData + os.linesep
+
+        elif message is not None:
             self.performance_desc_string = self.performance_desc_string + message + performanceData + os.linesep
         elif exitcode == 3 and self.not_ok_perfdata == len(perfdata_list):
             self.performance_desc_string = self.performance_desc_string + \
