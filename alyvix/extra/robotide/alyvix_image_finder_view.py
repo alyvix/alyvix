@@ -2842,6 +2842,9 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.namelineedit.setText(self.parent.object_name)   
 
+        self.doubleSpinBoxWarning.setValue(self.parent.warning)
+        self.doubleSpinBoxCritical.setValue(self.parent.critical)
+            
         if self.parent.enable_performance is True:
             self.checkBoxEnablePerformance.setCheckState(Qt.Checked)
             self.doubleSpinBoxWarning.setEnabled(True)

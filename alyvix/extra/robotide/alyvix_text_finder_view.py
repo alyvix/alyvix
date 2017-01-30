@@ -3460,6 +3460,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if self.parent._main_text.x_offset != None or self.parent._main_text.y_offset != None:
             self.pushButtonXYoffset.setText("Reset\nPoint")
         
+        self.doubleSpinBoxWarning.setValue(self.parent.warning)
+        self.doubleSpinBoxCritical.setValue(self.parent.critical)
+        
         if self.parent.enable_performance is True:
             self.checkBoxEnablePerformance.setCheckState(Qt.Checked)
             self.doubleSpinBoxWarning.setEnabled(True)

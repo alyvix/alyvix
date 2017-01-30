@@ -210,6 +210,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         else:
             self.namelineedit.setText(self._main_object_finder.name)      
             
+        self.doubleSpinBoxWarning.setValue(self._main_object_finder.warning)
+        self.doubleSpinBoxCritical.setValue(self._main_object_finder.critical)
+            
         if self._main_object_finder.enable_performance is True:
             self.checkBoxEnablePerformance.setCheckState(Qt.Checked)
             self.doubleSpinBoxWarning.setEnabled(True)

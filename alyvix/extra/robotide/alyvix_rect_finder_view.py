@@ -3388,6 +3388,9 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.add_quotes.setChecked(True)
             
+        self.doubleSpinBoxWarning.setValue(self.parent.warning)
+        self.doubleSpinBoxCritical.setValue(self.parent.critical)
+            
         if self.parent.enable_performance is True:
             self.checkBoxEnablePerformance.setCheckState(Qt.Checked)
             self.doubleSpinBoxWarning.setEnabled(True)
