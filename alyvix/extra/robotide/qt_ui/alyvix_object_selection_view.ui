@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>235</width>
-    <height>271</height>
+    <height>272</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -85,13 +85,6 @@
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
-     <widget class="QPushButton" name="pushButtonIF">
-      <property name="text">
-       <string>Image Finder</string>
-      </property>
-     </widget>
-    </item>
     <item row="0" column="0">
      <widget class="QPushButton" name="pushButtonRF">
       <property name="text">
@@ -119,13 +112,10 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="0">
-     <widget class="QPushButton" name="pushButtonCC">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
+    <item row="1" column="0">
+     <widget class="QPushButton" name="pushButtonIF">
       <property name="text">
-       <string>Custom Code</string>
+       <string>Image Finder</string>
       </property>
      </widget>
     </item>
@@ -171,6 +161,22 @@
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButtonCC">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>632</y>
+     <width>216</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Custom Code</string>
    </property>
   </widget>
  </widget>

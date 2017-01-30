@@ -462,7 +462,11 @@ class PerfManager:
 
             state = perfdata.state
 
-            if state == 1 or state == 2:
+            if state == 0 and self.not_ok_perfdata == 0:
+                #we are in the init step
+                if exitcode == 3:
+                    exitcode = 0
+            elif state == 1 or state == 2:
                 if exitcode == 3:
                     exitcode = state
                 elif state > exitcode:

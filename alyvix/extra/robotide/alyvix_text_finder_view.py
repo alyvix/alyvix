@@ -192,7 +192,10 @@ class AlyvixTextFinderView(QWidget):
                 self.close()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
             if len(self._sub_texts_finder) == 0 and self._main_text is None:
-                self.image_view_properties.close()
+                try:
+                    self.image_view_properties.close()
+                except:
+                    pass
                 self.parent.show()
                 self.close()
             else:
@@ -3265,7 +3268,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.textEdit.setAcceptRichText(False)
         """
         
-        self.textEdit = LineTextWidget(self.tab_code)
+        self.textEdit = LineTextWidget()
         self.textEdit.setGeometry(QRect(8, 9, 535, 255))
         self.textEdit.setText(self.parent.build_code_string())
         #self.textEdit.setStyleSheet("font-family: Currier New;")
@@ -3457,7 +3460,22 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if self.parent._main_text.x_offset != None or self.parent._main_text.y_offset != None:
             self.pushButtonXYoffset.setText("Reset\nPoint")
         
-        self.init_block_code()            
+        if self.parent.enable_performance is True:
+            self.checkBoxEnablePerformance.setCheckState(Qt.Checked)
+            self.doubleSpinBoxWarning.setEnabled(True)
+            self.doubleSpinBoxCritical.setEnabled(True)
+            self.labelWarning.setEnabled(True)
+            self.labelCritical.setEnabled(True)
+        else:
+            self.checkBoxEnablePerformance.setCheckState(Qt.Unchecked)
+            self.doubleSpinBoxWarning.setEnabled(False)
+            self.doubleSpinBoxCritical.setEnabled(False)
+            self.labelWarning.setEnabled(False)
+            self.labelCritical.setEnabled(False)
+        
+        self.init_block_code()     
+
+        self.pushButtonOk.setFocus()        
            
         self.connect(self.listWidget, SIGNAL('itemSelectionChanged()'), self.listWidget_selection_changed)
         self.connect(self.listWidget, SIGNAL('itemChanged(QListWidgetItem*)'), self, SLOT('listWidget_state_changed(QListWidgetItem*)'))
@@ -3508,7 +3526,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
         self.namelineedit.installEventFilter(self)
         
-        self.connect(self.tabWidget, SIGNAL('currentChanged(int)'), self.tab_changed_event)
+        #self.connect(self.tabWidget, SIGNAL('currentChanged(int)'), self.tab_changed_event)
         
         self.connect(self.checkBoxEnablePerformance, SIGNAL('stateChanged(int)'), self.enable_performance_event)
         self.connect(self.doubleSpinBoxWarning, SIGNAL('valueChanged(double)'), self.warning_event)
@@ -3900,7 +3918,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
-            self.widget.setGeometry(QRect(173, 9, 381, 382))
+            self.widget.setGeometry(QRect(173, 9, 381, 478))
 
         else:
             self.widget.hide()

@@ -46,7 +46,7 @@ class DbManager():
 
             self._db_home = os.path.dirname(os.path.abspath(self._info_manager.get_info("SUITE SOURCE")))
 
-            self._db_name = self._info_manager.get_info("SUITE NAME")
+            self._db_name = self._info_manager.get_info("SUITE NAME").lower().replace(" ","_")
 
             """
             if self._info_manager.get_info("TEST CASE NAME") is not None:
@@ -356,6 +356,16 @@ class DbManager():
             self._db_home = os.path.split(str(dbname))[0]
             self._db_name = os.path.split(str(dbname))[1]
 
+            path_and_name, file_extension = os.path.splitext(self._db_name)
+
+            if file_extension != "":
+                if file_extension != ".db":
+                    raise Exception('file extension must be db!')
+            else:
+                file_extension = ".db"
+
+                self._db_name = self._db_name + file_extension
+
             if self._db_home == "" and self._info_manager.get_info("ROBOT CONTEXT") is True:
                 self._db_home = os.path.dirname(os.path.abspath(self._info_manager.get_info("SUITE SOURCE")))
             elif self._db_home == "":
@@ -515,7 +525,7 @@ class DbManager():
 
             if self._info_manager.get_info("ROBOT CONTEXT") is True:
                 csv_default_home = os.path.dirname(os.path.abspath(self._info_manager.get_info("SUITE SOURCE")))
-                csv_default_name = self._info_manager.get_info("SUITE NAME") + ".csv"
+                csv_default_name = self._info_manager.get_info("SUITE NAME").lower().replace(" ","_") + ".csv"
             else:
                 csv_default_home = os.path.split(sys.executable)[0] + os.sep + "share" + os.sep + "alyvix"
                 csv_default_name = "alyvix_data.csv"
@@ -544,7 +554,7 @@ class DbManager():
 
                 csv_name = path_and_name + file_extension
 
-            if suffix is not None:
+            if suffix is not None and suffix != 'None':
                 if suffix.lower() == "timestamp":
                     csv_name = csv_name.replace(".csv", "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S") + ".csv")
                 else:

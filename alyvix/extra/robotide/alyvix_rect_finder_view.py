@@ -204,8 +204,13 @@ class AlyvixRectFinderView(QWidget):
                 self.parent.show()
                 self.close()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
+            #print len(self._sub_rects_finder)
+            #print self._main_rect_finder
             if len(self._sub_rects_finder) == 0 and self._main_rect_finder is None:
-                self.rect_view_properties.close()
+                try:
+                    self.rect_view_properties.close()
+                except:
+                    pass
                 self.parent.show()
                 self.close()
             else:
@@ -3186,6 +3191,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.parent = parent
         
         self.added_block = False
+
         
         """
         self.number_bar = NumberBar(self.tab_code)
@@ -3196,7 +3202,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.textEdit.setAcceptRichText(False)
         """
         
-        self.textEdit = LineTextWidget(self.tab_code)
+        self.textEdit = LineTextWidget() #LineTextWidget(self.tab_code)
         self.textEdit.setGeometry(QRect(8, 9, 556, 310))
         self.textEdit.setText(self.parent.build_code_string())
         #self.textEdit.setStyleSheet("font-family: Currier New;")
@@ -3381,6 +3387,19 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.add_quotes.setChecked(False)
         else:
             self.add_quotes.setChecked(True)
+            
+        if self.parent.enable_performance is True:
+            self.checkBoxEnablePerformance.setCheckState(Qt.Checked)
+            self.doubleSpinBoxWarning.setEnabled(True)
+            self.doubleSpinBoxCritical.setEnabled(True)
+            self.labelWarning.setEnabled(True)
+            self.labelCritical.setEnabled(True)
+        else:
+            self.checkBoxEnablePerformance.setCheckState(Qt.Unchecked)
+            self.doubleSpinBoxWarning.setEnabled(False)
+            self.doubleSpinBoxCritical.setEnabled(False)
+            self.labelWarning.setEnabled(False)
+            self.labelCritical.setEnabled(False)
                     
         self.widget_2.hide()
         
@@ -3424,7 +3443,9 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         if self.parent._main_rect_finder.x_offset != None or self.parent._main_rect_finder.y_offset != None:
             self.pushButtonXYoffset.setText("Reset\nPoint")
         
-        self.init_block_code()            
+        self.init_block_code()   
+                
+        self.pushButtonOk.setFocus()        
         
         self.connect(self.min_width_spinbox, SIGNAL('valueChanged(int)'), self.min_width_spinbox_change_event)
         self.connect(self.max_width_spinbox, SIGNAL('valueChanged(int)'), self.max_width_spinbox_change_event)
@@ -3489,7 +3510,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         
         self.namelineedit.installEventFilter(self)
         
-        self.connect(self.tabWidget, SIGNAL('currentChanged(int)'), self.tab_changed_event)
+        #self.connect(self.tabWidget, SIGNAL('currentChanged(int)'), self.tab_changed_event)
         
         self.connect(self.spinBoxArgs, SIGNAL('valueChanged(int)'), self.args_spinbox_change_event)
         
@@ -3796,12 +3817,14 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
-            self.widget.setGeometry(QRect(168, 9, 413, 433))
+            #self.widget.setGeometry(QRect(168, 9, 413, 433))
+            self.widget.setGeometry(QRect(172, 9, 413, 472))
 
         else:
             self.widget.hide()
             self.widget_2.show()
-            self.widget_2.setGeometry(QRect(168, 9, 414, 434))
+            #self.widget_2.setGeometry(QRect(168, 9, 414, 434))
+            self.widget_2.setGeometry(QRect(172, 9, 414, 434))
             self.sub_rect_index = selected_index - 1
             self.update_sub_rect_view()
 

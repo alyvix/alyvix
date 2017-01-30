@@ -31,8 +31,11 @@ from PyQt4.Qt import QFrame
 from PyQt4.QtWebKit import QWebSettings
 
 from alyvix_rect_finder_view import AlyvixRectFinderView
+from alyvix_rect_finder_view import AlyvixRectFinderPropertiesView
 from alyvix_image_finder_view import AlyvixImageFinderView
+from alyvix_image_finder_view import AlyvixImageFinderPropertiesView
 from alyvix_text_finder_view import AlyvixTextFinderView
+from alyvix_text_finder_view import AlyvixTextFinderPropertiesView
 #from alyvix_object_selection_controller import AlyvixMainMenuController
 
 from alyvix_object_finder_properties_view import Ui_Form
@@ -113,7 +116,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self._code_blocks = []
         
         self.added_block = False
-        self.textEdit = LineTextWidget(self.tab_code)
+        self.textEdit = LineTextWidget()
         self.textEdit.setGeometry(QRect(8, 9, 520, 172))
         self.textEdit.setText(self.build_code_string())
         
@@ -206,11 +209,27 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.namelineedit.setText("Type here the name of the object")
         else:
             self.namelineedit.setText(self._main_object_finder.name)      
+            
+        if self._main_object_finder.enable_performance is True:
+            self.checkBoxEnablePerformance.setCheckState(Qt.Checked)
+            self.doubleSpinBoxWarning.setEnabled(True)
+            self.doubleSpinBoxCritical.setEnabled(True)
+            self.labelWarning.setEnabled(True)
+            self.labelCritical.setEnabled(True)
+        else:
+            self.checkBoxEnablePerformance.setCheckState(Qt.Unchecked)
+            self.doubleSpinBoxWarning.setEnabled(False)
+            self.doubleSpinBoxCritical.setEnabled(False)
+            self.labelWarning.setEnabled(False)
+            self.labelCritical.setEnabled(False)
+                
 
         
         self.spinBoxArgs.setValue(self._main_object_finder.args_number)
         
         self.init_block_code()
+                        
+        self.pushButtonOk.setFocus()
         
         self.connect(self.listWidget, SIGNAL('itemSelectionChanged()'), self.listWidget_selection_changed)
         #self.connect(self.listWidget, SIGNAL('itemChanged(QListWidgetItem*)'), self, SLOT('listWidget_state_changed(QListWidgetItem*)'))
@@ -237,7 +256,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self.namelineedit.installEventFilter(self)
         
-        self.connect(self.tabWidget, SIGNAL('currentChanged(int)'), self.tab_changed_event)
+        #self.connect(self.tabWidget, SIGNAL('currentChanged(int)'), self.tab_changed_event)
         
         self.connect(self.checkBoxEnablePerformance, SIGNAL('stateChanged(int)'), self.enable_performance_event)
         self.connect(self.doubleSpinBoxWarning, SIGNAL('valueChanged(double)'), self.warning_event)
@@ -1278,6 +1297,16 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self.object.set_bg_pixmap(image)
         self.object.showFullScreen()
+        
+        if m_controller.xml_name.endswith('_RectFinder.xml'):
+            self.object.rect_view_properties = AlyvixRectFinderPropertiesView(self.object)
+            self.object.rect_view_properties.show()
+        elif m_controller.xml_name.endswith('_ImageFinder.xml'):
+            self.object.image_view_properties = AlyvixImageFinderPropertiesView(self.object)
+            self.object.image_view_properties.show()
+        elif m_controller.xml_name.endswith('_TextFinder.xml'):
+            self.object.image_view_properties = AlyvixTextFinderPropertiesView(self.object)
+            self.object.image_view_properties.show()
     
     def open_select_obj_window(self):
         self.select_main_object_view = AlyvixObjectsSelection(self)
@@ -1612,7 +1641,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
-            self.widget.setGeometry(QRect(172, 9, 379, 148))
+            self.widget.setGeometry(QRect(172, 9, 379, 212))
 
         else:
             self.widget.hide()
@@ -1965,6 +1994,17 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self.object.set_bg_pixmap(image)
         self.object.showFullScreen()
+        
+        if s_controller.xml_name.endswith('_RectFinder.xml'):
+            self.object.rect_view_properties = AlyvixRectFinderPropertiesView(self.object)
+            self.object.rect_view_properties.show()
+        elif s_controller.xml_name.endswith('_ImageFinder.xml'):
+            self.object.image_view_properties = AlyvixImageFinderPropertiesView(self.object)
+            self.object.image_view_properties.show()
+        elif s_controller.xml_name.endswith('_TextFinder.xml'):
+            self.object.image_view_properties = AlyvixTextFinderPropertiesView(self.object)
+            self.object.image_view_properties.show()
+            
         self.update()
         
     def redraw_roi_event(self):
