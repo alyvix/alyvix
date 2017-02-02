@@ -143,10 +143,10 @@ rem ECHO checktarget = %checktarget%
 rem ECHO resultdir = %resultdir%
 rem ECHO outputdir = %outputdir%
 
-IF EXIST %resultdir% rd %resultdir% /s /q
+IF EXIST %resultdir% rd %resultdir% /s /q > NUL 2>&1
 
 IF EXIST %outputdir% (
-    IF %logtmp%==1 rd %outputdir% /s /q
+    IF %logtmp%==1 rd %outputdir% /s /q > NUL 2>&1
 )
 
 IF NOT EXIST %resultdir% MKDIR %resultdir%
@@ -189,8 +189,8 @@ IF EXIST %resultdir%\exitcode.txt (
     
 )
 
-rd %resultdir% /s /q
+rd %resultdir% /s /q > NUL 2>&1
 
-IF %logtmp%==1 rd %outputdir% /s /q
+IF %logtmp%==1 rd %outputdir% /s /q > NUL 2>&1
 
 EXIT /B %exitcode%

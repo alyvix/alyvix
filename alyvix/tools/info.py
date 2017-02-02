@@ -47,6 +47,8 @@ class InfoManager():
 
         self.set_info('KEYWORD TIMESTAMP', [])
 
+        self.set_info('channel', 'all')
+
         float_scaling_factor = screen_manager.get_scaling_factor()
         int_scaling_factor = int(round(float_scaling_factor))
 
