@@ -354,13 +354,16 @@ class DbManager():
 
         if dbname != None and dbname != "":
             self._db_home = os.path.split(str(dbname))[0]
-            self._db_name = os.path.split(str(dbname))[1]
 
-            path_and_name, file_extension = os.path.splitext(self._db_name)
+            if os.path.split(str(dbname))[1] != "":
+                self._db_name = os.path.split(str(dbname))[1]
+
+            name, file_extension = os.path.splitext(self._db_name)
 
             if file_extension != "":
-                if file_extension != ".db":
-                    raise Exception('file extension must be db!')
+                if file_extension != ".db" and file_extension != ".db3" and file_extension != ".sqlite"\
+                        and file_extension != ".sqlite3":
+                    raise Exception('file extension must be db or db3 or sqlite or sqlite3!')
             else:
                 file_extension = ".db"
 
@@ -551,8 +554,11 @@ class DbManager():
                 if path == "":
                     path = csv_default_home
                     path_and_name = path + os.sep + path_and_name
-
-                csv_name = path_and_name + file_extension
+                    csv_name = path_and_name + file_extension
+                elif path + os.sep == path_and_name:
+                    csv_name = path_and_name + csv_default_name
+                else:
+                    csv_name = path_and_name + file_extension
 
             if suffix is not None and suffix != 'None':
                 if suffix.lower() == "timestamp":

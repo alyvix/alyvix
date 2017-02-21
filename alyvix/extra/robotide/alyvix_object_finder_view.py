@@ -96,6 +96,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.action = self.parent.action
         self._xml_name = self.parent.xml_name
         
+        self.find_radio.hide()
+        
         self.is_object_finder_menu = True
         
         self.building_code = False
@@ -206,7 +208,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.timeout_exception.setChecked(True)
         
         if self._main_object_finder.name == "":
-            self.namelineedit.setText("Type here the name of the object")
+            self.namelineedit.setText("Type the keyword name")
         else:
             self.namelineedit.setText(self._main_object_finder.name)      
             
@@ -230,9 +232,15 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self.spinBoxArgs.setValue(self._main_object_finder.args_number)
         
+        #print self._main_object_finder.args_number
+        
         self.init_block_code()
                         
         self.pushButtonOk.setFocus()
+        
+        if self.namelineedit.text() == "Type the keyword name":
+            self.namelineedit.setFocus()           
+            self.namelineedit.setText("")  
         
         self.connect(self.listWidget, SIGNAL('itemSelectionChanged()'), self.listWidget_selection_changed)
         #self.connect(self.listWidget, SIGNAL('itemChanged(QListWidgetItem*)'), self, SLOT('listWidget_state_changed(QListWidgetItem*)'))
@@ -338,7 +346,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
 
         if self._main_object_finder.xml_path != "":
             filename = self._alyvix_proxy_path + os.sep + "AlyvixProxy" + self._robot_file_name + ".py"
-        
+                
             if self._main_object_finder.name == "":
                 answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
 
@@ -361,6 +369,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             if answer == QMessageBox.Yes:
                 self.close()
                 self.save_all()
+                
+        else:
+            QMessageBox.critical(self, "Error", "You have to set the main object before saving the object finder!")
         
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -1542,7 +1553,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     
     @pyqtSlot(QString)
     def namelineedit_event(self, text):
-        if text == "Type here the name of the object":
+        if text == "Type the keyword name":
             self._main_object_finder.name = "".encode('utf-8')
         else:
             self._main_object_finder.name = str(text.toUtf8()).replace(" ", "_")
@@ -1649,7 +1660,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         else:
             self.widget.hide()
             self.widget_2.show()
-            self.widget_2.setGeometry(QRect(172, 9, 378, 100))
+            self.widget_2.setGeometry(QRect(172, 9, 378, 82))
             self.sub_object_index = selected_index - 1
             self.update_sub_object_view()
     
@@ -1657,7 +1668,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     def eventFilter(self, obj, event):
         if event.type() == event.MouseButtonPress:
         
-            if self.namelineedit.text() == "Type here the name of the object" and obj.objectName() == "namelineedit":
+            if self.namelineedit.text() == "Type the keyword name" and obj.objectName() == "namelineedit":
                 self.namelineedit.setText("")
                 return True
                 
@@ -1720,7 +1731,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                     self.update()
                     return True
             elif self.namelineedit.text() == "" and obj.objectName() == "namelineedit":
-                self.namelineedit.setText("Type here the name of the object")
+                self.namelineedit.setText("Type the keyword name")
                 return True
             elif obj.objectName() == "namelineedit":
                 self.namelineedit.setText(self._main_object_finder.name)
@@ -1733,6 +1744,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 self.added_block = False
                 return True
                 
+        if event.type() == event.KeyPress and obj.objectName() == "namelineedit" and (event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter):
+            self.pushButtonOk_event()
         if event.type() == event.KeyPress and obj.objectName() == "textEditCustomLines" and event.key() == Qt.Key_Tab:
             
             select_start = self.textEditCustomLines.textCursor().selectionStart()
@@ -2069,13 +2082,13 @@ class MainObjectForGui:
         self.find = False
         self.args_number = 0
         self.component_args = ""
-        self.timeout = 60
+        self.timeout = 20
         self.timeout_exception = True
         self.sendkeys = ""
         self.enable_performance = True
         self.mouse_or_key_is_set = False
-        self.warning = 15.00
-        self.critical = 40.00
+        self.warning = 10.00
+        self.critical = 15.00
         
 class SubObjectForGui:
     

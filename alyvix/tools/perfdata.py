@@ -86,12 +86,12 @@ class PerfManager:
             try:
                 perf_data.state = int(state)
             except:
-                perf_data.state = 3
+                perf_data.state = 2 #3
         else:
             try:
                 perf_data.state = int(os.getenv("exitcode"))
             except:
-                perf_data.state = 3
+                perf_data.state = 2 #3
 
         if perf_data.value != "" and perf_data.critical_threshold != "" and perf_data.value >= perf_data.critical_threshold:
             perf_data.state = 2
@@ -453,33 +453,62 @@ class PerfManager:
     def get_exitcode(self):
 
         global perfdata_list
-        exitcode = 3
+
+        exitcode = 0
+
+        not_ok_exitcode = None
+
+        for perfdata in perfdata_list:
+
+            if perfdata.value is None or perfdata.value == "":
+                if not_ok_exitcode is None:
+                    not_ok_exitcode = perfdata.state
+                elif perfdata.state > not_ok_exitcode:
+                    not_ok_exitcode = perfdata.state
+
 
         if len(perfdata_list) == 0 and len(deleted_on_rename_list) != 0:
             perfdata_list = copy.deepcopy(deleted_on_rename_list)
 
         for perfdata in perfdata_list:
 
+            if perfdata.value is None or perfdata.value == "":
+                if perfdata.state > exitcode:
+                    exitcode = perfdata.state
+            elif perfdata.critical_threshold is not None and perfdata.critical_threshold != "":
+                if perfdata.value >= int(perfdata.critical_threshold):
+                    if 2 > exitcode:
+                        exitcode = 2
+            elif perfdata.warning_threshold is not None and perfdata.warning_threshold != "":
+                if perfdata.value >= int(perfdata.warning_threshold):
+                    if 1 > exitcode:
+                        exitcode = 1
+
+            """
             state = perfdata.state
 
             if state == 0 and self.not_ok_perfdata == 0:
                 #we are in the init step
-                if exitcode == 3:
+                if exitcode == 2: #3
                     exitcode = 0
             elif state == 1 or state == 2:
-                if exitcode == 3:
+                if exitcode == 2: #3
                     exitcode = state
                 elif state > exitcode:
                     exitcode = state
 
             if exitcode == 2:
                 break
+            """
+
+        if not_ok_exitcode != None and self.not_ok_perfdata > 0:
+            exitcode = not_ok_exitcode
 
         if self.not_ok_perfdata > 0:
             try:
                 exitcode = int(os.getenv("exitcode"))
             except:
-                exitcode = 3
+                pass
 
         return exitcode
 

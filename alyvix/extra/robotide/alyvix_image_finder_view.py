@@ -57,11 +57,11 @@ class AlyvixImageFinderView(QWidget):
         self.find = False
         self.wait_disapp = False
         self.args_number = 0
-        self.timeout = 60
+        self.timeout = 20
         self.timeout_exception = True
         self.enable_performance = True
-        self.warning = 15.00
-        self.critical = 40.00
+        self.warning = 10.00
+        self.critical = 15.00
         
         self.mouse_or_key_is_set = False
         
@@ -197,6 +197,18 @@ class AlyvixImageFinderView(QWidget):
                 self.parent.show()
                 self.close()
             else:
+            
+                if len(self._sub_templates_finder) > 0:
+            
+                    index = -1 #self.__index_deleted_rect_inside_roi
+                    if self._sub_templates_finder[index].x == 0 and self._sub_templates_finder[index].y == 0 \
+                        and self._sub_templates_finder[index].width == 0 and self._sub_templates_finder[index].height == 0:
+                        
+                        del self._sub_templates_finder[-1]
+                        self.__flag_need_to_delete_roi = False
+                        self.__flag_need_to_restore_roi = True
+                        self.__flag_capturing_sub_image_rect_roi = True
+                        self.__flag_capturing_sub_template = False
         
                 self.set_xy_offset = None
                 self.image_view_properties = AlyvixImageFinderPropertiesView(self)
@@ -259,6 +271,19 @@ class AlyvixImageFinderView(QWidget):
             #self.BringWindowToFront()
             return
         if self.is_mouse_inside_rect(self._main_template) and self.set_xy_offset is None:
+        
+            if len(self._sub_templates_finder) > 0:
+            
+                index = -1 #self.__index_deleted_rect_inside_roi
+                if self._sub_templates_finder[index].x == 0 and self._sub_templates_finder[index].y == 0 \
+                    and self._sub_templates_finder[index].width == 0 and self._sub_templates_finder[index].height == 0:
+                    
+                    del self._sub_templates_finder[-1]
+                    self.__flag_need_to_delete_roi = False
+                    self.__flag_need_to_restore_roi = True
+                    self.__flag_capturing_sub_image_rect_roi = True
+                    self.__flag_capturing_sub_template = False
+            
             self.image_view_properties = AlyvixImageFinderPropertiesView(self)
             self.image_view_properties.show()
         
@@ -2608,14 +2633,14 @@ class MainTemplateForGui:
         self.find = False
         self.mouse_or_key_is_set = False
         self.args_number = 0
-        self.timeout = 60
+        self.timeout = 20
         self.timeout_exception = True
         self.sendkeys = ""
         self.sendkeys_quotes = True
         self.text_encrypted = False
         self.enable_performance = True
-        self.warning = 15.00
-        self.critical = 40.00
+        self.warning = 10.00
+        self.critical = 15.00
         
 class SubTemplateForGui:
     
@@ -2660,6 +2685,8 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
                         
         self.parent = parent
         self.added_block = False
+        
+        self.find_radio.hide()
         
         """
         self.number_bar = NumberBar(self.tab_code)
@@ -2833,12 +2860,12 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.inserttext.setText(self.parent._main_template.sendkeys)       
 
         if self.parent._main_template.sendkeys == "":
-            self.inserttext.setText("Insert here the Keystroke to send")
+            self.inserttext.setText("Type text strings and shortcuts")
         else:
             self.inserttext.setText(unicode(self.parent._main_template.sendkeys, 'utf-8'))       
 
         if self.parent.object_name == "":
-            self.namelineedit.setText("Type here the name of the object")
+            self.namelineedit.setText("Type the keyword name")
         else:
             self.namelineedit.setText(self.parent.object_name)   
 
@@ -2866,7 +2893,11 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         
         self.init_block_code()
                 
-        self.pushButtonOk.setFocus()        
+        self.pushButtonOk.setFocus() 
+
+        if self.namelineedit.text() == "Type the keyword name":
+            self.namelineedit.setFocus()           
+            self.namelineedit.setText("")          
         
         self.connect(self.doubleSpinBoxThreshold, SIGNAL('valueChanged(double)'), self.threshold_spinbox_event)
         
@@ -3040,7 +3071,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
                     
             cnt += 1
         
-        if str(self.namelineedit.text().toUtf8()) == "" or str(self.namelineedit.text().toUtf8()) == "Type here the name of the object":
+        if str(self.namelineedit.text().toUtf8()) == "" or str(self.namelineedit.text().toUtf8()) == "Type the keyword name":
             answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
         elif os.path.isfile(filename) and self.parent.action == "new":
             
@@ -3226,7 +3257,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.widget.hide()
             self.widget_2.show()
-            self.widget_2.setGeometry(QRect(173, 9, 381, 305))
+            self.widget_2.setGeometry(QRect(173, 9, 381, 251))
             self.sub_template_index = selected_index - 1
             self.update_sub_template_view()
 
@@ -3303,7 +3334,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.pushButtonXYoffset_2.setText("Reset\nPoint")
         
         if self.parent._sub_templates_finder[index].sendkeys == "":
-            self.inserttext_2.setText("Insert here the Keystroke to send")
+            self.inserttext_2.setText("Type text strings and shortcuts")
         else:
             self.inserttext_2.setText(unicode(self.parent._sub_templates_finder[index].sendkeys, 'utf-8'))
         
@@ -3534,7 +3565,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             
     @pyqtSlot(QString)
     def inserttext_event(self, text):
-        if self.inserttext.text() == "Insert here the Keystroke to send": #or self.inserttext.text() == "#k.send('Type here the key')":
+        if self.inserttext.text() == "Type text strings and shortcuts": #or self.inserttext.text() == "#k.send('Type here the key')":
             self.parent._main_template.sendkeys = "".encode('utf-8')
         else:
             self.parent._main_template.sendkeys = str(text.toUtf8()) #str(self.inserttext.text().toUtf8())
@@ -3553,7 +3584,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         
     @pyqtSlot(QString)
     def namelineedit_event(self, text):
-        if text == "Type here the name of the object":
+        if text == "Type the keyword name":
             self.parent.object_name = "".encode('utf-8')
         else:
             self.parent.object_name = str(text.toUtf8()).replace(" ", "_")
@@ -3561,15 +3592,15 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
     def eventFilter(self, obj, event):
         if event.type() == event.MouseButtonPress:
         
-            if self.namelineedit.text() == "Type here the name of the object" and obj.objectName() == "namelineedit":
+            if self.namelineedit.text() == "Type the keyword name" and obj.objectName() == "namelineedit":
                 self.namelineedit.setText("")
                 return True
         
-            if self.inserttext.text() == "Insert here the Keystroke to send" and obj.objectName() == "inserttext":
+            if self.inserttext.text() == "Type text strings and shortcuts" and obj.objectName() == "inserttext":
                 self.inserttext.setText("")
                 return True
                     
-            if self.inserttext_2.text() == "Insert here the Keystroke to send" and obj.objectName() == "inserttext_2":
+            if self.inserttext_2.text() == "Type text strings and shortcuts" and obj.objectName() == "inserttext_2":
                 self.inserttext_2.setText("")
                 return True
                 
@@ -3632,18 +3663,18 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
                     self.parent.update()
                     return True
             elif self.namelineedit.text() == "" and obj.objectName() == "namelineedit":
-                self.namelineedit.setText("Type here the name of the object")
+                self.namelineedit.setText("Type the keyword name")
                 return True
             elif obj.objectName() == "namelineedit":
                 self.namelineedit.setText(self.parent.object_name)
                 return True
         
             if self.inserttext.text() == "" and obj.objectName() == "inserttext":
-                self.inserttext.setText("Insert here the Keystroke to send")
+                self.inserttext.setText("Type text strings and shortcuts")
                 return True
                 
             if self.inserttext_2.text() == "" and obj.objectName() == "inserttext_2":
-                self.inserttext_2.setText("Insert here the Keystroke to send")
+                self.inserttext_2.setText("Type text strings and shortcuts")
                 return True
                 
             if obj.objectName() == "textEditCustomLines" and self.added_block is False:
@@ -3653,6 +3684,8 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
                 self.added_block = False
                 return True
                 
+        if event.type() == event.KeyPress and obj.objectName() == "namelineedit" and (event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter):
+            self.pushButtonOk_event()
         if event.type() == event.KeyPress and obj.objectName() == "textEditCustomLines" and event.key() == Qt.Key_Tab:
             #event.ignore()
             #self.textEditCustomLines.append("    ")
@@ -3898,7 +3931,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
 
     @pyqtSlot(QString)
     def inserttext_event_2(self, text):
-        if self.inserttext_2.text() == "Insert here the Keystroke to send":
+        if self.inserttext_2.text() == "Type text strings and shortcuts":
             self.parent._sub_templates_finder[self.sub_template_index].sendkeys = "".encode('utf-8')
         else:
             self.parent._sub_templates_finder[self.sub_template_index].sendkeys = str(text.toUtf8())
@@ -3998,6 +4031,10 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.min_width_spinbox_2.setEnabled(False)
             self.max_width_spinbox_2.setEnabled(False)
             
+            if self.show_min_max_2.isChecked() is True:
+                self.show_min_max_2.setChecked(False)
+                self.show_tolerance_2.setChecked(True)
+            
             self.parent._sub_templates_finder[self.sub_template_index].use_min_max = False
             self.parent._sub_templates_finder[self.sub_template_index].use_tolerance = True
             
@@ -4016,6 +4053,10 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.max_height_spinbox_2.setEnabled(True)
             self.min_width_spinbox_2.setEnabled(True)
             self.max_width_spinbox_2.setEnabled(True)
+            
+            if self.show_tolerance_2.isChecked() is True:
+                self.show_tolerance_2.setChecked(False)
+                self.show_min_max_2.setChecked(True)
             
             self.parent._sub_templates_finder[self.sub_template_index].use_min_max = True
             self.parent._sub_templates_finder[self.sub_template_index].use_tolerance = False
@@ -4152,6 +4193,11 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox_2.setEnabled(False)
         
         self.parent.build_code_array()
+        
+    def closeEvent(self, event):
+            
+        self.parent.parent.show()
+        self.parent.close()
             
 
 class LineTextWidget(QFrame):
