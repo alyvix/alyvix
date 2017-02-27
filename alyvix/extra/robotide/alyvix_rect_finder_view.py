@@ -115,9 +115,11 @@ class AlyvixRectFinderView(QWidget):
         #self.update_path_and_name(path)
         
         self.build_objects()
+        self.old_mouse_or_key_is_set = self.mouse_or_key_is_set
         self.__old_code_v220 = self.get_old_code_v220()
         self.__old_code_v230 = self.get_old_code_v230()
         self.__old_code = self.get_old_code()
+        self.mouse_or_key_is_set = self.old_mouse_or_key_is_set
         #print self.__old_code
         
         self._old_main_rect = copy.deepcopy(self._main_rect_finder)
@@ -2093,19 +2095,19 @@ class AlyvixRectFinderView(QWidget):
                     elif self._main_rect_finder.hold_and_release == 2:
                         self._code_lines.append("    m.hold(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
                         self._code_lines.append("    time.sleep(sleep_factor)")
-                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2) - " + str(self._main_rect_finder.holdreleaseSpinBox) + ")")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2) - " + str(self._main_rect_finder.release_pixel) + ")")
                     elif self._main_rect_finder.hold_and_release == 3:
                         self._code_lines.append("    m.hold(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
                         self._code_lines.append("    time.sleep(sleep_factor)")
-                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2) + " + str(self._main_rect_finder.holdreleaseSpinBox) + ")")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2) + " + str(self._main_rect_finder.release_pixel) + ")")
                     elif self._main_rect_finder.hold_and_release == 4:
                         self._code_lines.append("    m.hold(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
                         self._code_lines.append("    time.sleep(sleep_factor)")
-                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2) - " + str(self._main_rect_finder.holdreleaseSpinBox) + ", main_rect_pos.y + (main_rect_pos.height/2))")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2) - " + str(self._main_rect_finder.release_pixel) + ", main_rect_pos.y + (main_rect_pos.height/2))")
                     elif self._main_rect_finder.hold_and_release == 5:
                         self._code_lines.append("    m.hold(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
                         self._code_lines.append("    time.sleep(sleep_factor)")
-                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2) + " + str(self._main_rect_finder.holdreleaseSpinBox) + ", main_rect_pos.y + (main_rect_pos.height/2))")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2) + " + str(self._main_rect_finder.release_pixel) + ", main_rect_pos.y + (main_rect_pos.height/2))")
             else:
                 if self._main_rect_finder.click == True:
                     self._code_lines.append("    m.click_2(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "), 1, " + str(self._main_rect_finder.number_of_clicks) + ", " + str(self._main_rect_finder.click_delay) + ")")
@@ -2121,19 +2123,19 @@ class AlyvixRectFinderView(QWidget):
                     elif self._main_rect_finder.hold_and_release == 2:
                         self._code_lines.append("    m.hold(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
                         self._code_lines.append("    time.sleep(sleep_factor)")
-                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + ") - " + str(self._main_rect_finder.holdreleaseSpinBox) + ")")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + ") - " + str(self._main_rect_finder.release_pixel) + ")")
                     elif self._main_rect_finder.hold_and_release == 3:
                         self._code_lines.append("    m.hold(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
                         self._code_lines.append("    time.sleep(sleep_factor)")
-                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + ") + " + str(self._main_rect_finder.holdreleaseSpinBox) + ")")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + ") + " + str(self._main_rect_finder.release_pixel) + ")")
                     elif self._main_rect_finder.hold_and_release == 4:
                         self._code_lines.append("    m.hold(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
                         self._code_lines.append("    time.sleep(sleep_factor)")
-                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + ") - " + str(self._main_rect_finder.holdreleaseSpinBox) + ",  main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + ") - " + str(self._main_rect_finder.release_pixel) + ",  main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
                     elif self._main_rect_finder.hold_and_release == 5:
                         self._code_lines.append("    m.hold(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
                         self._code_lines.append("    time.sleep(sleep_factor)")
-                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + ") + " + str(self._main_rect_finder.holdreleaseSpinBox) + ",  main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + ") + " + str(self._main_rect_finder.release_pixel) + ",  main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
         if self._main_rect_finder.sendkeys != "":
             self.mouse_or_key_is_set = True
         
@@ -2796,6 +2798,7 @@ class AlyvixRectFinderView(QWidget):
         if "True" in main_rect_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_rect_finder.click = True
             self.mouse_or_key_is_set = True
+            self._main_rect_finder.mouse_or_key_is_set = True
         else:
             self._main_rect_finder.click = False
             
@@ -2817,18 +2820,21 @@ class AlyvixRectFinderView(QWidget):
                 self._main_rect_finder.number_of_clicks = 2
                 self._main_rect_finder.click_delay = 10
                 self.mouse_or_key_is_set = True
+                self._main_rect_finder.mouse_or_key_is_set = True
         except:
             pass
             
         if "True" in main_rect_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
             self._main_rect_finder.rightclick = True
             self.mouse_or_key_is_set = True
+            self._main_rect_finder.mouse_or_key_is_set = True
         else:
             self._main_rect_finder.rightclick = False
             
         if "True" in main_rect_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
             self._main_rect_finder.mousemove = True
             self.mouse_or_key_is_set = True
+            self._main_rect_finder.mouse_or_key_is_set = True
         else:
             self._main_rect_finder.mousemove = False
             
@@ -2853,6 +2859,8 @@ class AlyvixRectFinderView(QWidget):
                 self._main_rect_finder.hold_and_release = None
             else:
                 self._main_rect_finder.hold_and_release = int(main_rect_node.getElementsByTagName("hold_and_release")[0].firstChild.nodeValue)
+                self._main_rect_finder.mouse_or_key_is_set = True
+                self.mouse_or_key_is_set = True
         except:
             pass
             
@@ -2893,6 +2901,7 @@ class AlyvixRectFinderView(QWidget):
             
             if self._main_rect_finder.sendkeys != "":
                 self.mouse_or_key_is_set = True
+                self._main_rect_finder.mouse_or_key_is_set = True
             
         except AttributeError:
             self._main_rect_finder.sendkeys = ''.encode('utf-8')
@@ -2942,6 +2951,7 @@ class AlyvixRectFinderView(QWidget):
             if "True" in sub_rect_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_rect_obj.click = True
                 self.mouse_or_key_is_set = True
+                sub_rect_obj.mouse_or_key_is_set = True
             else:
                 sub_rect_obj.click = False
                 
@@ -2961,6 +2971,7 @@ class AlyvixRectFinderView(QWidget):
                     sub_rect_obj.click_delay = 10
                     sub_rect_obj.click = True
                     self.mouse_or_key_is_set = True
+                    sub_rect_obj.mouse_or_key_is_set = True
 
             except:
                 pass
@@ -2968,12 +2979,14 @@ class AlyvixRectFinderView(QWidget):
             if "True" in sub_rect_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
                 sub_rect_obj.rightclick = True
                 self.mouse_or_key_is_set = True
+                sub_rect_obj.mouse_or_key_is_set = True
             else:
                 sub_rect_obj.rightclick = False
                 
             if "True" in sub_rect_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
                 sub_rect_obj.mousemove = True
                 self.mouse_or_key_is_set = True
+                sub_rect_obj.mouse_or_key_is_set = True
             else:
                 sub_rect_obj.mousemove = False
                 
@@ -2998,6 +3011,8 @@ class AlyvixRectFinderView(QWidget):
                     sub_rect_obj.hold_and_release = None
                 else:
                     sub_rect_obj.hold_and_release = int(sub_rect_node.getElementsByTagName("hold_and_release")[0].firstChild.nodeValue)
+                    self.mouse_or_key_is_set = True
+                    sub_rect_obj.mouse_or_key_is_set = True
             except:
                 pass
                 
@@ -3029,6 +3044,7 @@ class AlyvixRectFinderView(QWidget):
                 
                 if sub_rect_obj.sendkeys != "":
                     self.mouse_or_key_is_set = True
+                    sub_rect_obj.mouse_or_key_is_set = True
             except AttributeError:
                 sub_rect_obj.sendkeys = ''.encode('utf-8')
                 

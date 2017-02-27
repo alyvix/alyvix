@@ -755,8 +755,6 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         #print "self._main_object_finder.mouse_or_key_is_set:", self._main_object_finder.mouse_or_key_is_set
         
-        if self._main_object_finder.mouse_or_key_is_set is True:
-            mouse_or_key_is_set = True
     
         total_args = 0 #self._main_object_finder.args_number
     
@@ -807,6 +805,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             main_obj = AlyvixTextFinderView(m_controller)
             arg_main_component = main_obj.args_number
             main_obj_name = main_obj.object_name
+            
+        if main_obj.mouse_or_key_is_set is True:
+            mouse_or_key_is_set = True
         
         total_args = total_args + arg_main_component
         str_global_obj = "    global " + main_obj_name + "_object"
@@ -844,9 +845,6 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             
                 #print "sub_object.mouse_or_key_is_set:", sub_object.mouse_or_key_is_set
             
-                if sub_object.mouse_or_key_is_set is True:
-                    mouse_or_key_is_set = True
-            
                 arg_sub_component = 0
                 #roi_x = str(sub_object.roi_x - self._main_object_finder.x)
                 roi_x = str(sub_object.roi_x)
@@ -878,6 +876,11 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 total_args = total_args + arg_sub_component
                 str_lines_sub_obj.append("    global " + sub_obj_name + "_object")
                 
+                #print "mss", sub_obj.mouse_or_key_is_set
+                
+                if sub_obj.mouse_or_key_is_set is True:
+                    #print "sub_click_ok"
+                    mouse_or_key_is_set = True
                 
                 
                 string_function_args = "    " + sub_obj_name + "_build_object("
@@ -1076,6 +1079,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             if sub_object.height != 0 and sub_object.width !=0:
             
                 if mouse_or_key_is_set is False:
+                    print "no sub click... pass"
                     continue
                 
                 path_sub_xml = sub_object.xml_path

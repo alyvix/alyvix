@@ -67,7 +67,7 @@ class InfoManager():
 
         self.set_info('OVERLAPPING TOLERANCE FACTOR', 10)
 
-        self.set_info('ACTIONS DELAY', 2)
+        self.set_info('ACTIONS DELAY', 0.5)
 
         self.set_info('last log image order', 0)
 

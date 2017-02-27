@@ -112,9 +112,11 @@ class AlyvixImageFinderView(QWidget):
         #self.update_path_and_name(path)
         
         self.build_objects()
+        self.old_mouse_or_key_is_set = self.mouse_or_key_is_set
         self.__old_code = self.get_old_code()
         self.__old_code_v220 = self.get_old_code_v220()
         self.__old_code_v230 = self.get_old_code_v230()
+        self.mouse_or_key_is_set = self.old_mouse_or_key_is_set
         
         """
         text_file = open("c:\\alylog\\old_code.txt", "w")
@@ -2301,6 +2303,7 @@ class AlyvixImageFinderView(QWidget):
         if "True" in main_template_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_template.click = True
             self.mouse_or_key_is_set = True
+            self._main_template.mouse_or_key_is_set = True
         else:
             self._main_template.click = False
             
@@ -2320,18 +2323,21 @@ class AlyvixImageFinderView(QWidget):
                 self._main_template.number_of_clicks = 2
                 self._main_template.click_delay = 10
                 self.mouse_or_key_is_set = True
+                self._main_template.mouse_or_key_is_set = True
         except:
             pass
             
         if "True" in main_template_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
             self._main_template.rightclick = True
             self.mouse_or_key_is_set = True
+            self._main_template.mouse_or_key_is_set = True
         else:
             self._main_template.rightclick = False
             
         if "True" in main_template_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
             self._main_template.mousemove = True
             self.mouse_or_key_is_set = True
+            self._main_template.mouse_or_key_is_set = True
         else:
             self._main_template.mousemove = False
             
@@ -2356,6 +2362,9 @@ class AlyvixImageFinderView(QWidget):
                 self._main_template.hold_and_release = None
             else:
                 self._main_template.hold_and_release = int(main_template_node.getElementsByTagName("hold_and_release")[0].firstChild.nodeValue)
+                self._main_template.mouse_or_key_is_set = True
+                self.mouse_or_key_is_set = True
+                
         except:
             pass
             
@@ -2396,6 +2405,7 @@ class AlyvixImageFinderView(QWidget):
             self._main_template.sendkeys = self._main_template.sendkeys.encode('utf-8')
             if self._main_template.sendkeys != "":
                 self.mouse_or_key_is_set = True
+                self._main_template.mouse_or_key_is_set = True
         except AttributeError:
             self._main_template.sendkeys = ''.encode('utf-8')
         
@@ -2429,6 +2439,7 @@ class AlyvixImageFinderView(QWidget):
             if "True" in sub_template_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_template_obj.click = True
                 self.mouse_or_key_is_set = True
+                sub_template_obj.mouse_or_key_is_set = True
             else:
                 sub_template_obj.click = False
                 
@@ -2448,18 +2459,21 @@ class AlyvixImageFinderView(QWidget):
                     sub_template_obj.number_of_clicks = 2
                     sub_template_obj.click_delay = 10
                     self.mouse_or_key_is_set = True
+                    sub_template_obj.mouse_or_key_is_set = True
             except:
                 pass
             
             if "True" in sub_template_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
                 sub_template_obj.rightclick = True
                 self.mouse_or_key_is_set = True
+                sub_template_obj.mouse_or_key_is_set = True
             else:
                 sub_template_obj.rightclick = False
                 
             if "True" in sub_template_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
                 sub_template_obj.mousemove = True
                 self.mouse_or_key_is_set = True
+                sub_template_obj.mouse_or_key_is_set = True
             else:
                 sub_template_obj.mousemove = False
                 
@@ -2484,6 +2498,8 @@ class AlyvixImageFinderView(QWidget):
                     sub_template_obj.hold_and_release = None
                 else:
                     sub_template_obj.hold_and_release = int(sub_template_node.getElementsByTagName("hold_and_release")[0].firstChild.nodeValue)
+                    sub_template_obj.mouse_or_key_is_set = True
+                    self.mouse_or_key_is_set = True
             except:
                 pass
                 
@@ -2516,6 +2532,7 @@ class AlyvixImageFinderView(QWidget):
                 
                 if sub_template_obj.sendkeys != "":
                     self.mouse_or_key_is_set = True
+                    sub_template_obj.mouse_or_key_is_set = True
                 
             except AttributeError:
                 sub_template_obj.sendkeys = ''.encode('utf-8')

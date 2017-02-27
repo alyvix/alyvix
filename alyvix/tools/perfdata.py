@@ -475,11 +475,11 @@ class PerfManager:
             if perfdata.value is None or perfdata.value == "":
                 if perfdata.state > exitcode:
                     exitcode = perfdata.state
-            elif perfdata.critical_threshold is not None and perfdata.critical_threshold != "":
+            if perfdata.critical_threshold is not None and perfdata.critical_threshold != "":
                 if perfdata.value >= int(perfdata.critical_threshold):
                     if 2 > exitcode:
                         exitcode = 2
-            elif perfdata.warning_threshold is not None and perfdata.warning_threshold != "":
+            if perfdata.warning_threshold is not None and perfdata.warning_threshold != "":
                 if perfdata.value >= int(perfdata.warning_threshold):
                     if 1 > exitcode:
                         exitcode = 1

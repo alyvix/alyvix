@@ -485,22 +485,6 @@ Point</string>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="9" column="2">
-      <widget class="QRadioButton" name="wait_radio">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Appeared</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_5</string>
-       </attribute>
-      </widget>
-     </item>
      <item row="19" column="3">
       <widget class="QCheckBox" name="text_encrypted">
        <property name="layoutDirection">
@@ -805,19 +789,6 @@ Point</string>
        </item>
       </widget>
      </item>
-     <item row="9" column="1">
-      <widget class="QRadioButton" name="find_radio">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Find</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_5</string>
-       </attribute>
-      </widget>
-     </item>
      <item row="9" column="3">
       <widget class="QRadioButton" name="wait_disapp_radio">
        <property name="layoutDirection">
@@ -853,7 +824,7 @@ Point</string>
         <double>9999.989999999999782</double>
        </property>
        <property name="singleStep">
-        <double>0.050000000000000</double>
+        <double>1.000000000000000</double>
        </property>
       </widget>
      </item>
@@ -883,7 +854,7 @@ Point</string>
         <double>9999.989999999999782</double>
        </property>
        <property name="singleStep">
-        <double>0.050000000000000</double>
+        <double>1.000000000000000</double>
        </property>
       </widget>
      </item>
@@ -948,6 +919,22 @@ Point</string>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
+      </widget>
+     </item>
+     <item row="9" column="0" colspan="3">
+      <widget class="QRadioButton" name="wait_radio">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Appeared</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_5</string>
+       </attribute>
       </widget>
      </item>
     </layout>
@@ -1087,6 +1074,25 @@ Point</string>
    <property name="maximum">
     <number>9999</number>
    </property>
+  </widget>
+  <widget class="QRadioButton" name="find_radio">
+   <property name="geometry">
+    <rect>
+     <x>66</x>
+     <y>504</y>
+     <width>88</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::RightToLeft</enum>
+   </property>
+   <property name="text">
+    <string>Find</string>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">buttonGroup_5</string>
+   </attribute>
   </widget>
  </widget>
  <resources/>

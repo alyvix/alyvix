@@ -192,26 +192,13 @@
        </item>
       </widget>
      </item>
-     <item row="10" column="1">
-      <widget class="QRadioButton" name="find_radio">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Find</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_3</string>
-       </attribute>
-      </widget>
-     </item>
      <item row="11" column="1">
       <widget class="QDoubleSpinBox" name="doubleSpinBoxWarning">
        <property name="maximum">
         <double>9999.989999999999782</double>
        </property>
        <property name="singleStep">
-        <double>0.050000000000000</double>
+        <double>1.000000000000000</double>
        </property>
       </widget>
      </item>
@@ -258,29 +245,13 @@
        </attribute>
       </widget>
      </item>
-     <item row="10" column="2">
-      <widget class="QRadioButton" name="wait_radio">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Appeared</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_3</string>
-       </attribute>
-      </widget>
-     </item>
      <item row="11" column="3">
       <widget class="QDoubleSpinBox" name="doubleSpinBoxCritical">
        <property name="maximum">
         <double>9999.989999999999782</double>
        </property>
        <property name="singleStep">
-        <double>0.050000000000000</double>
+        <double>1.000000000000000</double>
        </property>
       </widget>
      </item>
@@ -705,6 +676,22 @@ Point</string>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
+      </widget>
+     </item>
+     <item row="10" column="0" colspan="3">
+      <widget class="QRadioButton" name="wait_radio">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Appeared</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_3</string>
+       </attribute>
       </widget>
      </item>
     </layout>
@@ -1284,6 +1271,25 @@ Point</string>
    <property name="maximum">
     <number>9999</number>
    </property>
+  </widget>
+  <widget class="QRadioButton" name="find_radio">
+   <property name="geometry">
+    <rect>
+     <x>91</x>
+     <y>491</y>
+     <width>96</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::RightToLeft</enum>
+   </property>
+   <property name="text">
+    <string>Find</string>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">buttonGroup_3</string>
+   </attribute>
   </widget>
  </widget>
  <resources/>

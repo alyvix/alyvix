@@ -124,9 +124,11 @@ class AlyvixTextFinderView(QWidget):
         #self.update_path_and_name(path)
         
         self.build_objects()
+        self.old_mouse_or_key_is_set = self.mouse_or_key_is_set
         self.__old_code_v220 = self.get_old_code_v220()
         self.__old_code_v230 = self.get_old_code_v230()
         self.__old_code = self.get_old_code()
+        self.mouse_or_key_is_set = self.old_mouse_or_key_is_set
         #print self.__old_code
         
         self._old_main_text = copy.deepcopy(self._main_text)
@@ -2129,13 +2131,6 @@ class AlyvixTextFinderView(QWidget):
                     self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 2)")
                 elif self._main_text.mousemove == True:
                     self._code_lines.append("    m.move(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
-            else:
-                if self._main_text.click == True:
-                    self._code_lines.append("    m.click_2(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "), 1, " + str(self._main_text.number_of_clicks) + ", " + str(self._main_text.click_delay) + ")")
-                elif self._main_text.rightclick == True:
-                    self._code_lines.append("    m.click(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "), 2)")
-                elif self._main_text.mousemove == True:
-                    self._code_lines.append("    m.move(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
                 elif self._main_text.hold_and_release is not None:
                     if self._main_text.hold_and_release == 0:
                         self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
@@ -2157,7 +2152,13 @@ class AlyvixTextFinderView(QWidget):
                         self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
                         self._code_lines.append("    time.sleep(sleep_factor)")
                         self._code_lines.append("    m.release(main_text_pos.x + (main_text_pos.width/2) + " + str(self._main_text.release_pixel) + ", main_text_pos.y + (main_text_pos.height/2))")
-           
+            else:
+                if self._main_text.click == True:
+                    self._code_lines.append("    m.click_2(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "), 1, " + str(self._main_text.number_of_clicks) + ", " + str(self._main_text.click_delay) + ")")
+                elif self._main_text.rightclick == True:
+                    self._code_lines.append("    m.click(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "), 2)")
+                elif self._main_text.mousemove == True:
+                    self._code_lines.append("    m.move(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
                 elif self._main_text.hold_and_release is not None:
                     if self._main_text.hold_and_release == 0:
                         self._code_lines.append("    m.hold(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
@@ -2867,6 +2868,7 @@ class AlyvixTextFinderView(QWidget):
         if "True" in main_text_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_text.click = True
             self.mouse_or_key_is_set = True
+            self._main_text.mouse_or_key_is_set = True
         else:
             self._main_text.click = False
             
@@ -2886,18 +2888,21 @@ class AlyvixTextFinderView(QWidget):
                 self._main_text.number_of_clicks = 2
                 elf._main_text.click_delay = 10
                 self.mouse_or_key_is_set = True
+                self._main_text.mouse_or_key_is_set = True
         except:
             pass
                 
         if "True" in main_text_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
             self._main_text.rightclick = True
             self.mouse_or_key_is_set = True
+            self._main_text.mouse_or_key_is_set = True
         else:
             self._main_text.rightclick = False
             
         if "True" in main_text_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
             self._main_text.mousemove = True
             self.mouse_or_key_is_set = True
+            self._main_text.mouse_or_key_is_set = True
         else:
             self._main_text.mousemove = False
             
@@ -2922,6 +2927,8 @@ class AlyvixTextFinderView(QWidget):
                 self._main_text.hold_and_release = None
             else:
                 self._main_text.hold_and_release = int(main_text_node.getElementsByTagName("hold_and_release")[0].firstChild.nodeValue)
+                self._main_text.mouse_or_key_is_set = True
+                self.mouse_or_key_is_set = True
         except:
             pass
             
@@ -2962,6 +2969,7 @@ class AlyvixTextFinderView(QWidget):
             
             if self._main_text.sendkeys != "":
                 self.mouse_or_key_is_set = True
+                self._main_text.mouse_or_key_is_set = True
         except AttributeError:
             self._main_text.sendkeys = ''.encode('utf-8')
         
@@ -3026,6 +3034,7 @@ class AlyvixTextFinderView(QWidget):
             if "True" in sub_text_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_text_obj.click = True
                 self.mouse_or_key_is_set = True
+                sub_text_obj.mouse_or_key_is_set = True
             else:
                 sub_text_obj.click = False
                 
@@ -3051,12 +3060,14 @@ class AlyvixTextFinderView(QWidget):
             if "True" in sub_text_node.getElementsByTagName("rightclick")[0].firstChild.nodeValue:
                 sub_text_obj.rightclick = True
                 self.mouse_or_key_is_set = True
+                sub_text_obj.mouse_or_key_is_set = True
             else:
                 sub_text_obj.rightclick = False
                 
             if "True" in sub_text_node.getElementsByTagName("mousemove")[0].firstChild.nodeValue:
                 sub_text_obj.mousemove = True
                 self.mouse_or_key_is_set = True
+                sub_text_obj.mouse_or_key_is_set = True
             else:
                 sub_text_obj.mousemove = False
             
@@ -3081,6 +3092,8 @@ class AlyvixTextFinderView(QWidget):
                     sub_text_obj.hold_and_release = None
                 else:
                     sub_text_obj.hold_and_release = int(sub_text_node.getElementsByTagName("hold_and_release")[0].firstChild.nodeValue)
+                    self.mouse_or_key_is_set = True
+                    sub_text_obj.mouse_or_key_is_set = True
             except:
                 pass
                 
@@ -3113,6 +3126,7 @@ class AlyvixTextFinderView(QWidget):
                 
                 if sub_text_obj.sendkeys != "":
                     self.mouse_or_key_is_set = True
+                    sub_text_obj.mouse_or_key_is_set = True
             except AttributeError:
                 sub_text_obj.sendkeys = ''.encode('utf-8')
                 
