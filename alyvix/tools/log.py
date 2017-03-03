@@ -611,6 +611,21 @@ class LogManager:
                                     "png", "gif") + "\"></a>", "INFO",
                                 True)
 
+                            try:
+                                self._info_manager.set_info("image finder last log image", None)
+                            except:
+                                pass
+
+                            try:
+                                self._info_manager.set_info("rect finder last log image", None)
+                            except:
+                                pass
+
+                            try:
+                                self._info_manager.set_info("text finder last log image", None)
+                            except:
+                                pass
+
                     else:
                         self._robot_manager.write_log_message(
                             "<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "ERROR",

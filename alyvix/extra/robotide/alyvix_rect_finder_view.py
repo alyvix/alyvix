@@ -2446,7 +2446,7 @@ class AlyvixRectFinderView(QWidget):
         root.set("timeout_exception", str(self.timeout_exception))
         root.set("enable_performance", str(self.enable_performance))
         root.set("warning_value", repr(self.warning))
-        root.set("critical_value", repr(self._main_rect_finder.critical))
+        root.set("critical_value", repr(self.critical))
         root.set("args", str(self.args_number))
 
         main_rect_node = ET.SubElement(root, "main_rect")
@@ -2875,8 +2875,9 @@ class AlyvixRectFinderView(QWidget):
             self.enable_performance = False
             
         self.warning = float(root_node.attributes["warning_value"].value)
+        self.critical = float(root_node.attributes["critical_value"].value)
             
-        self._main_rect_finder.critical = float(root_node.attributes["critical_value"].value)
+        #self._main_rect_finder.critical = float(root_node.attributes["critical_value"].value)
         
         if main_rect_node.getElementsByTagName("sendkeys")[0].attributes["encrypted"].value == "True":
             self._main_rect_finder.text_encrypted = True

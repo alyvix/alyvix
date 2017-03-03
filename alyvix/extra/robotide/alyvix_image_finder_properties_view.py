@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(564, 434)
+        Form.resize(564, 436)
         self.pushButtonCancel = QtGui.QPushButton(Form)
         self.pushButtonCancel.setGeometry(QtCore.QRect(481, 397, 75, 23))
         self.pushButtonCancel.setObjectName(_fromUtf8("pushButtonCancel"))

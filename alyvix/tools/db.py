@@ -71,10 +71,27 @@ class DbManager():
         self._connection.close()
 
     def _create_tables(self):
-        self._create_runs_table()
-        self._create_thresholds_table()
-        self._create_sorting_table()
-        self._create_timestamp_table()
+
+        try:
+            self._create_runs_table()
+        except:
+            pass
+
+        try:
+            self._create_thresholds_table()
+        except:
+            pass
+
+        try:
+            self._create_sorting_table()
+        except:
+            pass
+
+        try:
+            self._create_timestamp_table()
+        except:
+            pass
+
 
     def _create_runs_table(self):
         query = "CREATE TABLE runs (start_time integer primary key"
@@ -388,6 +405,7 @@ class DbManager():
             self._db_is_new = True
         else:
             self.connect()
+            self._create_tables()
 
         self._insert_runs()
         self._insert_thresholds()
