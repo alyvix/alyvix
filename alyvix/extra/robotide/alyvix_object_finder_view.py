@@ -97,6 +97,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self._xml_name = self.parent.xml_name
         
         self.find_radio.hide()
+        self.pushButtonRemoveObj.hide()
         
         self.is_object_finder_menu = True
         

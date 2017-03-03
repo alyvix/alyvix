@@ -25,6 +25,7 @@ import time
 import cv2
 import copy
 import codecs
+import shutil
 
 import time
 
@@ -796,6 +797,20 @@ class AlyvixImageFinderView(QWidget):
         self.update()
         
     def remove_code_from_py_file(self):
+    
+        template_image_path = template_image_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self._path.split(os.sep)[-1] + "_extra" + os.sep + self.object_name
+        
+        shutil.rmtree(template_image_path)
+        
+        """
+        filelist = [f for f in os.listdir( template_image_path)]
+        for f in filelist:
+            try:
+                os.remove(template_image_path + os.sep + f)
+            except:
+                pass
+        os.remove(template_image_path)
+        """
     
         file_code_string = ""
         filename = self._alyvix_proxy_path + os.sep + "AlyvixProxy" + self._robot_file_name + ".py"
@@ -1820,7 +1835,7 @@ class AlyvixImageFinderView(QWidget):
                             self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + ")), 2)")
                         elif sub_template.mousemove == True:
                             self._code_lines.append("    m.move(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "))")
-                        elif sub_rect.hold_and_release is not None:
+                        elif sub_template.hold_and_release is not None:
                             if sub_template.hold_and_release == 0:
                                 self._code_lines.append("    m.hold(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "))")
                             elif sub_template.hold_and_release == 1:
@@ -3423,10 +3438,12 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.dontclickRadio_2.setChecked(False)
             
         if self.parent._sub_templates_finder[self.sub_template_index].hold_and_release is not None:
+            #self.disconnect(self.holdreleaseComboBox_2, SIGNAL("currentIndexChanged(int)"), self.holdreleaseComboBox_event_2)
+            #print ""
+            self.holdreleaseComboBox_2.setCurrentIndex(self.parent._sub_templates_finder[self.sub_template_index].hold_and_release)
             self.holdreleaseRadio_2.setChecked(True)
             self.holdreleaseComboBox_2.setEnabled(True)
             self.pushButtonXYoffset_2.setEnabled(True)
-            self.holdreleaseComboBox_2.setCurrentIndex(self.parent._sub_templates_finder[self.sub_template_index].hold_and_release)
             
             if self.parent._sub_templates_finder[self.sub_template_index].hold_and_release == 0 or self.parent._sub_templates_finder[self.sub_template_index].hold_and_release == 1:
                 self.holdreleaseSpinBox_2.setEnabled(False)
@@ -3434,6 +3451,8 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             else: 
                 self.holdreleaseSpinBox_2.setEnabled(True)
                 self.holdreleaseSpinBox_2.setValue(self.parent._sub_templates_finder[self.sub_template_index].release_pixel)
+                
+            #self.connect(self.holdreleaseComboBox_2, SIGNAL("currentIndexChanged(int)"), self.holdreleaseComboBox_event_2)
                 
         else:
             self.holdreleaseRadio_2.setChecked(False)

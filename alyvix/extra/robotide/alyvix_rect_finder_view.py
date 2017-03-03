@@ -4056,10 +4056,11 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.dontclickRadio_2.setChecked(False)
             
         if self.parent._sub_rects_finder[self.sub_rect_index].hold_and_release is not None:
+            self.holdreleaseComboBox_2.setCurrentIndex(self.parent._sub_rects_finder[self.sub_rect_index].hold_and_release)
             self.holdreleaseRadio_2.setChecked(True)
             self.holdreleaseComboBox_2.setEnabled(True)
             self.pushButtonXYoffset_2.setEnabled(True)
-            self.holdreleaseComboBox_2.setCurrentIndex(self.parent._sub_rects_finder[self.sub_rect_index].hold_and_release)
+
             
             if self.parent._sub_rects_finder[self.sub_rect_index].hold_and_release == 0 or self.parent._sub_rects_finder[self.sub_rect_index].hold_and_release == 1:
                 self.holdreleaseSpinBox_2.setEnabled(False)
