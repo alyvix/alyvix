@@ -12,3 +12,14 @@ Alyvix is a **synthetic monitoring system based on computer vision**. Alyvix syn
 Alyvix provides **certifications on user perceived quality of IT services**. Alyvix certifies that users are able to successfully complete a certain application task.
 
 [Get started with Alyvix!](http://www.alyvix.com/getting-started-3/)
+
+## Use case examples
+
++ Alyvix automates and measures Outlook through Citrix and RDWebAccess:
+
+     ![Use case: Alyvix on Outlook through Citrix](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-Citrix-Outlook-201702.gif)
+     ![Use case: Alyvix on Outlook through Citrix](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-RDWA-Outlook-201702.gif)
++ Alyvix automates and measures Word through Citrix and RDWebAccess:
+
+     ![Use case: Alyvix on Word through RDWebAccess](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-Citrix-Word-201702.gif)
+     ![Use case: Alyvix on Word through RDWebAccess](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-RDWA-Word-201702.gif)
