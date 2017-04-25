@@ -190,6 +190,11 @@ def check_window(window_title):
     
     wm = WinManager()
     return wm.check_if_window_exists(window_title)
+
+def get_window_title():
+
+    wm = WinManager()
+    return wm.get_window_title()
     
 def close_window(window_title):
     wm = WinManager()
@@ -280,15 +285,22 @@ def sum_perfdata(*names, **kwargs):
     pm = PerfManager()
     return pm.sum_perfdata(*names, **kwargs)
 
+def set_perfdata_extra(name, extra):
+    pm = PerfManager()
+    pm.set_perfdata_extra(name, extra)
+
 def store_perfdata(dbname=None):
     db = DbManager()
     db.store_perfdata(dbname)
 
-def publish_perfdata(type="csv", start_date="", end_date="", filename="",
-                         testcase_name="", max_age=24, suffix=None):
+def publish_perfdata(type="csv", start_date="", end_date="", filename="", testcase_name="", max_age=24, suffix=None,
+                     subject=None, server=None, port=None, measurement="alyvix", max_reconnect_attempts=5,
+                     reconnect_time_wait=2):
     db = DbManager()
     db.publish_perfdata(type=str(type), start_date=str(start_date), end_date=str(end_date), filename=str(filename),
-                        testcase_name=str(testcase_name), max_age=int(max_age), suffix=str(suffix))
+                        testcase_name=str(testcase_name), max_age=int(max_age), suffix=str(suffix),
+                        subject=str(subject), server=str(server), port=port, measurement=str(measurement),
+                        max_reconnect_attempts=max_reconnect_attempts, reconnect_time_wait=reconnect_time_wait)
 
 def print_perfdata(message=None, print_output="True"):
 

@@ -3312,6 +3312,8 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.parent = parent
         self.added_block = False
         
+        self.scaling_factor = self.parent.parent.scaling_factor
+        
         self.find_radio.hide()
         
         """
@@ -3345,7 +3347,32 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
         self.textEditCustomLines.setLineWrapMode(QTextEdit.NoWrap)
 
-        self.setFixedSize(self.size())
+        #self.setFixedSize(self.size())
+        self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor), int(self.frameGeometry().height() * self.scaling_factor))
+        
+        self.widget.setGeometry(QRect(int(self.widget.geometry().x() * self.scaling_factor), int(self.widget.geometry().y() * self.scaling_factor),
+                                int(self.widget.geometry().width() * self.scaling_factor), int(self.widget.geometry().height() * self.scaling_factor)))
+                                
+        self.gridLayoutWidget.setGeometry(QRect(int(self.gridLayoutWidget.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget.geometry().y() * self.scaling_factor),
+                                          int(self.gridLayoutWidget.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget.geometry().height() * self.scaling_factor)))
+                                          
+        self.pushButtonOk.setGeometry(QRect(int(self.pushButtonOk.geometry().x() * self.scaling_factor), int(self.pushButtonOk.geometry().y() * self.scaling_factor),
+                                          int(self.pushButtonOk.geometry().width() * self.scaling_factor), int(self.pushButtonOk.geometry().height() * self.scaling_factor)))
+                                          
+        self.pushButtonCancel.setGeometry(QRect(int(self.pushButtonCancel.geometry().x() * self.scaling_factor), int(self.pushButtonCancel.geometry().y() * self.scaling_factor),
+                                          int(self.pushButtonCancel.geometry().width() * self.scaling_factor), int(self.pushButtonCancel.geometry().height() * self.scaling_factor)))
+                                          
+        self.listWidget.setGeometry(QRect(int(self.listWidget.geometry().x() * self.scaling_factor), int(self.listWidget.geometry().y() * self.scaling_factor),
+                                          int(self.listWidget.geometry().width() * self.scaling_factor), int(self.listWidget.geometry().height() * self.scaling_factor)))
+                                
+        
+        self.widget_2.setGeometry(QRect(int(self.widget_2.geometry().x() * self.scaling_factor), int(self.widget_2.geometry().y() * self.scaling_factor),
+                                        int(self.widget_2.geometry().width() * self.scaling_factor), int(self.widget_2.geometry().height() * self.scaling_factor)))
+                                
+        self.gridLayoutWidget_2.setGeometry(QRect(int(self.gridLayoutWidget_2.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().y() * self.scaling_factor),
+                                          int(self.gridLayoutWidget_2.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().height() * self.scaling_factor)))
+
+
 
         #self.setWindowTitle('Application Object Properties')
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
@@ -3980,12 +4007,16 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
-            self.widget.setGeometry(QRect(173, 9, 381, 478))
+            #self.widget.setGeometry(QRect(168, 9, 413, 433))
+            self.widget.setGeometry(QRect(self.widget.geometry().x(), self.widget.geometry().y(),
+                                    self.widget.geometry().width(), self.widget.geometry().height()))
 
         else:
             self.widget.hide()
             self.widget_2.show()
-            self.widget_2.setGeometry(QRect(173, 9, 381, 348))
+            #self.widget_2.setGeometry(QRect(168, 9, 414, 434))
+            self.widget_2.setGeometry(QRect(self.widget.geometry().x(), self.widget.geometry().y(),
+                                        self.widget_2.geometry().width(), self.widget_2.geometry().height()))
             self.sub_text_index = selected_index - 1
             self.update_sub_text_view()
 

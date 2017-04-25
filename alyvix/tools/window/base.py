@@ -20,6 +20,9 @@
 
 class WinManagerBase(object):
 
+    def get_window_title(self):
+        raise NotImplementedError
+
     def show_window(self, window_title):
         raise NotImplementedError
 

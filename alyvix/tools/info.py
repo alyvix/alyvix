@@ -47,6 +47,8 @@ class InfoManager():
 
         self.set_info('KEYWORD TIMESTAMP', [])
 
+        self.set_info('KEYWORD TIMEOUT', [])
+
         self.set_info('channel', 'all')
 
         float_scaling_factor = screen_manager.get_scaling_factor()
@@ -54,6 +56,9 @@ class InfoManager():
 
         self.set_info('SCALING FACTOR FLOAT', float_scaling_factor)
         self.set_info('SCALING FACTOR INT', int_scaling_factor)
+
+        if self.get_info("SCALING FACTOR ONE TIME") is None:
+            self.set_info('SCALING FACTOR ONE TIME', float_scaling_factor)
 
         robot_context = robot_manager.context_is_set()
         self.set_info('ROBOT CONTEXT', robot_context)

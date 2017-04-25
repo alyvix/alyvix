@@ -33,6 +33,7 @@ from alyvix.tools.configreader import ConfigReader
 from alyvix.finders.cachemanager import CacheManager
 from alyvix.bridge.robot import RobotManager
 from alyvix.tools.info import InfoManager
+from alyvix.tools.perfdata import PerfManager
 from .checkpresence import CheckPresence
 
 
@@ -90,7 +91,7 @@ class BaseFinder(object):
         :param name: the object name
         """
 
-        keyword_timestamp_value = int(time.time())
+        keyword_timestamp_value = int(time.time() * 1000)
 
         self._main_component = None
         self._sub_components = []
@@ -147,6 +148,9 @@ class BaseFinder(object):
         self._name_with_caller = None
 
         self._name = name
+
+        self._perf_manager = PerfManager()
+
         self._log_manager = LogManager()
         self._log_manager.set_object_name(self._name)
         self._screen_capture = ScreenManager()
@@ -291,6 +295,23 @@ class BaseFinder(object):
             timeout_value = self._configReader.get_finder_wait_timeout()
         else:
             timeout_value = timeout
+            #self._perf_manager.set_last_timeout_value(self._name, timeout_value)
+            current_keyword_timeout_array = self._info_manager.get_info('KEYWORD TIMEOUT')
+
+            # current_keyword_timestamp_array_copy = copy.deepcopy(current_keyword_timestamp_array)
+
+            timeout_modified = False
+            for cnt_kts in xrange(len(current_keyword_timeout_array)):
+                if current_keyword_timeout_array[cnt_kts][0] == self._name:
+                    timeout_modified = True
+                    current_keyword_timeout_array[cnt_kts] = (self._name, timeout_value)
+                    break
+
+            if timeout_modified is False:
+                current_keyword_timeout_array.append((self._name, timeout_value))
+
+            self._info_manager.set_info('KEYWORD TIMEOUT',
+                                        current_keyword_timeout_array)
 
         self._objects_found = []
 
@@ -501,6 +522,24 @@ class BaseFinder(object):
             timeout_value = self._configReader.get_finder_wait_timeout()
         else:
             timeout_value = timeout
+
+            #self._perf_manager.set_last_timeout_value(self._name, timeout_value)
+            current_keyword_timeout_array = self._info_manager.get_info('KEYWORD TIMEOUT')
+
+            # current_keyword_timestamp_array_copy = copy.deepcopy(current_keyword_timestamp_array)
+
+            timeout_modified = False
+            for cnt_kts in xrange(len(current_keyword_timeout_array)):
+                if current_keyword_timeout_array[cnt_kts][0] == self._name:
+                    timeout_modified = True
+                    current_keyword_timeout_array[cnt_kts] = (self._name, timeout_value)
+                    break
+
+            if timeout_modified is False:
+                current_keyword_timeout_array.append((self._name, timeout_value))
+
+            self._info_manager.set_info('KEYWORD TIMEOUT',
+                                        current_keyword_timeout_array)
 
         timeout_value = timeout_value - wait_time
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>594</width>
-    <height>518</height>
+    <height>523</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,7 +43,7 @@
    <property name="geometry">
     <rect>
      <x>507</x>
-     <y>1331</y>
+     <y>10000</y>
      <width>81</width>
      <height>321</height>
     </rect>
@@ -53,7 +53,7 @@
    <property name="geometry">
     <rect>
      <x>403</x>
-     <y>1660</y>
+     <y>10000</y>
      <width>91</width>
      <height>23</height>
     </rect>
@@ -66,7 +66,7 @@
    <property name="geometry">
     <rect>
      <x>193</x>
-     <y>1660</y>
+     <y>10000</y>
      <width>121</width>
      <height>22</height>
     </rect>
@@ -82,7 +82,7 @@
    <property name="geometry">
     <rect>
      <x>323</x>
-     <y>1660</y>
+     <y>10000</y>
      <width>71</width>
      <height>23</height>
     </rect>
@@ -95,7 +95,7 @@
    <property name="geometry">
     <rect>
      <x>123</x>
-     <y>1660</y>
+     <y>10000</y>
      <width>61</width>
      <height>21</height>
     </rect>
@@ -111,7 +111,7 @@
    <property name="geometry">
     <rect>
      <x>21</x>
-     <y>1331</y>
+     <y>10000</y>
      <width>476</width>
      <height>321</height>
     </rect>
@@ -722,7 +722,7 @@ Point</string>
    <property name="geometry">
     <rect>
      <x>181</x>
-     <y>578</y>
+     <y>9000</y>
      <width>414</width>
      <height>366</height>
     </rect>
@@ -1134,7 +1134,7 @@ Point</string>
    <property name="geometry">
     <rect>
      <x>103</x>
-     <y>1257</y>
+     <y>10000</y>
      <width>94</width>
      <height>20</height>
     </rect>
@@ -1150,7 +1150,7 @@ Point</string>
    <property name="geometry">
     <rect>
      <x>303</x>
-     <y>1257</y>
+     <y>10000</y>
      <width>94</width>
      <height>20</height>
     </rect>
@@ -1166,7 +1166,7 @@ Point</string>
    <property name="geometry">
     <rect>
      <x>403</x>
-     <y>1257</y>
+     <y>10000</y>
      <width>106</width>
      <height>20</height>
     </rect>
@@ -1182,7 +1182,7 @@ Point</string>
    <property name="geometry">
     <rect>
      <x>103</x>
-     <y>1313</y>
+     <y>10000</y>
      <width>406</width>
      <height>3</height>
     </rect>
@@ -1195,7 +1195,7 @@ Point</string>
    <property name="geometry">
     <rect>
      <x>203</x>
-     <y>1285</y>
+     <y>10000</y>
      <width>94</width>
      <height>20</height>
     </rect>
@@ -1208,7 +1208,7 @@ Point</string>
    <property name="geometry">
     <rect>
      <x>303</x>
-     <y>1285</y>
+     <y>10000</y>
      <width>94</width>
      <height>20</height>
     </rect>
@@ -1224,7 +1224,7 @@ Point</string>
    <property name="geometry">
     <rect>
      <x>403</x>
-     <y>1285</y>
+     <y>10000</y>
      <width>106</width>
      <height>20</height>
     </rect>
@@ -1237,7 +1237,7 @@ Point</string>
    <property name="geometry">
     <rect>
      <x>103</x>
-     <y>1285</y>
+     <y>10000</y>
      <width>94</width>
      <height>20</height>
     </rect>
@@ -1253,7 +1253,7 @@ Point</string>
    <property name="geometry">
     <rect>
      <x>203</x>
-     <y>1257</y>
+     <y>10000</y>
      <width>94</width>
      <height>20</height>
     </rect>
@@ -1269,7 +1269,7 @@ Point</string>
    <property name="geometry">
     <rect>
      <x>91</x>
-     <y>491</y>
+     <y>8000</y>
      <width>96</width>
      <height>17</height>
     </rect>

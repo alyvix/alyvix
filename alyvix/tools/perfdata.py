@@ -24,6 +24,7 @@ import tempfile
 from alyvix.tools.info import InfoManager
 
 perfdata_list = []
+last_timeout_value = (None, None) #we need this for back compatibility
 deleted_on_rename_list = []
 timedout_finders = []
 perf_counter = 0
@@ -36,9 +37,11 @@ class _PerfData:
         self.value = None
         self.warning_threshold = None
         self.critical_threshold = None
+        self.timeout_threshold = None
         self.counter = -1
         self.state = 0
         self.timestamp = None
+        self.extra = None
 
 
 class PerfManager:
@@ -54,6 +57,7 @@ class PerfManager:
     def clear_perfdata(self):
         global perfdata_list
         perfdata_list = []
+
 
     def add_perfdata(self, name, value=None, warning_threshold=None, critical_threshold=None, state=None):
 
@@ -110,6 +114,15 @@ class PerfManager:
                 perf_data.timestamp = keywords_timestamp_array[cnt_kts][1]
                 break
 
+        perf_data.timeout_threshold = None
+
+        keywords_timeout_array = self._info_manager.get_info('KEYWORD TIMEOUT')
+
+        for cnt_ktout in xrange(len(keywords_timeout_array)):
+            if keywords_timeout_array[cnt_ktout][0] == name:
+                perf_data.timeout_threshold = keywords_timeout_array[cnt_ktout][1]
+                break
+
         cnt = 0
 
         for perf_data_in_list in perfdata_list:
@@ -158,6 +171,14 @@ class PerfManager:
             cnt = cnt + 1
 
         perfdata_list = copy.deepcopy(perfdata_list_copy)
+
+    def set_perfdata_extra(self, name, extra):
+
+        global perfdata_list
+
+        for perf_data_in_list in perfdata_list:
+            if perf_data_in_list.name == str(name):
+                perf_data_in_list.extra = str(extra)
 
     def get_perfdata(self, name, delete_perfdata=False):
 
@@ -305,14 +326,26 @@ class PerfManager:
         for perfdata in perfdata_list:
 
             name = perfdata.name
-            value = perfdata.value
-            warning = perfdata.warning_threshold
-            critical = perfdata.critical_threshold
+
+            if perfdata.value == '' or perfdata.value is None:
+                value = ''
+            else:
+                value = ("%.3f" % perfdata.value)
+
+            if perfdata.warning_threshold == '' or perfdata.warning_threshold is None:
+                warning = ''
+            else:
+                warning = ("%.3f" % perfdata.warning_threshold)
+
+            if perfdata.critical_threshold == '' or perfdata.critical_threshold is None:
+                critical = ''
+            else:
+                critical = ("%.3f" % perfdata.critical_threshold)
 
             if cnt == 0:
-                ret_string = ret_string + name + "=" + str(value) + "s;" + str(warning) + ";" + str(critical) + ";;"
+                ret_string = ret_string + name + "=" + value + "s;" + warning + ";" + critical + ";;"
             else:
-                ret_string = ret_string + " " + name + "=" + str(value) + "s;" + str(warning) + ";" + str(critical) + ";;"
+                ret_string = ret_string + " " + name + "=" + value + "s;" + warning + ";" + critical + ";;"
 
             cnt = cnt + 1
 
@@ -398,27 +431,32 @@ class PerfManager:
         for perfdata in perfdata_list:
 
             name = perfdata.name
-            value = perfdata.value
             state = perfdata.state
+
+            if perfdata.value == '' or perfdata.value is None:
+                value = perfdata.value
+            else:
+                value = ("%.3f" % perfdata.value)
+
 
             if state == 0 and value == "":
                 self.performance_desc_string = self.performance_desc_string +\
                                                "OK: " + name + " time is null." + os.linesep
             elif state == 0:
                 self.performance_desc_string = self.performance_desc_string +\
-                                               "OK: " + name + " time is " + str(value) + " sec." + os.linesep
+                                               "OK: " + name + " time is " + value + " sec." + os.linesep
             elif state == 1 and value == "":
                 self.performance_desc_string = self.performance_desc_string +\
                                                "WARNING: " + name + " time is null." + os.linesep
             elif state == 1:
                 self.performance_desc_string = self.performance_desc_string +\
-                                               "WARNING: " + name + " time is " + str(value) + " sec." + os.linesep
+                                               "WARNING: " + name + " time is " + value + " sec." + os.linesep
             elif state == 2 and value == "":
                 self.performance_desc_string = self.performance_desc_string +\
                                                "CRITICAL: " + name + " time is null." + os.linesep
             elif state == 2:
                 self.performance_desc_string = self.performance_desc_string + \
-                                               "CRITICAL: " + name + " time is " + str(value) + " sec." + \
+                                               "CRITICAL: " + name + " time is " + value + " sec." + \
                                                os.linesep
             else:
                 self.performance_desc_string = self.performance_desc_string +\

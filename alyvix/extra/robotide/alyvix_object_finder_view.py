@@ -64,6 +64,7 @@ class dummy():
         self.action = ""
         self.xml_name = ""
         self.parent = None
+        self.scaling_factor = None
         
     def set_parent(self, parent):
         self.parent = parent
@@ -87,11 +88,39 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         # Set up the user interface from Designer.
         self.setupUi(self)
         
-        self.setFixedSize(self.size())
+        self.parent = parent
+        
+        self.scaling_factor = self.parent.scaling_factor
+        
+        #self.setFixedSize(self.size())
+        self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor), int(self.frameGeometry().height() * self.scaling_factor))
+        
+        self.widget.setGeometry(QRect(int(self.widget.geometry().x() * self.scaling_factor), int(self.widget.geometry().y() * self.scaling_factor),
+                                int(self.widget.geometry().width() * self.scaling_factor), int(self.widget.geometry().height() * self.scaling_factor)))
+                                
+        self.gridLayoutWidget.setGeometry(QRect(int(self.gridLayoutWidget.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget.geometry().y() * self.scaling_factor),
+                                          int(self.gridLayoutWidget.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget.geometry().height() * self.scaling_factor)))
+                                          
+        self.pushButtonOk.setGeometry(QRect(int(self.pushButtonOk.geometry().x() * self.scaling_factor), int(self.pushButtonOk.geometry().y() * self.scaling_factor),
+                                          int(self.pushButtonOk.geometry().width() * self.scaling_factor), int(self.pushButtonOk.geometry().height() * self.scaling_factor)))
+                                          
+        self.pushButtonCancel.setGeometry(QRect(int(self.pushButtonCancel.geometry().x() * self.scaling_factor), int(self.pushButtonCancel.geometry().y() * self.scaling_factor),
+                                          int(self.pushButtonCancel.geometry().width() * self.scaling_factor), int(self.pushButtonCancel.geometry().height() * self.scaling_factor)))
+                                          
+        self.listWidget.setGeometry(QRect(int(self.listWidget.geometry().x() * self.scaling_factor), int(self.listWidget.geometry().y() * self.scaling_factor),
+                                          int(self.listWidget.geometry().width() * self.scaling_factor), int(self.listWidget.geometry().height() * self.scaling_factor)))
+                                
+        
+        self.widget_2.setGeometry(QRect(int(self.widget_2.geometry().x() * self.scaling_factor), int(self.widget_2.geometry().y() * self.scaling_factor),
+                                        int(self.widget_2.geometry().width() * self.scaling_factor), int(self.widget_2.geometry().height() * self.scaling_factor)))
+                                
+        self.gridLayoutWidget_2.setGeometry(QRect(int(self.gridLayoutWidget_2.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().y() * self.scaling_factor),
+                                          int(self.gridLayoutWidget_2.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().height() * self.scaling_factor)))
+
         
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         
-        self.parent = parent
+
         self._path = self.parent.path
         self.action = self.parent.action
         self._xml_name = self.parent.xml_name
@@ -516,6 +545,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         m_controller = dummy()
         m_controller.action = "new"
         m_controller.path = self.parent.path
+        m_controller.scaling_factor = self.parent.scaling_factor
         m_controller.xml_name = xml_name.split(os.sep)[-1]
         
         if xml_name.endswith('_RectFinder.xml'):
@@ -594,6 +624,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             m_controller = dummy()
             m_controller.action = "new"
             m_controller.path = self.parent.path
+            m_controller.scaling_factor = self.parent.scaling_factor
             m_controller.xml_name = filename.split(os.sep)[-1]
 
             if filename.endswith('_RectFinder.xml'):
@@ -788,6 +819,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         m_controller = dummy()
         m_controller.action = "new"
         m_controller.path = self.parent.path
+        m_controller.scaling_factor = self.parent.scaling_factor
         m_controller.xml_name = path_main_xml.split(os.sep)[-1]
         
         if m_controller.xml_name == "":
@@ -859,6 +891,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 s_controller = dummy()
                 s_controller.action = "new"
                 s_controller.path = self.parent.path
+                s_controller.scaling_factor = self.parent.scaling_factor
                 s_controller.xml_name = path_sub_xml.split(os.sep)[-1]
         
                 if path_sub_xml.endswith('_RectFinder.xml'):
@@ -1088,6 +1121,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 s_controller = dummy()
                 s_controller.action = "new"
                 s_controller.path = self.parent.path
+                s_controller.scaling_factor = self.parent.scaling_factor
                 s_controller.xml_name = path_sub_xml.split(os.sep)[-1]
         
                 if path_sub_xml.endswith('_RectFinder.xml'):
@@ -1300,6 +1334,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         m_controller.set_parent(self)
         m_controller.action = "edit"
         m_controller.path = self.parent.path
+        m_controller.scaling_factor = self.parent.scaling_factor
         m_controller.robot_file_name =  self._robot_file_name
         m_controller.xml_name = str(self.listWidget.currentItem().data(Qt.UserRole).toString())
         
@@ -1347,6 +1382,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         m_controller = dummy()
         m_controller.action = "new"
         m_controller.path = self.parent.path
+        m_controller.scaling_factor = self.parent.scaling_factor
         m_controller.xml_name = filename
         
         if filename.endswith('_RectFinder.xml'):
@@ -1401,6 +1437,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         m_controller = dummy()
         m_controller.action = "new"
         m_controller.path = self.parent.path
+        m_controller.scaling_factor = self.parent.scaling_factor
         m_controller.xml_name = filename
 
         if filename.endswith('_RectFinder.xml'):
@@ -1660,12 +1697,16 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
-            self.widget.setGeometry(QRect(172, 9, 379, 212))
+            #self.widget.setGeometry(QRect(168, 9, 413, 433))
+            self.widget.setGeometry(QRect(self.widget.geometry().x(), self.widget.geometry().y(),
+                                    self.widget.geometry().width(), self.widget.geometry().height()))
 
         else:
             self.widget.hide()
             self.widget_2.show()
-            self.widget_2.setGeometry(QRect(172, 9, 378, 82))
+            #self.widget_2.setGeometry(QRect(168, 9, 414, 434))
+            self.widget_2.setGeometry(QRect(self.widget.geometry().x(), self.widget.geometry().y(),
+                                        self.widget_2.geometry().width(), self.widget_2.geometry().height()))
             self.sub_object_index = selected_index - 1
             self.update_sub_object_view()
     
@@ -2000,6 +2041,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         s_controller.action = "edit"
         s_controller.path = self.parent.path
         s_controller.robot_file_name =  self._robot_file_name
+        s_controller.scaling_factor = self.parent.scaling_factor
         s_controller.xml_name = str(self.listWidget.currentItem().data(Qt.UserRole).toString())
         
         image = QImage(s_controller.path + os.sep + s_controller.xml_name.replace("xml", "png"))

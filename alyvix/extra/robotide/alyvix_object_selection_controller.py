@@ -40,6 +40,7 @@ from alyvix_code_view import AlyvixCustomCodeView
 
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.configreader import ConfigReader
+from alyvix.tools.info import InfoManager
 
 from stat import S_ISREG, ST_CTIME, ST_MODE
 
@@ -50,10 +51,32 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     def __init__(self):
         QDialog.__init__(self)
 
+        info_manager = InfoManager()
+        self.scaling_factor = info_manager.get_info("SCALING FACTOR FLOAT")
+
         # Set up the user interface from Designer.
         self.setupUi(self)
-        
-        self.setFixedSize(self.size())
+
+        self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor),
+                          int(self.frameGeometry().height() * self.scaling_factor))
+
+        self.label.setGeometry(QRect(int(8*self.scaling_factor), int(7*self.scaling_factor),
+                                     int(211*self.scaling_factor), int(16*self.scaling_factor)))
+
+        self.pushButtonNew.setGeometry(QRect(int(8*self.scaling_factor), int(235*self.scaling_factor)
+                                             , int(60*self.scaling_factor), int(23*self.scaling_factor)))
+        self.pushButtonEdit.setGeometry(QRect(int(80*self.scaling_factor), int(235*self.scaling_factor),
+                                              int(60*self.scaling_factor), int(23*self.scaling_factor)))
+        self.pushButtonRemove.setGeometry(QRect(int(151*self.scaling_factor), int(235*self.scaling_factor),
+                                                int(75*self.scaling_factor), int(23*self.scaling_factor)))
+
+        self.listWidgetAlyObj.setGeometry(QRect(int(8*self.scaling_factor), int(28*self.scaling_factor),
+                                                int(218*self.scaling_factor), int(191*self.scaling_factor)))
+
+        self.spinBoxDelay.setGeometry(QRect(int(184*self.scaling_factor), int(332*self.scaling_factor),
+                                            int(42*self.scaling_factor), int(22*self.scaling_factor)))
+        self.label_2.setGeometry(QRect(int(135*self.scaling_factor), int(333*self.scaling_factor),
+                                       int(37*self.scaling_factor), int(20*self.scaling_factor)))
 
         #self.setWindowTitle('Application Object Properties')
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
@@ -240,7 +263,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.spinBoxDelay.hide()
         self.label_2.hide()
         
-        self.listWidgetAlyObj.setGeometry(QRect(8, 28, 218, 181))
+        self.listWidgetAlyObj.setGeometry(QRect(int(8*self.scaling_factor), int(28*self.scaling_factor),
+                                                int(218*self.scaling_factor), int(181*self.scaling_factor)))
         self.pushButtonEdit.show()
         self.pushButtonNew.show()
         self.pushButtonRemove.show()
@@ -249,11 +273,15 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
 
         #self.spinBoxDelay.setGeometry(QRect(62, 500, 111, 23))
         
-        self.label_2.setGeometry(QRect(135, 333, 37, 20))
+        self.label_2.setGeometry(QRect(int(135*self.scaling_factor), int(333*self.scaling_factor),
+                                       int(37*self.scaling_factor), int(20*self.scaling_factor)))
         self.spinBoxDelay.setGeometry(QRect(184, 332, 42, 22))
         
-        self.gridLayoutWidget.setGeometry(QRect(8, 330, 218, 177))
-        self.pushButtonCancel.setGeometry(QRect(62, 500, 111, 23))
+        self.gridLayoutWidget.setGeometry(QRect(int(8*self.scaling_factor), int(330*self.scaling_factor),
+                                                int(218*self.scaling_factor), int(177*self.scaling_factor)))
+
+        self.pushButtonCancel.setGeometry(QRect(int(62*self.scaling_factor), int(500*self.scaling_factor),
+                                                int(111*self.scaling_factor), int(23*self.scaling_factor)))
     
     def add_item(self):
     
@@ -268,11 +296,15 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.spinBoxDelay.show()
         self.label_2.show()
         
-        self.label_2.setGeometry(QRect(135, 12, 37, 20))
-        self.spinBoxDelay.setGeometry(QRect(182, 10, 42, 22))
+        self.label_2.setGeometry(QRect(int(135*self.scaling_factor), int(12*self.scaling_factor),
+                                       int(37*self.scaling_factor), int(20*self.scaling_factor)))
+        self.spinBoxDelay.setGeometry(QRect(int(182*self.scaling_factor), int(10*self.scaling_factor),
+                                            int(42*self.scaling_factor), int(22*self.scaling_factor)))
         
-        self.gridLayoutWidget.setGeometry(QRect(8, 38, 218, 197))
-        self.pushButtonCancel.setGeometry(QRect(62, 235, 111, 23))
+        self.gridLayoutWidget.setGeometry(QRect(int(8*self.scaling_factor), int(38*self.scaling_factor),
+                                                int(218*self.scaling_factor), int(197*self.scaling_factor)))
+        self.pushButtonCancel.setGeometry(QRect(int(62*self.scaling_factor), int(235*self.scaling_factor),
+                                                int(111*self.scaling_factor), int(23*self.scaling_factor)))
         
                     
     def edit_item(self):
@@ -288,7 +320,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print selected_item_data
         
         if self.xml_name.endswith("_ObjectFinder.xml"):
+            #info_manager = InfoManager()
             self.hide()
+            #self.scaling_factor = info_manager.get_info("SCALING FACTOR FLOAT")
             time.sleep(0.600)
             self.alyvix_finder_controller = AlyvixObjectFinderView(self)
             self.alyvix_finder_controller.show()
@@ -300,9 +334,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             self.alyvix_finder_controller = AlyvixCustomCodeView(self)
             self.alyvix_finder_controller.show()
             return
-
-        screen_manager = ScreenManager()
+        #info_manager = InfoManager()
         self.hide()
+        #self.scaling_factor = info_manager.get_info("SCALING FACTOR FLOAT")
         time.sleep(0.600)
         img_color = cv2.imread(str(self.xml_name).replace("xml","png")) #screen_manager.grab_desktop(screen_manager.get_color_mat)
         #print "imgggg", self.path + os.sep + self.xml_name
@@ -460,7 +494,6 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     def open_objectfinder_controller(self):
         self.xml_name = None
         self.restore_view()
-        #screen_manager = ScreenManager()
         self.hide()
         self.sleep_before_action()
         time.sleep(0.600)

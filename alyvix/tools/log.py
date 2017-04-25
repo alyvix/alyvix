@@ -521,6 +521,15 @@ class LogManager:
 
                     file_name = file_name + ".png"
 
+                    file_name_gif = image_name
+
+                    if overwrite_images is False:
+                        while os.path.isfile(outputdir + os.sep + file_name_gif + ".gif"):
+                            file_name_gif = image_name + "_" + str(index)
+                            index = index + 1
+
+                    file_name_gif = file_name_gif + ".gif"
+
                     if finder_type is None:
                         cv2.imwrite(outputdir + os.sep + file_name, img_color)  # , [int(cv2.IMWRITE_JPEG_QUALITY), 90])
 
@@ -606,9 +615,7 @@ class LogManager:
                                      duration=int(self._info_manager.get_info('GIF FRAME TIMING')))
 
                             self._robot_manager.write_log_message(
-                                "<a href=\"" + file_name.replace("png",
-                                                                 "gif") + "\"><img width=\"800\" src=\"" + file_name.replace(
-                                    "png", "gif") + "\"></a>", "INFO",
+                                "<a href=\"" + file_name_gif + "\"><img width=\"800\" src=\"" + file_name_gif + "\"></a>", "INFO",
                                 True)
 
                             try:

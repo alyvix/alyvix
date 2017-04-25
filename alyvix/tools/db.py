@@ -28,6 +28,7 @@ import ConfigParser
 from alyvix.tools.info import InfoManager
 from alyvix.tools.perfdata import PerfManager
 from distutils.sysconfig import get_python_lib
+from .natsmanager import NatsManager
 
 _db_file_name = None
 
@@ -71,54 +72,39 @@ class DbManager():
         self._connection.close()
 
     def _create_tables(self):
-
-        try:
-            self._create_runs_table()
-        except:
-            pass
-
-        try:
-            self._create_thresholds_table()
-        except:
-            pass
-
-        try:
-            self._create_sorting_table()
-        except:
-            pass
-
-        try:
-            self._create_timestamp_table()
-        except:
-            pass
+        self._create_runs_table()
+        self._create_thresholds_table()
+        self._create_sorting_table()
+        self._create_timestamp_table()
 
 
     def _create_runs_table(self):
-        query = "CREATE TABLE runs (start_time integer primary key"
+        query = "CREATE TABLE IF NOT EXISTS runs (start_time integer primary key"
         for perf in self._perf_manager.get_all_perfdata():
             query = query + ", " + perf.name + " integer"
         query += ")"
         self._cursor.execute(query)
 
     def _create_thresholds_table(self):
-        query = "CREATE TABLE thresholds (start_time integer primary key"
+        query = "CREATE TABLE IF NOT EXISTS thresholds (start_time integer primary key"
         for perf in self._perf_manager.get_all_perfdata():
-            query = query + ", " + perf.name + "_warn integer, " + perf.name + "_crit integer"
-        query += ")"
+            query = query + ", " + perf.name + "_warn integer, " + perf.name + "_crit integer, " \
+                    + perf.name + "_tout integer"
+        query += ", FOREIGN KEY (start_time) REFERENCES runs(start_time) ON DELETE CASCADE)"
         self._cursor.execute(query)
 
     def _create_sorting_table(self):
-        query = "CREATE TABLE sorting (start_time integer primary key"
+        query = "CREATE TABLE IF NOT EXISTS sorting (start_time integer primary key"
         for perf in self._perf_manager.get_all_perfdata():
             query = query + ", " + perf.name + "_index integer"
-        query += ")"
+        query += ", FOREIGN KEY (start_time) REFERENCES runs(start_time) ON DELETE CASCADE)"
         self._cursor.execute(query)
 
     def _create_timestamp_table(self):
-        query = "CREATE TABLE timestamp (start_time integer primary key"
+        query = "CREATE TABLE IF NOT EXISTS timestamp (start_time integer primary key"
         for perf in self._perf_manager.get_all_perfdata():
             query = query + ", " + perf.name + "_time integer"
-        query += ")"
+        query += ", FOREIGN KEY (start_time) REFERENCES runs(start_time) ON DELETE CASCADE)"
         self._cursor.execute(query)
 
     def _check_runs_columns(self):
@@ -149,6 +135,7 @@ class DbManager():
 
             perf_warn_present = False
             perf_crit_present = False
+            perf_timeout_present = False
 
             for row in rows:
 
@@ -157,6 +144,9 @@ class DbManager():
 
                 if row[1] == perf.name + "_crit":
                     perf_crit_present = True
+
+                if row[1] == perf.name + "_tout":
+                    perf_timeout_present = True
 
             #check and add new columns
             if perf_warn_present is False:
@@ -168,6 +158,12 @@ class DbManager():
             if perf_crit_present is False:
 
                 query = "ALTER TABLE thresholds ADD COLUMN " + perf.name + "_crit integer;"
+                self._cursor.execute(query)
+
+            #check and add new columns
+            if perf_timeout_present is False:
+
+                query = "ALTER TABLE thresholds ADD COLUMN " + perf.name + "_tout integer;"
                 self._cursor.execute(query)
 
     def _check_sorting_columns(self):
@@ -252,11 +248,14 @@ class DbManager():
 
         for perf in current_perfdata:
 
-            #if warning or critical are empty, then we dont have to compare warning or critical column
+            #if warning or critical or timeout are empty, then we dont have to compare warning or critical column
             if perf.warning_threshold == "" or perf.warning_threshold is None and total_null > 0:
                 total_null -= 1
 
             if perf.critical_threshold == "" or perf.critical_threshold is None and total_null > 0:
+                total_null -= 1
+
+            if perf.timeout_threshold == "" or perf.timeout_threshold is None and total_null > 0:
                 total_null -= 1
 
         if last_rows is not None:
@@ -268,13 +267,13 @@ class DbManager():
         query = "INSERT INTO thresholds (start_time"
 
         for perf in current_perfdata:
-            query = query + ", " + perf.name + "_warn, " + perf.name + "_crit"
+            query = query + ", " + perf.name + "_warn, " + perf.name + "_crit, " + perf.name + "_tout"
         query = query + ") VALUES (" + str(start_time)
 
         different_from_last = self._db_is_new
 
         #check if perfdata items of current run are > (or <) than last row columns
-        if len(current_perfdata) * 2 != (total_columns - total_null):
+        if len(current_perfdata) * 3 != (total_columns - total_null):
             different_from_last = True
 
         for perf in self._perf_manager.get_all_perfdata():
@@ -295,6 +294,15 @@ class DbManager():
             else:
                 query = query + ", null"
                 if last_rows is not None and last_rows[perf.name + "_crit"] is not None:
+                    different_from_last = True
+
+            if perf.timeout_threshold is not None and perf.timeout_threshold != "":
+                query = query + ", " + str(int(perf.timeout_threshold * 1000))
+                if last_rows is not None and last_rows[perf.name + "_tout"] != int(perf.timeout_threshold * 1000):
+                    different_from_last = True
+            else:
+                query = query + ", null"
+                if last_rows is not None and last_rows[perf.name + "_tout"] is not None:
                     different_from_last = True
 
         if different_from_last is True:
@@ -415,7 +423,8 @@ class DbManager():
         self.close()
 
     def publish_perfdata(self, type="csv", start_date=None, end_date=None, filename=None,
-                         testcase_name=None, max_age=24, suffix=None):
+                         testcase_name=None, max_age=24, suffix=None, subject=None, server=None, port=None,
+                         measurement="alyvix", max_reconnect_attempts=5, reconnect_time_wait=2):
 
         if type.lower() == "perfmon":
             try:
@@ -648,5 +657,30 @@ class DbManager():
             self.close()
 
             csv_file.close()
+        elif type.lower() == "nats":
+            nm = NatsManager()
+
+            perfdata_list = self._perf_manager.get_all_perfdata()
+
+            if server is None or server == "":
+                raise Exception('the server value cannot be empty!')
+
+            if port is None or port == "":
+                port = 4222
+
+            if subject is None or subject == "":
+                raise Exception('the subject value cannot be empty!')
+
+            if testcase_name is None or testcase_name == "":
+                testcase_name = self._info_manager.get_info('TEST CASE NAME')
+
+            if testcase_name is None or testcase_name == "":
+                testcase_name = self._info_manager.get_info('SUITE NAME')
+
+            if testcase_name is None or testcase_name == "":
+                raise Exception('invalid testcase name!')
+
+            nm.publish(perfdata_list, testcase_name, subject, server, str(port), measurement=measurement,
+                max_reconnect_attempts=max_reconnect_attempts, reconnect_time_wait=reconnect_time_wait)
         else:
             raise Exception('invalid publish perf output type!')

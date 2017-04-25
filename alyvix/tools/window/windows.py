@@ -33,6 +33,9 @@ class WinManager(WinManagerBase):
     def __init__(self):
         pass
 
+    def get_window_title(self):
+        return win32gui.GetWindowText(win32gui.GetForegroundWindow())
+
     def show_window(self, window_title):
         """
         show window.
