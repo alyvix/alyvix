@@ -611,7 +611,7 @@ class LogManager:
                             for tuple_image in object_list_sorted:
                                 gif_images.append(Image.fromarray(cv2.cvtColor(tuple_image[1], cv2.COLOR_BGR2RGB)))
 
-                            writeGif(outputdir + os.sep + file_name.replace("png", "gif"), gif_images,
+                            writeGif(outputdir + os.sep + file_name_gif, gif_images,
                                      duration=int(self._info_manager.get_info('GIF FRAME TIMING')))
 
                             self._robot_manager.write_log_message(

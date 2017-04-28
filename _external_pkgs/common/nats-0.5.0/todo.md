@@ -1,0 +1,24 @@
+
+- [X] examples: nats-pub, nats-sub
+- [X] tests
+- [X] request pattern
+- [X] inboxes
+- [X] ping/pong interval
+- [X] correct verbose and pedantic handling
+- [X] cluster
+- [X] authorization
+- [X] reconnection and state
+- [X] readings deadline, flush timeout
+- [X] more thorough test split buffer scenarios
+- [X] benchmarks
+- [X] pending data buffering on reconnect
+- [X] client connection stats
+- [X] integration tests with server
+- [X] follow size of max payload
+- [X] closed state
+- [X] Travis builds
+- [X] Release on PyPI
+- [X] error, close, disconnected callbacks
+- [X] TLS
+- [ ] confirm performance issues handling on larger messages
+- [ ] support async protocol
