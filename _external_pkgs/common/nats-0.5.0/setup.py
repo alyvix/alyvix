@@ -11,7 +11,6 @@ setup(
     author_email='wally@apcera.com',
     license='MIT License',
     packages=['nats', 'nats.io', 'nats.protocol'],
-    install_requires=['tornado==4.2'],
     zip_safe=True,
     classifiers=[
         'Intended Audience :: Developers',
