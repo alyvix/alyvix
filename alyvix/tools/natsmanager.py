@@ -228,5 +228,5 @@ class NatsManager():
 
     def publish(self,perfdata_list, testcase_name, subject, server, port=4222, measurement="alyvix",
                 max_reconnect_attempts=5, reconnect_time_wait=2):
-        tornado.ioloop.IOLoop.instance().run_sync(lambda: self._pub(perfdata_list, testcase_name, subject, server, port=4222, measurement="alyvix",
-                max_reconnect_attempts=5, reconnect_time_wait=2))
+        tornado.ioloop.IOLoop.instance().run_sync(lambda: self._pub(perfdata_list, testcase_name, subject, server, port, measurement,
+                max_reconnect_attempts, reconnect_time_wait))
