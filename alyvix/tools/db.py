@@ -660,7 +660,7 @@ class DbManager():
         elif type.lower() == "nats":
             nm = NatsManager()
 
-            perfdata_list = self._perf_manager.get_all_perfdata()
+            #perfdata_list = self._perf_manager.get_all_perfdata()
 
             if server is None or server == "":
                 raise Exception('the server value cannot be empty!')
@@ -680,7 +680,7 @@ class DbManager():
             if testcase_name is None or testcase_name == "":
                 raise Exception('invalid testcase name!')
 
-            nm.publish(perfdata_list, testcase_name, subject, server, str(port), measurement=measurement,
+            nm.publish(testcase_name, subject, server, str(port), measurement=measurement,
                 max_reconnect_attempts=max_reconnect_attempts, reconnect_time_wait=reconnect_time_wait)
         else:
             raise Exception('invalid publish perf output type!')
