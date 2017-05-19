@@ -19,8 +19,10 @@
 # Official website: http://www.alyvix.com/
 
 import os
+import time
 import copy
 import tempfile
+import datetime
 from alyvix.tools.info import InfoManager
 
 perfdata_list = []
@@ -41,7 +43,9 @@ class _PerfData:
         self.counter = -1
         self.state = 0
         self.timestamp = None
+        self.end_timestamp_only_for_summed_perf = None
         self.extra = None
+        self.custom_tags = {}
 
 
 class PerfManager:
@@ -59,7 +63,7 @@ class PerfManager:
         perfdata_list = []
 
 
-    def add_perfdata(self, name, value=None, warning_threshold=None, critical_threshold=None, state=None):
+    def add_perfdata(self, name, value=None, warning_threshold=None, critical_threshold=None, state=None, inittimestamp=False):
 
         global perfdata_list
         global perf_counter
@@ -104,8 +108,21 @@ class PerfManager:
         elif perf_data.value != "":
             perf_data.state = 0
 
+        initts = False
 
-        perf_data.timestamp = None
+        if inittimestamp == True:
+            initts = True
+
+        try:
+            if str(inittimestamp).lower() == "true":
+                initts = True
+        except:
+            pass
+
+        if  initts == True:
+            perf_data.timestamp = int(time.time() * 1000)
+        else:
+            perf_data.timestamp = None
 
         keywords_timestamp_array = self._info_manager.get_info('KEYWORD TIMESTAMP')
 
@@ -179,6 +196,14 @@ class PerfManager:
         for perf_data_in_list in perfdata_list:
             if perf_data_in_list.name == str(name):
                 perf_data_in_list.extra = str(extra)
+
+    def add_perfdata_tag(self, perf_name, tag_name, tag_value):
+
+        global perfdata_list
+
+        for perf_data_in_list in perfdata_list:
+            if perf_data_in_list.name == str(perf_name) or str(perf_name) == "all":
+                perf_data_in_list.custom_tags[str(tag_name)] = str(tag_value)
 
     def get_perfdata(self, name, delete_perfdata=False):
 
@@ -259,6 +284,11 @@ class PerfManager:
         except:
             pass
 
+        biggest_timestamp = 0
+        smallest_timestamp = 10413792000000 #2300/01/01
+        value_of_last_perf = None
+        timeout_of_last_perf = None
+
         cnt = 0
         for perf_data_in_list in perfdata_list:
             for name in names:
@@ -266,6 +296,17 @@ class PerfManager:
                         and perf_data_in_list.value is not None:
                     value_to_sum.append(perf_data_in_list.value)
                     sum = 0 #init sum
+
+                    if perf_data_in_list.timestamp is None:
+                        raise Exception("You cannot add performances without timestamp!!")
+
+                    if perf_data_in_list.timestamp < smallest_timestamp:
+                        smallest_timestamp = perf_data_in_list.timestamp
+
+                    if perf_data_in_list.timestamp > biggest_timestamp:
+                        biggest_timestamp = perf_data_in_list.timestamp
+                        value_of_last_perf = perf_data_in_list.value
+                        timeout_of_last_perf = perf_data_in_list.timeout_threshold
 
                     if delete_perf is True:
                         index_to_delete.append(cnt)
@@ -292,9 +333,29 @@ class PerfManager:
             sum = sum + perf
 
         if perf_name != "":
+
             self.add_perfdata(perf_name, sum, warning_threshold, critical_threshold)
 
+            for perf in perfdata_list:
+                if perf.name == perf_name:
+
+                    perf.timestamp = smallest_timestamp
+
+                    try:
+                        end_timestamp_only_for_summed_perf = (float(biggest_timestamp)/1000) + value_of_last_perf
+                        perf.end_timestamp_only_for_summed_perf = int(end_timestamp_only_for_summed_perf*1000)
+                    except:
+                        try:
+                            end_timestamp_only_for_summed_perf = (float(biggest_timestamp)/1000) + timeout_of_last_perf
+                            perf.end_timestamp_only_for_summed_perf = int(end_timestamp_only_for_summed_perf*1000)
+                        except:
+                            perf.end_timestamp_only_for_summed_perf = biggest_timestamp
+
         return sum
+
+    def get_last_filled(self):
+        #self.order_perfdata()
+        return self._last_filled_perf
 
     def order_perfdata(self):
         global perfdata_list
