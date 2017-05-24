@@ -45,6 +45,8 @@ from alyvix.tools.info import InfoManager
 from stat import S_ISREG, ST_CTIME, ST_MODE
 
 import shutil
+from distutils.sysconfig import get_python_lib
+
 
 class AlyvixMainMenuController(QDialog, Ui_Form):
 
@@ -171,9 +173,17 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
 
         template_path = self.path + os.sep + str(self.xml_name).replace("_ImageFinder.xml","")
         
+        ##tttttttttt
+        
         if os.path.exists(template_path):
             shutil.rmtree(template_path)
         #self.update_list()
+        
+        extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
+        scraper_path = extra_path + os.sep + str(self.xml_name).replace("_TextFinder.xml","")
+        
+        if os.path.exists(scraper_path):
+            shutil.rmtree(scraper_path)
         
         item = self.listWidgetAlyObj.takeItem(selected_index)
         self.listWidgetAlyObj.removeItemWidget(item)
@@ -211,6 +221,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         for cdate, path in sorted(entries):
             filename = os.path.basename(path)
             
+            extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
+            
             if os.path.exists(self.path + os.sep + "lock_list.xml"):
                 if "<name>" + filename + "</name>" in string:
                     continue
@@ -221,7 +233,10 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 elif filename.endswith('_ImageFinder.xml'):
                     item.setText(filename[:-16] + " [IF]")
                 elif filename.endswith("_TextFinder.xml"):
-                    item.setText(filename[:-15] + " [TF]")
+                    if os.path.exists(extra_path + os.sep + filename.replace("_TextFinder.xml","")):
+                        item.setText(filename[:-15] + " [SC]")
+                    else:
+                        item.setText(filename[:-15] + " [TF]")
                 elif filename.endswith('_ObjectFinder.xml'):
                     item.setText(filename[:-17] + " [OF]")
                 elif filename.endswith('_CustomCode.xml'):
@@ -379,6 +394,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     def add_new_item_on_list(self): 
     
         #self.update_list()
+
+        extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
     
         dirpath = self.path
 
@@ -419,7 +436,10 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         elif filename.endswith('_ImageFinder.xml'):
             item.setText(filename[:-16] + " [IF]")
         elif filename.endswith("_TextFinder.xml"):
-            item.setText(filename[:-15] + " [TF]")
+            if os.path.exists(extra_path + os.sep + filename.replace("_TextFinder.xml","")):
+                item.setText(filename[:-15] + " [SC]")
+            else:
+                item.setText(filename[:-15] + " [TF]")
         elif filename.endswith("_ObjectFinder.xml"):
             item.setText(filename[:-17] + " [OF]")
         elif filename.endswith("_CustomCode.xml"):

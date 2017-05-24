@@ -537,9 +537,15 @@ class LogManager:
 
                     if disappear_mode is False:
                         if finder_type is None:
-                            self._robot_manager.write_log_message(
-                                "<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>",
-                                "INFO", True)
+                            if self._info_manager.get_info("ALYVIX SCRAPER") is None:
+                                self._robot_manager.write_log_message(
+                                    "<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>",
+                                    "INFO", True)
+                            else:
+                                self._robot_manager.write_log_message(
+                                    "<a href=\"" + file_name + "\"><img src=\"" + file_name + "\"></a>",
+                                    "INFO", True)
+                                self._info_manager.set_info("ALYVIX SCRAPER", None)
                         elif finder_type == 0:  # img finder inside obj finder
                             self._info_manager.set_info("image finder last log image", (
                             file_name, img_color, self._info_manager.get_info('last log image order')))
