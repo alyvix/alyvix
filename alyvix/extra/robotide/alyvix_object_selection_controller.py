@@ -223,7 +223,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             
             extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
             
-            print extra_path + os.sep + filename
+            #print extra_path + os.sep + filename
             
             if os.path.exists(self.path + os.sep + "lock_list.xml"):
                 if "<name>" + filename + "</name>" in string:
@@ -433,9 +433,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print filename
         #print cdate
         
-        print extra_path + os.sep + filename
+        #print extra_path + os.sep + filename
         
-        print filename
+        #print filename
         item = QListWidgetItem()
 
         if filename.endswith('_RectFinder.xml'):
