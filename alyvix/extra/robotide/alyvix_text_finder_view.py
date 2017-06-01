@@ -4587,7 +4587,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if result != None:
             result_flag = True
         
-        self.check_window = AlyvixTextCheck(text, result_flag)
+        self.check_window = AlyvixTextCheck(text, result_flag, self.parent)
         self.check_window.show()
   
     def args_spinbox_change_event(self, event):
@@ -5610,7 +5610,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if result != None:
             result_flag = True
         
-        self.check_window = AlyvixTextCheck(text, result_flag)
+        self.check_window = AlyvixTextCheck(text, result_flag, self.parent)
         self.check_window.show()
         
     @pyqtSlot(QString)
@@ -6034,16 +6034,40 @@ class LineTextWidget(QFrame):
         return self.edit
         
 class AlyvixTextCheck(QDialog, Ui_Form_Text):
-    def __init__(self, text, check_result):
+    def __init__(self, text, check_result, parent):
         QDialog.__init__(self)
+        
+        self.parent = parent
 
         # Set up the user interface from Designer.
         self.setupUi(self)
+        
+        self.scaling_factor = self.parent.parent.scaling_factor
+        
+        #self.setFixedSize(self.size())
+        self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor), int(self.frameGeometry().height() * self.scaling_factor))
+        
+        self.labelHeader.setGeometry(QRect(int(self.labelHeader.geometry().x() * self.scaling_factor), int(self.labelHeader.geometry().y() * self.scaling_factor),
+                                int(self.labelHeader.geometry().width() * self.scaling_factor), int(self.labelHeader.geometry().height() * self.scaling_factor)))
                         
+        
+        self.plainTextEdit.setGeometry(QRect(int(self.plainTextEdit.geometry().x() * self.scaling_factor), int(self.plainTextEdit.geometry().y() * self.scaling_factor),
+                                int(self.plainTextEdit.geometry().width() * self.scaling_factor), int(self.plainTextEdit.geometry().height() * self.scaling_factor)))
+                        
+        self.labelCheckResult.setGeometry(QRect(int(self.labelCheckResult.geometry().x() * self.scaling_factor), int(self.labelCheckResult.geometry().y() * self.scaling_factor),
+                                int(self.labelCheckResult.geometry().width() * self.scaling_factor), int(self.labelCheckResult.geometry().height() * self.scaling_factor)))
+                        
+        
+        self.pushButtonOk.setGeometry(QRect(int(self.pushButtonOk.geometry().x() * self.scaling_factor), int(self.pushButtonOk.geometry().y() * self.scaling_factor),
+                                          int(self.pushButtonOk.geometry().width() * self.scaling_factor), int(self.pushButtonOk.geometry().height() * self.scaling_factor)))
+                                          
+        
         #self.text = text
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
         
-        if check_result is False:
+        if self.parent.scraper is True:
+            self.labelCheckResult.setText("")   
+        elif check_result is False:
             self.labelCheckResult.setText("CRITICAL:  Your regular expression doesn't match with text found!")
         
         self.plainTextEdit.setPlainText(text)

@@ -355,6 +355,22 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     def save_all(self):
         if self._main_object_finder != None and self.ok_pressed is False:
             self.ok_pressed = True
+            
+            scraper_file_name = self._path + os.sep + self._main_object_finder.name + "_ObjectFinder.alyscraper"
+            
+            if self._main_object_finder.is_scraper is True:
+                
+                if not os.path.exists(scraper_file_name):
+                    with open(scraper_file_name, 'w') as f:
+                        
+                        f.write("scraper=true")
+
+                        f.close()
+            else:
+            
+                if os.path.exists(scraper_file_name):
+                    os.remove(scraper_file_name)
+            
             self.build_code_array()
             self.update_lock_list()
             self.parent.update_list()
@@ -618,9 +634,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         else:
             self._main_object_finder.enable_performance = False
             
-        if root_node.attributes["scraper"].value == "True":
-            self._main_object_finder.is_scraper = True
-        else:
+        try:
+            if root_node.attributes["scraper"].value == "True":
+                self._main_object_finder.is_scraper = True
+            else:
+                self._main_object_finder.is_scraper = False
+        except:
             self._main_object_finder.is_scraper = False
             
         self._main_object_finder.warning = float(root_node.attributes["warning_value"].value)
@@ -2238,9 +2257,26 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         
         self.setupUi(self)
         
-        self.setFixedSize(self.size())
-        
+                
         self.parent = parent
+        
+        self.scaling_factor = self.parent.parent.scaling_factor
+        
+        #self.setFixedSize(self.size())
+        self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor), int(self.frameGeometry().height() * self.scaling_factor))
+        
+        self.listWidgetAlyObj.setGeometry(QRect(int(self.listWidgetAlyObj.geometry().x() * self.scaling_factor), int(self.listWidgetAlyObj.geometry().y() * self.scaling_factor),
+                                int(self.listWidgetAlyObj.geometry().width() * self.scaling_factor), int(self.listWidgetAlyObj.geometry().height() * self.scaling_factor)))
+            
+        self.label.setGeometry(QRect(int(self.label.geometry().x() * self.scaling_factor), int(self.label.geometry().y() * self.scaling_factor),
+                                int(self.label.geometry().width() * self.scaling_factor), int(self.label.geometry().height() * self.scaling_factor)))
+                                
+        self.pushButtonSelect.setGeometry(QRect(int(self.pushButtonSelect.geometry().x() * self.scaling_factor), int(self.pushButtonSelect.geometry().y() * self.scaling_factor),
+                                int(self.pushButtonSelect.geometry().width() * self.scaling_factor), int(self.pushButtonSelect.geometry().height() * self.scaling_factor)))
+            
+        self.pushButtonCancel.setGeometry(QRect(int(self.pushButtonCancel.geometry().x() * self.scaling_factor), int(self.pushButtonCancel.geometry().y() * self.scaling_factor),
+                                int(self.pushButtonCancel.geometry().width() * self.scaling_factor), int(self.pushButtonCancel.geometry().height() * self.scaling_factor)))
+            
         
         self._old_main_list_item = None
         

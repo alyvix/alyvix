@@ -223,6 +223,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             
             extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
             
+            print extra_path + os.sep + filename
+            
             if os.path.exists(self.path + os.sep + "lock_list.xml"):
                 if "<name>" + filename + "</name>" in string:
                     continue
@@ -233,12 +235,15 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 elif filename.endswith('_ImageFinder.xml'):
                     item.setText(filename[:-16] + " [IF]")
                 elif filename.endswith("_TextFinder.xml"):
-                    if os.path.exists(extra_path + os.sep + filename.replace("_TextFinder.xml","")):
-                        item.setText(filename[:-15] + " [SC]")
+                    if os.path.exists(extra_path + os.sep + filename.replace("_TextFinder.xml","") + os.sep + "scraper.txt"):
+                        item.setText(filename[:-15] + " [TS]")
                     else:
                         item.setText(filename[:-15] + " [TF]")
                 elif filename.endswith('_ObjectFinder.xml'):
-                    item.setText(filename[:-17] + " [OF]")
+                    if os.path.exists(path.replace("_ObjectFinder.xml","_ObjectFinder.alyscraper")):
+                        item.setText(filename[:-17] + " [OS]")
+                    else:
+                        item.setText(filename[:-17] + " [OF]")
                 elif filename.endswith('_CustomCode.xml'):
                     item.setText(filename[:-15] + " [CC]")
                     
@@ -428,6 +433,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print filename
         #print cdate
         
+        print extra_path + os.sep + filename
+        
         print filename
         item = QListWidgetItem()
 
@@ -436,12 +443,15 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         elif filename.endswith('_ImageFinder.xml'):
             item.setText(filename[:-16] + " [IF]")
         elif filename.endswith("_TextFinder.xml"):
-            if os.path.exists(extra_path + os.sep + filename.replace("_TextFinder.xml","")):
-                item.setText(filename[:-15] + " [SC]")
+            if os.path.exists(extra_path + os.sep + filename.replace("_TextFinder.xml","") + os.sep + "scraper.txt"):
+                item.setText(filename[:-15] + " [TS]")
             else:
                 item.setText(filename[:-15] + " [TF]")
         elif filename.endswith("_ObjectFinder.xml"):
-            item.setText(filename[:-17] + " [OF]")
+            if os.path.exists(path.replace("_ObjectFinder.xml","_ObjectFinder.alyscraper")):
+                item.setText(filename[:-17] + " [OS]")
+            else:
+                item.setText(filename[:-17] + " [OF]")
         elif filename.endswith("_CustomCode.xml"):
             item.setText(filename[:-15] + " [CC]")
         """

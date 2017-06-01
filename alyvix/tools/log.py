@@ -564,6 +564,18 @@ class LogManager:
                         elif finder_type == 3:  # obj finder
                             # self._info_manager.set_info("obj finder last log image", img_color)
 
+                            if self._info_manager.get_info("ALYVIX SCRAPER SOURCE IMG") is not None:
+                                file_name = file_name.replace(".png","_source_scraper.png")
+
+                                cv2.imwrite(outputdir + os.sep + file_name, self._info_manager.get_info("ALYVIX SCRAPER SOURCE IMG") )
+
+                                self._robot_manager.write_log_message(
+                                    "<a href=\"" + file_name + "\"><img src=\"" + file_name + "\"></a>",
+                                    "INFO",
+                                    True)
+
+                                self._info_manager.set_info("ALYVIX SCRAPER SOURCE IMG", None)
+
                             object_list = []
 
                             try:

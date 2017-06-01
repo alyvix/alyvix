@@ -188,11 +188,22 @@ class TextFinder(BaseFinder):
         else:
             source_image = self._source_image_gray
 
+        self._info_manager.set_info("ALYVIX SCRAPER SOURCE IMG", source_image)
+
         self._log_manager.save_objects_found(self._name, source_image,
                                              [],
                                              [],
                                              self.main_xy_coordinates, self.sub_xy_coordinates, finder_type=None)
+
         print "text from scraper: " + sc_text
+
+        source_image = self._source_image_gray
+
+        self._log_manager.save_objects_found(self._name, source_image,
+                                             self._objects_found,
+                                             [],
+                                             self.main_xy_coordinates, self.sub_xy_coordinates, finder_type=None)
+
         self._scraper_enable = False
         self._source_image_color = None
         self._source_image_gray = None
