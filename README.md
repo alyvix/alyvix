@@ -17,9 +17,9 @@ Alyvix provides **certifications on user perceived quality of IT services**. Aly
 
 + Alyvix automates and measures Outlook through Citrix and RDWebAccess:
 
-     ![Use case: Alyvix on Outlook through Citrix](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-Citrix-Outlook-201702.gif)
-     ![Use case: Alyvix on Outlook through Citrix](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-RDWA-Outlook-201702.gif)
+     ![Use case: Alyvix on Outlook through Citrix](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-Citrix-Outlook-20170606.gif)
+     ![Use case: Alyvix on Outlook through Citrix](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-RDWA-Outlook-20170606.gif)
 + Alyvix automates and measures Word through Citrix and RDWebAccess:
 
-     ![Use case: Alyvix on Word through RDWebAccess](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-Citrix-Word-201702.gif)
-     ![Use case: Alyvix on Word through RDWebAccess](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-RDWA-Word-201702.gif)
+     ![Use case: Alyvix on Word through RDWebAccess](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-Citrix-Word-20170606.gif)
+     ![Use case: Alyvix on Word through RDWebAccess](http://www.alyvix.com/wp-content/uploads/2017/04/Alyvix-RDWA-Word-20170606.gif)
