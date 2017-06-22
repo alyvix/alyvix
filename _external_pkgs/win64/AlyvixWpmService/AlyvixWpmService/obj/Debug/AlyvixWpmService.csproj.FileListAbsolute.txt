@@ -1,8 +1,0 @@
-C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Debug\AlyvixWpmService.exe.config
-C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Debug\AlyvixWpmService.exe
-C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Debug\AlyvixWpmService.pdb
-C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Debug\System.Data.SQLite.dll
-C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\bin\Debug\System.Data.SQLite.xml
-C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\obj\Debug\AlyvixWpmService.csprojResolveAssemblyReference.cache
-C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\obj\Debug\AlyvixWpmService.exe
-C:\Users\developer\documents\visual studio 2015\Projects\AlyvixWpmService\AlyvixWpmService\obj\Debug\AlyvixWpmService.pdb
