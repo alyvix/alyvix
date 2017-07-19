@@ -79,6 +79,8 @@ class AlyvixImageFinderView(QWidget):
         
         self.__deleted_rects = []
         
+        self.last_view_index = 0
+        
         #flags
         #self.__flag_mouse_left_button_is_pressed = False
         self.__flag_mouse_is_inside_rect = False
@@ -2954,7 +2956,8 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
 
         if self.namelineedit.text() == "Type the keyword name":
             self.namelineedit.setFocus()           
-            self.namelineedit.setText("")          
+            self.namelineedit.setText("")   
+
         
         self.connect(self.doubleSpinBoxThreshold, SIGNAL('valueChanged(double)'), self.threshold_spinbox_event)
         
@@ -3057,6 +3060,11 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.roi_height_spinbox.installEventFilter(self)
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)
+            
+        if self.parent.last_view_index != 0:
+            
+            self.listWidget.setCurrentRow(self.parent.last_view_index)
+
         
     def pushButtonCancel_event(self):
         self.close()
@@ -3305,6 +3313,9 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
     
         selected_index = self.listWidget.currentRow()
         
+        self.parent.last_view_index = selected_index
+        print "selected_index:", self.parent.last_view_index
+        
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
@@ -3320,6 +3331,8 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
                                         self.widget_2.geometry().width(), self.widget_2.geometry().height()))
             self.sub_template_index = selected_index - 1
             self.update_sub_template_view()
+            
+            
 
         #print self.listWidget.currentItem().text()
         

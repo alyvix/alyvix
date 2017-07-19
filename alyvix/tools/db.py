@@ -25,6 +25,7 @@ import time
 import sqlite3
 import datetime
 import ConfigParser
+import win32service
 from alyvix.tools.info import InfoManager
 from alyvix.tools.perfdata import PerfManager
 from distutils.sysconfig import get_python_lib
@@ -427,6 +428,17 @@ class DbManager():
                          measurement="alyvix", max_reconnect_attempts=5, reconnect_time_wait=2):
 
         if type.lower() == "perfmon":
+            # if BitBlt fails, maybe the monitor is unavailable
+            try:
+                # if alyvix background service is intalled, we have to notify the service
+                scm = win32service.OpenSCManager('localhost', None, win32service.SC_MANAGER_CONNECT)
+
+                # if below method raises an exception then Alyvix Background Service is not installed
+                win32service.OpenService(scm, 'Alyvix Wpm Service', win32service.SERVICE_QUERY_CONFIG)
+            except:
+                raise Exception(
+                    "You cannot publish perf data to windows performance monitor without installing Alyvix Wpm Service")
+
             try:
                 full_file_name = get_python_lib() + os.sep + "alyvix" + os.sep + "extra" + os.sep + "alyvixservice.ini"
 

@@ -156,6 +156,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         if self.xml_name.endswith("_ObjectFinder.xml"):
             self.alyvix_finder_controller.delete_lock_list()
             os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_old_code.txt"))
+            os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))
         elif self.xml_name.endswith("_CustomCode.xml"):
             os.remove(self.path + os.sep + str(self.xml_name).replace("_CustomCode.xml","_old_code.txt"))
         else:

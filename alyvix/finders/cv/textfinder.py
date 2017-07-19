@@ -314,7 +314,7 @@ class TextFinder(BaseFinder):
 
             color_img = cv.CreateImageHeader(source_image.size, cv.IPL_DEPTH_8U, 3)
 
-            cv.SetData(color_img, source_image.tostring())
+            cv.SetData(color_img, source_image.tobytes())
 
             grey_img = cv.CreateImage(cv.GetSize(color_img), 8, 1)
 
@@ -604,7 +604,7 @@ class TextFinder(BaseFinder):
 
             color_img = cv.CreateImageHeader(source_image.size, cv.IPL_DEPTH_8U, 3)
 
-            cv.SetData(color_img, source_image.tostring())
+            cv.SetData(color_img, source_image.tobytes())
 
             grey_img = cv.CreateImage(cv.GetSize(color_img), 8, 1)
 

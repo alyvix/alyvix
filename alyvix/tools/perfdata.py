@@ -201,9 +201,15 @@ class PerfManager:
 
         global perfdata_list
 
+        keyword_exist = False
+
         for perf_data_in_list in perfdata_list:
             if perf_data_in_list.name == str(perf_name) or str(perf_name) == "all":
                 perf_data_in_list.custom_tags[str(tag_name)] = str(tag_value)
+                keyword_exist = True
+
+        if keyword_exist is False:
+            raise Exception("Add Perfdata Tag Error: The keyword name doesn't exist!")
 
     def get_perfdata(self, name, delete_perfdata=False):
 
@@ -410,12 +416,13 @@ class PerfManager:
 
             cnt = cnt + 1
 
-        return ret_string
+        return ret_string.replace("=s;;;;","=;;;;")
 
     def get_output(self, message=None, print_output=True):
 
         prefix_robot_framework = ""
 
+        global perf_counter
         global perfdata_list
         global timedout_finders
 
@@ -488,6 +495,10 @@ class PerfManager:
             self.performance_desc_string = self.performance_desc_string +\
                                            "OK: all steps are ok" +\
                                            performanceData + os.linesep
+
+        if perf_counter == 0:
+            self.performance_desc_string = self.performance_desc_string.replace("some error occurred, no perf data was filled",
+                                                                                "no perf data was declared")
 
         for perfdata in perfdata_list:
 

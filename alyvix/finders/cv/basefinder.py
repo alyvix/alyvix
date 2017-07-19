@@ -680,6 +680,7 @@ class BaseFinder(object):
                         for t_sub in self._sub_components:
                             self._log_manager.save_timedout_objects(self._name + "_timedout", self._last_thread_image, t_sub[0]._timedout_main_components, t_sub[0]._timedout_sub_components, t_sub[0]._main_extra_img_log, t_sub[0]._sub_extra_imgages_log, True, t_sub[0]._name)
                     """
+                    self._info_manager.set_info('DISAPP START', None)
                     return -1
 
                 t0 = time.time()

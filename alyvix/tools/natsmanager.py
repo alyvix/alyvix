@@ -264,8 +264,10 @@ class NatsManager():
                 except:
                     pass
 
-            unique_tag_msg = ",run_code=" + unique_tag_msg + str(self._info_manager.get_info('START TIME'))
+            #unique_tag_msg = ",run_code=" + unique_tag_msg + str(self._info_manager.get_info('START TIME'))
+            unique_tag_msg = ""
 
+            """
             if point_pre_msg != "":
                 message = str(measurement) + user_msg + host_msg + ",test_name=" + str(testcase_name) \
                           + ",transaction_name=" + str(perfdata.name).replace(" ", "_") + ",state=" + perfdata_state + \
@@ -280,7 +282,7 @@ class NatsManager():
                     # store to cache list if we cannot publish messages
                     message_lines.append(message)
                     exception_occurred = True
-
+            """
             message= str(measurement) + user_msg + host_msg + ",test_name=" +str(testcase_name)\
                      + ",transaction_name=" + str(perfdata.name).replace(" ", "_") + ",state=" + perfdata_state +\
                      msg_extra + msg_custom_tags + point_start_msg + unique_tag_msg + " " + msg_warning + msg_critical +\
@@ -311,6 +313,7 @@ class NatsManager():
                 end_timestamp_in_nanoseconds = int(end_timestamp_in_seconds * 1000 * 1000 * 1000)
 
 
+                """
                 message = str(measurement) + user_msg + host_msg + ",test_name=" + str(testcase_name) \
                           + ",transaction_name=" + str(perfdata.name).replace(" ", "_") + ",state=" + perfdata_state + \
                           msg_extra + msg_custom_tags + ",point=end" + unique_tag_msg + " " + msg_warning + msg_critical + msg_timeout + \
@@ -324,7 +327,7 @@ class NatsManager():
                     # store to cache list if we cannot publish messages
                     message_lines.append(message)
                     exception_occurred = True
-
+                """
         try:
             yield nc.flush()
         except:

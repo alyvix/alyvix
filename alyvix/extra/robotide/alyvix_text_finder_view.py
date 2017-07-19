@@ -81,6 +81,8 @@ class AlyvixTextFinderView(QWidget):
         
         self.__deleted_texts = []
         
+        self.last_view_index = 0
+        
         #flags
         #self.__flag_mouse_left_button_is_pressed = False
         self.__flag_mouse_is_inside_rect = False
@@ -4414,6 +4416,11 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)
         
+        if self.parent.last_view_index != 0:
+            
+            self.listWidget.setCurrentRow(self.parent.last_view_index)
+
+        
     def pushButtonCancel_event(self):
         self.close()
         self.parent.cancel_all()
@@ -4742,6 +4749,8 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
     def listWidget_selection_changed(self):
     
         selected_index = self.listWidget.currentRow()
+        
+        self.parent.last_view_index = selected_index
         
         if selected_index == 0:
             self.widget_2.hide()

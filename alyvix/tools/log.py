@@ -620,17 +620,17 @@ class LogManager:
                             except:
                                 pass
 
-                            gif_images = []
-
-                            gif_images.append(Image.fromarray(cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)))
-
                             object_list_sorted = sorted(object_list, key=lambda x: x[2])
 
+                            gif_images = []
                             for tuple_image in object_list_sorted:
                                 gif_images.append(Image.fromarray(cv2.cvtColor(tuple_image[1], cv2.COLOR_BGR2RGB)))
 
-                            writeGif(outputdir + os.sep + file_name_gif, gif_images,
-                                     duration=int(self._info_manager.get_info('GIF FRAME TIMING')))
+                            duration = int(self._info_manager.get_info('GIF FRAME TIMING')) * 1000
+
+                            Image.fromarray(cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB))\
+                                .save(outputdir + os.sep + file_name_gif, duration=duration, loop=0, save_all=True,
+                                      append_images=gif_images)
 
                             self._robot_manager.write_log_message(
                                 "<a href=\"" + file_name_gif + "\"><img width=\"800\" src=\"" + file_name_gif + "\"></a>", "INFO",
@@ -802,7 +802,6 @@ class LogManager:
                     main_rect = (main_x, main_y, w, h, text)
 
                     #file_name = self._check_if_img_exists(outputdir, image_name)
-                    cv2.imwrite("c:\\log\\rrr.png", extra_img_color)
 
                     #gif_images.append(outputdir + os.sep + file_name)
 
@@ -814,10 +813,10 @@ class LogManager:
                         img2[:,:,2] = edges_img
                         gif_images.append(Image.fromarray(img2))
                     """
-                    gif_images.append(Image.fromarray(cv2.cvtColor(img_color,cv2.COLOR_BGR2RGB)))
+                    #gif_images.append(Image.fromarray(cv2.cvtColor(img_color,cv2.COLOR_BGR2RGB)))
 
-                    if extra_img_color is not None:
-                        gif_images_extra.append(Image.fromarray(cv2.cvtColor(extra_img_color,cv2.COLOR_BGR2RGB)))
+                    #if extra_img_color is not None:
+                    #    gif_images_extra.append(Image.fromarray(cv2.cvtColor(extra_img_color,cv2.COLOR_BGR2RGB)))
 
                     #img_gray = image_data.copy()
                     #img_color = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2RGB)
@@ -1077,8 +1076,14 @@ class LogManager:
                 else:
                     file_name = image_name + ".gif"
 
-                writeGif(outputdir + os.sep + file_name, gif_images,
-                         duration=int(self._info_manager.get_info('GIF FRAME TIMING')))
+                #writeGif(outputdir + os.sep + file_name, gif_images,
+                #         duration=int(self._info_manager.get_info('GIF FRAME TIMING')))
+
+                duration = int(self._info_manager.get_info('GIF FRAME TIMING')) * 1000
+
+                Image.fromarray(cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)) \
+                    .save(outputdir + os.sep + file_name, duration=duration, loop=0, save_all=True,
+                          append_images=gif_images)
 
                 if disappear_mode is False:
                     self._robot_manager.write_log_message("<a href=\"" + file_name + "\"><img width=\"800\" src=\"" + file_name + "\"></a>", "ERROR", True)
@@ -1091,7 +1096,13 @@ class LogManager:
                 file_name = image_name + "_extra.gif"
 
             if extra_img_color is not None:
-                writeGif(outputdir + os.sep + file_name, gif_images_extra, duration=1)
+
+                duration = int(self._info_manager.get_info('GIF FRAME TIMING')) * 1000
+
+                #writeGif(outputdir + os.sep + file_name, gif_images_extra, duration=1)
+                Image.fromarray(cv2.cvtColor(extra_img_color, cv2.COLOR_BGR2RGB)) \
+                    .save(outputdir + os.sep + file_name, duration=duration, loop=0, save_all=True,
+                          append_images=gif_images_extra)
 
                 if object_name is None:
                     self._robot_manager.write_log_message("click <a href=\"" + file_name + "\">here</a> to see the extra image", "INFO", True)

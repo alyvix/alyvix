@@ -352,6 +352,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)
         
+        """
+        if self.parent.last_view_index != 0:
+            
+            self.listWidget.setCurrentRow(self.parent.last_view_index)
+        """
+        
     def save_all(self):
         if self._main_object_finder != None and self.ok_pressed is False:
             self.ok_pressed = True
@@ -1157,9 +1163,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 
             if sub_object.height != 0 and sub_object.width !=0:
             
-                if mouse_or_key_is_set is False:
-                    print "no sub click... pass"
-                    continue
+                sub_mouse_or_keyboard_is_set = False
                 
                 path_sub_xml = sub_object.xml_path
                 sub_obj = None           
@@ -1171,16 +1175,18 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
                 if path_sub_xml.endswith('_RectFinder.xml'):
                     sub_obj = AlyvixRectFinderView(s_controller)
-                    sub_obj_name = sub_obj.object_name
-                    self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
                 elif path_sub_xml.endswith('_ImageFinder.xml'):
                     sub_obj = AlyvixImageFinderView(s_controller)
-                    sub_obj_name = sub_obj.object_name
-                    self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
                 elif path_sub_xml.endswith('_TextFinder.xml'):
                     sub_obj = AlyvixTextFinderView(s_controller)
-                    sub_obj_name = sub_obj.object_name
+                    
+                    
+                    
+                sub_obj_name = sub_obj.object_name
+                
+                if sub_obj.mouse_or_key_is_set:
                     self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
+
             cnt+=1
                     
         
