@@ -235,6 +235,11 @@ class NatsManager():
             for tag in perfdata.custom_tags.keys():
                 msg_custom_tags += "," + tag + "=" + perfdata.custom_tags[tag]
 
+            msg_custom_fields = ""
+
+            for field in perfdata.custom_fields.keys():
+                msg_custom_fields += "," + field + "=" + perfdata.custom_fields[field]
+
             user_msg = ",username=" + os.environ['username']
             host_msg = ",host=" +str(gethostname())
 
@@ -285,8 +290,8 @@ class NatsManager():
             """
             message= str(measurement) + user_msg + host_msg + ",test_name=" +str(testcase_name)\
                      + ",transaction_name=" + str(perfdata.name).replace(" ", "_") + ",state=" + perfdata_state +\
-                     msg_extra + msg_custom_tags + point_start_msg + unique_tag_msg + " " + msg_warning + msg_critical +\
-                     msg_timeout + msg_perf + msg_cumsum + msg_errorlevel + " " + perf_timestamp
+                     msg_extra + msg_custom_tags + unique_tag_msg + " " + msg_warning + msg_critical +\
+                     msg_timeout + msg_perf + msg_cumsum + msg_errorlevel + msg_custom_fields + " " + perf_timestamp
 
             message = message.replace(" ,"," ")
 

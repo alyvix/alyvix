@@ -89,6 +89,8 @@ class TextFinder(BaseFinder):
         :param name: the object name
         """
 
+        self.is_textfinder = True
+
         the_name = "text_finder"
 
         if name is not None:
@@ -207,6 +209,13 @@ class TextFinder(BaseFinder):
         self._scraper_enable = False
         self._source_image_color = None
         self._source_image_gray = None
+
+        if self._is_object_finder is False:
+            sc_collection = self._info_manager.get_info('SCRAPER COLLECTION')
+            sc_collection.append((self.get_name(), self.timestamp, sc_text))
+
+            self._info_manager.set_info('SCRAPER COLLECTION', sc_collection)
+
         return sc_text
 
     def find(self):
@@ -216,6 +225,7 @@ class TextFinder(BaseFinder):
         :rtype: list[[MatchResult, list[MatchResult]]]
         :return: a list that contains x, y, height, width of rectangle(s) found
         """
+
         try:
             time_before_find = time.time()
             #print "into find"

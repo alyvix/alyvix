@@ -65,6 +65,8 @@ class AlyvixRectFinderView(QWidget):
         self.warning = 10.00
         self.critical = 15.00
         
+        self.parent_is_objfinder = False
+        
         self.mouse_or_key_is_set = False
         
         self.setMouseTracking(True)
@@ -3524,7 +3526,19 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         
         if self.namelineedit.text() == "Type the keyword name":
             self.namelineedit.setFocus()           
-            self.namelineedit.setText("")         
+            self.namelineedit.setText("")   
+
+        if self.parent.parent_is_objfinder is True:
+            self.wait_disapp_radio.setEnabled(False)
+            self.wait_radio.setEnabled(False)
+            self.timeout_spinbox.setEnabled(False)
+            self.timeout_label.setEnabled(False)
+            self.timeout_exception.setEnabled(False)
+            self.checkBoxEnablePerformance.setEnabled(False)
+            self.doubleSpinBoxWarning.setEnabled(False)
+            self.doubleSpinBoxCritical.setEnabled(False)
+            self.labelWarning.setEnabled(False)
+            self.labelCritical.setEnabled(False)           
         
         self.connect(self.min_width_spinbox, SIGNAL('valueChanged(int)'), self.min_width_spinbox_change_event)
         self.connect(self.max_width_spinbox, SIGNAL('valueChanged(int)'), self.max_width_spinbox_change_event)
@@ -4002,6 +4016,8 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         
         if self.parent._sub_rects_finder[index].x_offset != None or self.parent._sub_rects_finder[index].y_offset != None:
             self.pushButtonXYoffset_2.setText("Reset\nPoint")
+        else:
+            self.pushButtonXYoffset_2.setText("Interaction\nPoint")
         
         if self.parent._sub_rects_finder[index].sendkeys == "":
             self.inserttext_2.setText("Type text strings and shortcuts")

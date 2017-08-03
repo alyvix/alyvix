@@ -93,6 +93,8 @@ class BaseFinder(object):
 
         keyword_timestamp_value = int(time.time() * 1000)
 
+        self.timestamp = keyword_timestamp_value
+
         self._main_component = None
         self._sub_components = []
 
@@ -277,6 +279,11 @@ class BaseFinder(object):
         :param timeout: timeout in seconds
         :type timeout: int
         """
+
+
+
+        if self._is_object_finder is False and self.is_textfinder == True:
+            raise Exception("Error: You cannot use a text finder outside an object finder!")
 
         #cv2.imwrite()
 

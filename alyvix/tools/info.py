@@ -94,6 +94,8 @@ class InfoManager():
 
         self.set_info('RESOLUTION BGS OK', True)
 
+        self.set_info('SCRAPER COLLECTION', [])
+
         #self.set_info("INTERACTION", [])
 
         if robot_context:

@@ -293,9 +293,17 @@ def add_perfdata_tag(perf_name, tag_name, tag_value):
     pm = PerfManager()
     pm.add_perfdata_tag(perf_name, tag_name, tag_value)
 
+def add_perfdata_field(perf_name, field_name, field_value):
+    pm = PerfManager()
+    pm.add_perfdata_field(perf_name, field_name, field_value)
+
 def store_perfdata(dbname=None):
     db = DbManager()
     db.store_perfdata(dbname)
+
+def store_scrapdata(dbname=None):
+    db = DbManager()
+    db.store_scrapdata(dbname)
 
 def publish_perfdata(type="csv", start_date="", end_date="", filename="", testcase_name="", max_age=24, suffix=None,
                      subject=None, server=None, port=None, measurement="alyvix", max_reconnect_attempts=5,

@@ -30,6 +30,7 @@ last_timeout_value = (None, None) #we need this for back compatibility
 deleted_on_rename_list = []
 timedout_finders = []
 perf_counter = 0
+declaration_counter = 0
 
 
 class _PerfData:
@@ -46,6 +47,7 @@ class _PerfData:
         self.end_timestamp_only_for_summed_perf = None
         self.extra = None
         self.custom_tags = {}
+        self.custom_fields = {}
 
 
 class PerfManager:
@@ -67,6 +69,9 @@ class PerfManager:
 
         global perfdata_list
         global perf_counter
+        global declaration_counter
+
+        declaration_counter = declaration_counter + 1
 
         perf_data = _PerfData()
         perf_data.name = str(name)
@@ -164,12 +169,16 @@ class PerfManager:
                     raise Exception(old_name + " value is null! cannot rename it")
 
         cnt = 0
+
+        old_name_exists = False
         for perf_data_in_list in perfdata_list:
             if perf_data_in_list.name == str(new_name):
                 deleted_on_rename_list.append(copy.deepcopy(perfdata_list_copy[cnt]))
                 del perfdata_list_copy[cnt]
                 cnt = cnt - 1
             elif perf_data_in_list.name == str(old_name):
+
+                old_name_exists = True
 
                 perfdata_list_copy[cnt].name = str(new_name)
 
@@ -186,6 +195,9 @@ class PerfManager:
                     pass
 
             cnt = cnt + 1
+
+        if old_name_exists is False:
+            raise Exception("Rename Perfdata Error: The keyword you want to rename doesn't exist!")
 
         perfdata_list = copy.deepcopy(perfdata_list_copy)
 
@@ -210,6 +222,20 @@ class PerfManager:
 
         if keyword_exist is False:
             raise Exception("Add Perfdata Tag Error: The keyword name doesn't exist!")
+
+    def add_perfdata_field(self, perf_name, field_name, field_value):
+
+        global perfdata_list
+
+        keyword_exist = False
+
+        for perf_data_in_list in perfdata_list:
+            if perf_data_in_list.name == str(perf_name) or str(perf_name) == "all":
+                perf_data_in_list.custom_fields[str(field_name)] = str(field_value)
+                keyword_exist = True
+
+        if keyword_exist is False:
+            raise Exception("Add Perfdata Field Error: The keyword name doesn't exist!")
 
     def get_perfdata(self, name, delete_perfdata=False):
 
@@ -295,9 +321,28 @@ class PerfManager:
         value_of_last_perf = None
         timeout_of_last_perf = None
 
+        all_name_exist = True
+
+
+
+
+        for name in names:
+            name_exists = False
+            for perf_data_in_list in perfdata_list:
+                if perf_data_in_list.name == name:
+                    name_exists = True
+
+            if name_exists is False:
+                raise Exception("Sum Perfdata Error: The keyword name " + name + " doesn't exist!")
+
         cnt = 0
         for perf_data_in_list in perfdata_list:
+
+            name_exists = False
             for name in names:
+                if perf_data_in_list.name == name:
+                    name_exists = True
+
                 if perf_data_in_list.name == name and perf_data_in_list.value != ""\
                         and perf_data_in_list.value is not None:
                     value_to_sum.append(perf_data_in_list.value)
@@ -322,6 +367,8 @@ class PerfManager:
                     raise Exception(name + " value is null! cannot sum empty value(s)")
 
             cnt = cnt + 1
+            if name_exists is False:
+                raise Exception("Sum Perfdata Error: The keyword name " + name + " doesn't exist!")
 
         cnt = 0
         for perf in perfdata_list:
@@ -423,6 +470,7 @@ class PerfManager:
         prefix_robot_framework = ""
 
         global perf_counter
+        global declaration_counter
         global perfdata_list
         global timedout_finders
 
@@ -496,7 +544,7 @@ class PerfManager:
                                            "OK: all steps are ok" +\
                                            performanceData + os.linesep
 
-        if perf_counter == 0:
+        if declaration_counter == 0 and perf_counter == 0:
             self.performance_desc_string = self.performance_desc_string.replace("some error occurred, no perf data was filled",
                                                                                 "no perf data was declared")
 

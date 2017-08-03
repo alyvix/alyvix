@@ -72,6 +72,33 @@ class DbManager():
         self._connection.commit()
         self._connection.close()
 
+    def _create_scraper_tables(self):
+
+        sc_collection = self._info_manager.get_info('SCRAPER COLLECTION')
+
+        for scraper in sc_collection:
+            s_name = scraper[0]
+            s_timestamp = scraper[1]
+            s_text = scraper[2]
+
+            query = "CREATE TABLE IF NOT EXISTS " + s_name + " (transaction_timestamp integer primary key, scraped_text TEXT)"
+            self._cursor.execute(query)
+
+            #"<transaction_bla02_timestamp>, <scraped_text>"
+
+    def _insert_scraper(self):
+        sc_collection = self._info_manager.get_info('SCRAPER COLLECTION')
+
+        for scraper in sc_collection:
+            s_name = scraper[0]
+            s_timestamp = scraper[1]
+            s_text = scraper[2].replace("'","''")
+
+            query = "INSERT INTO " + s_name + " (transaction_timestamp, scraped_text) VALUES (" + str(s_timestamp)\
+                    + ", '" + s_text + "')"
+
+            self._cursor.execute(query)
+
     def _create_tables(self):
         self._create_runs_table()
         self._create_thresholds_table()
@@ -422,6 +449,60 @@ class DbManager():
         self._insert_timestamp()
 
         self.close()
+
+    def store_scrapdata(self, dbname=None):
+
+        db_name_ori = self._db_name
+
+        if dbname != None and dbname != "":
+            self._db_home = os.path.split(str(dbname))[0]
+
+            if os.path.split(str(dbname))[1] != "":
+                self._db_name = os.path.split(str(dbname))[1]
+
+            name, file_extension = os.path.splitext(self._db_name)
+
+            if file_extension != "":
+                if file_extension != ".db" and file_extension != ".db3" and file_extension != ".sqlite" \
+                        and file_extension != ".sqlite3":
+                    raise Exception('file extension must be db or db3 or sqlite or sqlite3!')
+            else:
+                file_extension = ".db"
+
+                self._db_name = self._db_name + file_extension
+
+            if self._db_home == "" and self._info_manager.get_info("ROBOT CONTEXT") is True:
+                self._db_home = os.path.dirname(os.path.abspath(self._info_manager.get_info("SUITE SOURCE")))
+            elif self._db_home == "":
+                self._db_home = os.path.split(sys.executable)[0] + os.sep + "share" + os.sep + "alyvix"
+
+        self._info_manager.set_info("DB FILE SCRAPER", self._db_home + os.sep + self._db_name)
+
+        self._db_name = self._db_name.replace(".db", "_scapdata.db")
+        self._db_name = self._db_name.replace(".db3", "_scapdata.db3")
+        self._db_name = self._db_name.replace(".sqlite", "_scapdata.sqlite")
+        self._db_name = self._db_name.replace(".sqlite3", "_scapdata.sqlite3")
+
+        # if not os.path.isfile(self._db_home + os.sep + self._db_name):
+        if not os.path.isdir(self._db_home):
+            os.makedirs(self._db_home)
+            self.connect()
+            self._create_scraper_tables()
+            self._db_is_new = True
+        elif not os.path.isfile(self._db_home + os.sep + self._db_name):
+            self.connect()
+            self._create_scraper_tables()
+            self._db_is_new = True
+        else:
+            self.connect()
+            self._create_scraper_tables()
+
+        self._insert_scraper()
+
+        self.close()
+
+        self._db_name = db_name_ori
+
 
     def publish_perfdata(self, type="csv", start_date=None, end_date=None, filename=None,
                          testcase_name=None, max_age=24, suffix=None, subject=None, server=None, port=None,

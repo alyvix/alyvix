@@ -44,6 +44,8 @@ class ObjectFinder(BaseFinder):
         :param name: the object name
         """
 
+        self.is_textfinder = False
+
         #self._main_component = None
         #self._sub_components = []
         self._sub_components_scraper = []
@@ -145,6 +147,12 @@ class ObjectFinder(BaseFinder):
                 component.set_name_with_caller()
 
     def get_scraped_text(self):
+
+        sc_collection = self._info_manager.get_info('SCRAPER COLLECTION')
+        sc_collection.append((self.get_name(), self.timestamp, self._scraped_text))
+
+        self._info_manager.set_info('SCRAPER COLLECTION', sc_collection)
+
         return self._scraped_text
 
     def find(self):

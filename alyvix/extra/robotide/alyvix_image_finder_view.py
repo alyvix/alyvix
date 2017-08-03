@@ -66,6 +66,8 @@ class AlyvixImageFinderView(QWidget):
         
         self.mouse_or_key_is_set = False
         
+        self.parent_is_objfinder = False
+        
         self.setMouseTracking(True)
         
         self._bg_pixmap = QPixmap()
@@ -2957,6 +2959,18 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         if self.namelineedit.text() == "Type the keyword name":
             self.namelineedit.setFocus()           
             self.namelineedit.setText("")   
+            
+        if self.parent.parent_is_objfinder is True:
+            self.wait_disapp_radio.setEnabled(False)
+            self.wait_radio.setEnabled(False)
+            self.timeout_spinbox.setEnabled(False)
+            self.timeout_label.setEnabled(False)
+            self.timeout_exception.setEnabled(False)
+            self.checkBoxEnablePerformance.setEnabled(False)
+            self.doubleSpinBoxWarning.setEnabled(False)
+            self.doubleSpinBoxCritical.setEnabled(False)
+            self.labelWarning.setEnabled(False)
+            self.labelCritical.setEnabled(False)
 
         
         self.connect(self.doubleSpinBoxThreshold, SIGNAL('valueChanged(double)'), self.threshold_spinbox_event)
@@ -3405,6 +3419,8 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         
         if self.parent._sub_templates_finder[index].x_offset != None or self.parent._sub_templates_finder[index].y_offset != None:
             self.pushButtonXYoffset_2.setText("Reset\nPoint")
+        else:
+            self.pushButtonXYoffset_2.setText("Interaction\nPoint")
         
         if self.parent._sub_templates_finder[index].sendkeys == "":
             self.inserttext_2.setText("Type text strings and shortcuts")
