@@ -166,7 +166,7 @@ class PerfManager:
         for perf_data_in_list in perfdata_list:
             if perf_data_in_list.name == str(old_name):
                 if perf_data_in_list.value == "":
-                    raise Exception(old_name + " value is null! cannot rename it")
+                    raise Exception("The Keyword value is None")
 
         cnt = 0
 
@@ -197,7 +197,7 @@ class PerfManager:
             cnt = cnt + 1
 
         if old_name_exists is False:
-            raise Exception("Rename Perfdata Error: The keyword you want to rename doesn't exist!")
+            raise Exception("The keyword name does not exist")
 
         perfdata_list = copy.deepcopy(perfdata_list_copy)
 
@@ -221,7 +221,7 @@ class PerfManager:
                 keyword_exist = True
 
         if keyword_exist is False:
-            raise Exception("Add Perfdata Tag Error: The keyword name doesn't exist!")
+            raise Exception("The keyword name does not exist")
 
     def add_perfdata_field(self, perf_name, field_name, field_value):
 
@@ -235,9 +235,11 @@ class PerfManager:
                 keyword_exist = True
 
         if keyword_exist is False:
-            raise Exception("Add Perfdata Field Error: The keyword name doesn't exist!")
+            raise Exception("The keyword name does not exist")
 
     def get_perfdata(self, name, delete_perfdata=False):
+
+        keyword_exist = False
 
         global perfdata_list
         ret_val = None
@@ -246,6 +248,8 @@ class PerfManager:
         cnt = 0
         for perf_data_in_list in perfdata_list:
             if perf_data_in_list.name == name:
+
+                keyword_exist = True
 
                 if perf_data_in_list.value == "" or perf_data_in_list.value is None:
                     raise Exception('Perf data value is Null')
@@ -258,6 +262,10 @@ class PerfManager:
 
         perfdata_list = copy.deepcopy(perfdata_list_copy)
         perfdata_list_copy = []
+
+        if keyword_exist is False:
+            raise Exception("The keyword name does not exist")
+
         return ret_val
 
     def get_all_perfdata(self):
@@ -333,7 +341,7 @@ class PerfManager:
                     name_exists = True
 
             if name_exists is False:
-                raise Exception("Sum Perfdata Error: The keyword name " + name + " doesn't exist!")
+                raise Exception("The performance measure is None")
 
         cnt = 0
         for perf_data_in_list in perfdata_list:
@@ -349,7 +357,7 @@ class PerfManager:
                     sum = 0 #init sum
 
                     if perf_data_in_list.timestamp is None:
-                        raise Exception("You cannot add performances without timestamp!!")
+                        raise Exception("The performance timestamp is None")
 
                     if perf_data_in_list.timestamp < smallest_timestamp:
                         smallest_timestamp = perf_data_in_list.timestamp
@@ -368,7 +376,7 @@ class PerfManager:
 
             cnt = cnt + 1
             if name_exists is False:
-                raise Exception("Sum Perfdata Error: The keyword name " + name + " doesn't exist!")
+                raise Exception("The keyword name " + name + " does not exist")
 
         cnt = 0
         for perf in perfdata_list:
@@ -498,7 +506,7 @@ class PerfManager:
             prefix_robot_framework = "*WARN*"
         elif exitcode == 3 and self.not_ok_perfdata > 0:
             self.performance_desc_string = self.performance_desc_string + \
-                                           "UNKNOWN: some error occurred, last filled perf data is " + \
+                                           "UNKNOWN: one transaction breaks the test case, the last received measure is " + \
                                            self._last_filled_perf + " " + performanceData + os.linesep
             prefix_robot_framework = "*WARN*"
         elif exitcode == 2 and self.not_ok_perfdata == len(perfdata_list):
@@ -508,12 +516,12 @@ class PerfManager:
             prefix_robot_framework = "*WARN*"
         elif exitcode == 2 and self.not_ok_perfdata > 0:
             self.performance_desc_string = self.performance_desc_string +\
-                                               "CRITICAL: some error occurred, last filled perf data is " +\
+                                               "CRITICAL: one transaction breaks the test case, the last received measure is " +\
                                                self._last_filled_perf + " " + performanceData + os.linesep
             prefix_robot_framework = "*WARN*"
         elif exitcode == 2:
             self.performance_desc_string = self.performance_desc_string +\
-                                           "CRITICAL: one or more steps are in critical state" +\
+                                           "CRITICAL: one or more transactions run critical" +\
                                            performanceData + os.linesep
             prefix_robot_framework = "*WARN*"
         elif exitcode == 1 and self.not_ok_perfdata == len(perfdata_list):
@@ -523,12 +531,12 @@ class PerfManager:
             prefix_robot_framework = "*WARN*"
         elif exitcode == 1 and self.not_ok_perfdata > 0:
             self.performance_desc_string = self.performance_desc_string +\
-                                               "WARNING: some error occurred, last filled perf data is " +\
+                                               "WARNING: one transaction breaks the test case, the last received measure is " +\
                                                self._last_filled_perf + " " + performanceData + os.linesep
             prefix_robot_framework = "*WARN*"
         elif exitcode == 1:
             self.performance_desc_string = self.performance_desc_string +\
-                                           "WARNING: one or more steps are in warning state" +\
+                                           "WARNING: one or more transactions run in warning" +\
                                            performanceData + os.linesep
             prefix_robot_framework = "*WARN*"
         elif exitcode == 0 and self.not_ok_perfdata == len(perfdata_list):
@@ -537,16 +545,16 @@ class PerfManager:
                                            performanceData + os.linesep
         elif exitcode == 0 and self.not_ok_perfdata > 0:
             self.performance_desc_string = self.performance_desc_string +\
-                                               "OK: some error occurred, last filled perf data is " +\
+                                               "OK: one transaction breaks the test case, the last received measure is " +\
                                                self._last_filled_perf + " " + performanceData + os.linesep
         else:
             self.performance_desc_string = self.performance_desc_string +\
-                                           "OK: all steps are ok" +\
+                                           "OK: all transactions run ok" +\
                                            performanceData + os.linesep
 
         if declaration_counter == 0 and perf_counter == 0:
             self.performance_desc_string = self.performance_desc_string.replace("some error occurred, no perf data was filled",
-                                                                                "no perf data was declared")
+                                                                                "no transaction is declared")
 
         for perfdata in perfdata_list:
 
@@ -561,22 +569,22 @@ class PerfManager:
 
             if state == 0 and value == "":
                 self.performance_desc_string = self.performance_desc_string +\
-                                               "OK: " + name + " time is null." + os.linesep
+                                               "OK: " + name + " measures None" + os.linesep
             elif state == 0:
                 self.performance_desc_string = self.performance_desc_string +\
-                                               "OK: " + name + " time is " + value + " sec." + os.linesep
+                                               "OK: " + name + " measures " + value + " s" + os.linesep
             elif state == 1 and value == "":
                 self.performance_desc_string = self.performance_desc_string +\
-                                               "WARNING: " + name + " time is null." + os.linesep
+                                               "WARNING: " + name + " measures None" + os.linesep
             elif state == 1:
                 self.performance_desc_string = self.performance_desc_string +\
-                                               "WARNING: " + name + " time is " + value + " sec." + os.linesep
+                                               "WARNING: " + name + " measures " + value + "s" + os.linesep
             elif state == 2 and value == "":
                 self.performance_desc_string = self.performance_desc_string +\
-                                               "CRITICAL: " + name + " time is null." + os.linesep
+                                               "CRITICAL: " + name + " measures None" + os.linesep
             elif state == 2:
                 self.performance_desc_string = self.performance_desc_string + \
-                                               "CRITICAL: " + name + " time is " + value + " sec." + \
+                                               "CRITICAL: " + name + " measures " + value + "s" + \
                                                os.linesep
             else:
                 self.performance_desc_string = self.performance_desc_string +\

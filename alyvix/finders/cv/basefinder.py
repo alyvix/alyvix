@@ -159,7 +159,7 @@ class BaseFinder(object):
         if self._info_manager.get_info("CHECK BG") == True:
             if self._screen_capture.is_resolution_ok() is False:
                 raise Exception(
-                    "Alyvix Background Service is installed but the screen resolution doesn't match with the config file")
+                    "The screen resolution does not match with the Alyvix Background Service settings")
 
         self._cacheManager = CacheManager()
         self._configReader = ConfigReader()
@@ -283,7 +283,7 @@ class BaseFinder(object):
 
 
         if self._is_object_finder is False and self.is_textfinder == True:
-            raise Exception("Error: You cannot use a text finder outside an object finder!")
+            raise Exception("A Text Finder is out of an Object Finder")
 
         #cv2.imwrite()
 

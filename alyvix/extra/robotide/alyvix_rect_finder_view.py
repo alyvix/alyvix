@@ -3557,8 +3557,8 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         
         self.connect(self.use_min_max, SIGNAL('toggled(bool)'), self.use_min_max_event)
         self.connect(self.use_tolerance, SIGNAL('stateChanged(int)'), self.use_tolerance_event)
-        
         self.connect(self.wait_radio, SIGNAL('toggled(bool)'), self.wait_radio_event)
+        
         self.connect(self.wait_disapp_radio, SIGNAL('toggled(bool)'), self.wait_disapp_radio_event)
         self.connect(self.find_radio, SIGNAL('toggled(bool)'), self.find_radio_event)
         self.connect(self.timeout_spinbox, SIGNAL('valueChanged(int)'), self.timeout_spinbox_event)

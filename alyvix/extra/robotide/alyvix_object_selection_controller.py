@@ -24,7 +24,7 @@ import time
 import cv2
 
 from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox
-from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect
+from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect, QEvent
 
 from PyQt4.QtWebKit import QWebSettings
 
@@ -94,6 +94,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.connect(self.pushButtonOF, SIGNAL("clicked()"), self.open_objectfinder_controller)
         self.connect(self.pushButtonCC, SIGNAL("clicked()"), self.open_customcode_controller)
         
+        self.listWidgetAlyObj.installEventFilter(self)
+        
         self.window = None
         self.full_file_name = None
         self.path = None
@@ -110,6 +112,21 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
         self.gridLayoutWidget.hide()
         self.pushButtonCancel.hide()
+        
+        
+    def eventFilter(self, object, event):
+        #print event
+        #if event.type() == QEvent.KeyPress:
+        
+        try:
+            if Qt.ControlModifier == QApplication.keyboardModifiers() and event.key() == Qt.Key_C: 
+                text = self.listWidgetAlyObj.currentItem().text()[:-5]
+
+                clipboard = QApplication.clipboard()
+                clipboard.setText(text)
+        except:
+            pass
+        return super(AlyvixMainMenuController, self).eventFilter(object, event)
         
     def update_path(self):
         lines = self.full_file_name.split(os.sep)
@@ -156,7 +173,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         if self.xml_name.endswith("_ObjectFinder.xml"):
             self.alyvix_finder_controller.delete_lock_list()
             os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_old_code.txt"))
-            os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))
+            
+            if (os.path.exists(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))):
+                os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))
         elif self.xml_name.endswith("_CustomCode.xml"):
             os.remove(self.path + os.sep + str(self.xml_name).replace("_CustomCode.xml","_old_code.txt"))
         else:

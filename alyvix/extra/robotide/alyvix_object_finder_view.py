@@ -1437,7 +1437,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.object.image_view_properties.show()
     
     def open_select_obj_window(self):
-        self.select_main_object_view = AlyvixObjectsSelection(self)
+        self.select_main_object_view = None
+        
+        if self.button_selected == "set_main_object":
+            self.select_main_object_view = AlyvixObjectsSelection(self, True)
+        elif self.button_selected == "add_sub_object":
+            self.select_main_object_view = AlyvixObjectsSelection(self, False)
+            
         self.hide()
         self.select_main_object_view.show()
         
@@ -2365,13 +2371,15 @@ class SubObjectForGui:
         self.scraper = False
         
 class AlyvixObjectsSelection(QDialog, Ui_Form_2):
-    def __init__(self, parent):
+    def __init__(self, parent, is_main):
         QDialog.__init__(self)
         
         self.setupUi(self)
         
                 
         self.parent = parent
+        
+        self.is_main = is_main
         
         self.scaling_factor = self.parent.parent.scaling_factor
         
@@ -2455,7 +2463,7 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
                     continue_the_loop = True
                     
             if filename.endswith('.xml'):
-                if filename.endswith('_ObjectFinder.xml') or filename.endswith('list.xml') or filename.endswith('data.xml') or continue_the_loop is True:
+                if filename.endswith('_ObjectFinder.xml') or filename.endswith('list.xml') or filename.endswith('data.xml') or (filename.endswith('_TextFinder.xml') is True and self.is_main is True) or continue_the_loop is True:
                     continue_the_loop = False
                     continue
                     

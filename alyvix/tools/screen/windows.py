@@ -151,7 +151,7 @@ class ScreenManager(ScreenManagerBase):
             except:
                 pass
 
-            raise Exception("BitBlt failed")
+            raise Exception("Windows does not provide frames")
 
         bmpinfo = dataBitMap.GetInfo()
         bmpstr = dataBitMap.GetBitmapBits(True)

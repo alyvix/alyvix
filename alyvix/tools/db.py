@@ -416,7 +416,7 @@ class DbManager():
             if file_extension != "":
                 if file_extension != ".db" and file_extension != ".db3" and file_extension != ".sqlite"\
                         and file_extension != ".sqlite3":
-                    raise Exception('file extension must be db or db3 or sqlite or sqlite3!')
+                    raise Exception('The file extension must be .db or .sqlite')
             else:
                 file_extension = ".db"
 
@@ -452,6 +452,10 @@ class DbManager():
 
     def store_scrapdata(self, dbname=None):
 
+        sc_collection = self._info_manager.get_info('SCRAPER COLLECTION')
+        if len(sc_collection) == 0:
+            return
+
         db_name_ori = self._db_name
 
         if dbname != None and dbname != "":
@@ -465,9 +469,9 @@ class DbManager():
             if file_extension != "":
                 if file_extension != ".db" and file_extension != ".db3" and file_extension != ".sqlite" \
                         and file_extension != ".sqlite3":
-                    raise Exception('file extension must be db or db3 or sqlite or sqlite3!')
+                    raise Exception('The file extension must be .db or .sqlite')
             else:
-                file_extension = ".db"
+                file_extension = "_scrapdata.db"
 
                 self._db_name = self._db_name + file_extension
 
@@ -478,10 +482,10 @@ class DbManager():
 
         self._info_manager.set_info("DB FILE SCRAPER", self._db_home + os.sep + self._db_name)
 
-        self._db_name = self._db_name.replace(".db", "_scapdata.db")
-        self._db_name = self._db_name.replace(".db3", "_scapdata.db3")
-        self._db_name = self._db_name.replace(".sqlite", "_scapdata.sqlite")
-        self._db_name = self._db_name.replace(".sqlite3", "_scapdata.sqlite3")
+        #self._db_name = self._db_name.replace(".db", "_scrapdata.db")
+        #self._db_name = self._db_name.replace(".db3", "_scrapdata.db3")
+        #self._db_name = self._db_name.replace(".sqlite", "_scrapdata.sqlite")
+        #self._db_name = self._db_name.replace(".sqlite3", "_scrapdata.sqlite3")
 
         # if not os.path.isfile(self._db_home + os.sep + self._db_name):
         if not os.path.isdir(self._db_home):
@@ -509,16 +513,13 @@ class DbManager():
                          measurement="alyvix", max_reconnect_attempts=5, reconnect_time_wait=2):
 
         if type.lower() == "perfmon":
-            # if BitBlt fails, maybe the monitor is unavailable
             try:
-                # if alyvix background service is intalled, we have to notify the service
                 scm = win32service.OpenSCManager('localhost', None, win32service.SC_MANAGER_CONNECT)
 
-                # if below method raises an exception then Alyvix Background Service is not installed
                 win32service.OpenService(scm, 'Alyvix Wpm Service', win32service.SERVICE_QUERY_CONFIG)
             except:
                 raise Exception(
-                    "You cannot publish perf data to windows performance monitor without installing Alyvix Wpm Service")
+                    "Alyvix WPM service is not installed")
 
             try:
                 full_file_name = get_python_lib() + os.sep + "alyvix" + os.sep + "extra" + os.sep + "alyvixservice.ini"
@@ -625,13 +626,13 @@ class DbManager():
                         pass
 
             if start_date_dt is None:
-                raise Exception('invalid start date!')
+                raise Exception('The start date is not valid')
 
             if end_date_dt is None:
-                raise Exception('invalid end date!')
+                raise Exception('The end date is not valid')
 
             if start_date_dt >= end_date_dt:
-                raise Exception('end date must be greate than start date!')
+                raise Exception('The end date must be greater than start date')
 
             db_file = self._info_manager.get_info("DB FILE")
 
@@ -665,7 +666,7 @@ class DbManager():
 
                 if file_extension != "":
                     if file_extension != ".csv":
-                        raise Exception('file extension must be csv!')
+                        raise Exception('The file extension must be .csv')
                 else:
                     file_extension = ".csv"
 
@@ -684,7 +685,7 @@ class DbManager():
                 if suffix.lower() == "timestamp":
                     csv_name = csv_name.replace(".csv", "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S") + ".csv")
                 else:
-                    raise Exception('invalid suffix type!')
+                    raise Exception('The suffix type is not valid')
 
             self.connect()
 
@@ -756,13 +757,13 @@ class DbManager():
             #perfdata_list = self._perf_manager.get_all_perfdata()
 
             if server is None or server == "":
-                raise Exception('the server value cannot be empty!')
+                raise Exception('The server value cannot be empty')
 
             if port is None or port == "":
                 port = 4222
 
             if subject is None or subject == "":
-                raise Exception('the subject value cannot be empty!')
+                raise Exception('The subject value cannot be empty')
 
             if testcase_name is None or testcase_name == "":
                 testcase_name = self._info_manager.get_info('TEST CASE NAME')
@@ -771,9 +772,9 @@ class DbManager():
                 testcase_name = self._info_manager.get_info('SUITE NAME')
 
             if testcase_name is None or testcase_name == "":
-                raise Exception('invalid testcase name!')
+                raise Exception('The test case name is not valid')
 
             nm.publish(testcase_name, subject, server, str(port), measurement=measurement,
                 max_reconnect_attempts=max_reconnect_attempts, reconnect_time_wait=reconnect_time_wait)
         else:
-            raise Exception('invalid publish perf output type!')
+            raise Exception('The publish output type is not valid')

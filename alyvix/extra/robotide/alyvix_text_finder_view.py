@@ -4935,7 +4935,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
         if self.parent._sub_texts_finder[self.sub_text_index].click is False \
             and self.parent._sub_texts_finder[self.sub_text_index].rightclick is False \
-            and self.parent._sub_texts_finder[self.sub_text_index].hold_and_release is False \
+            and self.parent._sub_texts_finder[self.sub_text_index].hold_and_release is None \
             and self.parent._sub_texts_finder[self.sub_text_index].mousemove is False:
             self.dontclickRadio_2.setChecked(True)
             self.pushButtonXYoffset_2.setEnabled(False)
