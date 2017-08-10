@@ -23,7 +23,7 @@ import os
 import time
 import cv2
 
-from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox
+from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox, QKeySequence
 from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect, QEvent
 
 from PyQt4.QtWebKit import QWebSettings
@@ -42,6 +42,7 @@ from alyvix.tools.screen import ScreenManager
 from alyvix.tools.configreader import ConfigReader
 from alyvix.tools.info import InfoManager
 
+
 from stat import S_ISREG, ST_CTIME, ST_MODE
 
 import shutil
@@ -53,11 +54,15 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     def __init__(self):
         QDialog.__init__(self)
 
+
         info_manager = InfoManager()
         self.scaling_factor = info_manager.get_info("SCALING FACTOR FLOAT")
 
         # Set up the user interface from Designer.
         self.setupUi(self)
+        
+                
+        #self.listWidgetAlyObj = listWidgetAlyObj2()
 
         self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor),
                           int(self.frameGeometry().height() * self.scaling_factor))
@@ -92,8 +97,10 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.connect(self.pushButtonIF, SIGNAL("clicked()"), self.open_imagefinder_view)
         self.connect(self.pushButtonTF, SIGNAL("clicked()"), self.open_textfinder_view)
         self.connect(self.pushButtonOF, SIGNAL("clicked()"), self.open_objectfinder_controller)
-        self.connect(self.pushButtonCC, SIGNAL("clicked()"), self.open_customcode_controller)
+        #self.connect(self.pushButtonCC, SIGNAL("clicked()"), self.open_customcode_controller)
         
+        #self.listWidgetAlyObj.installEventFilter(self)
+        self.listWidgetAlyObj.keyPressEvent = lambda event: event.ignore()
         self.listWidgetAlyObj.installEventFilter(self)
         
         self.window = None
@@ -114,16 +121,24 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.pushButtonCancel.hide()
         
         
+        
     def eventFilter(self, object, event):
         #print event
         #if event.type() == QEvent.KeyPress:
         
         try:
-            if Qt.ControlModifier == QApplication.keyboardModifiers() and event.key() == Qt.Key_C: 
+            if event.matches(QKeySequence.Copy):
+            #if Qt.ControlModifier == QApplication.keyboardModifiers() and event.key() == Qt.Key_C: 
                 text = self.listWidgetAlyObj.currentItem().text()[:-5]
 
                 clipboard = QApplication.clipboard()
-                clipboard.setText(text)
+                clip_text = clipboard.text()
+                
+                if clip_text != text:
+                    clipboard.setText(text)
+                    #print "\"" + text + "\""
+            elif Qt.ControlModifier == QApplication.keyboardModifiers() and event.key() == Qt.Key_D:
+                self.remove_item()
         except:
             pass
         return super(AlyvixMainMenuController, self).eventFilter(object, event)

@@ -922,7 +922,7 @@ class AlyvixTextFinderView(QWidget):
         
             self.__deleted_texts.append(self._main_text)
             self._main_text = None
-            print "deleted main"
+            #print "deleted main"
             self.__flag_need_to_delete_main_roi = False
             self.__flag_need_to_restore_main_roi = True
             self.__flag_capturing_main_text_rect_roi = True
@@ -3960,6 +3960,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
 
         # Set up the user interface from Designer.
         self.setupUi(self)
+        
+        self.setTabOrder(self.namelineedit, self.pushButtonOk)
+        self.setTabOrder(self.pushButtonOk, self.pushButtonCancel)
                         
         self.parent = parent
         self.added_block = False
@@ -4299,13 +4302,15 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.add_quotes.setEnabled(True)
             self.text_encrypted.setEnabled(True)
         
-        self.init_block_code()     
+        self.init_block_code() 
 
-        self.pushButtonOk.setFocus()        
+        #self.pushButtonOk.setFocus()            
         
-        if self.namelineedit.text() == "Type the keyword name":
-            self.namelineedit.setFocus()           
+        if self.namelineedit.text() == "Type the keyword name":                  
+            self.namelineedit.setFocus()
+            
             self.namelineedit.setText("")  
+
             
         if self.parent.parent_is_objfinder is True:
             self.wait_disapp_radio.setEnabled(False)
@@ -4574,13 +4579,19 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
             if "def " + obj_name + "_mouse_keyboard(" in python_file or "def " + obj_name + "_build_object(" in python_file or "def " + obj_name + "(" in python_file:
                 QMessageBox.critical(self, "Error", "Keyword name already exists!")
+
                 return
         
         if answer == QMessageBox.Yes:
+            #print "return"
             self.close()
             self.parent.save_all()
   
     def check_text(self):
+        if not os.path.exists(get_python_lib() + os.sep + "alyvix\\extra\\Tesseract-OCR\\tessdata" + os.sep + self.lineEditLang.text() + ".traineddata"):
+            QMessageBox.critical(self, "Error", "Language does not exist")
+            return
+
         if not os.path.exists(self.parent._path):
             os.makedirs(self.parent._path)
         image_name = self.parent._path + os.sep + time.strftime("text_finder_%d_%m_%y_%H_%M_%S_temp_img.png")
@@ -5361,7 +5372,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 return True
                 
         if event.type() == event.KeyPress and obj.objectName() == "namelineedit" and (event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter):
-            self.pushButtonOk_event()
+            pass #self.pushButtonOk_event()
         if event.type() == event.KeyPress and obj.objectName() == "textEditCustomLines" and event.key() == Qt.Key_Tab:
             #event.ignore()
             #self.textEditCustomLines.append("    ")
@@ -5608,6 +5619,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.parent._sub_texts_finder[self.sub_text_index].quotes_ocr = False
         
     def check_text_2(self):
+    
+        if not os.path.exists(get_python_lib() + os.sep + "alyvix\\extra\\Tesseract-OCR\\tessdata" + os.sep + self.lineEditLang_2.text() + ".traineddata"):
+            QMessageBox.critical(self, "Error", "Language does not exist")
+            return
+
+            
         if not os.path.exists(self.parent._path):
             os.makedirs(self.parent._path)
         image_name = self.parent._path + os.sep + time.strftime("text_finder_%d_%m_%y_%H_%M_%S_temp_img.png")
@@ -5941,9 +5958,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
     def closeEvent(self, event):
         try:
             self.check_window.close()
+            #print "this closing"
         except:
             pass
-            
+        #print "this closing"
         self.parent.parent.show()
         self.parent.close()
             

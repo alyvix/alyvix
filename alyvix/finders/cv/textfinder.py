@@ -149,6 +149,9 @@ class TextFinder(BaseFinder):
         self._sub_components.append((sub_text, roi))
 
     def scraper(self):
+        if self._is_object_finder is False:
+            raise Exception("A Text Scraper is out of an Object Finder")
+
         self._info_manager.set_info("ALYVIX SCRAPER", True)
         self._scraper_enable = True
         self.find()

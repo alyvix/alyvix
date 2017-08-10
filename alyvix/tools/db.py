@@ -756,22 +756,22 @@ class DbManager():
 
             #perfdata_list = self._perf_manager.get_all_perfdata()
 
-            if server is None or server == "":
+            if server is None or server == 'None' or server == "":
                 raise Exception('The server value cannot be empty')
 
-            if port is None or port == "":
+            if port is None or port == 'None' or port == "":
                 port = 4222
 
-            if subject is None or subject == "":
+            if subject is None or subject == 'None' or subject == "":
                 raise Exception('The subject value cannot be empty')
 
-            if testcase_name is None or testcase_name == "":
+            if testcase_name is None or testcase_name == "None" or testcase_name == "":
                 testcase_name = self._info_manager.get_info('TEST CASE NAME')
 
-            if testcase_name is None or testcase_name == "":
+            if testcase_name is None or testcase_name == 'None' or testcase_name == "":
                 testcase_name = self._info_manager.get_info('SUITE NAME')
 
-            if testcase_name is None or testcase_name == "":
+            if testcase_name is None or testcase_name == 'None' or testcase_name == "":
                 raise Exception('The test case name is not valid')
 
             nm.publish(testcase_name, subject, server, str(port), measurement=measurement,
