@@ -17,7 +17,10 @@
 # Developer: Alan Pipitone (Violet Atom) - http://www.violetatom.com/
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
-
+import datetime
+from socket import gethostname
+from .perfdata import PerfManager
+from .info import InfoManager
 import argparse, sys
 import tornado.ioloop
 import tornado.gen
@@ -31,9 +34,21 @@ except:
 
 class NatsManager():
 
+    def __init__(self):
+        self._perf_manager = PerfManager()
+        self._info_manager = InfoManager()
+
     @tornado.gen.coroutine
-    def _pub(self, perfdata_list, testcase_name, subject, server, port=4222, measurement="alyvix",
+    def _pub(self, testcase_name, subject, server, port=4222, measurement="alyvix",
                 max_reconnect_attempts=5, reconnect_time_wait=2):
+
+        #self._perf_manager.order_perfdata()
+        #last_filled_perf = self._perf_manager.get_last_filled()
+        perfdata_list = self._perf_manager.get_all_perfdata()
+
+        keywords_timestamp_array = self._info_manager.get_info('KEYWORD TIMESTAMP')
+
+        keywords_timeout_array = self._info_manager.get_info('KEYWORD TIMEOUT')
 
         current_timestamp = str(int(time.time()*1000*1000*1000))
 
@@ -118,19 +133,25 @@ class NatsManager():
 
         message_lines = tmp_message_lines
 
+        cumsum_value = 0
+
         #publish current performance data
         for perfdata in perfdata_list:
 
-            perfdata_state = "ok"
+            #check if current perf has a timestamp
+            for cnt_kts in xrange(len(keywords_timestamp_array)):
+                if keywords_timestamp_array[cnt_kts][0] == perfdata.name:
+                    perfdata.timestamp = keywords_timestamp_array[cnt_kts][1]
+                    break
 
-            if perfdata.value == "" or perfdata.value is None:
-                perfdata_state = "timedout"
-            elif perfdata.state == 1:
-                perfdata_state = "warning"
-            elif perfdata.state == 2:
-                perfdata_state = "critical"
-            elif perfdata.state == 3:
-                perfdata_state = "unknown"
+            #check if current perf has a timeout
+            for cnt_ktout in xrange(len(keywords_timeout_array)):
+                if keywords_timeout_array[cnt_ktout][0] == perfdata.name:
+                    perfdata.timeout_threshold = keywords_timeout_array[cnt_ktout][1]
+                    break
+
+            timed_out = False
+            not_executed = False
 
             msg_extra = ""
 
@@ -152,9 +173,44 @@ class NatsManager():
             if perfdata.timeout_threshold != None and perfdata.timeout_threshold != "":
                 msg_timeout = ",timeout_threshold=" + str(int(perfdata.timeout_threshold * 1000))
 
+            try:
+                perf_timestamp = str(int(perfdata.timestamp*1000*1000))
+            except:
+                perf_timestamp = current_timestamp
+                not_executed = True
+
             msg_perf = ""
             if perfdata.value != "" and perfdata.value is not None:
                 msg_perf = ",performance=" + str(int(perfdata.value * 1000))
+            elif not_executed is False:
+                msg_perf = ",performance=" + str(int(perfdata.timeout_threshold * 1000))
+                timed_out = True
+
+            msg_cumsum = ""
+            msg_cumsumpre = ",cumulative=" + str(cumsum_value)
+            if perfdata.value != "" and perfdata.value is not None:
+                value = int(cumsum_value + (perfdata.value * 1000))
+                msg_cumsum = ",cumulative=" + str(value)
+                cumsum_value = value
+            elif not_executed is False: #timedout
+                value = int(cumsum_value + (perfdata.timeout_threshold * 1000))
+                msg_cumsum = ",cumulative=" + str(value)
+                cumsum_value = value
+            else: #not_executed
+                msg_cumsum = ",cumulative=" + str(cumsum_value)
+
+            perfdata_state = "ok"
+
+            if timed_out is True:
+                perfdata_state = "timedout"
+            elif not_executed is True:
+                perfdata_state = "not_executed"
+            elif perfdata.state == 1:
+                perfdata_state = "warning"
+            elif perfdata.state == 2:
+                perfdata_state = "critical"
+            elif perfdata.state == 3:
+                perfdata_state = "unknown"
 
             msg_errorlevel = ",error_level=0"
 
@@ -165,17 +221,77 @@ class NatsManager():
             elif perfdata.state == 2:
                 msg_errorlevel = ",error_level=2"
             elif perfdata.state == 3:
-                perfdata_state = msg_errorlevel = ",error_level=3"
+               msg_errorlevel = ",error_level=3"
+
+
+            point_pre_msg = ""
+            point_start_msg = ""
+            if not_executed is False:
+                point_pre_msg = ",point=pre"
+                point_start_msg = ",point=start"
+
+            msg_custom_tags = ""
+
+            for tag in perfdata.custom_tags.keys():
+                msg_custom_tags += "," + tag + "=" + perfdata.custom_tags[tag]
+
+            msg_custom_fields = ""
+
+            for field in perfdata.custom_fields.keys():
+                msg_custom_fields += "," + field + "=" + perfdata.custom_fields[field]
+
+            user_msg = ",username=" + os.environ['username']
+            host_msg = ",host=" +str(gethostname())
+
+            unique_tag_msg = ""
+            try:
+                unique_tag_msg = str(gethostname())[0]
+                unique_tag_msg = unique_tag_msg + str(gethostname())[1]
+                unique_tag_msg = unique_tag_msg + str(gethostname())[-2]
+                unique_tag_msg = unique_tag_msg + str(gethostname())[-1]
+            except:
+                pass
 
             try:
-                perf_timestamp = str(int(perfdata.timestamp*1000*1000))
+                unique_tag_msg = unique_tag_msg + os.environ['username'][0]
+                unique_tag_msg = unique_tag_msg + os.environ['username'][1]
+                unique_tag_msg = unique_tag_msg + os.environ['username'][-2]
+                unique_tag_msg = unique_tag_msg + os.environ['username'][-1]
             except:
-                perf_timestamp = current_timestamp
+                pass
 
+            if self._info_manager.get_info('SUITE NAME') is not None:
+                try:
+                    unique_tag_msg = unique_tag_msg + self._info_manager.get_info('SUITE NAME')[0]
+                    unique_tag_msg = unique_tag_msg + self._info_manager.get_info('SUITE NAME')[1]
+                    unique_tag_msg = unique_tag_msg + self._info_manager.get_info('SUITE NAME')[-2]
+                    unique_tag_msg = unique_tag_msg + self._info_manager.get_info('SUITE NAME')[-1]
+                except:
+                    pass
 
-            message= str(measurement) + ",test_name=" +str(testcase_name) + ",transaction_name=" +\
-                     str(perfdata.name).replace(" ", "_") + ",state=" + perfdata_state + msg_extra + " " +\
-                     msg_warning + msg_critical + msg_timeout + msg_perf + msg_errorlevel + " " + perf_timestamp
+            #unique_tag_msg = ",run_code=" + unique_tag_msg + str(self._info_manager.get_info('START TIME'))
+            unique_tag_msg = ""
+
+            """
+            if point_pre_msg != "":
+                message = str(measurement) + user_msg + host_msg + ",test_name=" + str(testcase_name) \
+                          + ",transaction_name=" + str(perfdata.name).replace(" ", "_") + ",state=" + perfdata_state + \
+                          msg_extra + msg_custom_tags + point_pre_msg + unique_tag_msg +" " + msg_warning + msg_critical + \
+                          msg_timeout + msg_perf + msg_cumsumpre + msg_errorlevel + " " + perf_timestamp
+
+                message = message.replace(" ,", " ")
+
+                try:
+                    yield nc.publish(subject, message)
+                except:
+                    # store to cache list if we cannot publish messages
+                    message_lines.append(message)
+                    exception_occurred = True
+            """
+            message= str(measurement) + user_msg + host_msg + ",test_name=" +str(testcase_name)\
+                     + ",transaction_name=" + str(perfdata.name).replace(" ", "_") + ",state=" + perfdata_state +\
+                     msg_extra + msg_custom_tags + unique_tag_msg + " " + msg_warning + msg_critical +\
+                     msg_timeout + msg_perf + msg_cumsum + msg_errorlevel + msg_custom_fields + " " + perf_timestamp
 
             message = message.replace(" ,"," ")
 
@@ -187,6 +303,36 @@ class NatsManager():
                 message_lines.append(message)
                 exception_occurred = True
 
+            if not_executed is False:
+
+                #alyvix saves timestamp in millisconds, so first of all we have to restore it in seconds interval, then
+                #we have to add perfdata value
+                if timed_out is True:
+                    end_timestamp_in_seconds = (float(perfdata.timestamp)/1000) + perfdata.timeout_threshold
+                else:
+                    if perfdata.end_timestamp_only_for_summed_perf is None:
+                        end_timestamp_in_seconds = (float(perfdata.timestamp) / 1000) + perfdata.value
+                    else:
+                        end_timestamp_in_seconds = (float(perfdata.end_timestamp_only_for_summed_perf) / 1000)
+                #convert timestamp in seconds to timestamp in nanoseconds
+                end_timestamp_in_nanoseconds = int(end_timestamp_in_seconds * 1000 * 1000 * 1000)
+
+
+                """
+                message = str(measurement) + user_msg + host_msg + ",test_name=" + str(testcase_name) \
+                          + ",transaction_name=" + str(perfdata.name).replace(" ", "_") + ",state=" + perfdata_state + \
+                          msg_extra + msg_custom_tags + ",point=end" + unique_tag_msg + " " + msg_warning + msg_critical + msg_timeout + \
+                          msg_perf + msg_cumsum + msg_errorlevel + " " + str(end_timestamp_in_nanoseconds)
+
+                message = message.replace(" ,", " ")
+
+                try:
+                    yield nc.publish(subject, message)
+                except:
+                    # store to cache list if we cannot publish messages
+                    message_lines.append(message)
+                    exception_occurred = True
+                """
         try:
             yield nc.flush()
         except:
@@ -226,7 +372,7 @@ class NatsManager():
 
 
 
-    def publish(self,perfdata_list, testcase_name, subject, server, port=4222, measurement="alyvix",
+    def publish(self, testcase_name, subject, server, port=4222, measurement="alyvix",
                 max_reconnect_attempts=5, reconnect_time_wait=2):
-        tornado.ioloop.IOLoop.instance().run_sync(lambda: self._pub(perfdata_list, testcase_name, subject, server, port, measurement,
+        tornado.ioloop.IOLoop.instance().run_sync(lambda: self._pub(testcase_name, subject, server, port, measurement,
                 max_reconnect_attempts, reconnect_time_wait))

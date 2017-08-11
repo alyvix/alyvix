@@ -80,6 +80,7 @@ class ImageFinder(BaseFinder):
 
         #self._main_component = None
         #self._sub_components = []
+        self.is_textfinder = False
         self.__threshold = 0.7
         self.__timed_out_sub_extra_images = []
 

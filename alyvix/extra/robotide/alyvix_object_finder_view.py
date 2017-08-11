@@ -64,6 +64,7 @@ class dummy():
         self.action = ""
         self.xml_name = ""
         self.parent = None
+        self.objectfinder_view = None
         self.scaling_factor = None
         
     def set_parent(self, parent):
@@ -75,6 +76,9 @@ class dummy():
         #self.parent._main_object_finder = MainObjectForGui()
         #self.parent.build_objects()
         self.parent.show()
+        
+    def update_list(self):
+        self.objectfinder_view.update_list()
 
 class AlyvixObjectFinderView(QDialog, Ui_Form):
     def __init__(self, parent):
@@ -84,6 +88,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
 		
         self._main_deleted = False
         self._roi_restored_after_deleted_main = 0
+        
+        self._old_sub_roi = []
 
         # Set up the user interface from Designer.
         self.setupUi(self)
@@ -213,6 +219,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             
             filename = sub_object.xml_path
             filename = filename.split(os.sep)[-1]
+            
+            scraper = False
+            extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self._path.split(os.sep)[-1] + "_extra"
+            scraper_path = extra_path + os.sep + filename.replace("_TextFinder.xml","")
+            scraper_file = scraper_path + os.sep + "scraper.txt"
+            if os.path.exists(scraper_file):
+                scraper = True
                         
             item = QListWidgetItem()
                 
@@ -221,7 +234,10 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             elif filename.endswith('_ImageFinder.xml'):
                 item.setText(filename[:-16] + " [IF]")
             elif filename.endswith('_TextFinder.xml'):
-                item.setText(filename[:-15] + " [TF]")
+                if scraper is True:
+                    item.setText(filename[:-15] + " [TS]")
+                else:
+                    item.setText(filename[:-15] + " [TF]")
                 
             item.setData(Qt.UserRole, filename)
             
@@ -340,9 +356,31 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)
         
+        """
+        if self.parent.last_view_index != 0:
+            
+            self.listWidget.setCurrentRow(self.parent.last_view_index)
+        """
+        
     def save_all(self):
         if self._main_object_finder != None and self.ok_pressed is False:
             self.ok_pressed = True
+            
+            scraper_file_name = self._path + os.sep + self._main_object_finder.name + "_ObjectFinder.alyscraper"
+            
+            if self._main_object_finder.is_scraper is True:
+                
+                if not os.path.exists(scraper_file_name):
+                    with open(scraper_file_name, 'w') as f:
+                        
+                        f.write("scraper=true")
+
+                        f.close()
+            else:
+            
+                if os.path.exists(scraper_file_name):
+                    os.remove(scraper_file_name)
+            
             self.build_code_array()
             self.update_lock_list()
             self.parent.update_list()
@@ -547,6 +585,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         m_controller.path = self.parent.path
         m_controller.scaling_factor = self.parent.scaling_factor
         m_controller.xml_name = xml_name.split(os.sep)[-1]
+        m_controller.objectfinder_view = self
         
         if xml_name.endswith('_RectFinder.xml'):
             main_obj = AlyvixRectFinderView(m_controller)
@@ -606,6 +645,14 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         else:
             self._main_object_finder.enable_performance = False
             
+        try:
+            if root_node.attributes["scraper"].value == "True":
+                self._main_object_finder.is_scraper = True
+            else:
+                self._main_object_finder.is_scraper = False
+        except:
+            self._main_object_finder.is_scraper = False
+            
         self._main_object_finder.warning = float(root_node.attributes["warning_value"].value)
             
         self._main_object_finder.critical = float(root_node.attributes["critical_value"].value)
@@ -626,6 +673,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             m_controller.path = self.parent.path
             m_controller.scaling_factor = self.parent.scaling_factor
             m_controller.xml_name = filename.split(os.sep)[-1]
+            m_controller.objectfinder_view = self
 
             if filename.endswith('_RectFinder.xml'):
                 main_obj = AlyvixRectFinderView(m_controller)
@@ -821,6 +869,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         m_controller.path = self.parent.path
         m_controller.scaling_factor = self.parent.scaling_factor
         m_controller.xml_name = path_main_xml.split(os.sep)[-1]
+        m_controller.objectfinder_view = self
         
         if m_controller.xml_name == "":
             return
@@ -893,6 +942,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 s_controller.path = self.parent.path
                 s_controller.scaling_factor = self.parent.scaling_factor
                 s_controller.xml_name = path_sub_xml.split(os.sep)[-1]
+                s_controller.objectfinder_view = self
         
                 if path_sub_xml.endswith('_RectFinder.xml'):
                     sub_obj = AlyvixRectFinderView(s_controller)
@@ -1102,19 +1152,26 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 self._code_lines.append("        raise Exception(\"step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\")")             
             else:
                 self._code_lines.append("        print \"*WARN* step " + str(self._main_object_finder.name) + " timed out, execution time: " + str(self._main_object_finder.timeout) + "\"")
-                self._code_lines.append("        return False")
+                if self._main_object_finder.is_scraper is True:
+                    self._code_lines.append("        return \"\"")
+                else:
+                    self._code_lines.append("        return False")
         
         if self._main_object_finder.mouse_or_key_is_set:
             self._code_lines.append("    " + main_obj_name + "_mouse_keyboard(" + self._main_object_finder.component_args + ")")
             
         cnt = 0
         for sub_object in self._sub_objects_finder:
-        
+            
+            try:
+                if sub_object.scraper is True:
+                    continue
+            except:
+                pass
+                
             if sub_object.height != 0 and sub_object.width !=0:
             
-                if mouse_or_key_is_set is False:
-                    print "no sub click... pass"
-                    continue
+                sub_mouse_or_keyboard_is_set = False
                 
                 path_sub_xml = sub_object.xml_path
                 sub_obj = None           
@@ -1123,21 +1180,27 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 s_controller.path = self.parent.path
                 s_controller.scaling_factor = self.parent.scaling_factor
                 s_controller.xml_name = path_sub_xml.split(os.sep)[-1]
+                s_controller.objectfinder_view = self
         
                 if path_sub_xml.endswith('_RectFinder.xml'):
                     sub_obj = AlyvixRectFinderView(s_controller)
-                    sub_obj_name = sub_obj.object_name
-                    self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
                 elif path_sub_xml.endswith('_ImageFinder.xml'):
                     sub_obj = AlyvixImageFinderView(s_controller)
-                    sub_obj_name = sub_obj.object_name
-                    self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
                 elif path_sub_xml.endswith('_TextFinder.xml'):
                     sub_obj = AlyvixTextFinderView(s_controller)
-                    sub_obj_name = sub_obj.object_name
+                    
+                    
+                    
+                sub_obj_name = sub_obj.object_name
+                
+                if sub_obj.mouse_or_key_is_set:
                     self._code_lines.append("    " + sub_obj_name + "_mouse_keyboard(" + sub_object.component_args + ")")
+
             cnt+=1
                     
+        
+        if self._main_object_finder.is_scraper is True:
+            self._code_lines.append("    return object_finder.get_scraped_text()") 
         
         if self._main_object_finder.wait_disapp is True and mouse_or_key_is_set is True:   
             self._code_lines.append("    timeout = timeout - wait_time")
@@ -1311,7 +1374,14 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.parent.update_list()
         
                 
+    def restore_all_sub_roi(self):
+    
+        self._sub_objects_finder = copy.deepcopy(self._old_sub_roi)
+        
+    
     def delete_all_sub_roi(self):
+    
+        self._old_sub_roi = copy.deepcopy(self._sub_objects_finder)
     
         for sub_obj in self._sub_objects_finder:
             
@@ -1337,6 +1407,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         m_controller.scaling_factor = self.parent.scaling_factor
         m_controller.robot_file_name =  self._robot_file_name
         m_controller.xml_name = str(self.listWidget.currentItem().data(Qt.UserRole).toString())
+        m_controller.objectfinder_view = self
+        
         
         image = QImage(m_controller.path + os.sep + m_controller.xml_name.replace("xml", "png"))
         
@@ -1346,6 +1418,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.object = AlyvixImageFinderView(m_controller)
         elif m_controller.xml_name.endswith('_TextFinder.xml'):
             self.object = AlyvixTextFinderView(m_controller)
+            
+        self.object.parent_is_objfinder = True
         
         self.hide()
         
@@ -1363,7 +1437,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.object.image_view_properties.show()
     
     def open_select_obj_window(self):
-        self.select_main_object_view = AlyvixObjectsSelection(self)
+        self.select_main_object_view = None
+        
+        if self.button_selected == "set_main_object":
+            self.select_main_object_view = AlyvixObjectsSelection(self, True)
+        elif self.button_selected == "add_sub_object":
+            self.select_main_object_view = AlyvixObjectsSelection(self, False)
+            
         self.hide()
         self.select_main_object_view.show()
         
@@ -1371,6 +1451,25 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         filename = xml_name
         filename = filename.split(os.sep)[-1]
         
+        extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.parent.path.split(os.sep)[-1] + "_extra"
+        scraper_path = extra_path + os.sep + filename.replace("_TextFinder.xml","")
+        scraper_file = scraper_path + os.sep + "scraper.txt"
+        
+        
+        if os.path.exists(scraper_file):
+            QMessageBox.critical(self, "Error", "You cannot add a scraper object as main component!")
+            self.restore_all_sub_roi()
+            self.parent._main_deleted = False
+            #self.listWidget.insertItem(0, self._old_main_list_item)
+            return False
+
+        elif "_TextFinder.xml" in filename:
+            QMessageBox.critical(self, "Error", "You cannot add a Text Finder object as main component!")
+            self.restore_all_sub_roi()
+            self.parent._main_deleted = False
+            #self.listWidget.insertItem(0, self._old_main_list_item)
+            return False
+            
         #self.update_lock_list(filename)
         
         #self._finders_to_exclude.append(xml_name)
@@ -1384,6 +1483,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         m_controller.path = self.parent.path
         m_controller.scaling_factor = self.parent.scaling_factor
         m_controller.xml_name = filename
+        m_controller.objectfinder_view = self
         
         if filename.endswith('_RectFinder.xml'):
             item.setText(filename[:-15] + " [RF]")
@@ -1424,10 +1524,24 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         #self.listWidget.addItem(item)
         #self.build_main_object()
+        return True
         
     def add_sub_object(self, xml_name):
+    
         filename = xml_name
         filename = filename.split(os.sep)[-1]
+        
+        scraper = False
+        extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.parent.path.split(os.sep)[-1] + "_extra"
+        scraper_path = extra_path + os.sep + filename.replace("_TextFinder.xml","")
+        scraper_file = scraper_path + os.sep + "scraper.txt"
+        if os.path.exists(scraper_file):
+            if self._main_object_finder.is_scraper is True:
+                QMessageBox.critical(self, "Error", "You can add only one scraper object")
+                return False
+            else:
+                self._main_object_finder.is_scraper = True
+                scraper = True
         
         #self.update_lock_list(filename)
                     
@@ -1439,6 +1553,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         m_controller.path = self.parent.path
         m_controller.scaling_factor = self.parent.scaling_factor
         m_controller.xml_name = filename
+        m_controller.objectfinder_view = self
 
         if filename.endswith('_RectFinder.xml'):
             item.setText(filename[:-15] + " [RF]")
@@ -1451,7 +1566,10 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             main_obj.build_objects()
             main_obj = main_obj._main_template
         elif filename.endswith('_TextFinder.xml'):
-            item.setText(filename[:-15] + " [TF]")
+            if scraper is True:
+                item.setText(filename[:-15] + " [TS]")
+            else:
+                item.setText(filename[:-15] + " [TF]")
             main_obj = AlyvixTextFinderView(m_controller)
             main_obj.build_objects()
             main_obj = main_obj._main_text
@@ -1467,6 +1585,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         sub_object.height = main_obj.height
         sub_object.width = main_obj.width
         sub_object.mouse_or_key_is_set = main_obj.mouse_or_key_is_set
+        sub_object.scraper = scraper
         self._sub_objects_finder.append(sub_object)
         #self.build_sub_object(sub_object)
         
@@ -1474,6 +1593,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
         self.pv.set_bg_pixmap(image)
         self.pv.showFullScreen()
+        
+        return True
                 
     def add_new_item_on_list(self): 
         dirpath = self._path
@@ -1527,6 +1648,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         root.set("warning_value", repr(self._main_object_finder.warning))
         root.set("critical_value", repr(self._main_object_finder.critical))
         root.set("args", str(self._main_object_finder.args_number))
+        root.set("scraper", str(self._main_object_finder.is_scraper))
 
         main_object_node = ET.SubElement(root, "main_object")
         
@@ -2030,8 +2152,14 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.open_select_obj_window()
         else:
             item = self.listWidget.takeItem(selected_index)
+            item_path = self.parent.path + os.sep + item.data(Qt.UserRole).toString()
+            if os.path.exists(item_path.replace(".xml",".alyscraper")):
+                self._main_object_finder.is_scraper = False
+                print "scraper is false"
+            
             #print selected_index
             self.listWidget.removeItemWidget(item)
+            #print "rrrrr"
             del self._sub_objects_finder[selected_index - 1]
         
     def edit_obj_2(self):
@@ -2043,6 +2171,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         s_controller.robot_file_name =  self._robot_file_name
         s_controller.scaling_factor = self.parent.scaling_factor
         s_controller.xml_name = str(self.listWidget.currentItem().data(Qt.UserRole).toString())
+        s_controller.objectfinder_view = self
         
         image = QImage(s_controller.path + os.sep + s_controller.xml_name.replace("xml", "png"))
         
@@ -2052,6 +2181,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.object = AlyvixImageFinderView(s_controller)
         elif s_controller.xml_name.endswith('_TextFinder.xml'):
             self.object = AlyvixTextFinderView(s_controller)
+            
+        self.object.parent_is_objfinder = True
         
         self.hide()
         
@@ -2109,7 +2240,88 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.object.showFullScreen()
         self.update()
         """
+        
+    def update_list(self):
+    
+        pass
+    
+        """
+        items = []
+        for index in xrange(self.listWidget.count()):
+            item = self.listWidget.item(index)
+                         
+            if "[TF]" in item.text():
 
+                extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self._path.split(os.sep)[-1] + "_extra"
+
+
+                xml_file = item.data(Qt.UserRole).toString()
+
+                #print self.parent.path + os.sep + xml_file
+
+                scraper_path = extra_path + os.sep + xml_file.replace("_TextFinder.xml","")
+                scraper_file = scraper_path + os.sep + "scraper.txt"
+
+                if os.path.exists(scraper_file):
+                    item.setText(xml_file[:-15] + " [TS]")
+                    
+                    self._main_object_finder.is_scraper = True
+                    
+                    scraper_file_name = self._path + os.sep + self._main_object_finder.name + "_ObjectFinder.alyscraper"
+            
+                            
+                    if not os.path.exists(scraper_file_name):
+                        with open(scraper_file_name, 'w') as f:
+                            
+                            f.write("scraper=true")
+
+                            f.close()
+                            
+                            
+                    with open(self._path + os.sep + self._xml_name, 'r') as content_file:
+                        content = content_file.read()
+                        
+                        
+                    if not "scraper=\"False\"" in content and not "scraper=\"True\"" in content:
+                        content = content.replace("<object_finder", "<object_finder scraper=\"True\"")
+
+                                    
+                    content = content.replace("scraper=\"False\"", "scraper=\"True\"")
+
+                    
+                    with open(self._path + os.sep + self._xml_name, "w") as text_file:
+                        text_file.write(content)
+
+        """
+        
+        """
+        # get all entries in the directory w/ stats
+        entries = (os.path.join(dirpath, fn) for fn in os.listdir(dirpath))
+        entries = ((os.stat(path), path) for path in entries)
+
+        # leave only regular files, insert creation date
+        entries = ((stat[ST_CTIME], path)
+        for stat, path in entries if S_ISREG(stat[ST_MODE]))
+        #NOTE: on Windows `ST_CTIME` is a creation date 
+        #  but on Unix it could be something else
+        #NOTE: use `ST_MTIME` to sort by a modification date
+
+        cdate, path = sorted(entries)[-1]
+
+        filename = os.path.basename(path)
+
+        item = QListWidgetItem()
+
+        if filename.endswith('_RectFinder.xml'):
+        item.setText(filename[:-15] + " [RF]")
+        elif filename.endswith('_ImageFinder.xml'):
+        item.setText(filename[:-16] + " [IF]")
+        elif filename.endswith('_TextFinder.xml'):
+        item.setText(filename[:-15] + " [TF]")
+
+        item.setData(Qt.UserRole, filename)
+        self.listWidget.addItem(item)
+        """
         
             
 class MainObjectForGui:
@@ -2130,6 +2342,7 @@ class MainObjectForGui:
         self.args_number = 0
         self.component_args = ""
         self.timeout = 20
+        self.is_scraper = False
         self.timeout_exception = True
         self.sendkeys = ""
         self.enable_performance = True
@@ -2155,16 +2368,38 @@ class SubObjectForGui:
         self.sendkeys = ""
         self.component_args = ""
         self.mouse_or_key_is_set = False
+        self.scraper = False
         
 class AlyvixObjectsSelection(QDialog, Ui_Form_2):
-    def __init__(self, parent):
+    def __init__(self, parent, is_main):
         QDialog.__init__(self)
         
         self.setupUi(self)
         
-        self.setFixedSize(self.size())
-        
+                
         self.parent = parent
+        
+        self.is_main = is_main
+        
+        self.scaling_factor = self.parent.parent.scaling_factor
+        
+        #self.setFixedSize(self.size())
+        self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor), int(self.frameGeometry().height() * self.scaling_factor))
+        
+        self.listWidgetAlyObj.setGeometry(QRect(int(self.listWidgetAlyObj.geometry().x() * self.scaling_factor), int(self.listWidgetAlyObj.geometry().y() * self.scaling_factor),
+                                int(self.listWidgetAlyObj.geometry().width() * self.scaling_factor), int(self.listWidgetAlyObj.geometry().height() * self.scaling_factor)))
+            
+        self.label.setGeometry(QRect(int(self.label.geometry().x() * self.scaling_factor), int(self.label.geometry().y() * self.scaling_factor),
+                                int(self.label.geometry().width() * self.scaling_factor), int(self.label.geometry().height() * self.scaling_factor)))
+                                
+        self.pushButtonSelect.setGeometry(QRect(int(self.pushButtonSelect.geometry().x() * self.scaling_factor), int(self.pushButtonSelect.geometry().y() * self.scaling_factor),
+                                int(self.pushButtonSelect.geometry().width() * self.scaling_factor), int(self.pushButtonSelect.geometry().height() * self.scaling_factor)))
+            
+        self.pushButtonCancel.setGeometry(QRect(int(self.pushButtonCancel.geometry().x() * self.scaling_factor), int(self.pushButtonCancel.geometry().y() * self.scaling_factor),
+                                int(self.pushButtonCancel.geometry().width() * self.scaling_factor), int(self.pushButtonCancel.geometry().height() * self.scaling_factor)))
+            
+        
+        self._old_main_list_item = None
         
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         
@@ -2177,6 +2412,7 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         #dirs = os.listdir(self.full_file_name)
         #dirs = [d for d in os.listdir(self.path) if os.path.isdir(os.path.join(self.path, d))]
         
+        extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.parent._path.split(os.sep)[-1] + "_extra"
         
         obj_to_exclude = []
 
@@ -2227,7 +2463,7 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
                     continue_the_loop = True
                     
             if filename.endswith('.xml'):
-                if filename.endswith('_ObjectFinder.xml') or filename.endswith('list.xml') or filename.endswith('data.xml') or continue_the_loop is True:
+                if filename.endswith('_ObjectFinder.xml') or filename.endswith('list.xml') or filename.endswith('data.xml') or (filename.endswith('_TextFinder.xml') is True and self.is_main is True) or continue_the_loop is True:
                     continue_the_loop = False
                     continue
                     
@@ -2236,9 +2472,14 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
                     item.setText(filename[:-15] + " [RF]")
                 elif filename.endswith('_ImageFinder.xml'):
                     item.setText(filename[:-16] + " [IF]")
-                elif filename.endswith('_TextFinder.xml'):
-                    item.setText(filename[:-15] + " [TF]")
-                    #print "tf"
+                elif filename.endswith("_TextFinder.xml"):
+                
+                    scraper_path = extra_path + os.sep + filename.replace("_TextFinder.xml","")
+                    scraper_file = scraper_path + os.sep + "scraper.txt"
+                    if os.path.exists(scraper_file):
+                        item.setText(filename[:-15] + " [TS]")
+                    else:
+                        item.setText(filename[:-15] + " [TF]")
                 item.setData(Qt.UserRole, filename)
                 self.listWidgetAlyObj.addItem(item)
                 
@@ -2249,7 +2490,7 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
 
                 item = QListWidgetItem()
                 item.setText("")
-                self.parent.listWidget.takeItem(0)
+                self._old_main_list_item = self.parent.listWidget.takeItem(0)
                 self.parent.listWidget.insertItem(0, item)
                 
                 self.parent.delete_all_sub_roi()
@@ -2276,7 +2517,14 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         
         #self.parent._main_object_finder.xml_path = xml_name
         
-        self.parent.set_main_object(xml_name)
+        if self.parent.set_main_object(xml_name) is False:
+            if self._old_main_list_item is not None:
+                self.parent.listWidget.takeItem(0)
+                self.parent.listWidget.insertItem(0,self._old_main_list_item)
+                self._old_main_list_item = None
+            self.parent.show()
+            self.close()
+            return
         
         if self.parent._main_deleted is True and len(self.parent._sub_objects_finder) > 0:
             self.parent.pv = PaintingView(self.parent)
@@ -2300,9 +2548,9 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         
         xml_name = self.parent._path + os.sep + xml_name
         
-        self.parent.add_sub_object(xml_name)
+        if self.parent.add_sub_object(xml_name) is False:
         
-        #self.parent.show()
+            self.parent.show()
         
         self.close()
         

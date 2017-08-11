@@ -65,6 +65,8 @@ class AlyvixRectFinderView(QWidget):
         self.warning = 10.00
         self.critical = 15.00
         
+        self.parent_is_objfinder = False
+        
         self.mouse_or_key_is_set = False
         
         self.setMouseTracking(True)
@@ -79,6 +81,8 @@ class AlyvixRectFinderView(QWidget):
         self._sub_rects_finder = []
         
         self.__deleted_rects = []
+        
+        self.last_view_index = 0
         
         #flags
         #self.__flag_mouse_left_button_is_pressed = False
@@ -3522,7 +3526,19 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         
         if self.namelineedit.text() == "Type the keyword name":
             self.namelineedit.setFocus()           
-            self.namelineedit.setText("")         
+            self.namelineedit.setText("")   
+
+        if self.parent.parent_is_objfinder is True:
+            self.wait_disapp_radio.setEnabled(False)
+            self.wait_radio.setEnabled(False)
+            self.timeout_spinbox.setEnabled(False)
+            self.timeout_label.setEnabled(False)
+            self.timeout_exception.setEnabled(False)
+            self.checkBoxEnablePerformance.setEnabled(False)
+            self.doubleSpinBoxWarning.setEnabled(False)
+            self.doubleSpinBoxCritical.setEnabled(False)
+            self.labelWarning.setEnabled(False)
+            self.labelCritical.setEnabled(False)           
         
         self.connect(self.min_width_spinbox, SIGNAL('valueChanged(int)'), self.min_width_spinbox_change_event)
         self.connect(self.max_width_spinbox, SIGNAL('valueChanged(int)'), self.max_width_spinbox_change_event)
@@ -3541,8 +3557,8 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         
         self.connect(self.use_min_max, SIGNAL('toggled(bool)'), self.use_min_max_event)
         self.connect(self.use_tolerance, SIGNAL('stateChanged(int)'), self.use_tolerance_event)
-        
         self.connect(self.wait_radio, SIGNAL('toggled(bool)'), self.wait_radio_event)
+        
         self.connect(self.wait_disapp_radio, SIGNAL('toggled(bool)'), self.wait_disapp_radio_event)
         self.connect(self.find_radio, SIGNAL('toggled(bool)'), self.find_radio_event)
         self.connect(self.timeout_spinbox, SIGNAL('valueChanged(int)'), self.timeout_spinbox_event)
@@ -3644,6 +3660,11 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.roi_height_spinbox.installEventFilter(self)
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)  
+        
+        if self.parent.last_view_index != 0:
+            
+            self.listWidget.setCurrentRow(self.parent.last_view_index)
+
         
     def pushButtonCancel_event(self):
         self.close()
@@ -3899,6 +3920,8 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
     
         selected_index = self.listWidget.currentRow()
         
+        self.parent.last_view_index = selected_index
+        
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
@@ -3993,6 +4016,8 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         
         if self.parent._sub_rects_finder[index].x_offset != None or self.parent._sub_rects_finder[index].y_offset != None:
             self.pushButtonXYoffset_2.setText("Reset\nPoint")
+        else:
+            self.pushButtonXYoffset_2.setText("Interaction\nPoint")
         
         if self.parent._sub_rects_finder[index].sendkeys == "":
             self.inserttext_2.setText("Type text strings and shortcuts")

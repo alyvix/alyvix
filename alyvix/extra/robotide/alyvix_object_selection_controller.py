@@ -23,8 +23,8 @@ import os
 import time
 import cv2
 
-from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox
-from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect
+from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox, QKeySequence
+from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect, QEvent
 
 from PyQt4.QtWebKit import QWebSettings
 
@@ -42,20 +42,27 @@ from alyvix.tools.screen import ScreenManager
 from alyvix.tools.configreader import ConfigReader
 from alyvix.tools.info import InfoManager
 
+
 from stat import S_ISREG, ST_CTIME, ST_MODE
 
 import shutil
+from distutils.sysconfig import get_python_lib
+
 
 class AlyvixMainMenuController(QDialog, Ui_Form):
 
     def __init__(self):
         QDialog.__init__(self)
 
+
         info_manager = InfoManager()
         self.scaling_factor = info_manager.get_info("SCALING FACTOR FLOAT")
 
         # Set up the user interface from Designer.
         self.setupUi(self)
+        
+                
+        #self.listWidgetAlyObj = listWidgetAlyObj2()
 
         self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor),
                           int(self.frameGeometry().height() * self.scaling_factor))
@@ -90,7 +97,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.connect(self.pushButtonIF, SIGNAL("clicked()"), self.open_imagefinder_view)
         self.connect(self.pushButtonTF, SIGNAL("clicked()"), self.open_textfinder_view)
         self.connect(self.pushButtonOF, SIGNAL("clicked()"), self.open_objectfinder_controller)
-        self.connect(self.pushButtonCC, SIGNAL("clicked()"), self.open_customcode_controller)
+        #self.connect(self.pushButtonCC, SIGNAL("clicked()"), self.open_customcode_controller)
+        
+        #self.listWidgetAlyObj.installEventFilter(self)
+        self.listWidgetAlyObj.keyPressEvent = lambda event: event.ignore()
+        self.listWidgetAlyObj.installEventFilter(self)
         
         self.window = None
         self.full_file_name = None
@@ -108,6 +119,29 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
         self.gridLayoutWidget.hide()
         self.pushButtonCancel.hide()
+        
+        
+        
+    def eventFilter(self, object, event):
+        #print event
+        #if event.type() == QEvent.KeyPress:
+        
+        try:
+            if event.matches(QKeySequence.Copy):
+            #if Qt.ControlModifier == QApplication.keyboardModifiers() and event.key() == Qt.Key_C: 
+                text = self.listWidgetAlyObj.currentItem().text()[:-5]
+
+                clipboard = QApplication.clipboard()
+                clip_text = clipboard.text()
+                
+                if clip_text != text:
+                    clipboard.setText(text)
+                    #print "\"" + text + "\""
+            elif Qt.ControlModifier == QApplication.keyboardModifiers() and event.key() == Qt.Key_D:
+                self.remove_item()
+        except:
+            pass
+        return super(AlyvixMainMenuController, self).eventFilter(object, event)
         
     def update_path(self):
         lines = self.full_file_name.split(os.sep)
@@ -154,6 +188,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         if self.xml_name.endswith("_ObjectFinder.xml"):
             self.alyvix_finder_controller.delete_lock_list()
             os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_old_code.txt"))
+            
+            if (os.path.exists(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))):
+                os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))
         elif self.xml_name.endswith("_CustomCode.xml"):
             os.remove(self.path + os.sep + str(self.xml_name).replace("_CustomCode.xml","_old_code.txt"))
         else:
@@ -171,9 +208,17 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
 
         template_path = self.path + os.sep + str(self.xml_name).replace("_ImageFinder.xml","")
         
+        ##tttttttttt
+        
         if os.path.exists(template_path):
             shutil.rmtree(template_path)
         #self.update_list()
+        
+        extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
+        scraper_path = extra_path + os.sep + str(self.xml_name).replace("_TextFinder.xml","")
+        
+        if os.path.exists(scraper_path):
+            shutil.rmtree(scraper_path)
         
         item = self.listWidgetAlyObj.takeItem(selected_index)
         self.listWidgetAlyObj.removeItemWidget(item)
@@ -211,6 +256,10 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         for cdate, path in sorted(entries):
             filename = os.path.basename(path)
             
+            extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
+            
+            #print extra_path + os.sep + filename
+            
             if os.path.exists(self.path + os.sep + "lock_list.xml"):
                 if "<name>" + filename + "</name>" in string:
                     continue
@@ -221,9 +270,15 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 elif filename.endswith('_ImageFinder.xml'):
                     item.setText(filename[:-16] + " [IF]")
                 elif filename.endswith("_TextFinder.xml"):
-                    item.setText(filename[:-15] + " [TF]")
+                    if os.path.exists(extra_path + os.sep + filename.replace("_TextFinder.xml","") + os.sep + "scraper.txt"):
+                        item.setText(filename[:-15] + " [TS]")
+                    else:
+                        item.setText(filename[:-15] + " [TF]")
                 elif filename.endswith('_ObjectFinder.xml'):
-                    item.setText(filename[:-17] + " [OF]")
+                    if os.path.exists(path.replace("_ObjectFinder.xml","_ObjectFinder.alyscraper")):
+                        item.setText(filename[:-17] + " [OS]")
+                    else:
+                        item.setText(filename[:-17] + " [OF]")
                 elif filename.endswith('_CustomCode.xml'):
                     item.setText(filename[:-15] + " [CC]")
                     
@@ -379,6 +434,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     def add_new_item_on_list(self): 
     
         #self.update_list()
+
+        extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
     
         dirpath = self.path
 
@@ -411,7 +468,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print filename
         #print cdate
         
-        print filename
+        #print extra_path + os.sep + filename
+        
+        #print filename
         item = QListWidgetItem()
 
         if filename.endswith('_RectFinder.xml'):
@@ -419,9 +478,15 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         elif filename.endswith('_ImageFinder.xml'):
             item.setText(filename[:-16] + " [IF]")
         elif filename.endswith("_TextFinder.xml"):
-            item.setText(filename[:-15] + " [TF]")
+            if os.path.exists(extra_path + os.sep + filename.replace("_TextFinder.xml","") + os.sep + "scraper.txt"):
+                item.setText(filename[:-15] + " [TS]")
+            else:
+                item.setText(filename[:-15] + " [TF]")
         elif filename.endswith("_ObjectFinder.xml"):
-            item.setText(filename[:-17] + " [OF]")
+            if os.path.exists(path.replace("_ObjectFinder.xml","_ObjectFinder.alyscraper")):
+                item.setText(filename[:-17] + " [OS]")
+            else:
+                item.setText(filename[:-17] + " [OF]")
         elif filename.endswith("_CustomCode.xml"):
             item.setText(filename[:-15] + " [CC]")
         """

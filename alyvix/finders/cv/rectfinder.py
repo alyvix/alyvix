@@ -86,6 +86,8 @@ class RectFinder(BaseFinder):
         :param name: the object name
         """
 
+        self.is_textfinder = False
+
         #self._main_component = None
         #self._sub_components = []
         self.__timed_out_sub_extra_images = []

@@ -31,7 +31,7 @@ from .base import WinManagerBase
 class WinManager(WinManagerBase):
 
     def __init__(self):
-        pass
+        self._win_found = None
 
     def get_window_title(self):
         return win32gui.GetWindowText(win32gui.GetForegroundWindow())
@@ -137,6 +137,7 @@ class WinManager(WinManagerBase):
                 return window_time
 
             if window_time >= timeout:
+                print "window title:",self._win_found
                 return -1
 
             window_time = time.time() - t0
@@ -156,10 +157,23 @@ class WinManager(WinManagerBase):
         windows_found = []
         hwnd_list = []
         win32gui.EnumWindows(self.__window_enumeration_handler, windows_found)
+        self._win_found = None
         for hwnd_found, title_found in windows_found:
             if re.match(".*" + window_title + ".*", title_found, re.DOTALL | re.IGNORECASE) is not None and \
                     (win32gui.IsWindowVisible(hwnd_found) != 0 or win32gui.GetWindowTextLength(hwnd_found) > 0):
                 hwnd_list.append(hwnd_found)
+
+                try:
+                    rect = win32gui.GetWindowRect(hwnd_found)
+                    x = rect[0]
+                    y = rect[1]
+                    w = rect[2] - x
+                    h = rect[3] - y
+
+
+                    self._win_found = title_found + ", is visible: x=" + str(x) + ", y=" + str(y) + ", width=" + str(w) + ", height=" + str(h)
+                except:
+                    self._win_found = "nothing to show, window doesn't exist anymore"
 
         return hwnd_list
 

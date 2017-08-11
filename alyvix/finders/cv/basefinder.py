@@ -93,6 +93,8 @@ class BaseFinder(object):
 
         keyword_timestamp_value = int(time.time() * 1000)
 
+        self.timestamp = keyword_timestamp_value
+
         self._main_component = None
         self._sub_components = []
 
@@ -157,7 +159,7 @@ class BaseFinder(object):
         if self._info_manager.get_info("CHECK BG") == True:
             if self._screen_capture.is_resolution_ok() is False:
                 raise Exception(
-                    "Alyvix Background Service is installed but the screen resolution doesn't match with the config file")
+                    "The screen resolution does not match with the Alyvix Background Service settings")
 
         self._cacheManager = CacheManager()
         self._configReader = ConfigReader()
@@ -277,6 +279,11 @@ class BaseFinder(object):
         :param timeout: timeout in seconds
         :type timeout: int
         """
+
+
+
+        if self._is_object_finder is False and self.is_textfinder == True:
+            raise Exception("A Text Finder is out of an Object Finder")
 
         #cv2.imwrite()
 
@@ -680,6 +687,7 @@ class BaseFinder(object):
                         for t_sub in self._sub_components:
                             self._log_manager.save_timedout_objects(self._name + "_timedout", self._last_thread_image, t_sub[0]._timedout_main_components, t_sub[0]._timedout_sub_components, t_sub[0]._main_extra_img_log, t_sub[0]._sub_extra_imgages_log, True, t_sub[0]._name)
                     """
+                    self._info_manager.set_info('DISAPP START', None)
                     return -1
 
                 t0 = time.time()

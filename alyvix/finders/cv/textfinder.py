@@ -89,6 +89,8 @@ class TextFinder(BaseFinder):
         :param name: the object name
         """
 
+        self.is_textfinder = True
+
         the_name = "text_finder"
 
         if name is not None:
@@ -103,6 +105,8 @@ class TextFinder(BaseFinder):
 
         #self._main_component = None
         #self._sub_components = []
+
+        self._scraper_enable = False
 
     def get_last_read(self):
         return self.__phrase_backup
@@ -144,6 +148,79 @@ class TextFinder(BaseFinder):
         sub_text = _Text(text_dict)
         self._sub_components.append((sub_text, roi))
 
+    def scraper(self):
+        if self._is_object_finder is False:
+            raise Exception("A Text Scraper is out of an Object Finder")
+
+        self._info_manager.set_info("ALYVIX SCRAPER", True)
+        self._scraper_enable = True
+        self.find()
+        sc_text = self.get_last_read()
+
+        roi = self._main_component[1]
+
+        if roi is not None:
+
+            y1 = roi.y
+            y2 = y1 + roi.height
+            x1 = roi.x
+            x2 = x1 + roi.width
+
+            source_img_height, source_img_width, channels = self._source_image_color.shape
+
+            if y1 < 0:
+                y1 = 0
+            elif y1 > source_img_height:
+                y1 = source_img_height
+
+            if y2 < 0:
+                y2 = 0
+            elif y2 > source_img_height:
+                y2 = source_img_height
+
+            if x1 < 0:
+                x1 = 0
+            elif x1 > source_img_width:
+                x1 = source_img_width
+
+            if x2 < 0:
+                x2 = 0
+            elif x2 > source_img_width:
+                x2 = source_img_width
+
+            # print x1,x2,y1,y2
+            source_image = self._source_image_gray[y1:y2, x1:x2]
+        else:
+            source_image = self._source_image_gray
+
+        self._info_manager.set_info("ALYVIX SCRAPER SOURCE IMG", source_image)
+
+        self._log_manager.save_objects_found(self._name, source_image,
+                                             [],
+                                             [],
+                                             self.main_xy_coordinates, self.sub_xy_coordinates, finder_type=None)
+
+        print "text from scraper: " + sc_text
+
+        source_image = self._source_image_gray
+
+        self._log_manager.save_objects_found(self._name, source_image,
+                                             self._objects_found,
+                                             [],
+                                             self.main_xy_coordinates, self.sub_xy_coordinates, finder_type=None)
+
+        self._scraper_enable = False
+        self._source_image_color = None
+        self._source_image_gray = None
+
+        if self._is_object_finder is False:
+            sc_collection = self._info_manager.get_info('SCRAPER COLLECTION')
+            sc_collection.append((self.get_name(), self.timestamp, sc_text))
+
+            self._info_manager.set_info('SCRAPER COLLECTION', sc_collection)
+
+        return sc_text
+
     def find(self):
         """
         find the main text and sub texts into the source image.
@@ -151,6 +228,7 @@ class TextFinder(BaseFinder):
         :rtype: list[[MatchResult, list[MatchResult]]]
         :return: a list that contains x, y, height, width of rectangle(s) found
         """
+
         try:
             time_before_find = time.time()
             #print "into find"
@@ -249,7 +327,7 @@ class TextFinder(BaseFinder):
 
             color_img = cv.CreateImageHeader(source_image.size, cv.IPL_DEPTH_8U, 3)
 
-            cv.SetData(color_img, source_image.tostring())
+            cv.SetData(color_img, source_image.tobytes())
 
             grey_img = cv.CreateImage(cv.GetSize(color_img), 8, 1)
 
@@ -443,7 +521,7 @@ class TextFinder(BaseFinder):
 
                 self._cacheManager.SetLastObjFoundFullImg(self._source_image_gray)
 
-            if source_img_auto_set is True:
+            if source_img_auto_set is True and self._scraper_enable is False:
                 self._source_image_color = None
                 self._source_image_gray = None
                 source_img_auto_set = False
@@ -539,7 +617,7 @@ class TextFinder(BaseFinder):
 
             color_img = cv.CreateImageHeader(source_image.size, cv.IPL_DEPTH_8U, 3)
 
-            cv.SetData(color_img, source_image.tostring())
+            cv.SetData(color_img, source_image.tobytes())
 
             grey_img = cv.CreateImage(cv.GetSize(color_img), 8, 1)
 

@@ -25,6 +25,7 @@ import time
 import sqlite3
 import datetime
 import ConfigParser
+import win32service
 from alyvix.tools.info import InfoManager
 from alyvix.tools.perfdata import PerfManager
 from distutils.sysconfig import get_python_lib
@@ -70,6 +71,33 @@ class DbManager():
     def close(self):
         self._connection.commit()
         self._connection.close()
+
+    def _create_scraper_tables(self):
+
+        sc_collection = self._info_manager.get_info('SCRAPER COLLECTION')
+
+        for scraper in sc_collection:
+            s_name = scraper[0]
+            s_timestamp = scraper[1]
+            s_text = scraper[2]
+
+            query = "CREATE TABLE IF NOT EXISTS " + s_name + " (transaction_timestamp integer primary key, scraped_text TEXT)"
+            self._cursor.execute(query)
+
+            #"<transaction_bla02_timestamp>, <scraped_text>"
+
+    def _insert_scraper(self):
+        sc_collection = self._info_manager.get_info('SCRAPER COLLECTION')
+
+        for scraper in sc_collection:
+            s_name = scraper[0]
+            s_timestamp = scraper[1]
+            s_text = scraper[2].replace("'","''")
+
+            query = "INSERT INTO " + s_name + " (transaction_timestamp, scraped_text) VALUES (" + str(s_timestamp)\
+                    + ", '" + s_text + "')"
+
+            self._cursor.execute(query)
 
     def _create_tables(self):
         self._create_runs_table()
@@ -388,7 +416,7 @@ class DbManager():
             if file_extension != "":
                 if file_extension != ".db" and file_extension != ".db3" and file_extension != ".sqlite"\
                         and file_extension != ".sqlite3":
-                    raise Exception('file extension must be db or db3 or sqlite or sqlite3!')
+                    raise Exception('The file extension must be .db or .sqlite')
             else:
                 file_extension = ".db"
 
@@ -422,11 +450,77 @@ class DbManager():
 
         self.close()
 
+    def store_scrapdata(self, dbname=None):
+
+        sc_collection = self._info_manager.get_info('SCRAPER COLLECTION')
+        if len(sc_collection) == 0:
+            return
+
+        db_name_ori = self._db_name
+
+        if dbname != None and dbname != "":
+            self._db_home = os.path.split(str(dbname))[0]
+
+            if os.path.split(str(dbname))[1] != "":
+                self._db_name = os.path.split(str(dbname))[1]
+
+            name, file_extension = os.path.splitext(self._db_name)
+
+            if file_extension != "":
+                if file_extension != ".db" and file_extension != ".db3" and file_extension != ".sqlite" \
+                        and file_extension != ".sqlite3":
+                    raise Exception('The file extension must be .db or .sqlite')
+            else:
+                file_extension = "_scrapdata.db"
+
+                self._db_name = self._db_name + file_extension
+
+            if self._db_home == "" and self._info_manager.get_info("ROBOT CONTEXT") is True:
+                self._db_home = os.path.dirname(os.path.abspath(self._info_manager.get_info("SUITE SOURCE")))
+            elif self._db_home == "":
+                self._db_home = os.path.split(sys.executable)[0] + os.sep + "share" + os.sep + "alyvix"
+
+        self._info_manager.set_info("DB FILE SCRAPER", self._db_home + os.sep + self._db_name)
+
+        #self._db_name = self._db_name.replace(".db", "_scrapdata.db")
+        #self._db_name = self._db_name.replace(".db3", "_scrapdata.db3")
+        #self._db_name = self._db_name.replace(".sqlite", "_scrapdata.sqlite")
+        #self._db_name = self._db_name.replace(".sqlite3", "_scrapdata.sqlite3")
+
+        # if not os.path.isfile(self._db_home + os.sep + self._db_name):
+        if not os.path.isdir(self._db_home):
+            os.makedirs(self._db_home)
+            self.connect()
+            self._create_scraper_tables()
+            self._db_is_new = True
+        elif not os.path.isfile(self._db_home + os.sep + self._db_name):
+            self.connect()
+            self._create_scraper_tables()
+            self._db_is_new = True
+        else:
+            self.connect()
+            self._create_scraper_tables()
+
+        self._insert_scraper()
+
+        self.close()
+
+        self._db_name = db_name_ori
+
+
     def publish_perfdata(self, type="csv", start_date=None, end_date=None, filename=None,
                          testcase_name=None, max_age=24, suffix=None, subject=None, server=None, port=None,
                          measurement="alyvix", max_reconnect_attempts=5, reconnect_time_wait=2):
 
         if type.lower() == "perfmon":
+            try:
+                scm = win32service.OpenSCManager('localhost', None, win32service.SC_MANAGER_CONNECT)
+
+                win32service.OpenService(scm, 'Alyvix Wpm Service', win32service.SERVICE_QUERY_CONFIG)
+            except:
+                raise Exception(
+                    "Alyvix WPM service is not installed")
+
             try:
                 full_file_name = get_python_lib() + os.sep + "alyvix" + os.sep + "extra" + os.sep + "alyvixservice.ini"
 
@@ -532,13 +626,13 @@ class DbManager():
                         pass
 
             if start_date_dt is None:
-                raise Exception('invalid start date!')
+                raise Exception('The start date is not valid')
 
             if end_date_dt is None:
-                raise Exception('invalid end date!')
+                raise Exception('The end date is not valid')
 
             if start_date_dt >= end_date_dt:
-                raise Exception('end date must be greate than start date!')
+                raise Exception('The end date must be greater than start date')
 
             db_file = self._info_manager.get_info("DB FILE")
 
@@ -572,7 +666,7 @@ class DbManager():
 
                 if file_extension != "":
                     if file_extension != ".csv":
-                        raise Exception('file extension must be csv!')
+                        raise Exception('The file extension must be .csv')
                 else:
                     file_extension = ".csv"
 
@@ -591,7 +685,7 @@ class DbManager():
                 if suffix.lower() == "timestamp":
                     csv_name = csv_name.replace(".csv", "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S") + ".csv")
                 else:
-                    raise Exception('invalid suffix type!')
+                    raise Exception('The suffix type is not valid')
 
             self.connect()
 
@@ -660,27 +754,27 @@ class DbManager():
         elif type.lower() == "nats":
             nm = NatsManager()
 
-            perfdata_list = self._perf_manager.get_all_perfdata()
+            #perfdata_list = self._perf_manager.get_all_perfdata()
 
-            if server is None or server == "":
-                raise Exception('the server value cannot be empty!')
+            if server is None or server == 'None' or server == "":
+                raise Exception('The server value cannot be empty')
 
-            if port is None or port == "":
+            if port is None or port == 'None' or port == "":
                 port = 4222
 
-            if subject is None or subject == "":
-                raise Exception('the subject value cannot be empty!')
+            if subject is None or subject == 'None' or subject == "":
+                raise Exception('The subject value cannot be empty')
 
-            if testcase_name is None or testcase_name == "":
+            if testcase_name is None or testcase_name == "None" or testcase_name == "":
                 testcase_name = self._info_manager.get_info('TEST CASE NAME')
 
-            if testcase_name is None or testcase_name == "":
+            if testcase_name is None or testcase_name == 'None' or testcase_name == "":
                 testcase_name = self._info_manager.get_info('SUITE NAME')
 
-            if testcase_name is None or testcase_name == "":
-                raise Exception('invalid testcase name!')
+            if testcase_name is None or testcase_name == 'None' or testcase_name == "":
+                raise Exception('The test case name is not valid')
 
-            nm.publish(perfdata_list, testcase_name, subject, server, str(port), measurement=measurement,
+            nm.publish(testcase_name, subject, server, str(port), measurement=measurement,
                 max_reconnect_attempts=max_reconnect_attempts, reconnect_time_wait=reconnect_time_wait)
         else:
-            raise Exception('invalid publish perf output type!')
+            raise Exception('The publish output type is not valid')

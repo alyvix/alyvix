@@ -64,6 +64,9 @@ class AlyvixTextFinderView(QWidget):
         self.enable_performance = True
         self.warning = 10.00
         self.critical = 15.00
+        self.scraper = False
+        
+        self.parent_is_objfinder = False
         
         self.mouse_or_key_is_set = False
         
@@ -79,6 +82,8 @@ class AlyvixTextFinderView(QWidget):
         self._sub_texts_finder = []
         
         self.__deleted_texts = []
+        
+        self.last_view_index = 0
         
         #flags
         #self.__flag_mouse_left_button_is_pressed = False
@@ -145,6 +150,32 @@ class AlyvixTextFinderView(QWidget):
     def save_all(self):
     
         if self._main_text != None and self.ok_pressed is False:
+        
+            extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self._path.split(os.sep)[-1] + "_extra" + os.sep + self.object_name
+            #print "AAAAAAAAAAAAAAAAAAAAAAA:", template_image_path
+            
+            if not os.path.exists(extra_path):
+                os.makedirs(extra_path)
+        
+            #scraper_file_name = self._path + os.sep + self.object_name + "_TextFinder.alyscraper"
+            scraper_file_name = extra_path + os.sep + "scraper.txt"
+            
+            if self.scraper is True:
+                self._sub_texts_finder = []
+                
+                self._main_text.text = ""
+
+                if not os.path.exists(scraper_file_name):
+                    with open(scraper_file_name, 'w') as f:
+                        
+                        f.write("scraper=true")
+
+                        f.close()
+            else:
+            
+                if os.path.exists(scraper_file_name):
+                    os.remove(scraper_file_name)
+                    
             self.ok_pressed = True
             #print "dummy"
             #self.build_xml()
@@ -157,6 +188,8 @@ class AlyvixTextFinderView(QWidget):
             #self.save_template_images(image_name)
             if self.action == "new":
                 self.parent.add_new_item_on_list()
+                
+            self.parent.update_list()
                 
         try:
             if self.parent.parent.is_object_finder_menu:
@@ -889,7 +922,7 @@ class AlyvixTextFinderView(QWidget):
         
             self.__deleted_texts.append(self._main_text)
             self._main_text = None
-            print "deleted main"
+            #print "deleted main"
             self.__flag_need_to_delete_main_roi = False
             self.__flag_need_to_restore_main_roi = True
             self.__flag_capturing_main_text_rect_roi = True
@@ -1880,7 +1913,7 @@ class AlyvixTextFinderView(QWidget):
             print element
         """ 
         
-    def build_code_array(self):
+    def build_code_array_v240(self):
     
         self.mouse_or_key_is_set = False
     
@@ -2483,6 +2516,616 @@ class AlyvixTextFinderView(QWidget):
         for element in self._code_lines:
             print element
         """ 
+        
+    def build_code_array(self):
+    
+        self.mouse_or_key_is_set = False
+    
+        kmanager_declared = False
+        mmanager_declared = False
+       
+        if self._main_text is None:
+            return
+            
+        self._code_lines = []
+        self._code_lines_for_object_finder = []
+            
+        name = self.object_name
+        
+        if name == "" and self.ok_pressed is True:
+            name = time.strftime("text_finder_%d_%m_%y_%H_%M_%S")
+            self.object_name = name
+            
+        #self._code_lines.append("def " + name + "():")
+        
+        strcode = name + "_object = None" #TextFinder(\"" + name + "\")"
+        self._code_lines.append(strcode)
+        self._code_lines_for_object_finder.append(strcode)
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+            
+        
+        #strcode = "    text_finder = TextFinder(\"" + name + "\")"
+        #self._code_lines.append(strcode)
+        #self._code_lines_for_object_finder.append(strcode)
+        
+        roi_x = str(self._main_text.roi_x)
+        roi_y = str(self._main_text.roi_y)
+        roi_width = str(self._main_text.roi_width)
+        roi_height = str(self._main_text.roi_height)
+        
+        self._code_lines.append("    global " + name + "_object")  
+        self._code_lines.append("    " + name + "_object = TextFinder(\"" + name + "\")")
+        
+        text_to_find = ""
+        
+        if self._main_text.quotes_ocr is True:
+            text_to_find = "\"" + unicode(self._main_text.text, "utf8") + "\""
+        else:
+            text_to_find = self._main_text.text + ".encode('utf8')"
+        
+        if self._main_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
+            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"},"
+        else:
+            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"" + ", \"whitelist\": \"" + unicode(self._main_text.whitelist, "utf8") + "\"},"
+            
+        str2 ="                                   {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
+            
+        self._code_lines.append(str1)
+        self._code_lines.append(str2)
+        self._code_lines_for_object_finder.append(str1)
+        self._code_lines_for_object_finder.append(str2)
+        
+             
+        if self.scraper is False:
+            if self._main_text.click == True or self._main_text.rightclick == True or self._main_text.mousemove == True or self._main_text.hold_and_release is not None:
+                if self._main_text.x_offset is None and self._main_text.y_offset is None: 
+                    if self._main_text.hold_and_release is not None:
+                        if self._main_text.hold_and_release == 0:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                        elif self._main_text.hold_and_release == 1:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                        elif self._main_text.hold_and_release == 2:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0, 0 - " + str(self._main_text.release_pixel) + ", False)")
+                        elif self._main_text.hold_and_release == 3:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0, 0 + " + str(self._main_text.release_pixel) + ", False)")
+                        elif self._main_text.hold_and_release == 4:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 - " + str(self._main_text.release_pixel) + ", 0, False)")
+                        elif self._main_text.hold_and_release == 5:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + " + str(self._main_text.release_pixel) + ", 0, False)")
+                    else:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                else:
+                    if self._main_text.hold_and_release is not None:
+                        if self._main_text.hold_and_release == 0:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                        elif self._main_text.hold_and_release == 1:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                        elif self._main_text.hold_and_release == 2:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + ") - " + str(self._main_text.release_pixel) + ", True)")
+                        elif self._main_text.hold_and_release == 3:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + ") + " + str(self._main_text.release_pixel) + ", True)")
+                        elif self._main_text.hold_and_release == 4:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_text.x_offset) + ") - " + str(self._main_text.release_pixel) + ",  0 + (" + str(self._main_text.y_offset) + "), True)")
+                        elif self._main_text.hold_and_release == 5:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_text.x_offset) + ") + " + str(self._main_text.release_pixel) + ",  0 + (" + str(self._main_text.y_offset) + "), True)")
+                    else:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+            else:
+                self._code_lines.append("    "  + name + "_object.main_xy_coordinates = None")
+                self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+        
+            #self._code_lines.append("\n")
+        
+            cnt = 1
+            for sub_text in self._sub_texts_finder:
+                if sub_text.height != 0 and sub_text.width !=0:
+                
+                    #sub_text.path = template_text_path + os.sep + "sub_text_" + str(cnt) + ".png"
+                    #sub_text.path = sub_text.path.replace("\\","\\\\")
+                
+                    #roi_x = str(sub_text.roi_x - self._main_text.x)
+                    roi_x = str(sub_text.roi_x)
+                    roi_y = str(sub_text.roi_y)
+                    
+                    roi_width = str(sub_text.roi_width)
+                    roi_height = str(sub_text.roi_height)
+                        
+                    text_to_find = ""
+                    if sub_text.quotes_ocr is True:
+                        text_to_find = "\"" + unicode(sub_text.text, "utf8") + "\""
+                    else:
+                        text_to_find = sub_text.text + ".encode('utf8')"
+                
+                    #str1 = "    text_finder.add_sub_component({\"path\": \"" + sub_text.path + "\", \"threshold\":" + repr(sub_text.threshold) + "},"
+                    if sub_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
+                        str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\"},"
+                    else:
+                        str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\", \"whitelist\": \"" + unicode(sub_text.whitelist, "utf8") + "\"},"
+                        
+                    
+                    str2 = "                                  {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})"
+        
+                    self._code_lines.append(str1)
+                    self._code_lines.append(str2)
+                    self._code_lines_for_object_finder.append(str1)
+                    self._code_lines_for_object_finder.append(str2)
+                    
+                    if sub_text.click == True or sub_text.rightclick == True or sub_text.mousemove == True or sub_text.hold_and_release is not None:
+                        if sub_text.x_offset is None and sub_text.y_offset is None: 
+                            if sub_text.hold_and_release is not None:
+                                if sub_text.hold_and_release == 0:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                                elif sub_text.hold_and_release == 1:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                                elif sub_text.hold_and_release == 2:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0, 0 - " + str(sub_text.release_pixel) + ", False))")
+                                elif sub_text.hold_and_release == 3:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0, 0 + " + str(sub_text.release_pixel) + ", False))")
+                                elif sub_text.hold_and_release == 4:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 - " + str(sub_text.release_pixel) + ", 0, False))")
+                                elif sub_text.hold_and_release == 5:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + " + str(sub_text.release_pixel) + ", 0, False))")
+                            else:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                        else:
+                            if sub_text.hold_and_release is not None:
+                                if sub_text.hold_and_release == 0:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + "), True))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                                elif sub_text.hold_and_release == 1:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + "), True))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                                elif sub_text.hold_and_release == 2:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + "), True))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + ") - " + str(sub_text.release_pixel) + ", True))")
+                                elif sub_text.hold_and_release == 3:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + ")))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + ") + " + str(sub_text.release_pixel) + ", True))")
+                                elif sub_text.hold_and_release == 4:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + ")))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_text.x_offset) + ") - " + str(sub_text.release_pixel) + ",  0 + (" + str(sub_text.y_offset) + "), True))")
+                                elif sub_text.hold_and_release == 5:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + ")))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_text.x_offset) + ") + " + str(sub_text.release_pixel) + ",  0 + (" + str(sub_text.y_offset) + "), True))")
+                            else:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + "), True))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                    else:
+                        self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append(None)")
+                        self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+        
+                    #self._code_lines.append("\n")
+                    cnt = cnt + 1
+        
+            self._code_lines.append("")
+            
+            string_function_args = "def " + name + "_mouse_keyboard("
+            
+            args_range = range(1, self.args_number + 1)
+            
+            for arg_num in args_range:
+                string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+            
+            if string_function_args.endswith(", "):
+                string_function_args = string_function_args[:-2]
+            string_function_args = string_function_args + "):"
+            self._code_lines.append(string_function_args)
+            
+            self._code_lines.append("    global " + name + "_object")
+            self._code_lines.append("    info_manager = InfoManager()")
+            self._code_lines.append("    sleep_factor = info_manager.get_info(\"ACTIONS DELAY\")")  
+            
+            if self._main_text.click == True or self._main_text.rightclick == True or self._main_text.mousemove == True or self._main_text.hold_and_release is not None:
+            
+                self.mouse_or_key_is_set = True
+            
+                self._code_lines.append("    main_text_pos = " + name + "_object.get_result(0)")  
+            
+                if mmanager_declared is False:
+                    self._code_lines.append("    m = MouseManager()")
+                    mmanager_declared = True
+                    
+                self._code_lines.append("    time.sleep(sleep_factor)")
+                
+                if self._main_text.x_offset is None and self._main_text.y_offset is None:             
+                    if self._main_text.click == True:
+                        self._code_lines.append("    m.click_2(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1, " + str(self._main_text.number_of_clicks) + ", " + str(self._main_text.click_delay) + ")")
+                    elif self._main_text.rightclick == True:
+                        self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 2)")
+                    elif self._main_text.mousemove == True:
+                        self._code_lines.append("    m.move(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                    elif self._main_text.hold_and_release is not None:
+                        if self._main_text.hold_and_release == 0:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                        elif self._main_text.hold_and_release == 1:
+                            self._code_lines.append("    m.release(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                        elif self._main_text.hold_and_release == 2:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2) - " + str(self._main_text.release_pixel) + ")")
+                        elif self._main_text.hold_and_release == 3:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2) + " + str(self._main_text.release_pixel) + ")")
+                        elif self._main_text.hold_and_release == 4:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (main_text_pos.width/2) - " + str(self._main_text.release_pixel) + ", main_text_pos.y + (main_text_pos.height/2))")
+                        elif self._main_text.hold_and_release == 5:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (main_text_pos.width/2) + " + str(self._main_text.release_pixel) + ", main_text_pos.y + (main_text_pos.height/2))")
+                else:
+                    if self._main_text.click == True:
+                        self._code_lines.append("    m.click_2(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "), 1, " + str(self._main_text.number_of_clicks) + ", " + str(self._main_text.click_delay) + ")")
+                    elif self._main_text.rightclick == True:
+                        self._code_lines.append("    m.click(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "), 2)")
+                    elif self._main_text.mousemove == True:
+                        self._code_lines.append("    m.move(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                    elif self._main_text.hold_and_release is not None:
+                        if self._main_text.hold_and_release == 0:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                        elif self._main_text.hold_and_release == 1:
+                            self._code_lines.append("    m.release(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                        elif self._main_text.hold_and_release == 2:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + ") - " + str(self._main_text.release_pixel) + ")")
+                        elif self._main_text.hold_and_release == 3:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + ") + " + str(self._main_text.release_pixel) + ")")
+                        elif self._main_text.hold_and_release == 4:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (" + str(self._main_text.x_offset) + ") - " + str(self._main_text.release_pixel) + ",  main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                        elif self._main_text.hold_and_release == 5:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (" + str(self._main_text.x_offset) + ") + " + str(self._main_text.release_pixel) + ",  main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                    
+            if self._main_text.sendkeys != "":
+            
+                self.mouse_or_key_is_set = True
+            
+                if kmanager_declared is False:
+                    self._code_lines.append("    k  = KeyboardManager()")
+                    kmanager_declared = True
+                keys = unicode(self._main_text.sendkeys, 'utf-8')
+                self._code_lines.append("    time.sleep(sleep_factor)")
+                
+                if self._main_text.sendkeys_quotes is True:
+                    self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_text.text_encrypted) + ")")
+                else:
+                    self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_text.text_encrypted) + ")")
+                
+            cnt = 0
+            for sub_text in self._sub_texts_finder:
+            
+                if sub_text.height != 0 and sub_text.width !=0:
+                    if sub_text.click == True or sub_text.rightclick == True or sub_text.mousemove == True or sub_text.hold_and_release is not None:
+                    
+                        self.mouse_or_key_is_set = True
+                
+                        self._code_lines.append("    sub_text_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
+                    
+                        if mmanager_declared is False:
+                            self._code_lines.append("    m = MouseManager()")
+                            mmanager_declared = True
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                                          
+                        if sub_text.x_offset is None and sub_text.y_offset is None:     
+                            if sub_text.click == True:
+                                self._code_lines.append("    m.click_2(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1, " + str(sub_text.number_of_clicks) + ", " + str(sub_text.click_delay) + ")")
+                            elif sub_text.rightclick == True:
+                                self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 2)")
+                            elif sub_text.mousemove == True:
+                                self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                            elif sub_text.hold_and_release is not None:
+                                if sub_text.hold_and_release == 0:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                elif sub_text.hold_and_release == 1:
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                elif sub_text.hold_and_release == 2:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2) - " + str(sub_text.release_pixel) + ")")
+                                elif sub_text.hold_and_release == 3:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2) + " + str(sub_text.release_pixel) + ")")
+                                elif sub_text.hold_and_release == 4:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2) - " + str(sub_text.release_pixel) + ", sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                elif sub_text.hold_and_release == 5:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2) + " + str(sub_text.release_pixel) + ", sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                        else:
+                            if sub_text.click == True:
+                                self._code_lines.append("    m.click_2(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "), 1, " + str(sub_text.number_of_clicks) + ", " + str(sub_text.click_delay) + ")")
+                            elif sub_text.rightclick == True:
+                                self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "), 2)")
+                            elif sub_text.mousemove == True:
+                                self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                            elif sub_text.hold_and_release is not None:
+                                if sub_text.hold_and_release == 0:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                elif sub_text.hold_and_release == 1:
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                elif sub_text.hold_and_release == 2:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + ") - " + str(sub_text.release_pixel) + ")")
+                                elif sub_text.hold_and_release == 3:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + ") + " + str(sub_text.release_pixel) + ")")
+                                elif sub_text.hold_and_release == 4:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + ") - " + str(sub_text.release_pixel) + ",  sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                elif sub_text.hold_and_release == 5:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + ") + " + str(sub_text.release_pixel) + ",  sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                            
+                             
+                    if sub_text.sendkeys != "":
+                    
+                        self.mouse_or_key_is_set = True
+                    
+                        if kmanager_declared is False:
+                            self._code_lines.append("    k  = KeyboardManager()")
+                            kmanager_declared = True
+                        keys = unicode(sub_text.sendkeys, 'utf-8')
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        
+                        if sub_text.sendkeys_quotes is True:
+                            self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_text.text_encrypted) + ")")
+                        else:
+                            self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_text.text_encrypted) + ")")
+                                  
+                                        
+                    cnt = cnt + 1
+                
+        #if kmanager_declared is False and mmanager_declared is False:
+        #    self._code_lines.append("    pass")
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")  
+
+        string_function_args = "    " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+
+        if self.scraper is False:
+            if self.find is True:  
+                self._code_lines.append("    " + name + "_object.find()")
+            elif self.wait is True or self.mouse_or_key_is_set is True:
+                self._code_lines.append("    timeout = " + str(self.timeout))
+                self._code_lines.append("    wait_time = " + name + "_object.wait(timeout)")
+            elif self.wait_disapp is True:
+                self._code_lines.append("    timeout = " + str(self.timeout))
+                self._code_lines.append("    wait_time = " + name + "_object.wait_disappear(timeout)")
+               
+
+            if self.enable_performance is True and self.find is False:
+                self._code_lines.append("    if wait_time == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")              
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")
+                if self.wait_disapp is True and self.mouse_or_key_is_set is True:
+                    pass
+                else:
+                    self._code_lines.append("    elif wait_time < " + repr(self.warning) + ":")
+                    self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time, \"sec.\"")
+                    self._code_lines.append("    elif wait_time < " + repr(self.critical) + ":")
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+                    self._code_lines.append("    else:")
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+
+                    self._code_lines.append("    p = PerfManager()")
+                    self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+            elif self.find is False:
+                self._code_lines.append("    if wait_time == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")  
+                #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+     
+            string_function_args = "    " + name + "_mouse_keyboard("
+            
+            args_range = range(1, self.args_number + 1)
+            
+            for arg_num in args_range:
+                string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+            
+            if string_function_args.endswith(", "):
+                string_function_args = string_function_args[:-2]
+            string_function_args = string_function_args + ")"
+            self._code_lines.append(string_function_args)
+     
+            """
+            if self._main_text.click == True or self._main_text.doubleclick == True or self._main_text.rightclick == True or self._main_text.mousemove == True:
+            
+                self._code_lines.append("    main_text_pos = " + name + "_object.get_result(0)")  
+            
+                if mmanager_declared is False:
+                    self._code_lines.append("    m = MouseManager()")
+                    mmanager_declared = True
+                    
+                self._code_lines.append("    time.sleep(2)")
+                                    
+                if self._main_text.click == True:
+                    self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1)")
+                elif self._main_text.doubleclick == True:
+                    self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1, 2)")
+                elif self._main_text.rightclick == True:
+                    self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 2)")
+                elif self._main_text.mousemove == True:
+                    self._code_lines.append("    m.move(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+
+                    
+            if self._main_text.sendkeys != "":
+                if kmanager_declared is False:
+                    self._code_lines.append("    k  = KeyboardManager()")
+                    kmanager_declared = True
+                keys = unicode(self._main_text.sendkeys, 'utf-8')
+                self._code_lines.append("    time.sleep(2)")
+                
+                if self._main_text.sendkeys_quotes is True:
+                    self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_text.text_encrypted) + ")")
+                else:
+                    self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_text.text_encrypted) + ")")
+                
+            cnt = 0
+            for sub_text in self._sub_texts_finder:
+            
+                if sub_text.height != 0 and sub_text.width !=0:
+                    if sub_text.click == True or sub_text.doubleclick == True or sub_text.rightclick == True or sub_text.mousemove == True:
+                
+                        self._code_lines.append("    sub_text_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
+                    
+                        if mmanager_declared is False:
+                            self._code_lines.append("    mouse = MouseManager()")
+                            mmanager_declared = True
+                        self._code_lines.append("    time.sleep(2)")
+                                            
+                        if sub_text.click == True:
+                            self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1)")
+                        elif sub_text.doubleclick == True:
+                            self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1, 2)")
+                        elif sub_text.rightclick == True:
+                            self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 2)")
+                        elif sub_text.mousemove == True:
+                            self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                            
+                    if sub_text.sendkeys != "":
+                        if kmanager_declared is False:
+                            self._code_lines.append("    k  = KeyboardManager()")
+                            kmanager_declared = True
+                        keys = unicode(sub_text.sendkeys, 'utf-8')
+                        self._code_lines.append("    time.sleep(2)")
+                        
+                        if sub_text.sendkeys_quotes is True:
+                            self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_text.text_encrypted) + ")")
+                        else:
+                            self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_text.text_encrypted) + ")")
+                                  
+                                        
+                    cnt = cnt + 1
+            """
+            
+            if self.wait_disapp is True and self.mouse_or_key_is_set is True:
+                self._code_lines.append("    timeout = timeout - wait_time")
+                self._code_lines.append("    wait_time_disappear = " + name + "_object.wait_disappear(timeout)")
+                if self.enable_performance is True and self.find is False:
+                    self._code_lines.append("    if wait_time_disappear == -1:")
+                    if self.timeout_exception is True:
+                        self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                    else:
+                        self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                        self._code_lines.append("        return False")
+                    self._code_lines.append("    elif wait_time + wait_time_disappear < " + repr(self.warning) + ":")
+                    self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time + wait_time_disappear, \"sec.\"")
+                    self._code_lines.append("    elif  wait_time + wait_time_disappear < " + repr(self.critical) + ":")
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time + wait_time_disappear, \"sec.\"")
+                    self._code_lines.append("    else:")
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time + wait_time_disappear, \"sec.\"")
+                    self._code_lines.append("    p = PerfManager()")
+                    self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time + wait_time_disappear, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+                elif self.find is False:
+                    self._code_lines.append("    if wait_time_disappear == -1:")
+                    if self.timeout_exception is True:
+                        self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                    else:
+                        self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                        self._code_lines.append("        return False")  
+                    #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+                
+                
+            
+            if self.timeout_exception is False:
+                self._code_lines.append("    return True")
+
+            
+        else:
+            self._code_lines.append("    return " + name + "_object.scraper()")
+        self._code_lines.append("")
+        self._code_lines.append("")
+
+        #x = 2
+        
+        #tmp_array =  self._code_lines[:x] + ["aaaaaaaaa"] +  self._code_lines[x:]
+        
+        #self._code_lines = tmp_array
+
+        """
+        for element in self._code_lines:
+            print element
+        """ 
   
     def build_xml(self):
         
@@ -2499,6 +3142,7 @@ class AlyvixTextFinderView(QWidget):
         root.set("name", name)
         root.set("find", str(self.find))
         root.set("wait", str(self.wait))
+        root.set("scraper", str(self.scraper))
         root.set("wait_disapp", str(self.wait_disapp))
         root.set("timeout", str(self.timeout))
         root.set("timeout_exception", str(self.timeout_exception))
@@ -2864,6 +3508,14 @@ class AlyvixTextFinderView(QWidget):
                 self.wait_disapp = False
         except:
             self.wait_disapp = False
+            
+        try:
+            if "True" in root_node.attributes["scraper"].value: #main_template_node.getElementsByTagName("wait")[0].firstChild.nodeValue:
+                self.scraper = True
+            else:
+                self.scraper = False
+        except:
+            self.scraper = False
             
         if "True" in main_text_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_text.click = True
@@ -3308,6 +3960,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
 
         # Set up the user interface from Designer.
         self.setupUi(self)
+        
+        self.setTabOrder(self.namelineedit, self.pushButtonOk)
+        self.setTabOrder(self.pushButtonOk, self.pushButtonCancel)
                         
         self.parent = parent
         self.added_block = False
@@ -3380,6 +4035,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         #self.lineEditText.setText(self.parent._main_text.text)
         self.lineEditLang.setText(self.parent._main_text.lang)
         self.lineEditWhiteList.setText(unicode(self.parent._main_text.whitelist, 'utf-8'))
+                
         
         if self.parent.action == "edit":
             self.namelineedit.setEnabled(False)
@@ -3557,14 +4213,118 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.doubleSpinBoxCritical.setEnabled(False)
             self.labelWarning.setEnabled(False)
             self.labelCritical.setEnabled(False)
-        
-        self.init_block_code()     
+            
+        if parent.scraper is True:
+            self.enable_scraper.setCheckState(Qt.Checked)
+            #self.parent._main_text.quotes_ocr = True
+            self.labelArgs.setEnabled(False)
+            self.spinBoxArgs.setEnabled(False)
+            self.add_quotes_ocr.setEnabled(False)
+            self.wait_radio.setEnabled(False)
+            self.wait_disapp_radio.setEnabled(False)
+            self.labelWarning.setEnabled(False)
+            self.doubleSpinBoxWarning.setEnabled(False)
+            self.labelCritical.setEnabled(False)
+            self.doubleSpinBoxCritical.setEnabled(False)
+            self.timeout_label.setEnabled(False)
+            self.timeout_spinbox.setEnabled(False)
+            self.listWidget.setEnabled(False)
+            self.lineEditText.setEnabled(False)
+            
+            
+            self.timeout_exception.setEnabled(False)
+            self.checkBoxEnablePerformance.setEnabled(False)
+            self.clickRadio.setEnabled(False)
+            self.rightclickRadio.setEnabled(False)
+            self.movemouseRadio.setEnabled(False)
+            self.dontclickRadio.setEnabled(False)
+            self.pushButtonXYoffset.setEnabled(False)
+            self.labelClickNumber.setEnabled(False)
+            self.clicknumber_spinbox.setEnabled(False)
+            self.labelClickDelay.setEnabled(False)
+            self.clickdelay_spinbox.setEnabled(False)
+            self.holdreleaseRadio.setEnabled(False)
+            self.holdreleaseComboBox.setEnabled(False)
+            self.holdreleaseSpinBox.setEnabled(False)
+            self.inserttext.setEnabled(False)
+            self.add_quotes.setEnabled(False)
+            self.text_encrypted.setEnabled(False)
+            
+        else:
+            #self.parent._main_text.quotes_ocr = False
+            self.labelArgs.setEnabled(True)
+            self.spinBoxArgs.setEnabled(True)
+            self.add_quotes_ocr.setEnabled(True)
+            self.wait_radio.setEnabled(True)
+            self.wait_disapp_radio.setEnabled(True)
+            self.lineEditText.setEnabled(True)
+            
+            if self.checkBoxEnablePerformance.isChecked():
+                self.labelWarning.setEnabled(True)
+                self.doubleSpinBoxWarning.setEnabled(True)
+                self.labelCritical.setEnabled(True)
+                self.doubleSpinBoxCritical.setEnabled(True)
+            
+            self.timeout_label.setEnabled(True)
+            self.timeout_spinbox.setEnabled(True)
+            self.listWidget.setEnabled(True)
+            
+            self.timeout_exception.setEnabled(True)
+            self.checkBoxEnablePerformance.setEnabled(True)
+            self.clickRadio.setEnabled(True)
+            self.rightclickRadio.setEnabled(True)
+            self.movemouseRadio.setEnabled(True)
+            self.dontclickRadio.setEnabled(True)
+            
+            if self.clickRadio.isChecked() or self.rightclickRadio.isChecked() or self.movemouseRadio.isChecked() or self.holdreleaseRadio.isChecked(): 
+                self.pushButtonXYoffset.setEnabled(True)
+                
+            if self.clickRadio.isChecked(): 
+                self.labelClickNumber.setEnabled(True)
+                self.clicknumber_spinbox.setEnabled(True)
+                
+            if self.clicknumber_spinbox.value() > 1 and self.clickRadio.isChecked():
+                self.labelClickDelay.setEnabled(True)
+                self.clickdelay_spinbox.setEnabled(True)
 
-        self.pushButtonOk.setFocus()        
+    
+            self.holdreleaseRadio.setEnabled(True)
+            
+            if self.holdreleaseRadio.isChecked():
+                self.holdreleaseComboBox.setEnabled(True)
+                
+            combo_index = self.holdreleaseComboBox.currentIndex()
+            
+            if combo_index != 0 and combo_index != 1 and self.holdreleaseRadio.isChecked():
+                self.holdreleaseSpinBox.setEnabled(True)
+            
+            self.inserttext.setEnabled(True)
+            self.add_quotes.setEnabled(True)
+            self.text_encrypted.setEnabled(True)
         
-        if self.namelineedit.text() == "Type the keyword name":
-            self.namelineedit.setFocus()           
+        self.init_block_code() 
+
+        #self.pushButtonOk.setFocus()            
+        
+        if self.namelineedit.text() == "Type the keyword name":                  
+            self.namelineedit.setFocus()
+            
             self.namelineedit.setText("")  
+
+            
+        if self.parent.parent_is_objfinder is True:
+            self.wait_disapp_radio.setEnabled(False)
+            self.wait_radio.setEnabled(False)
+            self.timeout_spinbox.setEnabled(False)
+            self.timeout_label.setEnabled(False)
+            self.timeout_exception.setEnabled(False)
+            self.checkBoxEnablePerformance.setEnabled(False)
+            self.doubleSpinBoxWarning.setEnabled(False)
+            self.doubleSpinBoxCritical.setEnabled(False)
+            self.labelWarning.setEnabled(False)
+            self.labelCritical.setEnabled(False)
+            
+            self.enable_scraper.setEnabled(False)
            
         self.connect(self.listWidget, SIGNAL('itemSelectionChanged()'), self.listWidget_selection_changed)
         self.connect(self.listWidget, SIGNAL('itemChanged(QListWidgetItem*)'), self, SLOT('listWidget_state_changed(QListWidgetItem*)'))
@@ -3577,6 +4337,8 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.timeout_exception, SIGNAL('stateChanged(int)'), self.timeout_exception_event)
         
         self.connect(self.add_quotes_ocr, SIGNAL('stateChanged(int)'), self.add_quotes_ocr_event)
+        
+        self.connect(self.enable_scraper, SIGNAL('stateChanged(int)'), self.enable_scraper_event)
         
         self.connect(self.clickRadio, SIGNAL('toggled(bool)'), self.clickRadio_event)
         #self.connect(self.doubleclickRadio, SIGNAL('toggled(bool)'), self.doubleclickRadio_event)
@@ -3674,6 +4436,11 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.roi_height_spinbox.installEventFilter(self)
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)
+        
+        if self.parent.last_view_index != 0:
+            
+            self.listWidget.setCurrentRow(self.parent.last_view_index)
+
         
     def pushButtonCancel_event(self):
         self.close()
@@ -3812,13 +4579,19 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
             if "def " + obj_name + "_mouse_keyboard(" in python_file or "def " + obj_name + "_build_object(" in python_file or "def " + obj_name + "(" in python_file:
                 QMessageBox.critical(self, "Error", "Keyword name already exists!")
+
                 return
         
         if answer == QMessageBox.Yes:
+            #print "return"
             self.close()
             self.parent.save_all()
   
     def check_text(self):
+        if not os.path.exists(get_python_lib() + os.sep + "alyvix\\extra\\Tesseract-OCR\\tessdata" + os.sep + self.lineEditLang.text() + ".traineddata"):
+            QMessageBox.critical(self, "Error", "Language does not exist")
+            return
+
         if not os.path.exists(self.parent._path):
             os.makedirs(self.parent._path)
         image_name = self.parent._path + os.sep + time.strftime("text_finder_%d_%m_%y_%H_%M_%S_temp_img.png")
@@ -3848,7 +4621,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if result != None:
             result_flag = True
         
-        self.check_window = AlyvixTextCheck(text, result_flag)
+        self.check_window = AlyvixTextCheck(text, result_flag, self.parent)
         self.check_window.show()
   
     def args_spinbox_change_event(self, event):
@@ -4004,6 +4777,8 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
     
         selected_index = self.listWidget.currentRow()
         
+        self.parent.last_view_index = selected_index
+        
         if selected_index == 0:
             self.widget_2.hide()
             self.widget.show()
@@ -4090,6 +4865,8 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
         if self.parent._sub_texts_finder[index].x_offset != None or self.parent._sub_texts_finder[index].y_offset != None:
             self.pushButtonXYoffset_2.setText("Reset\nPoint")
+        else:
+            self.pushButtonXYoffset_2.setText("Interaction\nPoint")
         
         if self.parent._sub_texts_finder[index].sendkeys == "":
             self.inserttext_2.setText("Type text strings and shortcuts")
@@ -4169,7 +4946,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
         if self.parent._sub_texts_finder[self.sub_text_index].click is False \
             and self.parent._sub_texts_finder[self.sub_text_index].rightclick is False \
-            and self.parent._sub_texts_finder[self.sub_text_index].hold_and_release is False \
+            and self.parent._sub_texts_finder[self.sub_text_index].hold_and_release is None \
             and self.parent._sub_texts_finder[self.sub_text_index].mousemove is False:
             self.dontclickRadio_2.setChecked(True)
             self.pushButtonXYoffset_2.setEnabled(False)
@@ -4359,6 +5136,97 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.parent._main_text.quotes_ocr = True
         else:
             self.parent._main_text.quotes_ocr = False
+            
+    def enable_scraper_event(self, event):
+        if self.enable_scraper.isChecked() is True:
+            #self.parent._main_text.quotes_ocr = True
+            self.labelArgs.setEnabled(False)
+            self.spinBoxArgs.setEnabled(False)
+            self.add_quotes_ocr.setEnabled(False)
+            self.wait_radio.setEnabled(False)
+            self.wait_disapp_radio.setEnabled(False)
+            self.labelWarning.setEnabled(False)
+            self.doubleSpinBoxWarning.setEnabled(False)
+            self.labelCritical.setEnabled(False)
+            self.doubleSpinBoxCritical.setEnabled(False)
+            self.timeout_label.setEnabled(False)
+            self.timeout_spinbox.setEnabled(False)
+            self.listWidget.setEnabled(False)
+            self.lineEditText.setEnabled(False)
+            
+            
+            self.timeout_exception.setEnabled(False)
+            self.checkBoxEnablePerformance.setEnabled(False)
+            self.clickRadio.setEnabled(False)
+            self.rightclickRadio.setEnabled(False)
+            self.movemouseRadio.setEnabled(False)
+            self.dontclickRadio.setEnabled(False)
+            self.pushButtonXYoffset.setEnabled(False)
+            self.labelClickNumber.setEnabled(False)
+            self.clicknumber_spinbox.setEnabled(False)
+            self.labelClickDelay.setEnabled(False)
+            self.clickdelay_spinbox.setEnabled(False)
+            self.holdreleaseRadio.setEnabled(False)
+            self.holdreleaseComboBox.setEnabled(False)
+            self.holdreleaseSpinBox.setEnabled(False)
+            self.inserttext.setEnabled(False)
+            self.add_quotes.setEnabled(False)
+            self.text_encrypted.setEnabled(False)
+            
+            self.parent.scraper = True
+        else:
+            #self.parent._main_text.quotes_ocr = False
+            self.labelArgs.setEnabled(True)
+            self.spinBoxArgs.setEnabled(True)
+            self.add_quotes_ocr.setEnabled(True)
+            self.wait_radio.setEnabled(True)
+            self.wait_disapp_radio.setEnabled(True)
+            self.lineEditText.setEnabled(True)
+            
+            if self.checkBoxEnablePerformance.isChecked():
+                self.labelWarning.setEnabled(True)
+                self.doubleSpinBoxWarning.setEnabled(True)
+                self.labelCritical.setEnabled(True)
+                self.doubleSpinBoxCritical.setEnabled(True)
+            
+            self.timeout_label.setEnabled(True)
+            self.timeout_spinbox.setEnabled(True)
+            self.listWidget.setEnabled(True)
+            
+            self.timeout_exception.setEnabled(True)
+            self.checkBoxEnablePerformance.setEnabled(True)
+            self.clickRadio.setEnabled(True)
+            self.rightclickRadio.setEnabled(True)
+            self.movemouseRadio.setEnabled(True)
+            self.dontclickRadio.setEnabled(True)
+            
+            if self.clickRadio.isChecked() or self.rightclickRadio.isChecked() or self.movemouseRadio.isChecked() or self.holdreleaseRadio.isChecked(): 
+                self.pushButtonXYoffset.setEnabled(True)
+                
+            if self.clickRadio.isChecked(): 
+                self.labelClickNumber.setEnabled(True)
+                self.clicknumber_spinbox.setEnabled(True)
+                
+            if self.clicknumber_spinbox.value() > 1 and self.clickRadio.isChecked():
+                self.labelClickDelay.setEnabled(True)
+                self.clickdelay_spinbox.setEnabled(True)
+
+    
+            self.holdreleaseRadio.setEnabled(True)
+            
+            if self.holdreleaseRadio.isChecked():
+                self.holdreleaseComboBox.setEnabled(True)
+                
+            combo_index = self.holdreleaseComboBox.currentIndex()
+            
+            if combo_index != 0 and combo_index != 1 and self.holdreleaseRadio.isChecked():
+                self.holdreleaseSpinBox.setEnabled(True)
+            
+            self.inserttext.setEnabled(True)
+            self.add_quotes.setEnabled(True)
+            self.text_encrypted.setEnabled(True)
+            
+            self.parent.scraper = False
     
     @pyqtSlot(QString)    
     def lineEditText_event(self, text):
@@ -4504,7 +5372,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 return True
                 
         if event.type() == event.KeyPress and obj.objectName() == "namelineedit" and (event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter):
-            self.pushButtonOk_event()
+            pass #self.pushButtonOk_event()
         if event.type() == event.KeyPress and obj.objectName() == "textEditCustomLines" and event.key() == Qt.Key_Tab:
             #event.ignore()
             #self.textEditCustomLines.append("    ")
@@ -4751,6 +5619,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.parent._sub_texts_finder[self.sub_text_index].quotes_ocr = False
         
     def check_text_2(self):
+    
+        if not os.path.exists(get_python_lib() + os.sep + "alyvix\\extra\\Tesseract-OCR\\tessdata" + os.sep + self.lineEditLang_2.text() + ".traineddata"):
+            QMessageBox.critical(self, "Error", "Language does not exist")
+            return
+
+            
         if not os.path.exists(self.parent._path):
             os.makedirs(self.parent._path)
         image_name = self.parent._path + os.sep + time.strftime("text_finder_%d_%m_%y_%H_%M_%S_temp_img.png")
@@ -4780,7 +5654,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         if result != None:
             result_flag = True
         
-        self.check_window = AlyvixTextCheck(text, result_flag)
+        self.check_window = AlyvixTextCheck(text, result_flag, self.parent)
         self.check_window.show()
         
     @pyqtSlot(QString)
@@ -5084,9 +5958,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
     def closeEvent(self, event):
         try:
             self.check_window.close()
+            #print "this closing"
         except:
             pass
-            
+        #print "this closing"
         self.parent.parent.show()
         self.parent.close()
             
@@ -5204,16 +6079,40 @@ class LineTextWidget(QFrame):
         return self.edit
         
 class AlyvixTextCheck(QDialog, Ui_Form_Text):
-    def __init__(self, text, check_result):
+    def __init__(self, text, check_result, parent):
         QDialog.__init__(self)
+        
+        self.parent = parent
 
         # Set up the user interface from Designer.
         self.setupUi(self)
+        
+        self.scaling_factor = self.parent.parent.scaling_factor
+        
+        #self.setFixedSize(self.size())
+        self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor), int(self.frameGeometry().height() * self.scaling_factor))
+        
+        self.labelHeader.setGeometry(QRect(int(self.labelHeader.geometry().x() * self.scaling_factor), int(self.labelHeader.geometry().y() * self.scaling_factor),
+                                int(self.labelHeader.geometry().width() * self.scaling_factor), int(self.labelHeader.geometry().height() * self.scaling_factor)))
                         
+        
+        self.plainTextEdit.setGeometry(QRect(int(self.plainTextEdit.geometry().x() * self.scaling_factor), int(self.plainTextEdit.geometry().y() * self.scaling_factor),
+                                int(self.plainTextEdit.geometry().width() * self.scaling_factor), int(self.plainTextEdit.geometry().height() * self.scaling_factor)))
+                        
+        self.labelCheckResult.setGeometry(QRect(int(self.labelCheckResult.geometry().x() * self.scaling_factor), int(self.labelCheckResult.geometry().y() * self.scaling_factor),
+                                int(self.labelCheckResult.geometry().width() * self.scaling_factor), int(self.labelCheckResult.geometry().height() * self.scaling_factor)))
+                        
+        
+        self.pushButtonOk.setGeometry(QRect(int(self.pushButtonOk.geometry().x() * self.scaling_factor), int(self.pushButtonOk.geometry().y() * self.scaling_factor),
+                                          int(self.pushButtonOk.geometry().width() * self.scaling_factor), int(self.pushButtonOk.geometry().height() * self.scaling_factor)))
+                                          
+        
         #self.text = text
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
         
-        if check_result is False:
+        if self.parent.scraper is True:
+            self.labelCheckResult.setText("")   
+        elif check_result is False:
             self.labelCheckResult.setText("CRITICAL:  Your regular expression doesn't match with text found!")
         
         self.plainTextEdit.setPlainText(text)
