@@ -238,7 +238,17 @@ class NatsManager():
             msg_custom_fields = ""
 
             for field in perfdata.custom_fields.keys():
-                msg_custom_fields += "," + field + "=" + perfdata.custom_fields[field]
+
+                is_string = False
+
+                field_value = perfdata.custom_fields[field]
+
+                try:
+                    int(field_value)
+                except:
+                    field_value = "\"" + field_value +"\""
+
+                msg_custom_fields += "," + field + "=" + field_value
 
             user_msg = ",username=" + os.environ['username']
             host_msg = ",host=" +str(gethostname())

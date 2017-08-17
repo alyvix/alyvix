@@ -23,6 +23,7 @@ import cv2
 import numpy
 import copy
 import datetime
+import inspect
 
 #from alyvix.finders.basefinder import Roi
 from alyvix.finders.cv.basefinder import *
@@ -93,16 +94,29 @@ class ObjectFinder(BaseFinder):
         suite_source = suite_source.split(".")[0]
 
         if suite_source != None:
-            extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + \
+            extra_path_old = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + \
                          "Alyvix" + suite_source + "Objects_extra"
+            scraper_old_path = extra_path_old + os.sep + sub_object.get_name()
+            scraper_old_file = scraper_old_path + os.sep + "scraper.txt"
+
+            proxy_file = inspect.stack()
+            proxy_file = proxy_file[1]
+            proxy_file = proxy_file[1]
+            proxy_file = proxy_file.split(os.sep)[-1]
+            proxy_file = proxy_file.split('.')[0]
+            proxy_file = proxy_file.replace("AlyvixProxy","")
+
+            extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + \
+                         "Alyvix" + proxy_file + "Objects_extra"
             scraper_path = extra_path + os.sep + sub_object.get_name()
             scraper_file = scraper_path + os.sep + "scraper.txt"
 
         else:
-            scraper_path = sub_object.get_name()
-            scraper_file = scraper_path + os.sep + "scraper.txt"
+            scraper_old_path = sub_object.get_name()
+            scraper_old_file = scraper_old_path + os.sep + "scraper.txt"
 
-        if os.path.exists(scraper_file):
+
+        if os.path.exists(scraper_old_file) or os.path.exists(scraper_file):
 
             self._sub_components_scraper.append(True)
         else:
