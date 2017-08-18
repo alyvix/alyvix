@@ -452,12 +452,12 @@ class PerfManager:
             if perfdata.warning_threshold == '' or perfdata.warning_threshold is None:
                 warning = ''
             else:
-                warning = ("%.3f" % perfdata.warning_threshold) + "s"
+                warning = ("%.3f" % perfdata.warning_threshold)
 
             if perfdata.critical_threshold == '' or perfdata.critical_threshold is None:
                 critical = ''
             else:
-                critical = ("%.3f" % perfdata.critical_threshold) + "s"
+                critical = ("%.3f" % perfdata.critical_threshold)
 
             if cnt == 0:
                 ret_string = ret_string + name + "=" + value + "s;" + warning + ";" + critical + ";;"
