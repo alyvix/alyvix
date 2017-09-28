@@ -229,3 +229,25 @@ class ScreenManager(ScreenManagerBase):
             pass
 
         return True
+
+    def get_resolution(self):
+
+        hwnd = win32gui.GetDesktopWindow()
+        wDC = win32gui.GetWindowDC(hwnd)
+        dcObj = win32ui.CreateDCFromHandle(wDC)
+
+        HORZRES = 8
+        VERTRES = 10
+
+        DESKTOPHORZRES = 118
+        DESKTOPVERTRES = 117
+
+        v_HORZRES = dcObj.GetDeviceCaps(HORZRES)
+        v_VERTRES = dcObj.GetDeviceCaps(VERTRES)
+
+        v_DESKTOPHORZRES = dcObj.GetDeviceCaps(DESKTOPHORZRES)
+        v_DESKTOPVERTRES = dcObj.GetDeviceCaps(DESKTOPVERTRES)
+
+        dcObj.DeleteDC()
+
+        return (v_DESKTOPHORZRES,v_DESKTOPVERTRES)

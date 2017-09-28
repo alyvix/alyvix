@@ -98,6 +98,10 @@ class InfoManager():
 
         self.set_info('SCRAPER COLLECTION', [])
 
+        self.set_info("DISABLE REPORTS", False)
+
+        self.set_info("RESOLUTION", screen_manager.get_resolution())
+
         #self.set_info("INTERACTION", [])
 
         if robot_context:

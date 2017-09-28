@@ -43,7 +43,7 @@ from alyvix.tools.configreader import ConfigReader
 from alyvix.tools.info import InfoManager
 
 
-from stat import S_ISREG, ST_CTIME, ST_MODE
+from stat import S_ISREG, ST_CTIME, ST_MODE, ST_MTIME
 
 import shutil
 from distutils.sysconfig import get_python_lib
@@ -205,6 +205,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         """
 
         os.remove(self.path + os.sep + str(self.xml_name))
+        
+        #print "item removed", self.path + os.sep + str(self.xml_name)
 
         template_path = self.path + os.sep + str(self.xml_name).replace("_ImageFinder.xml","")
         
@@ -243,7 +245,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             return
 
         # leave only regular files, insert creation date
-        entries = ((stat[ST_CTIME], path)
+        entries = ((stat[ST_MTIME], path)
                    for stat, path in entries if S_ISREG(stat[ST_MODE]))
         #NOTE: on Windows `ST_CTIME` is a creation date 
         #  but on Unix it could be something else
@@ -252,6 +254,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         if os.path.exists(self.path + os.sep + "lock_list.xml"):
             f = open(self.path + os.sep + "lock_list.xml")
             string = f.read()
+            
+        #print sorted(entries)
 
         for cdate, path in sorted(entries):
             filename = os.path.basename(path)
@@ -263,6 +267,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             if os.path.exists(self.path + os.sep + "lock_list.xml"):
                 if "<name>" + filename + "</name>" in string:
                     continue
+            #print "fname", filename
             if filename.endswith('.xml') and not filename.endswith('list.xml') and not filename.endswith('data.xml'):
                 item = QListWidgetItem()
                 if filename.endswith('_RectFinder.xml'):
@@ -442,12 +447,14 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         # get all entries in the directory w/ stats
         entries = (os.path.join(dirpath, fn) for fn in os.listdir(dirpath) if not fn.endswith(".txt") and not fn.endswith(".png") and not fn.endswith('list.xml') and not fn.endswith('data.xml'))
         
+ 
+        
         #print entries
         
         entries = ((os.stat(path), path) for path in entries)
 
         # leave only regular files, insert creation date
-        entries = ((stat[ST_CTIME], path)
+        entries = ((stat[ST_MTIME], path)
                    for stat, path in entries if S_ISREG(stat[ST_MODE]))
         
         """
@@ -462,6 +469,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #NOTE: use `ST_MTIME` to sort by a modification date
         
         list_sorted = sorted(entries)
+        #print list_sorted
         cdate, path = list_sorted[-1]
 
         filename = os.path.basename(path)
@@ -472,6 +480,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
         #print filename
         item = QListWidgetItem()
+        
+        #print filename
 
         if filename.endswith('_RectFinder.xml'):
             item.setText(filename[:-15] + " [RF]")

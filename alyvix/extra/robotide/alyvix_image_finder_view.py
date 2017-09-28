@@ -26,6 +26,7 @@ import cv2
 import copy
 import codecs
 import shutil
+import re
 
 import time
 
@@ -121,6 +122,7 @@ class AlyvixImageFinderView(QWidget):
         self.__old_code = self.get_old_code()
         self.__old_code_v220 = self.get_old_code_v220()
         self.__old_code_v230 = self.get_old_code_v230()
+        self.__old_code_v250 = self.get_old_code_v250()
         self.mouse_or_key_is_set = self.old_mouse_or_key_is_set
         
         """
@@ -239,6 +241,30 @@ class AlyvixImageFinderView(QWidget):
             self.parent.show()
             self.close()
             """
+            
+        if event.key() == Qt.Key_Down:
+        
+            if self.__flag_capturing_sub_template == True:
+                self._sub_templates_finder[-1].roi_unlimited_down = True
+                self.update()
+                
+        if event.key() == Qt.Key_Up:
+        
+            if self.__flag_capturing_sub_template == True:
+                self._sub_templates_finder[-1].roi_unlimited_up = True
+                self.update()
+                
+        if event.key() == Qt.Key_Left:
+        
+            if self.__flag_capturing_sub_template == True:
+                self._sub_templates_finder[-1].roi_unlimited_left = True
+                self.update()
+                
+        if event.key() == Qt.Key_Right:
+        
+            if self.__flag_capturing_sub_template == True:
+                self._sub_templates_finder[-1].roi_unlimited_right = True
+                self.update()
     
     def save_template_images(self, image_name):
     
@@ -441,10 +467,37 @@ class AlyvixImageFinderView(QWidget):
             OuterPath_roi = QPainterPath()
             OuterPath_roi.setFillRule(Qt.WindingFill)
             
-            OuterPath_roi.addRect(image_finder.roi_x + self._main_template.x,
-                image_finder.roi_y + self._main_template.y,
-                image_finder.roi_width,
-                image_finder.roi_height)
+            roi_x = image_finder.roi_x + self._main_template.x
+            roi_y = image_finder.roi_y + self._main_template.y
+            roi_width = image_finder.roi_width
+            roi_height = image_finder.roi_height
+
+            if image_finder.roi_unlimited_up is True:
+                roi_y = 0
+                roi_height = image_finder.roi_y + self._main_template.y + roi_height
+
+            if image_finder.roi_unlimited_down is True:
+                if image_finder.roi_unlimited_up is True:
+                    roi_height = self._bg_pixmap.height()-1
+                else:
+                    roi_height = self._bg_pixmap.height() - (image_finder.roi_y + self._main_template.y + 1)
+                    
+                    print self._bg_pixmap.width(), (image_finder.roi_x + self._main_template.x)
+
+            if image_finder.roi_unlimited_left is True:
+                roi_x = 0
+                roi_width = image_finder.roi_x + self._main_template.x + roi_width
+
+            if image_finder.roi_unlimited_right is True:
+                if image_finder.roi_unlimited_left is True:
+                    roi_width = self._bg_pixmap.width() -1
+                else:
+                    roi_width = self._bg_pixmap.width() - (image_finder.roi_x + self._main_template.x + 1)
+            
+            OuterPath_roi.addRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height)
                 
             if image_finder.x != 0 and image_finder.y != 0:
             
@@ -457,6 +510,7 @@ class AlyvixImageFinderView(QWidget):
                     image_finder.height)
                 """
                 
+                
 
                 InnerPath_roi.addRect(image_finder.x,
                     image_finder.y,
@@ -467,10 +521,10 @@ class AlyvixImageFinderView(QWidget):
                 FillPath_roi = OuterPath_roi.subtracted(InnerPath_roi)
                 qp.fillPath(FillPath_roi, QBrush(QColor(172, 96, 246, 180), Qt.BDiagPattern))
                 
-                qp.drawRect(QRect(image_finder.roi_x + self._main_template.x,
-                    image_finder.roi_y + self._main_template.y,
-                    image_finder.roi_width,
-                    image_finder.roi_height))  
+                qp.drawRect(QRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height))  
                     
                 qp.fillRect(image_finder.x,
                     image_finder.y,
@@ -499,16 +553,18 @@ class AlyvixImageFinderView(QWidget):
                     qp.setBrush(old_brush)
             
             else:
-                qp.fillRect(image_finder.roi_x + self._main_template.x,
-                    image_finder.roi_y + self._main_template.y,
-                    image_finder.roi_width,
-                    image_finder.roi_height,
+
+                        
+                qp.fillRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height,
                     QBrush(QColor(172, 96, 246, 180), Qt.BDiagPattern))
                     
-                qp.drawRect(QRect(image_finder.roi_x + self._main_template.x,
-                    image_finder.roi_y + self._main_template.y,
-                    image_finder.roi_width,
-                    image_finder.roi_height))  
+                qp.drawRect(QRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height))  
                 
             """
             qp.fillRect(image_finder.x,
@@ -637,8 +693,36 @@ class AlyvixImageFinderView(QWidget):
 
             image_finder = self._sub_templates_finder[-1]
             
-            if (x + width > image_finder.roi_x + self._main_template.x + image_finder.roi_width) or (x < image_finder.roi_x + self._main_template.x) or \
-                (y + height > image_finder.roi_y + self._main_template.y + image_finder.roi_height) or (y < image_finder.roi_y + self._main_template.y):
+                
+            roi_x = image_finder.roi_x + self._main_template.x
+            roi_y = image_finder.roi_y + self._main_template.y
+            roi_width = image_finder.roi_width
+            roi_height = image_finder.roi_height
+
+            if image_finder.roi_unlimited_up is True:
+                roi_y = 0
+                roi_height = image_finder.roi_y + self._main_template.y + roi_height
+
+            if image_finder.roi_unlimited_down is True:
+                if image_finder.roi_unlimited_up is True:
+                    roi_height = self._bg_pixmap.height()-1
+                else:
+                    roi_height = self._bg_pixmap.height() - (image_finder.roi_y + self._main_template.y + 1)
+                    
+                    print self._bg_pixmap.width(), (image_finder.roi_x + self._main_template.x)
+
+            if image_finder.roi_unlimited_left is True:
+                roi_x = 0
+                roi_width = image_finder.roi_x + self._main_template.x + roi_width
+
+            if image_finder.roi_unlimited_right is True:
+                if image_finder.roi_unlimited_left is True:
+                    roi_width = self._bg_pixmap.width() -1
+                else:
+                    roi_width = self._bg_pixmap.width() - (image_finder.roi_x + self._main_template.x + 1)
+            
+            if (x + width > roi_x + roi_width) or (x < roi_x) or \
+                (y + height > roi_y + roi_height) or (y < roi_y):
                 self.__flag_capturing_sub_template = True
                 self.__flag_capturing_sub_image_rect_roi = False
                 return
@@ -832,6 +916,7 @@ class AlyvixImageFinderView(QWidget):
         
         file_code_string = file_code_string.replace(unicode(self.__old_code_v220, 'utf-8'), "")
         file_code_string = file_code_string.replace(unicode(self.__old_code_v230, 'utf-8'), "")
+        file_code_string = file_code_string.replace(unicode(self.__old_code_v250, 'utf-8'), "")
         file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), "")
         
         string = file_code_string
@@ -876,6 +961,7 @@ class AlyvixImageFinderView(QWidget):
         elif self.action == "edit":
             file_code_string = file_code_string.replace(unicode(self.__old_code_v220, 'utf-8'), current_code_string)
             file_code_string = file_code_string.replace(unicode(self.__old_code_v230, 'utf-8'), current_code_string)
+            file_code_string = file_code_string.replace(unicode(self.__old_code_v250, 'utf-8'), current_code_string)
             file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), current_code_string)
             
             """
@@ -921,6 +1007,13 @@ class AlyvixImageFinderView(QWidget):
             return "".encode('utf-8')
         
         self.build_code_array_v230()
+        return self.build_code_string()
+        
+    def get_old_code_v250(self):
+        if self._main_template is None:
+            return "".encode('utf-8')
+        
+        self.build_code_array_v250()
         return self.build_code_string()
     
     def build_code_string(self):
@@ -1505,7 +1598,7 @@ class AlyvixImageFinderView(QWidget):
         """ 
 
     
-    def build_code_array(self):
+    def build_code_array_v250(self):
     
         self.mouse_or_key_is_set = False
     
@@ -1999,6 +2092,512 @@ class AlyvixImageFinderView(QWidget):
         for element in self._code_lines:
             print element
         """ 
+        
+    def build_code_array(self):
+    
+        self.mouse_or_key_is_set = False
+    
+        kmanager_declared = False
+        mmanager_declared = False
+       
+        if self._main_template is None:
+            return
+            
+        self._code_lines = []
+        self._code_lines_for_object_finder = []
+            
+        name = self.object_name
+        
+        if name == "" and self.ok_pressed is True:
+            name = time.strftime("image_finder_%d_%m_%y_%H_%M_%S")
+            self.object_name = name
+            
+        strcode = name + "_object = None"
+        self._code_lines.append(strcode)
+        self._code_lines_for_object_finder.append(strcode)
+
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")  
+        self._code_lines.append("    " + name + "_object = ImageFinder(\"" + name + "\")")
+
+        template_image_path = self._path + os.sep + name
+        
+        #self._main_template.path = template_image_path + os.sep + "main_template.png"
+        template_image_path = "alyvix" + os.sep + os.sep  + "robotproxy" + os.sep + os.sep + self._path.split(os.sep)[-1] + "_extra" + os.sep + os.sep + name
+        self._main_template.path = template_image_path + os.sep + "main_template.png"
+       
+        #self._main_template.path = self._main_template.path.replace("\\","\\\\")
+        
+        strcode = "    "  + name + "_object.set_main_component({\"path\": get_python_lib() + os.sep + \"" + self._main_template.path + "\", \"threshold\":" + repr(self._main_template.threshold) + "})"
+        
+        self._code_lines.append(strcode)
+        self._code_lines_for_object_finder.append(strcode)
+        
+        #self._code_lines.append("\n")
+        
+        if self._main_template.click == True or self._main_template.rightclick == True or self._main_template.mousemove == True or self._main_template.hold_and_release is not None:
+            if self._main_template.x_offset is None and self._main_template.y_offset is None: 
+                if self._main_template.hold_and_release is not None:
+                    if self._main_template.hold_and_release == 0:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                    elif self._main_template.hold_and_release == 1:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                    elif self._main_template.hold_and_release == 2:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0, 0 - " + str(self._main_template.release_pixel) + ", False)")
+                    elif self._main_template.hold_and_release == 3:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0, 0 + " + str(self._main_template.release_pixel) + ", False)")
+                    elif self._main_template.hold_and_release == 4:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 - " + str(self._main_template.release_pixel) + ", 0, False)")
+                    elif self._main_template.hold_and_release == 5:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + " + str(self._main_template.release_pixel) + ", 0, False)")
+                else:
+                    self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                    self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+            else:
+                if self._main_template.hold_and_release is not None:
+                    if self._main_template.hold_and_release == 0:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_template.x_offset) + "), 0 + (" + str(self._main_template.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                    elif self._main_template.hold_and_release == 1:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_template.x_offset) + "), 0 + (" + str(self._main_template.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                    elif self._main_template.hold_and_release == 2:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_template.x_offset) + "), 0 + (" + str(self._main_template.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_template.x_offset) + "), 0 + (" + str(self._main_template.y_offset) + ") - " + str(self._main_template.release_pixel) + ", True)")
+                    elif self._main_template.hold_and_release == 3:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_template.x_offset) + "), 0 + (" + str(self._main_template.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_template.x_offset) + "), 0 + (" + str(self._main_template.y_offset) + ") + " + str(self._main_template.release_pixel) + ", True)")
+                    elif self._main_template.hold_and_release == 4:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_template.x_offset) + "), 0 + (" + str(self._main_template.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_template.x_offset) + ") - " + str(self._main_template.release_pixel) + ",  0 + (" + str(self._main_template.y_offset) + "), True)")
+                    elif self._main_template.hold_and_release == 5:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_template.x_offset) + "), 0 + (" + str(self._main_template.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_template.x_offset) + ") + " + str(self._main_template.release_pixel) + ",  0 + (" + str(self._main_template.y_offset) + "), True)")
+                else:
+                    self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_template.x_offset) + "), 0 + (" + str(self._main_template.y_offset) + "), True)")
+                    self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+        else:
+            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = None")
+            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+        
+        
+        cnt = 1
+        for sub_template in self._sub_templates_finder:
+            if sub_template.height != 0 and sub_template.width !=0:
+            
+                sub_template.path = template_image_path + os.sep + os.sep + "sub_template_" + str(cnt) + ".png"
+
+                #roi_x = str(sub_template.roi_x - self._main_template.x)
+                roi_x = str(sub_template.roi_x)
+                roi_y = str(sub_template.roi_y)
+                
+                roi_width = str(sub_template.roi_width)
+                roi_height = str(sub_template.roi_height)
+                
+                roi_unlimited_up = str(sub_template.roi_unlimited_up)
+                roi_unlimited_down = str(sub_template.roi_unlimited_down)
+                roi_unlimited_left = str(sub_template.roi_unlimited_left)
+                roi_unlimited_right = str(sub_template.roi_unlimited_right)
+                    
+                str1 = "    " + name + "_object.add_sub_component({\"path\": get_python_lib() + os.sep + \"" + sub_template.path + "\", \"threshold\":" + repr(sub_template.threshold) + "},"
+                str2 = "                                  {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + ", \"roi_unlimited_up\": " + roi_unlimited_up + ", \"roi_unlimited_down\": " + roi_unlimited_down + ", \"roi_unlimited_left\": " + roi_unlimited_left + ", \"roi_unlimited_right\": " + roi_unlimited_right + "})"
+    
+                self._code_lines.append(str1)
+                self._code_lines.append(str2)
+                self._code_lines_for_object_finder.append(str1)
+                self._code_lines_for_object_finder.append(str2)
+                
+                if sub_template.click == True or sub_template.rightclick == True or sub_template.mousemove == True or sub_template.hold_and_release is not None:
+                    if sub_template.x_offset is None and sub_template.y_offset is None: 
+                        if sub_template.hold_and_release is not None:
+                            if sub_template.hold_and_release == 0:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                            elif sub_template.hold_and_release == 1:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                            elif sub_template.hold_and_release == 2:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0, 0 - " + str(sub_template.release_pixel) + ", False))")
+                            elif sub_template.hold_and_release == 3:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0, 0 + " + str(sub_template.release_pixel) + ", False))")
+                            elif sub_template.hold_and_release == 4:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 - " + str(sub_template.release_pixel) + ", 0, False))")
+                            elif sub_template.hold_and_release == 5:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + " + str(sub_template.release_pixel) + ", 0, False))")
+                        else:
+                            self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                            self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                    else:
+                        if sub_template.hold_and_release is not None:
+                            if sub_template.hold_and_release == 0:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_template.x_offset) + "), 0 + (" + str(sub_template.y_offset) + "), True))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                            elif sub_template.hold_and_release == 1:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_template.x_offset) + "), 0 + (" + str(sub_template.y_offset) + "), True))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                            elif sub_template.hold_and_release == 2:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_template.x_offset) + "), 0 + (" + str(sub_template.y_offset) + "), True))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_template.x_offset) + "), 0 + (" + str(sub_template.y_offset) + ") - " + str(sub_template.release_pixel) + ", True))")
+                            elif sub_template.hold_and_release == 3:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_template.x_offset) + "), 0 + (" + str(sub_template.y_offset) + ")))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_template.x_offset) + "), 0 + (" + str(sub_template.y_offset) + ") + " + str(sub_template.release_pixel) + ", True))")
+                            elif sub_template.hold_and_release == 4:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_template.x_offset) + "), 0 + (" + str(sub_template.y_offset) + ")))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_template.x_offset) + ") - " + str(sub_template.release_pixel) + ",  0 + (" + str(sub_template.y_offset) + "), True))")
+                            elif sub_template.hold_and_release == 5:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_template.x_offset) + "), 0 + (" + str(sub_template.y_offset) + ")))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_template.x_offset) + ") + " + str(sub_template.release_pixel) + ",  0 + (" + str(sub_template.y_offset) + "), True))")
+                        else:
+                            self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_template.x_offset) + "), 0 + (" + str(sub_template.y_offset) + "), True))")
+                            self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                else:
+                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append(None)")
+                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+    
+                #self._code_lines.append("\n")
+                cnt = cnt + 1
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "_mouse_keyboard("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")
+        self._code_lines.append("    info_manager = InfoManager()")
+        self._code_lines.append("    sleep_factor = info_manager.get_info(\"ACTIONS DELAY\")")  
+        
+        if self._main_template.click == True or self._main_template.rightclick == True or self._main_template.mousemove == True or self._main_template.hold_and_release  is not None:
+            self.mouse_or_key_is_set = True
+            self._code_lines.append("    main_template_pos = " + name + "_object.get_result(0)")  
+        
+            if mmanager_declared is False:
+                self._code_lines.append("    m = MouseManager()")
+                mmanager_declared = True
+                
+            self._code_lines.append("    time.sleep(sleep_factor)")
+                                
+            
+            if self._main_template.x_offset is None and self._main_template.y_offset is None: 
+                #print "holdddddddddddd index", self._main_template.hold_and_release 
+                if self._main_template.click == True:
+                    self._code_lines.append("    m.click_2(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2), 1, " + str(self._main_template.number_of_clicks) + ", " + str(self._main_template.click_delay) + ")")
+                elif self._main_template.rightclick == True:
+                    self._code_lines.append("    m.click(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2), 2)")
+                elif self._main_template.mousemove == True:
+                    self._code_lines.append("    m.move(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2))")
+                elif self._main_template.hold_and_release is not None:
+                    if self._main_template.hold_and_release == 0:
+                        self._code_lines.append("    m.hold(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2))")
+                    elif self._main_template.hold_and_release == 1:
+                        self._code_lines.append("    m.release(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2))")
+                    elif self._main_template.hold_and_release == 2:
+                        self._code_lines.append("    m.hold(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2) - " + str(self._main_template.release_pixel) + ")")
+                    elif self._main_template.hold_and_release == 3:
+                        self._code_lines.append("    m.hold(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2) + " + str(self._main_template.release_pixel) + ")")
+                    elif self._main_template.hold_and_release == 4:
+                        self._code_lines.append("    m.hold(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_template_pos.x + (main_template_pos.width/2) - " + str(self._main_template.release_pixel) + ", main_template_pos.y + (main_template_pos.height/2))")
+                    elif self._main_template.hold_and_release == 5:
+                        self._code_lines.append("    m.hold(main_template_pos.x + (main_template_pos.width/2), main_template_pos.y + (main_template_pos.height/2))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_template_pos.x + (main_template_pos.width/2) + " + str(self._main_template.release_pixel) + ", main_template_pos.y + (main_template_pos.height/2))")
+            else:
+                if self._main_template.click == True:
+                    self._code_lines.append("    m.click_2(main_template_pos.x + (" + str(self._main_template.x_offset) + "), main_template_pos.y + (" + str(self._main_template.y_offset) + "), 1, " + str(self._main_template.number_of_clicks) + ", " + str(self._main_template.click_delay) + ")")
+                elif self._main_template.rightclick == True:
+                    self._code_lines.append("    m.click(main_template_pos.x + (" + str(self._main_template.x_offset) + "), main_template_pos.y + (" + str(self._main_template.y_offset) + "), 2)")
+                elif self._main_template.mousemove == True:
+                    self._code_lines.append("    m.move(main_template_pos.x + (" + str(self._main_template.x_offset) + "), main_template_pos.y + (" + str(self._main_template.y_offset) + "))")
+                elif self._main_template.hold_and_release is not None:
+                    if self._main_template.hold_and_release == 0:
+                        self._code_lines.append("    m.hold(main_template_pos.x + (" + str(self._main_template.x_offset) + "), main_template_pos.y + (" + str(self._main_template.y_offset) + "))")
+                    elif self._main_template.hold_and_release == 1:
+                        self._code_lines.append("    m.release(main_template_pos.x + (" + str(self._main_template.x_offset) + "), main_template_pos.y + (" + str(self._main_template.y_offset) + "))")
+                    elif self._main_template.hold_and_release == 2:
+                        self._code_lines.append("    m.hold(main_template_pos.x + (" + str(self._main_template.x_offset) + "), main_template_pos.y + (" + str(self._main_template.y_offset) + "))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_template_pos.x + (" + str(self._main_template.x_offset) + "), main_template_pos.y + (" + str(self._main_template.y_offset) + ") - " + str(self._main_template.release_pixel) + ")")
+                    elif self._main_template.hold_and_release == 3:
+                        self._code_lines.append("    m.hold(main_template_pos.x + (" + str(self._main_template.x_offset) + "), main_template_pos.y + (" + str(self._main_template.y_offset) + "))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_template_pos.x + (" + str(self._main_template.x_offset) + "), main_template_pos.y + (" + str(self._main_template.y_offset) + ") + " + str(self._main_template.release_pixel) + ")")
+                    elif self._main_template.hold_and_release == 4:
+                        self._code_lines.append("    m.hold(main_template_pos.x + (" + str(self._main_template.x_offset) + "), main_template_pos.y + (" + str(self._main_template.y_offset) + "))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_template_pos.x + (" + str(self._main_template.x_offset) + ") - " + str(self._main_template.release_pixel) + ",  main_template_pos.y + (" + str(self._main_template.y_offset) + "))")
+                    elif self._main_template.hold_and_release == 5:
+                        self._code_lines.append("    m.hold(main_template_pos.x + (" + str(self._main_template.x_offset) + "), main_template_pos.y + (" + str(self._main_template.y_offset) + "))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_template_pos.x + (" + str(self._main_template.x_offset) + ") + " + str(self._main_template.release_pixel) + ",  main_template_pos.y + (" + str(self._main_template.y_offset) + "))")
+        
+                
+        if self._main_template.sendkeys != "":
+            self.mouse_or_key_is_set = True
+            if kmanager_declared is False:
+                self._code_lines.append("    k  = KeyboardManager()")
+                kmanager_declared = True
+            keys = unicode(self._main_template.sendkeys, 'utf-8')
+            self._code_lines.append("    time.sleep(sleep_factor)")
+            
+            if self._main_template.sendkeys_quotes is True:
+                self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_template.text_encrypted) + ", delay=" + str(self._main_template.sendkeys_delay) + ", duration=" + str(self._main_template.sendkeys_duration) + ")")
+            else:
+                self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_template.text_encrypted) + ", delay=" + str(self._main_template.sendkeys_delay) + ", duration=" + str(self._main_template.sendkeys_duration) + ")")
+                
+        cnt = 0
+        for sub_template in self._sub_templates_finder:
+        
+            if sub_template.height != 0 and sub_template.width !=0:
+                if sub_template.click == True or sub_template.rightclick == True or sub_template.mousemove == True or sub_template.hold_and_release  is not None:
+            
+                    self.mouse_or_key_is_set = True
+            
+                    self._code_lines.append("    sub_template_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
+                
+                    if mmanager_declared is False:
+                        self._code_lines.append("    m = MouseManager()")
+                        mmanager_declared = True
+                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                        
+                    if sub_template.x_offset is None and sub_template.y_offset is None:    
+                        if sub_template.click == True:
+                            self._code_lines.append("    m.click_2(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2), 1, " + str(sub_template.number_of_clicks) + ", " + str(sub_template.click_delay) + ")")
+                        elif sub_template.rightclick == True:
+                            self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2), 2)")
+                        elif sub_template.mousemove == True:
+                            self._code_lines.append("    m.move(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2))")
+                        elif sub_template.hold_and_release is not None:
+                            if sub_template.hold_and_release == 0:
+                                self._code_lines.append("    m.hold(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2))")
+                            elif sub_template.hold_and_release == 1:
+                                self._code_lines.append("    m.release(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2))")
+                            elif sub_template.hold_and_release == 2:
+                                self._code_lines.append("    m.hold(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2) - " + str(sub_template.release_pixel) + ")")
+                            elif sub_template.hold_and_release == 3:
+                                self._code_lines.append("    m.hold(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2) + " + str(sub_template.release_pixel) + ")")
+                            elif sub_template.hold_and_release == 4:
+                                self._code_lines.append("    m.hold(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2) - " + str(sub_template.release_pixel) + ", sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2))")
+                            elif sub_template.hold_and_release == 5:
+                                self._code_lines.append("    m.hold(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2), sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_template_" + str(cnt) + "_pos.x + (sub_template_" + str(cnt) + "_pos.width/2) + " + str(sub_template.release_pixel) + ", sub_template_" + str(cnt) + "_pos.y + (sub_template_" + str(cnt) + "_pos.height/2))")
+
+                    else:
+                        if sub_template.click == True:
+                            self._code_lines.append("    m.click_2(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "), 1, " + str(sub_template.number_of_clicks) + ", " + str(sub_template.click_delay) + ")")
+                        elif sub_template.rightclick == True:
+                            self._code_lines.append("    m.click(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + ")), 2)")
+                        elif sub_template.mousemove == True:
+                            self._code_lines.append("    m.move(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "))")
+                        elif sub_template.hold_and_release is not None:
+                            if sub_template.hold_and_release == 0:
+                                self._code_lines.append("    m.hold(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "))")
+                            elif sub_template.hold_and_release == 1:
+                                self._code_lines.append("    m.release(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "))")
+                            elif sub_template.hold_and_release == 2:
+                                self._code_lines.append("    m.hold(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + ") - " + str(sub_template.release_pixel) + ")")
+                            elif sub_template.hold_and_release == 3:
+                                self._code_lines.append("    m.hold(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + ") + " + str(sub_template.release_pixel) + ")")
+                            elif sub_template.hold_and_release == 4:
+                                self._code_lines.append("    m.hold(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + ") - " + str(sub_template.release_pixel) + ",  sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "))")
+                            elif sub_template.hold_and_release == 5:
+                                self._code_lines.append("    m.hold(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + "), sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_template_" + str(cnt) + "_pos.x + (" + str(sub_template.x_offset) + ") + " + str(sub_template.release_pixel) + ",  sub_template_" + str(cnt) + "_pos.y + (" + str(sub_template.y_offset) + "))")
+
+                            
+                if sub_template.sendkeys != "":
+                
+                    self.mouse_or_key_is_set = True
+                
+                    if kmanager_declared is False:
+                        self._code_lines.append("    k  = KeyboardManager()")
+                        kmanager_declared = True
+                    keys = unicode(sub_template.sendkeys, 'utf-8')
+                    self._code_lines.append("    time.sleep(sleep_factor)")
+                    
+                    if sub_template.sendkeys_quotes is True:
+                        self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_template.text_encrypted) + ", delay=" + str(sub_template.sendkeys_delay) + ", duration=" + str(sub_template.sendkeys_duration) + ")")
+                    else:
+                        self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_template.text_encrypted) + ", delay=" + str(sub_template.sendkeys_delay) + ", duration=" + str(sub_template.sendkeys_duration) + ")")
+                                    
+                cnt = cnt + 1
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")  
+        
+        string_function_args = "    " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+        
+        if self.timeout_exception is False:
+        
+            self._code_lines.append("    info_manager = InfoManager()")
+            self._code_lines.append("    info_manager.set_info(\"DISABLE REPORTS\", True)")
+        
+
+        if self.find is True:  
+            self._code_lines.append("    " + name + "_object.find()")
+        elif self.wait is True or self.mouse_or_key_is_set is True:
+            self._code_lines.append("    timeout = " + str(self.timeout))
+            self._code_lines.append("    wait_time = " + name + "_object.wait(timeout)")
+        elif self.wait_disapp is True:
+            self._code_lines.append("    timeout = " + str(self.timeout))
+            self._code_lines.append("    wait_time = " + name + "_object.wait_disappear(timeout)")
+           
+        if self.enable_performance is True and self.find is False:
+            self._code_lines.append("    if wait_time == -1:")
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")         
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                self._code_lines.append("        return False")
+            if self.wait_disapp is True and self.mouse_or_key_is_set is True:
+                pass
+            else:
+                self._code_lines.append("    elif wait_time < " + repr(self.warning) + ":")
+                self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time, \"sec.\"")
+                self._code_lines.append("    elif wait_time < " + repr(self.critical) + ":")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+                self._code_lines.append("    else:")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+                self._code_lines.append("    p = PerfManager()")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+        elif self.find is False:
+            self._code_lines.append("    if wait_time == -1:")
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")            
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                self._code_lines.append("        return False")  
+            #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+        
+        string_function_args = "    " + name + "_mouse_keyboard("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+        
+        if self.wait_disapp is True and self.mouse_or_key_is_set is True:
+            #timeout = " + str(self.timeout)
+            self._code_lines.append("    timeout = timeout - wait_time")
+            self._code_lines.append("    wait_time_disappear = " + name + "_object.wait_disappear(timeout)")
+            if self.enable_performance is True and self.find is False:
+                self._code_lines.append("    if wait_time_disappear == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")
+                self._code_lines.append("    elif wait_time + wait_time_disappear < " + repr(self.warning) + ":")
+                self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time + wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    elif wait_time + wait_time_disappear < " + repr(self.critical) + ":")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time + wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    else:")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time + wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    p = PerfManager()")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time + wait_time_disappear, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+            elif self.find is False:
+                self._code_lines.append("    if wait_time_disappear == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")  
+                #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+            
+            
+        if self.timeout_exception is False:
+            self._code_lines.append("    return True")
+        self._code_lines.append("")
+        self._code_lines.append("")
+
+        #x = 2
+        
+        #tmp_array =  self._code_lines[:x] + ["aaaaaaaaa"] +  self._code_lines[x:]
+        
+        #self._code_lines = tmp_array
+
+        """
+        for element in self._code_lines:
+            print element
+        """ 
   
     def build_xml(self):
         
@@ -2088,6 +2687,8 @@ class AlyvixImageFinderView(QWidget):
 
         sendkeys_node = ET.SubElement(main_template_node, "sendkeys")
         sendkeys_node.set("encrypted", str(self._main_template.text_encrypted))
+        sendkeys_node.set("delay", str(self._main_template.sendkeys_delay))
+        sendkeys_node.set("duration", str(self._main_template.sendkeys_duration))
         sendkeys_node.set("quotes", str(self._main_template.sendkeys_quotes))
         
         #print self._main_template.sendkeys
@@ -2146,6 +2747,18 @@ class AlyvixImageFinderView(QWidget):
                 roi_height_node = ET.SubElement(sub_template_node, "roi_height")
                 roi_height_node.text = str(sub_template.roi_height)
                 
+                roi_unlimited_up_node = ET.SubElement(sub_template_node, "roi_unlimited_up")
+                roi_unlimited_up_node.text = str(sub_template.roi_unlimited_up)
+                
+                roi_unlimited_down_node = ET.SubElement(sub_template_node, "roi_unlimited_down")
+                roi_unlimited_down_node.text = str(sub_template.roi_unlimited_down)
+                
+                roi_unlimited_left_node = ET.SubElement(sub_template_node, "roi_unlimited_left")
+                roi_unlimited_left_node.text = str(sub_template.roi_unlimited_left)
+                
+                roi_unlimited_right_node = ET.SubElement(sub_template_node, "roi_unlimited_right")
+                roi_unlimited_right_node.text = str(sub_template.roi_unlimited_right)
+                
                 click_node = ET.SubElement(sub_template_node, "click")
                 click_node.text = str(sub_template.click)
                 
@@ -2178,6 +2791,8 @@ class AlyvixImageFinderView(QWidget):
 
                 sendkeys_node = ET.SubElement(sub_template_node, "sendkeys")
                 sendkeys_node.set("encrypted", str(sub_template.text_encrypted))
+                sendkeys_node.set("delay", str(sub_template.sendkeys_delay))
+                sendkeys_node.set("duration", str(sub_template.sendkeys_duration))
                 sendkeys_node.set("quotes", str(sub_template.sendkeys_quotes))
                 
                 #sendkeys_node.text = unicode(sub_template.sendkeys, 'utf-8')
@@ -2413,11 +3028,18 @@ class AlyvixImageFinderView(QWidget):
             self._main_template.sendkeys_quotes = False
             
         try:
+            self._main_template.sendkeys_delay = int(main_template_node.getElementsByTagName("sendkeys")[0].attributes["delay"].value)
+        except:
+            pass
+            
+        try:
+            self._main_template.sendkeys_duration = int(main_template_node.getElementsByTagName("sendkeys")[0].attributes["duration"].value)
+        except:
+            pass
+            
+        try:
             self._main_template.sendkeys = main_template_node.getElementsByTagName("sendkeys")[0].toxml()
-            self._main_template.sendkeys = self._main_template.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"False\"><!-- -->","")
-            self._main_template.sendkeys = self._main_template.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"True\"><!-- -->","")
-            self._main_template.sendkeys = self._main_template.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"False\"><!-- -->","")
-            self._main_template.sendkeys = self._main_template.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"True\"><!-- -->","")
+            self._main_template.sendkeys = re.sub("<sendkeys(.*?)><!-- -->", "", self._main_template.sendkeys)
             self._main_template.sendkeys = self._main_template.sendkeys.replace("<!-- --></sendkeys>","")
             self._main_template.sendkeys = self._main_template.sendkeys.replace("<![CDATA[","")
             self._main_template.sendkeys = self._main_template.sendkeys.replace("]]>","")
@@ -2454,6 +3076,38 @@ class AlyvixImageFinderView(QWidget):
             sub_template_obj.roi_y = int(sub_template_node.getElementsByTagName("roi_y")[0].firstChild.nodeValue)
             sub_template_obj.roi_width = int(sub_template_node.getElementsByTagName("roi_width")[0].firstChild.nodeValue)
             sub_template_obj.roi_height = int(sub_template_node.getElementsByTagName("roi_height")[0].firstChild.nodeValue)
+            
+            try:
+                if "True" in sub_template_node.getElementsByTagName("roi_unlimited_up")[0].firstChild.nodeValue:
+                    sub_template_obj.roi_unlimited_up = True
+                else:
+                    sub_template_obj.roi_unlimited_up = False
+            except:
+                sub_template_obj.roi_unlimited_up = False
+                
+            try:
+                if "True" in sub_template_node.getElementsByTagName("roi_unlimited_down")[0].firstChild.nodeValue:
+                    sub_template_obj.roi_unlimited_down = True
+                else:
+                    sub_template_obj.roi_unlimited_down = False
+            except:
+                sub_template_obj.roi_unlimited_down = False
+                
+            try:
+                if "True" in sub_template_node.getElementsByTagName("roi_unlimited_left")[0].firstChild.nodeValue:
+                    sub_template_obj.roi_unlimited_left = True
+                else:
+                    sub_template_obj.roi_unlimited_left = False
+            except:
+                sub_template_obj.roi_unlimited_left = False
+                
+            try:
+                if "True" in sub_template_node.getElementsByTagName("roi_unlimited_right")[0].firstChild.nodeValue:
+                    sub_template_obj.roi_unlimited_right = True
+                else:
+                    sub_template_obj.roi_unlimited_right = False
+            except:
+                sub_template_obj.roi_unlimited_right = False
                 
             if "True" in sub_template_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_template_obj.click = True
@@ -2539,11 +3193,18 @@ class AlyvixImageFinderView(QWidget):
                 sub_template_obj.sendkeys_quotes = False
                 
             try:
+                sub_template_obj.sendkeys_delay = int(sub_template_node.getElementsByTagName("sendkeys")[0].attributes["delay"].value)
+            except:
+                pass               
+                        
+            try:
+                sub_template_obj.sendkeys_duration = int(sub_template_node.getElementsByTagName("sendkeys")[0].attributes["duration"].value)
+            except:
+                pass
+                
+            try:
                 sub_template_obj.sendkeys = sub_template_node.getElementsByTagName("sendkeys")[0].toxml()                
-                sub_template_obj.sendkeys = sub_template_obj.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"False\"><!-- -->","")
-                sub_template_obj.sendkeys = sub_template_obj.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"True\"><!-- -->","")
-                sub_template_obj.sendkeys = sub_template_obj.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"False\"><!-- -->","")
-                sub_template_obj.sendkeys = sub_template_obj.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"True\"><!-- -->","")
+                sub_template_obj.sendkeys = re.sub("<sendkeys(.*?)><!-- -->", "", sub_template_obj.sendkeys)
                 sub_template_obj.sendkeys = sub_template_obj.sendkeys.replace("<!-- --></sendkeys>","")
                 sub_template_obj.sendkeys = sub_template_obj.sendkeys.replace("<![CDATA[","")
                 sub_template_obj.sendkeys = sub_template_obj.sendkeys.replace("]]>","")
@@ -2672,6 +3333,8 @@ class MainTemplateForGui:
         self.timeout = 20
         self.timeout_exception = True
         self.sendkeys = ""
+        self.sendkeys_delay = 15
+        self.sendkeys_duration = 15
         self.sendkeys_quotes = True
         self.text_encrypted = False
         self.enable_performance = True
@@ -2691,6 +3354,10 @@ class SubTemplateForGui:
         self.roi_y = 0
         self.roi_height = 0
         self.roi_width = 0
+        self.roi_unlimited_up = False
+        self.roi_unlimited_down = False
+        self.roi_unlimited_left = False
+        self.roi_unlimited_right = False
         self.deleted_x = None
         self.deleted_y = None
         self.deleted_height = None
@@ -2709,6 +3376,8 @@ class SubTemplateForGui:
         self.number_of_clicks = 1
         self.click_delay = 10
         self.sendkeys = ""
+        self.sendkeys_delay = 15
+        self.sendkeys_duration = 15
         self.sendkeys_quotes = True
         self.text_encrypted = False
         
@@ -2971,6 +3640,9 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.doubleSpinBoxCritical.setEnabled(False)
             self.labelWarning.setEnabled(False)
             self.labelCritical.setEnabled(False)
+            
+        self.spinBoxSendKeysDelay.setValue(self.parent._main_template.sendkeys_delay)
+        self.spinBoxSendKeysDuration.setValue(self.parent._main_template.sendkeys_duration)
 
         
         self.connect(self.doubleSpinBoxThreshold, SIGNAL('valueChanged(double)'), self.threshold_spinbox_event)
@@ -3002,6 +3674,10 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.clickdelay_spinbox, SIGNAL('valueChanged(int)'), self.clickdelay_spinbox_change_event)         
         
         self.connect(self.inserttext, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event(QString)"))
+        
+        self.connect(self.spinBoxSendKeysDelay, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event)  
+        self.connect(self.spinBoxSendKeysDuration, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event)  
+        
         self.connect(self.namelineedit, SIGNAL("textChanged(QString)"), self, SLOT("namelineedit_event(QString)"))
         #self.connect(self.inserttext, SIGNAL('cursorPositionChanged ( int, int)'), self.inserttext_textchanged_event)
         self.connect(self.pushButtonAddBlock, SIGNAL('clicked()'), self.add_block_code)
@@ -3059,6 +3735,9 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.clickdelay_spinbox_2, SIGNAL('valueChanged(int)'), self.clickdelay_spinbox_change_event_2) 
         
         self.connect(self.inserttext_2, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event_2(QString)"))
+        
+        self.connect(self.spinBoxSendKeysDelay_2, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event_2) 
+        self.connect(self.spinBoxSendKeysDuration_2, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event_2) 
         
         self.connect(self.text_encrypted_2, SIGNAL('stateChanged(int)'), self.text_encrypted_event_2)
         self.connect(self.add_quotes_2, SIGNAL('stateChanged(int)'), self.add_quotes_event_2)
@@ -3464,6 +4143,9 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             
         self.clicknumber_spinbox_2.setValue(self.parent._sub_templates_finder[self.sub_template_index].number_of_clicks)
         self.clickdelay_spinbox_2.setValue(self.parent._sub_templates_finder[self.sub_template_index].click_delay)
+        
+        self.spinBoxSendKeysDelay_2.setValue(self.parent._sub_templates_finder[self.sub_template_index].sendkeys_delay)
+        self.spinBoxSendKeysDuration_2.setValue(self.parent._sub_templates_finder[self.sub_template_index].sendkeys_duration)
             
         """
         if self.parent._sub_templates_finder[self.sub_template_index].doubleclick is True:
@@ -3662,7 +4344,13 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.parent._main_template.sendkeys = "".encode('utf-8')
         else:
             self.parent._main_template.sendkeys = str(text.toUtf8()) #str(self.inserttext.text().toUtf8())
-            
+    
+    def sendKeysDelay_spinbox_change_event(self, event):
+        self.parent._main_template.sendkeys_delay = self.spinBoxSendKeysDelay.value()
+        
+    def sendKeysDuration_spinbox_change_event(self, event):
+        self.parent._main_template.sendkeys_duration = self.spinBoxSendKeysDuration.value()
+    
     def text_encrypted_event(self, event):
         if self.text_encrypted.isChecked() is True:
             self.parent._main_template.text_encrypted = True
@@ -4028,6 +4716,12 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.parent._sub_templates_finder[self.sub_template_index].sendkeys = "".encode('utf-8')
         else:
             self.parent._sub_templates_finder[self.sub_template_index].sendkeys = str(text.toUtf8())
+            
+    def sendKeysDelay_spinbox_change_event_2(self, event):
+        self.parent._sub_templates_finder[self.sub_template_index].sendkeys_delay = self.spinBoxSendKeysDelay_2.value()
+        
+    def sendKeysDuration_spinbox_change_event_2(self, event):
+        self.parent._sub_templates_finder[self.sub_template_index].sendkeys_duration = self.spinBoxSendKeysDuration_2.value()
 
     def min_width_spinbox_change_event_2(self, event):
         self.parent._sub_templates_finder[self.sub_template_index].min_width = self.min_width_spinbox_2.value()

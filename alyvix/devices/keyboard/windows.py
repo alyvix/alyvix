@@ -29,6 +29,10 @@ import os
 class KeyboardManager(KeyboardManagerBase):
 
     def __init__(self):
+        self.ahk = None
+
+    def load_module(self, delay=10, duration=-1):
+        #print "mouse manager"
         python_path = os.path.split(sys.executable)[0]
         autohotkey_dll_fullname = python_path + os.sep + "DLLs" + os.sep + "AutoHotkey.dll"
 
@@ -38,11 +42,15 @@ class KeyboardManager(KeyboardManagerBase):
         while not self.ahk.ahkReady(): #Wait for the end of the empty script
             time.sleep(0.01)
 
-    def send(self, keys, encrypted=False):
+        self.ahk.ahkExec("SetKeyDelay " + str(delay).decode("utf-8") + " ," + str(duration).decode("utf-8"))
+
+    def send(self, keys, encrypted=False, delay=10, duration=-1):
+
+        self.load_module(delay=delay, duration=duration)
 
         if encrypted == False:
-            self.ahk.ahkExec("Send " + keys.decode("utf-8"))
+            self.ahk.ahkExec("SendEvent " + keys.decode("utf-8"))
         else:
             cm = CryptoManager()
             plain_keys = cm.decrypt_data(keys)
-            self.ahk.ahkExec("Send " + plain_keys)
+            self.ahk.ahkExec("SendEvent " + plain_keys)

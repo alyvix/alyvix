@@ -37,6 +37,34 @@ def overwrite_alyvix_screen(overwrite="true"):
     
     info_manager.set_info("OVERWRITE LOG IMAGES", overwrite_value)
 
+def disable_report(var):
+
+    if isinstance(var, basestring):
+
+        if var.lower() == "true":
+            info_manager = InfoManager()
+
+            info_manager.set_info("DISABLE REPORTS", True)
+
+
+        elif var.lower() == "false":
+            info_manager = InfoManager()
+
+            info_manager.set_info("DISABLE REPORTS", False)
+
+    if isinstance(var, bool):
+        if var == True:
+            info_manager = InfoManager()
+
+            info_manager.set_info("DISABLE REPORTS", True)
+
+
+        elif var == False:
+            info_manager = InfoManager()
+
+            info_manager.set_info("DISABLE REPORTS", False)
+
+
 def set_alyvix_info(name, value):
 
     info_manager = InfoManager()
@@ -46,9 +74,19 @@ def set_alyvix_info(name, value):
 def alyvix_config(full_filename):
     os.environ["alyvix_testcase_config"] = full_filename
 
-def send_keys(keys, encrypted="false"):
+def send_keys(keys, encrypted="false", delay="10", duration = "-1"):
 
     encrypted_value = encrypted
+
+    try:
+        delay_value = int(delay)
+    except:
+        delay_value = 10
+
+    try:
+        duration_value = int(duration)
+    except:
+        duration_value = -1
     
     if encrypted.lower() == "true":
         encrypted_value = True
@@ -56,7 +94,7 @@ def send_keys(keys, encrypted="false"):
         encrypted_value = False
         
     km = KeyboardManager()
-    km.send(keys, encrypted_value)
+    km.send(keys, encrypted_value, delay_value, duration_value)
     
 def click(x, y, button="left", n=1):
     x_value = int(x)

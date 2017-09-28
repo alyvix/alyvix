@@ -702,6 +702,38 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             sub_object.roi_width = int(sub_object_node.getElementsByTagName("roi_width")[0].firstChild.nodeValue)
             sub_object.roi_height = int(sub_object_node.getElementsByTagName("roi_height")[0].firstChild.nodeValue)
             
+            try:
+                if "True" in sub_object_node.getElementsByTagName("roi_unlimited_up")[0].firstChild.nodeValue:
+                    sub_object.roi_unlimited_up = True
+                else:
+                    sub_object.roi_unlimited_up = False
+            except:
+                sub_object.roi_unlimited_up = False
+                
+            try:
+                if "True" in sub_object_node.getElementsByTagName("roi_unlimited_down")[0].firstChild.nodeValue:
+                    sub_object.roi_unlimited_down = True
+                else:
+                    sub_object.roi_unlimited_down = False
+            except:
+                sub_object.roi_unlimited_down = False
+                
+            try:
+                if "True" in sub_object_node.getElementsByTagName("roi_unlimited_left")[0].firstChild.nodeValue:
+                    sub_object.roi_unlimited_left = True
+                else:
+                    sub_object.roi_unlimited_left = False
+            except:
+                sub_object.roi_unlimited_left = False
+                
+            try:
+                if "True" in sub_object_node.getElementsByTagName("roi_unlimited_right")[0].firstChild.nodeValue:
+                    sub_object.roi_unlimited_right = True
+                else:
+                    sub_object.roi_unlimited_right = False
+            except:
+                sub_object.roi_unlimited_right = False
+            
             self._sub_objects_finder.append(sub_object)
             
         sub_block_nodes = doc.getElementsByTagName("code_block")
@@ -935,6 +967,11 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 roi_width = str(sub_object.roi_width)
                 roi_height = str(sub_object.roi_height)
                 
+                roi_unlimited_up = str(sub_object.roi_unlimited_up)
+                roi_unlimited_down = str(sub_object.roi_unlimited_down)
+                roi_unlimited_left = str(sub_object.roi_unlimited_left)
+                roi_unlimited_right = str(sub_object.roi_unlimited_right)
+                
                 path_sub_xml = sub_object.xml_path
                 sub_obj = None           
                 s_controller = dummy()
@@ -995,7 +1032,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 
                 
                 
-                str_lines_sub_obj.append("    object_finder.add_sub_object(" + sub_obj_name + "_object, {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})")
+                str_lines_sub_obj.append("    object_finder.add_sub_object(" + sub_obj_name + "_object, {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + ", \"roi_unlimited_up\": " + roi_unlimited_up + ", \"roi_unlimited_down\": " + roi_unlimited_down + ", \"roi_unlimited_left\": " + roi_unlimited_left + ", \"roi_unlimited_right\": " + roi_unlimited_right + "})")
 
                 #sub_obj.build_code_array()
                 #str_lines_sub_obj.extend(sub_obj._code_lines_for_object_finder)
@@ -1118,6 +1155,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         """
         
         self._code_lines.extend(str_lines_sub_obj)
+        
+        if self._main_object_finder.timeout_exception is False:
+        
+            self._code_lines.append("    info_manager = InfoManager()")
+            self._code_lines.append("    info_manager.set_info(\"DISABLE REPORTS\", True)")
+        
                 
         if self._main_object_finder.find is True:  
             self._code_lines.append("    object_finder.find()")
@@ -1680,6 +1723,18 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 roi_height_node = ET.SubElement(sub_object_node, "roi_height")
                 roi_height_node.text = str(sub_object.roi_height)
                 
+                roi_unlimited_up_node = ET.SubElement(sub_object_node, "roi_unlimited_up")
+                roi_unlimited_up_node.text = str(sub_object.roi_unlimited_up)
+                
+                roi_unlimited_down_node = ET.SubElement(sub_object_node, "roi_unlimited_down")
+                roi_unlimited_down_node.text = str(sub_object.roi_unlimited_down)
+                
+                roi_unlimited_left_node = ET.SubElement(sub_object_node, "roi_unlimited_left")
+                roi_unlimited_left_node.text = str(sub_object.roi_unlimited_left)
+                
+                roi_unlimited_right_node = ET.SubElement(sub_object_node, "roi_unlimited_right")
+                roi_unlimited_right_node.text = str(sub_object.roi_unlimited_right)
+                
                 cnt = cnt + 1
         
         code_blocks_root = ET.SubElement(root, "code_blocks")
@@ -2207,6 +2262,10 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self._sub_objects_finder[self.sub_object_index].roi_y = 0
         self._sub_objects_finder[self.sub_object_index].roi_width = 0
         self._sub_objects_finder[self.sub_object_index].roi_height = 0
+        self._sub_objects_finder[self.sub_object_index].roi_unlimited_up = False
+        self._sub_objects_finder[self.sub_object_index].roi_unlimited_down = False
+        self._sub_objects_finder[self.sub_object_index].roi_unlimited_left = False
+        self._sub_objects_finder[self.sub_object_index].roi_unlimited_right = False
         
         self._redraw_index = self.sub_object_index
         
@@ -2361,6 +2420,10 @@ class SubObjectForGui:
         self.roi_y = 0
         self.roi_height = 0
         self.roi_width = 0
+        self.roi_unlimited_up = False
+        self.roi_unlimited_down = False
+        self.roi_unlimited_left = False
+        self.roi_unlimited_right = False
         self.show = True
         self.xml_path = ""
         self.click = False
@@ -2709,6 +2772,29 @@ class PaintingView(QWidget):
             if self.parent._sub_objects_finder[-1].roi_height != 0 and self.parent._sub_objects_finder[-1].roi_width != 0 and self.parent._main_deleted is False:
                 self.parent.show()
                 self.close()
+        if event.key() == Qt.Key_Down:
+        
+            if self.__capturing == False:
+                self.parent._sub_objects_finder[-1].roi_unlimited_down = True
+                self.update()
+                
+        if event.key() == Qt.Key_Up:
+        
+            if self.__capturing == False:
+                self.parent._sub_objects_finder[-1].roi_unlimited_up = True
+                self.update()
+                
+        if event.key() == Qt.Key_Left:
+        
+            if self.__capturing == False:
+                self.parent._sub_objects_finder[-1].roi_unlimited_left = True
+                self.update()
+                
+        if event.key() == Qt.Key_Right:
+        
+            if self.__capturing == False:
+                self.parent._sub_objects_finder[-1].roi_unlimited_right = True
+                self.update()
         
     def set_bg_pixmap(self, image):
         self._bg_pixmap = QPixmap.fromImage(image)
@@ -2759,6 +2845,10 @@ class PaintingView(QWidget):
         sub_obj.roi_y = 0
         sub_obj.roi_height = 0
         sub_obj.roi_width = 0
+        sub_obj.roi_unlimited_up = False
+        sub_obj.roi_unlimited_down = False
+        sub_obj.roi_unlimited_left = False
+        sub_obj.roi_unlimited_right = False
         
         self.update()
         
@@ -2774,6 +2864,10 @@ class PaintingView(QWidget):
             sub_obj.roi_y = sub_obj_deleted.roi_y
             sub_obj.roi_height = sub_obj_deleted.roi_height
             sub_obj.roi_width = sub_obj_deleted.roi_width
+            sub_obj.roi_unlimited_up = sub_obj_deleted.roi_unlimited_up
+            sub_obj.roi_unlimited_down = sub_obj_deleted.roi_unlimited_down
+            sub_obj.roi_unlimited_left = sub_obj_deleted.roi_unlimited_left
+            sub_obj.roi_unlimited_right = sub_obj_deleted.roi_unlimited_right
             
             del self.parent._deleted_sub_objects[-1]
             
@@ -2950,10 +3044,37 @@ class PaintingView(QWidget):
             OuterPath_roi = QPainterPath()
             OuterPath_roi.setFillRule(Qt.WindingFill)
             
-            OuterPath_roi.addRect(image_finder.roi_x + self.parent._main_object_finder.x,
-                image_finder.roi_y + self.parent._main_object_finder.y,
-                image_finder.roi_width,
-                image_finder.roi_height)
+            roi_x = image_finder.roi_x + self.parent._main_object_finder.x
+            roi_y = image_finder.roi_y + self.parent._main_object_finder.y
+            roi_width = image_finder.roi_width
+            roi_height = image_finder.roi_height
+            
+            if image_finder.roi_unlimited_up is True:
+                roi_y = 0
+                roi_height = image_finder.roi_y + self.parent._main_object_finder.y + roi_height
+
+            if image_finder.roi_unlimited_down is True:
+                if image_finder.roi_unlimited_up is True:
+                    roi_height = self._bg_pixmap.height()-1
+                else:
+                    roi_height = self._bg_pixmap.height() - (image_finder.roi_y + self.parent._main_object_finder.y + 1)
+                    
+                    print self._bg_pixmap.width(), (image_finder.roi_x + self.parent._main_object_finder.x)
+
+            if image_finder.roi_unlimited_left is True:
+                roi_x = 0
+                roi_width = image_finder.roi_x + self.parent._main_object_finder.x + roi_width
+
+            if image_finder.roi_unlimited_right is True:
+                if image_finder.roi_unlimited_left is True:
+                    roi_width = self._bg_pixmap.width() -1
+                else:
+                    roi_width = self._bg_pixmap.width() - (image_finder.roi_x + self.parent._main_object_finder.x + 1)
+            
+            OuterPath_roi.addRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height)
                 
             if image_finder.x != 0 and image_finder.y != 0:
             
@@ -2976,10 +3097,10 @@ class PaintingView(QWidget):
                 FillPath_roi = OuterPath_roi.subtracted(InnerPath_roi)
                 qp.fillPath(FillPath_roi, QBrush(QColor(172, 96, 246, 180), Qt.BDiagPattern))
                 
-                qp.drawRect(QRect(image_finder.roi_x + self.parent._main_object_finder.x,
-                    image_finder.roi_y + self.parent._main_object_finder.y,
-                    image_finder.roi_width,
-                    image_finder.roi_height))  
+                qp.drawRect(QRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height))  
                     
                 qp.fillRect(image_finder.x,
                     image_finder.y,
@@ -2994,16 +3115,16 @@ class PaintingView(QWidget):
                     image_finder.height))
             
             else:
-                qp.fillRect(image_finder.roi_x + self.parent._main_object_finder.x,
-                    image_finder.roi_y + self.parent._main_object_finder.y,
-                    image_finder.roi_width,
-                    image_finder.roi_height,
+                qp.fillRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height,
                     QBrush(QColor(172, 96, 246, 180), Qt.BDiagPattern))
                     
-                qp.drawRect(QRect(image_finder.roi_x + self.parent._main_object_finder.x,
-                    image_finder.roi_y + self.parent._main_object_finder.y,
-                    image_finder.roi_width,
-                    image_finder.roi_height))  
+                qp.drawRect(QRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height))  
                 
             """
             qp.fillRect(image_finder.x,
