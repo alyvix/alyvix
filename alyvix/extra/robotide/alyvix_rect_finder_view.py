@@ -124,9 +124,9 @@ class AlyvixRectFinderView(QWidget):
         self.__old_code_v220 = self.get_old_code_v220()
         self.__old_code_v230 = self.get_old_code_v230()
         self.__old_code_v250 = self.get_old_code_v250()
-        text_file = open("Output.txt", "w")
-        text_file.write(self.__old_code_v250)
-        text_file.close()
+        #text_file = open("Output.txt", "w")
+        #text_file.write(self.__old_code_v250)
+        #text_file.close()
         self.__old_code = self.get_old_code()
         self.mouse_or_key_is_set = self.old_mouse_or_key_is_set
         #print self.__old_code
