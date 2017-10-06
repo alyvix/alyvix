@@ -287,8 +287,8 @@ class LogManager:
         :param roi: sub components roi
         """
 
-        if self._info_manager.get_info("DISABLE REPORTS") == True:
-            return
+        #if self._info_manager.get_info("DISABLE REPORTS") == True:
+        #    return
 
         try:
             if self.__enable_log is True or self._robot_context is True:

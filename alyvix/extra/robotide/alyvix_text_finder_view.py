@@ -5127,6 +5127,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.timeout_spinbox.setEnabled(False)
             self.listWidget.setEnabled(False)
             self.lineEditText.setEnabled(False)
+            self.spinBoxSendKeysDuration.setEnabled(False)
+            self.spinBoxSendKeysDelay.setEnabled(False)
+            self.labelSendKeysDuration.setEnabled(False)
+            self.labelSendKeysDelay.setEnabled(False)
             
             
             self.timeout_exception.setEnabled(False)
@@ -5198,6 +5202,11 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.inserttext.setEnabled(True)
             self.add_quotes.setEnabled(True)
             self.text_encrypted.setEnabled(True)
+            
+            self.spinBoxSendKeysDuration.setEnabled(True)
+            self.spinBoxSendKeysDelay.setEnabled(True)
+            self.labelSendKeysDuration.setEnabled(True)
+            self.labelSendKeysDelay.setEnabled(True)
         
         self.init_block_code() 
 
@@ -5258,6 +5267,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.pushButtonCheck, SIGNAL('clicked()'), self.check_text)
         
         self.connect(self.inserttext, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event(QString)"))
+        
+        self.connect(self.spinBoxSendKeysDelay, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event)  
+        self.connect(self.spinBoxSendKeysDuration, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event)  
+        
         self.connect(self.namelineedit, SIGNAL("textChanged(QString)"), self, SLOT("namelineedit_event(QString)"))
         #self.connect(self.inserttext, SIGNAL('cursorPositionChanged ( int, int)'), self.inserttext_textchanged_event)
         self.connect(self.pushButtonAddBlock, SIGNAL('clicked()'), self.add_block_code)
@@ -5271,6 +5284,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
         #self.inserttext.viewport().installEventFilter(self)
         self.inserttext.installEventFilter(self)
+        
+                
+        self.connect(self.spinBoxSendKeysDelay, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event)  
+        self.connect(self.spinBoxSendKeysDuration, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event)  
         
         self.connect(self.add_quotes, SIGNAL('stateChanged(int)'), self.add_quotes_event)
         self.connect(self.text_encrypted, SIGNAL('stateChanged(int)'), self.text_encrypted_event)
@@ -5319,6 +5336,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.clickdelay_spinbox_2, SIGNAL('valueChanged(int)'), self.clickdelay_spinbox_change_event_2) 
         
         self.connect(self.inserttext_2, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event_2(QString)"))
+        
+        self.connect(self.spinBoxSendKeysDelay_2, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event_2) 
+        self.connect(self.spinBoxSendKeysDuration_2, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event_2) 
+        
         #self.connect(self.inserttext, SIGNAL('cursorPositionChanged ( int, int)'), self.inserttext_textchanged_event)
         self.connect(self.lineEditText_2, SIGNAL("textChanged(QString)"), self, SLOT("lineEditText_2_event(QString)"))
         self.connect(self.lineEditLang_2, SIGNAL("textChanged(QString)"), self, SLOT("lineEditLang2_event(QString)"))
@@ -6022,6 +6043,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.parent._main_text.sendkeys = str(text.toUtf8()) #str(self.inserttext.text().toUtf8())
             
+    def sendKeysDelay_spinbox_change_event(self, event):
+        self.parent._main_text.sendkeys_delay = self.spinBoxSendKeysDelay.value()
+        
+    def sendKeysDuration_spinbox_change_event(self, event):
+        self.parent._main_text.sendkeys_duration = self.spinBoxSendKeysDuration.value()
+            
     def text_encrypted_event(self, event):
         if self.text_encrypted.isChecked() is True:
             self.parent._main_text.text_encrypted = True
@@ -6076,6 +6103,11 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.add_quotes.setEnabled(False)
             self.text_encrypted.setEnabled(False)
             
+            self.spinBoxSendKeysDuration.setEnabled(False)
+            self.spinBoxSendKeysDelay.setEnabled(False)
+            self.labelSendKeysDuration.setEnabled(False)
+            self.labelSendKeysDelay.setEnabled(False)
+            
             self.parent.scraper = True
         else:
             #self.parent._main_text.quotes_ocr = False
@@ -6128,6 +6160,11 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.inserttext.setEnabled(True)
             self.add_quotes.setEnabled(True)
             self.text_encrypted.setEnabled(True)
+            
+            self.spinBoxSendKeysDuration.setEnabled(True)
+            self.spinBoxSendKeysDelay.setEnabled(True)
+            self.labelSendKeysDuration.setEnabled(True)
+            self.labelSendKeysDelay.setEnabled(True)
             
             self.parent.scraper = False
     
@@ -6566,8 +6603,13 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.parent._sub_texts_finder[self.sub_text_index].sendkeys = "".encode('utf-8')
         else:
             self.parent._sub_texts_finder[self.sub_text_index].sendkeys = str(text.toUtf8())
-
             
+    def sendKeysDelay_spinbox_change_event_2(self, event):
+        self.parent._sub_texts_finder[self.sub_text_index].sendkeys_delay = self.spinBoxSendKeysDelay_2.value()
+        
+    def sendKeysDuration_spinbox_change_event_2(self, event):
+        self.parent._sub_texts_finder[self.sub_text_index].sendkeys_duration = self.spinBoxSendKeysDuration_2.value()
+        
     @pyqtSlot(QString)    
     def lineEditText_2_event(self, text):
         if text == "Type here the Text to find":

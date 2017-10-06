@@ -4292,6 +4292,9 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.inserttext, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event(QString)"))
         #self.connect(self.inserttext, SIGNAL("textChanged()"), self, self.inserttext_event)
         
+        self.connect(self.spinBoxSendKeysDelay, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event)  
+        self.connect(self.spinBoxSendKeysDuration, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event)  
+        
         self.connect(self.namelineedit, SIGNAL("textChanged(QString)"), self, SLOT("namelineedit_event(QString)"))
         #self.connect(self.inserttext, SIGNAL('cursorPositionChanged ( int, int)'), self.inserttext_textchanged_event)
         self.connect(self.pushButtonAddBlock, SIGNAL('clicked()'), self.add_block_code)
@@ -4355,6 +4358,10 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.clickdelay_spinbox_2, SIGNAL('valueChanged(int)'), self.clickdelay_spinbox_change_event_2) 
         
         self.connect(self.inserttext_2, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event_2(QString)"))
+        
+        self.connect(self.spinBoxSendKeysDelay_2, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event_2) 
+        self.connect(self.spinBoxSendKeysDuration_2, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event_2) 
+        
         self.connect(self.text_encrypted_2, SIGNAL('stateChanged(int)'), self.text_encrypted_event_2)
         #self.connect(self.inserttext, SIGNAL('cursorPositionChanged ( int, int)'), self.inserttext_textchanged_event)
         
@@ -4993,6 +5000,12 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.parent._main_rect_finder.sendkeys = "".encode('utf-8')
         else:
             self.parent._main_rect_finder.sendkeys = str(text.toUtf8()) #str(self.inserttext.text().toUtf8())
+            
+    def sendKeysDelay_spinbox_change_event(self, event):
+        self.parent._main_rect_finder.sendkeys_delay = self.spinBoxSendKeysDelay.value()
+        
+    def sendKeysDuration_spinbox_change_event(self, event):
+        self.parent._main_rect_finder.sendkeys_duration = self.spinBoxSendKeysDuration.value()
         
     @pyqtSlot(QString)
     def namelineedit_event(self, text):
@@ -5348,6 +5361,12 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.parent._sub_rects_finder[self.sub_rect_index].sendkeys = "".encode('utf-8')
         else:
             self.parent._sub_rects_finder[self.sub_rect_index].sendkeys = str(text.toUtf8())
+            
+    def sendKeysDelay_spinbox_change_event_2(self, event):
+        self.parent._sub_rects_finder[self.sub_rect_index].sendkeys_delay = self.spinBoxSendKeysDelay_2.value()
+        
+    def sendKeysDuration_spinbox_change_event_2(self, event):
+        self.parent._sub_rects_finder[self.sub_rect_index].sendkeys_duration = self.spinBoxSendKeysDuration_2.value()
 
     def text_encrypted_event_2(self, event):
         if self.text_encrypted_2.isChecked() is True:
