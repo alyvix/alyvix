@@ -201,6 +201,22 @@ class PerfManager:
 
         perfdata_list = copy.deepcopy(perfdata_list_copy)
 
+
+
+        cnt = 0
+        scraper_list_copy = copy.deepcopy(self._info_manager.get_info('SCRAPER COLLECTION'))
+
+        for sc_in_list in self._info_manager.get_info('SCRAPER COLLECTION'):
+
+            name = sc_in_list[0]
+
+            if name == old_name:
+                scraper_list_copy[cnt] = (new_name, sc_in_list[1], sc_in_list[2])
+
+            cnt += 1
+
+        self._info_manager.set_info('SCRAPER COLLECTION', copy.deepcopy(scraper_list_copy))
+
     def set_perfdata_extra(self, name, extra):
 
         global perfdata_list

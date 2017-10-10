@@ -45,6 +45,10 @@ class Roi():
         self.y = 0
         self.height = 0
         self.width = 0
+        self.unlimited_up = False
+        self.unlimited_down = False
+        self.unlimited_left = False
+        self.unlimited_right = False
 
         if roi_dict is not None:
             self.set_roi_dict(roi_dict)
@@ -56,6 +60,19 @@ class Roi():
             self.y = roi_dict['roi_y']
             self.height = roi_dict['roi_height']
             self.width = roi_dict['roi_width']
+
+            if "roi_unlimited_up" in roi_dict and\
+                    (roi_dict['roi_unlimited_up'] is True or roi_dict['roi_unlimited_up'] is False):
+                self.unlimited_up = roi_dict['roi_unlimited_up']
+            if "roi_unlimited_down" in roi_dict and \
+                    (roi_dict['roi_unlimited_down'] is True or roi_dict['roi_unlimited_down'] is False):
+                self.unlimited_down = roi_dict['roi_unlimited_down']
+            if "roi_unlimited_left" in roi_dict and \
+                    (roi_dict['roi_unlimited_left'] is True or roi_dict['roi_unlimited_left'] is False):
+                self.unlimited_left = roi_dict['roi_unlimited_left']
+            if "roi_unlimited_right" in roi_dict and \
+                    (roi_dict['roi_unlimited_right'] is True or roi_dict['roi_unlimited_right'] is False):
+                self.unlimited_right = roi_dict['roi_unlimited_right']
         else:
             raise Exception("Roi dictionary has an incorrect format!")
 
@@ -142,6 +159,9 @@ class BaseFinder(object):
         #end perfdata section
 
         self._info_manager = InfoManager()
+
+        self._info_manager.set_info("DISABLE REPORTS", False)
+
         self._scaling_factor = self._info_manager.get_info("SCALING FACTOR INT")
 
         self._time_checked_before_exit_start = 0

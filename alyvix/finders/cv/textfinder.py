@@ -239,6 +239,8 @@ class TextFinder(BaseFinder):
 
             source_img_auto_set = False
 
+            res = self._info_manager.get_info("RESOLUTION")
+
             if self._source_image_color is None:
                 screen_capture = ScreenManager()
                 src_img_color = screen_capture.grab_desktop(screen_capture.get_color_mat)
@@ -261,6 +263,20 @@ class TextFinder(BaseFinder):
                 y2 = y1 + roi.height
                 x1 = roi.x
                 x2 = x1 + roi.width
+
+                if roi.unlimited_up is True:
+                    y1 = 0
+                    y2 = roi.y + roi.height
+
+                if roi.unlimited_down is True:
+                    y2 = res[1]
+
+                if roi.unlimited_left is True:
+                    x1 = 0
+                    x2 = roi.x + roi.width
+
+                if roi.unlimited_right is True:
+                    x2 = res[0]
 
                 offset_x = x1
                 offset_y = y1
@@ -563,10 +579,27 @@ class TextFinder(BaseFinder):
             sub_text_arg = sub_text[0]
             roi = sub_text[1]
 
+            res = self._info_manager.get_info("RESOLUTION")
+
             y1 = main_template_xy[1] + roi.y
             y2 = y1 + roi.height
+
             x1 = main_template_xy[0] + roi.x
             x2 = x1 + roi.width
+
+            if roi.unlimited_up is True:
+                y1 = 0
+                y2 = main_template_xy[1] + roi.y + roi.height
+
+            if roi.unlimited_down is True:
+                y2 = res[1]
+
+            if roi.unlimited_left is True:
+                x1 = 0
+                x2 = main_template_xy[0] + roi.x + roi.width
+
+            if roi.unlimited_right is True:
+                x2 = res[0]
 
             source_img_height, source_img_width, channels = self._source_image_color.shape
 

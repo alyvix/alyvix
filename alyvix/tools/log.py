@@ -287,6 +287,9 @@ class LogManager:
         :param roi: sub components roi
         """
 
+        #if self._info_manager.get_info("DISABLE REPORTS") == True:
+        #    return
+
         try:
             if self.__enable_log is True or self._robot_context is True:
 
@@ -412,6 +415,7 @@ class LogManager:
                                 cv2.CV_AA)
 
                     sub_index = 0
+                    res = self._info_manager.get_info("RESOLUTION")
                     if object[1] is not None:
 
                         for sub_obj in object[1]:
@@ -458,6 +462,27 @@ class LogManager:
                             roi_y = main_y + roi[sub_index].y
                             roi_width = roi[sub_index].width
                             roi_height = roi[sub_index].height
+
+                            if roi[sub_index].unlimited_up is True:
+                                roi_y = 0
+                                roi_height = main_y + roi[sub_index].y + roi[sub_index].height
+
+                            if roi[sub_index].unlimited_down is True:
+                                if roi[sub_index].unlimited_up is True:
+                                    roi_height = res[1]
+                                else:
+                                    roi_height = res[1] - (main_y + roi[sub_index].y)
+
+                            if roi[sub_index].unlimited_left is True:
+                                roi_x = 0
+                                roi_width = main_x + roi[sub_index].x + roi[sub_index].width
+
+                            if roi[sub_index].unlimited_right is True:
+                                if roi[sub_index].unlimited_left is True:
+                                    roi_width = res[0]
+                                else:
+                                    roi_width = res[0] - (main_x + roi[sub_index].x)
+
                             cv2.rectangle(img_color, (roi_x, roi_y), (roi_x + roi_width, roi_y + roi_height),
                                           rect_border_color, scaling_factor)
 
@@ -684,6 +709,9 @@ class LogManager:
         :param roi: sub components roi
         """
 
+        if self._info_manager.get_info("DISABLE REPORTS") == True:
+            return
+
         gif_images = []
         gif_images_extra = []
 
@@ -753,6 +781,8 @@ class LogManager:
             for object in main_components:
 
                 try:
+
+                    res = self._info_manager.get_info("RESOLUTION")
 
                     main_rect = None
                     sub_rect = []
@@ -860,6 +890,26 @@ class LogManager:
                         roi_y = main_y + roi.y
                         roi_width = roi.width
                         roi_height = roi.height
+
+                        if roi.unlimited_up is True:
+                            roi_y = 0
+                            roi_height = main_y + roi.y + roi.height
+
+                        if roi.unlimited_down is True:
+                            if roi.unlimited_up is True:
+                                roi_height = res[1]
+                            else:
+                                roi_height = res[1] - (main_y + roi.y)
+
+                        if roi.unlimited_left is True:
+                            roi_x = 0
+                            roi_width = main_x + roi.x + roi.width
+
+                        if roi.unlimited_right is True:
+                            if roi.unlimited_left is True:
+                                roi_width = res[0]
+                            else:
+                                roi_width = res[0] - (main_x + roi.x)
 
                         #ex_x1 = sub_extra_images[index][sub_index][1][0]
                         #ex_y1 = sub_extra_images[index][sub_index][1][1]

@@ -25,6 +25,7 @@ import time
 import cv2
 import copy
 import codecs
+import re
 
 import time
 
@@ -122,6 +123,10 @@ class AlyvixRectFinderView(QWidget):
         self.old_mouse_or_key_is_set = self.mouse_or_key_is_set
         self.__old_code_v220 = self.get_old_code_v220()
         self.__old_code_v230 = self.get_old_code_v230()
+        self.__old_code_v250 = self.get_old_code_v250()
+        #text_file = open("Output.txt", "w")
+        #text_file.write(self.__old_code_v250)
+        #text_file.close()
         self.__old_code = self.get_old_code()
         self.mouse_or_key_is_set = self.old_mouse_or_key_is_set
         #print self.__old_code
@@ -235,6 +240,30 @@ class AlyvixRectFinderView(QWidget):
                 self.rect_view_properties = AlyvixRectFinderPropertiesView(self)
                 self.rect_view_properties.show()
                 
+        if event.key() == Qt.Key_Down:
+        
+            if self.__flag_capturing_sub_rect == True:
+                self._sub_rects_finder[-1].roi_unlimited_down = True
+                self.update()
+                
+        if event.key() == Qt.Key_Up:
+        
+            if self.__flag_capturing_sub_rect == True:
+                self._sub_rects_finder[-1].roi_unlimited_up = True
+                self.update()
+                
+        if event.key() == Qt.Key_Left:
+        
+            if self.__flag_capturing_sub_rect == True:
+                self._sub_rects_finder[-1].roi_unlimited_left = True
+                self.update()
+                
+        if event.key() == Qt.Key_Right:
+        
+            if self.__flag_capturing_sub_rect == True:
+                self._sub_rects_finder[-1].roi_unlimited_right = True
+                self.update()
+                
             """
             self.parent.show()
             self.close()
@@ -253,6 +282,7 @@ class AlyvixRectFinderView(QWidget):
             self.parent.show()
             self.close()
             """
+            
             
     def closeEvent(self, event):
         self.close
@@ -591,10 +621,37 @@ class AlyvixRectFinderView(QWidget):
             OuterPath_roi = QPainterPath()
             OuterPath_roi.setFillRule(Qt.WindingFill)
             
-            OuterPath_roi.addRect(rect_finder.roi_x + self._main_rect_finder.x,
-                rect_finder.roi_y + self._main_rect_finder.y,
-                rect_finder.roi_width,
-                rect_finder.roi_height)
+            roi_x = rect_finder.roi_x + self._main_rect_finder.x
+            roi_y = rect_finder.roi_y + self._main_rect_finder.y
+            roi_width = rect_finder.roi_width
+            roi_height = rect_finder.roi_height
+
+            if rect_finder.roi_unlimited_up is True:
+                roi_y = 0
+                roi_height = rect_finder.roi_y + self._main_rect_finder.y + roi_height
+
+            if rect_finder.roi_unlimited_down is True:
+                if rect_finder.roi_unlimited_up is True:
+                    roi_height = self._bg_pixmap.height()-1
+                else:
+                    roi_height = self._bg_pixmap.height() - (rect_finder.roi_y + self._main_rect_finder.y + 1)
+                    
+                    print self._bg_pixmap.width(), (rect_finder.roi_x + self._main_rect_finder.x)
+
+            if rect_finder.roi_unlimited_left is True:
+                roi_x = 0
+                roi_width = rect_finder.roi_x + self._main_rect_finder.x + roi_width
+
+            if rect_finder.roi_unlimited_right is True:
+                if rect_finder.roi_unlimited_left is True:
+                    roi_width = self._bg_pixmap.width() -1
+                else:
+                    roi_width = self._bg_pixmap.width() - (rect_finder.roi_x + self._main_rect_finder.x + 1)
+            
+            OuterPath_roi.addRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height)
                 
             if rect_finder.x != 0 and rect_finder.y != 0:
             
@@ -621,10 +678,10 @@ class AlyvixRectFinderView(QWidget):
                     FillPath_roi = OuterPath_roi.subtracted(InnerPath_roi)
                     qp.fillPath(FillPath_roi, QBrush(QColor(172, 96, 246, 180), Qt.BDiagPattern))
                     
-                    qp.drawRect(QRect(rect_finder.roi_x + self._main_rect_finder.x,
-                        rect_finder.roi_y + self._main_rect_finder.y,
-                        rect_finder.roi_width,
-                        rect_finder.roi_height))  
+                    qp.drawRect(QRect(roi_x,
+                        roi_y,
+                        roi_width,
+                        roi_height))  
                         
                     qp.fillRect(rect_finder.x,
                         rect_finder.y,
@@ -660,11 +717,11 @@ class AlyvixRectFinderView(QWidget):
                     max_width = rect_finder.max_width
                     max_height = rect_finder.max_height
                     
-                    if rect_finder.x + rect_finder.max_width > rect_finder.roi_x + self._main_rect_finder.x + rect_finder.roi_width:
-                        max_width = rect_finder.roi_width - (rect_finder.x  - (rect_finder.roi_x + self._main_rect_finder.x))
+                    if rect_finder.x + rect_finder.max_width > roi_x + roi_width:
+                        max_width = roi_width - (rect_finder.x  - roi_x)
                         
-                    if rect_finder.y + rect_finder.max_height > rect_finder.roi_y + self._main_rect_finder.y + rect_finder.roi_height:
-                        max_height = rect_finder.roi_height - (rect_finder.y  - (rect_finder.roi_y + + self._main_rect_finder.y))
+                    if rect_finder.y + rect_finder.max_height > roi_y + roi_height:
+                        max_height = roi_height - (rect_finder.y  - roi_y)
                     
                     if rect_finder.min_width > max_width:
                         #rect_finder.min_width = max_width
@@ -719,10 +776,10 @@ class AlyvixRectFinderView(QWidget):
                         
                     qp.fillPath(FillPath, QBrush(QColor(118, 21, 227, 130)))
                     
-                    qp.drawRect(QRect(rect_finder.roi_x + self._main_rect_finder.x,
-                        rect_finder.roi_y + self._main_rect_finder.y,
-                        rect_finder.roi_width,
-                        rect_finder.roi_height))  
+                    qp.drawRect(QRect(roi_x,
+                        roi_y,
+                        roi_width,
+                        roi_height))  
 
                 elif rect_finder.show_tolerance is True: 
                 
@@ -733,26 +790,32 @@ class AlyvixRectFinderView(QWidget):
                     fill_path_y = rect_finder.y - rect_finder.height_tolerance
                     
                     
-                    if fill_path_x < rect_finder.roi_x + self._main_rect_finder.x or fill_path_y < rect_finder.roi_y + self._main_rect_finder.y:
-                        if fill_path_x < rect_finder.roi_x + self._main_rect_finder.x:
-                            fill_path_x = rect_finder.roi_x + self._main_rect_finder.x
+                    if fill_path_x < roi_x or fill_path_y < roi_y:
+                        if fill_path_x < roi_x:
+                            fill_path_x = roi_x
                             
-                            if fill_path_x + rect_finder.width + (rect_finder.width_tolerance*2) >= rect_finder.roi_x + self._main_rect_finder.x + rect_finder.roi_width:
-                                outer_width_tolerance = rect_finder.roi_width
+                            if fill_path_x + rect_finder.width + (rect_finder.width_tolerance*2) >= roi_x + roi_width:
+                                outer_width_tolerance = roi_width + (roi_x - fill_path_x) 
                             
-                        if fill_path_y < rect_finder.roi_y + self._main_rect_finder.y:
-                            fill_path_y = rect_finder.roi_y  + self._main_rect_finder.y
+                        if fill_path_y < roi_y:
+                            fill_path_y = roi_y
                             
-                            if fill_path_y + rect_finder.height + (rect_finder.height_tolerance*2) >= rect_finder.roi_y + self._main_rect_finder.y + rect_finder.roi_height:
-                                outer_height_tolerance = rect_finder.roi_height
+                            if fill_path_y + rect_finder.height + (rect_finder.height_tolerance*2) >= roi_y + roi_height:
+                                outer_height_tolerance = roi_height + (roi_y - fill_path_y) 
+                                
+                        if rect_finder.x + rect_finder.width + rect_finder.width_tolerance >= roi_x + roi_width:
+                            outer_width_tolerance = (roi_width) + (roi_x - fill_path_x) 
+                        
+                        if rect_finder.y + rect_finder.height + rect_finder.height_tolerance >= roi_y + roi_height:
+                            outer_height_tolerance = (roi_height) + (roi_y - fill_path_y) 
                         
                     
                     else:
-                        if rect_finder.x + rect_finder.width + rect_finder.width_tolerance >= rect_finder.roi_x + self._main_rect_finder.x + rect_finder.roi_width:
-                            outer_width_tolerance = (rect_finder.roi_width) + ((rect_finder.roi_x + self._main_rect_finder.x) - fill_path_x) 
+                        if rect_finder.x + rect_finder.width + rect_finder.width_tolerance >= roi_x + roi_width:
+                            outer_width_tolerance = (roi_width) + (roi_x - fill_path_x) 
                         
-                        if rect_finder.y + rect_finder.height + rect_finder.height_tolerance >= rect_finder.roi_y + self._main_rect_finder.y + rect_finder.roi_height:
-                            outer_height_tolerance = (rect_finder.roi_height) + ((rect_finder.roi_y + self._main_rect_finder.y) - fill_path_y) 
+                        if rect_finder.y + rect_finder.height + rect_finder.height_tolerance >= roi_y + roi_height:
+                            outer_height_tolerance = (roi_height) + (roi_y - fill_path_y) 
                     
                 
                     FillPath_roi = OuterPath_roi.subtracted(InnerPath_roi)
@@ -819,21 +882,21 @@ class AlyvixRectFinderView(QWidget):
                             rect_finder.x + (rect_finder.width / 2),
                             rect_finder.y + (rect_finder.height / 2))
                         
-                    qp.drawRect(QRect(rect_finder.roi_x + self._main_rect_finder.x,
-                        rect_finder.roi_y + self._main_rect_finder.y,
-                        rect_finder.roi_width,
-                        rect_finder.roi_height))  
+                    qp.drawRect(QRect(roi_x,
+                        roi_y,
+                        roi_width,
+                        roi_height))  
             else:
-                qp.fillRect(rect_finder.roi_x + self._main_rect_finder.x,
-                    rect_finder.roi_y + self._main_rect_finder.y,
-                    rect_finder.roi_width,
-                    rect_finder.roi_height,
+                qp.fillRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height,
                     QBrush(QColor(172, 96, 246, 180), Qt.BDiagPattern))
                     
-                qp.drawRect(QRect(rect_finder.roi_x + self._main_rect_finder.x,
-                    rect_finder.roi_y + self._main_rect_finder.y,
-                    rect_finder.roi_width,
-                    rect_finder.roi_height))  
+                qp.drawRect(QRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height)) 
                 
             """
             qp.fillRect(rect_finder.x,
@@ -962,8 +1025,43 @@ class AlyvixRectFinderView(QWidget):
 
             rect_finder = self._sub_rects_finder[-1]
             
-            if (x + width > rect_finder.roi_x + self._main_rect_finder.x + rect_finder.roi_width) or (x < rect_finder.roi_x + self._main_rect_finder.x) or \
-                (y + height > rect_finder.roi_y + self._main_rect_finder.y + rect_finder.roi_height) or (y < rect_finder.roi_y + self._main_rect_finder.y):
+       
+        if rect_attributes is not None:
+        
+            x, y, width, height = rect_attributes
+
+            rect_finder = self._sub_rects_finder[-1]
+            
+            roi_x = rect_finder.roi_x + self._main_rect_finder.x
+            roi_y = rect_finder.roi_y + self._main_rect_finder.y
+            roi_width = rect_finder.roi_width
+            roi_height = rect_finder.roi_height
+            
+            if rect_finder.roi_unlimited_up is True:
+                roi_y = 0
+                roi_height = rect_finder.roi_y + self._main_rect_finder.y + roi_height
+
+            if rect_finder.roi_unlimited_down is True:
+                if rect_finder.roi_unlimited_up is True:
+                    roi_height = self._bg_pixmap.height()-1
+                else:
+                    roi_height = self._bg_pixmap.height() - (rect_finder.roi_y + self._main_rect_finder.y + 1)
+                    
+                    print self._bg_pixmap.width(), (rect_finder.roi_x + self._main_rect_finder.x)
+
+            if rect_finder.roi_unlimited_left is True:
+                roi_x = 0
+                roi_width = rect_finder.roi_x + self._main_rect_finder.x + roi_width
+
+            if rect_finder.roi_unlimited_right is True:
+                if rect_finder.roi_unlimited_left is True:
+                    roi_width = self._bg_pixmap.width() -1
+                else:
+                    roi_width = self._bg_pixmap.width() - (rect_finder.roi_x + self._main_rect_finder.x + 1)
+            
+            
+            if (x + width > roi_x + roi_width) or (x < roi_x) or \
+                (y + height > roi_y + roi_height) or (y < roi_y):
                 self.__flag_capturing_sub_rect = True
                 self.__flag_capturing_sub_rect_roi = False
                 return
@@ -1143,6 +1241,7 @@ class AlyvixRectFinderView(QWidget):
         
         file_code_string = file_code_string.replace(unicode(self.__old_code_v220, 'utf-8'), "")
         file_code_string = file_code_string.replace(unicode(self.__old_code_v230, 'utf-8'), "")
+        file_code_string = file_code_string.replace(unicode(self.__old_code_v250, 'utf-8'), "")
         file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), "")
         
         string = file_code_string
@@ -1190,6 +1289,7 @@ class AlyvixRectFinderView(QWidget):
             #print "replaced"
             file_code_string = file_code_string.replace(unicode(self.__old_code_v220, 'utf-8'), current_code_string)
             file_code_string = file_code_string.replace(unicode(self.__old_code_v230, 'utf-8'), current_code_string)
+            file_code_string = file_code_string.replace(unicode(self.__old_code_v250, 'utf-8'), current_code_string)
             file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), current_code_string)
 
         string = file_code_string
@@ -1212,6 +1312,13 @@ class AlyvixRectFinderView(QWidget):
             return "".encode('utf-8')
         
         self.build_code_array_v230()
+        return self.build_code_string()
+    
+    def get_old_code_v250(self):
+        if self._main_rect_finder is None:
+            return "".encode('utf-8')
+        
+        self.build_code_array_v250()
         return self.build_code_string()
 
     def get_old_code(self):
@@ -1851,8 +1958,7 @@ class AlyvixRectFinderView(QWidget):
             print element
         """
 
-        
-    def build_code_array(self):
+    def build_code_array_v250(self):
     
         self.mouse_or_key_is_set = False
     
@@ -2369,6 +2475,534 @@ class AlyvixRectFinderView(QWidget):
         for element in self._code_lines:
             print element
         """
+        
+    def build_code_array(self):
+    
+        self.mouse_or_key_is_set = False
+    
+        kmanager_declared = False
+        mmanager_declared = False
+       
+        if self._main_rect_finder is None:
+            return
+            
+        self._code_lines = []
+        self._code_lines_for_object_finder = []
+            
+        name = self.object_name
+        
+        if name == "" and self.ok_pressed is True:
+            name = time.strftime("rect_finder_%d_%m_%y_%H_%M_%S")
+            self.object_name = name
+            
+        strcode = name + "_object = None" #RectFinder(\"" + name + "\")"
+        self._code_lines.append(strcode)
+        self._code_lines_for_object_finder.append(strcode)
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")
+        self._code_lines.append("    " + name + "_object = RectFinder(\"" + name + "\")")
+        
+        if self._main_rect_finder.use_min_max is False:                  
+            height = str(self._main_rect_finder.height)
+            width = str(self._main_rect_finder.width)
+            width_tolerance = str(self._main_rect_finder.width_tolerance)
+            height_tolerance = str(self._main_rect_finder.height_tolerance)
+            strcode = "    " + name + "_object.set_main_component({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": " + height_tolerance + ", \"width_tolerance\": " + width_tolerance + "})"
+            #self._code_lines.append("    rect_finder.set_main_rect({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": " + height_tolerance + ", \"width_tolerance\": " + width_tolerance + "})")
+        else:
+            min_width = str(self._main_rect_finder.min_width)
+            max_width = str(self._main_rect_finder.max_width)
+            min_height = str(self._main_rect_finder.min_height)
+            max_height = str(self._main_rect_finder.max_height)
+            strcode = "    " + name + "_object.set_main_component({\"min_width\": " + min_width + ", \"max_width\": " + max_width + ", \"min_height\": " + min_height + ", \"max_height\": " + max_height + "})"
+            #self._code_lines.append("    rect_finder.set_main_rect({\"min_width\": " + min_width + ", \"max_width\": " + max_width + ", \"min_height\": " + min_height + ", \"max_height\": " + max_height + "})")
+            
+        self._code_lines.append(strcode)
+        self._code_lines_for_object_finder.append(strcode)
+        
+                
+        if self._main_rect_finder.click == True or self._main_rect_finder.rightclick == True or self._main_rect_finder.mousemove == True or self._main_rect_finder.hold_and_release is not None:
+            if self._main_rect_finder.x_offset is None and self._main_rect_finder.y_offset is None: 
+                if self._main_rect_finder.hold_and_release is not None:
+                    if self._main_rect_finder.hold_and_release == 0:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                    elif self._main_rect_finder.hold_and_release == 1:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                    elif self._main_rect_finder.hold_and_release == 2:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0, 0 - " + str(self._main_rect_finder.release_pixel) + ", False)")
+                    elif self._main_rect_finder.hold_and_release == 3:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0, 0 + " + str(self._main_rect_finder.release_pixel) + ", False)")
+                    elif self._main_rect_finder.hold_and_release == 4:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 - " + str(self._main_rect_finder.release_pixel) + ", 0, False)")
+                    elif self._main_rect_finder.hold_and_release == 5:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + " + str(self._main_rect_finder.release_pixel) + ", 0, False)")
+                else:
+                    self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                    self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+            else:
+                if self._main_rect_finder.hold_and_release is not None:
+                    if self._main_rect_finder.hold_and_release == 0:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_rect_finder.x_offset) + "), 0 + (" + str(self._main_rect_finder.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                    elif self._main_rect_finder.hold_and_release == 1:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_rect_finder.x_offset) + "), 0 + (" + str(self._main_rect_finder.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                    elif self._main_rect_finder.hold_and_release == 2:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_rect_finder.x_offset) + "), 0 + (" + str(self._main_rect_finder.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_rect_finder.x_offset) + "), 0 + (" + str(self._main_rect_finder.y_offset) + ") - " + str(self._main_rect_finder.release_pixel) + ", True)")
+                    elif self._main_rect_finder.hold_and_release == 3:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_rect_finder.x_offset) + "), 0 + (" + str(self._main_rect_finder.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_rect_finder.x_offset) + "), 0 + (" + str(self._main_rect_finder.y_offset) + ") + " + str(self._main_rect_finder.release_pixel) + ", True)")
+                    elif self._main_rect_finder.hold_and_release == 4:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_rect_finder.x_offset) + "), 0 + (" + str(self._main_rect_finder.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_rect_finder.x_offset) + ") - " + str(self._main_rect_finder.release_pixel) + ",  0 + (" + str(self._main_rect_finder.y_offset) + "), True)")
+                    elif self._main_rect_finder.hold_and_release == 5:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_rect_finder.x_offset) + "), 0 + (" + str(self._main_rect_finder.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_rect_finder.x_offset) + ") + " + str(self._main_rect_finder.release_pixel) + ",  0 + (" + str(self._main_rect_finder.y_offset) + "), True)")
+                else:
+                    self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_rect_finder.x_offset) + "), 0 + (" + str(self._main_rect_finder.y_offset) + "), True)")
+                    self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+        else:
+            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = None")
+            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+            
+        #self._code_lines.append("\n")
+        
+        for sub_rect in self._sub_rects_finder:
+            if sub_rect.height != 0 and sub_rect.width !=0:
+            
+                #roi_x = str(sub_rect.roi_x - self._main_rect_finder.x)
+                roi_x = str(sub_rect.roi_x)
+                roi_y = str(sub_rect.roi_y)
+                
+                roi_width = str(sub_rect.roi_width)
+                roi_height = str(sub_rect.roi_height)
+                
+                roi_unlimited_up = str(sub_rect.roi_unlimited_up)
+                roi_unlimited_down = str(sub_rect.roi_unlimited_down)
+                roi_unlimited_left = str(sub_rect.roi_unlimited_left)
+                roi_unlimited_right = str(sub_rect.roi_unlimited_right)
+                
+                if sub_rect.use_min_max is False:  
+                    
+                    height = str(sub_rect.height)
+                    width = str(sub_rect.width)
+                    width_tolerance = str(sub_rect.width_tolerance)
+                    height_tolerance = str(sub_rect.height_tolerance)
+                
+                    str1 = "    " + name + "_object.add_sub_component({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": " + height_tolerance + ", \"width_tolerance\": " + width_tolerance + "},"
+                    str2 = "                             {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + ", \"roi_unlimited_up\": " + roi_unlimited_up + ", \"roi_unlimited_down\": " + roi_unlimited_down + ", \"roi_unlimited_left\": " + roi_unlimited_left + ", \"roi_unlimited_right\": " + roi_unlimited_right + "})"
+                    #self._code_lines.append("    rect_finder.add_sub_rect({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": " + height_tolerance + ", \"width_tolerance\": " + width_tolerance + "},")
+                    #self._code_lines.append("                             {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})")
+                    
+                else:
+                    min_width = str(sub_rect.min_width)
+                    max_width = str(sub_rect.max_width)
+                    min_height = str(sub_rect.min_height)
+                    max_height = str(sub_rect.max_height)
+                    
+                    str1 = "    " + name + "_object.add_sub_component({\"min_height\": " + min_height + ", \"max_height\": " + max_height + ", \"min_width\": " + min_width + ", \"max_width\": " + max_width + "},"
+                    str2 = "                             {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + ", \"roi_unlimited_up\": " + roi_unlimited_up + ", \"roi_unlimited_down\": " + roi_unlimited_down + ", \"roi_unlimited_left\": " + roi_unlimited_left + ", \"roi_unlimited_right\": " + roi_unlimited_right + "})"
+                    #self._code_lines.append("    rect_finder.add_sub_rect({\"min_height\": " + min_height + ", \"max_height\": " + max_height + ", \"min_width\": " + min_width + ", \"max_width\": " + max_width + "},")
+                    #self._code_lines.append("                             {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})")
+        
+                #self._code_lines.append("\n")
+                self._code_lines.append(str1)
+                self._code_lines.append(str2)
+                self._code_lines_for_object_finder.append(str1)
+                self._code_lines_for_object_finder.append(str2)
+                
+                if sub_rect.click == True or sub_rect.rightclick == True or sub_rect.mousemove == True or sub_rect.hold_and_release is not None:
+                    if sub_rect.x_offset is None and sub_rect.y_offset is None: 
+                        if sub_rect.hold_and_release is not None:
+                            if sub_rect.hold_and_release == 0:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                            elif sub_rect.hold_and_release == 1:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                            elif sub_rect.hold_and_release == 2:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0, 0 - " + str(sub_rect.release_pixel) + ", False))")
+                            elif sub_rect.hold_and_release == 3:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0, 0 + " + str(sub_rect.release_pixel) + ", False))")
+                            elif sub_rect.hold_and_release == 4:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 - " + str(sub_rect.release_pixel) + ", 0, False))")
+                            elif sub_rect.hold_and_release == 5:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + " + str(sub_rect.release_pixel) + ", 0, False))")
+                        else:
+                            self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                            self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                    else:
+                        if sub_rect.hold_and_release is not None:
+                            if sub_rect.hold_and_release == 0:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_rect.x_offset) + "), 0 + (" + str(sub_rect.y_offset) + "), True))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                            elif sub_rect.hold_and_release == 1:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_rect.x_offset) + "), 0 + (" + str(sub_rect.y_offset) + "), True))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                            elif sub_rect.hold_and_release == 2:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_rect.x_offset) + "), 0 + (" + str(sub_rect.y_offset) + "), True))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_rect.x_offset) + "), 0 + (" + str(sub_rect.y_offset) + ") - " + str(sub_rect.release_pixel) + ", True))")
+                            elif sub_rect.hold_and_release == 3:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_rect.x_offset) + "), 0 + (" + str(sub_rect.y_offset) + ")))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_rect.x_offset) + "), 0 + (" + str(sub_rect.y_offset) + ") + " + str(sub_rect.release_pixel) + ", True))")
+                            elif sub_rect.hold_and_release == 4:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_rect.x_offset) + "), 0 + (" + str(sub_rect.y_offset) + ")))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_rect.x_offset) + ") - " + str(sub_rect.release_pixel) + ",  0 + (" + str(sub_rect.y_offset) + "), True))")
+                            elif sub_rect.hold_and_release == 5:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_rect.x_offset) + "), 0 + (" + str(sub_rect.y_offset) + ")))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_rect.x_offset) + ") + " + str(sub_rect.release_pixel) + ",  0 + (" + str(sub_rect.y_offset) + "), True))")
+                        else:
+                            self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_rect.x_offset) + "), 0 + (" + str(sub_rect.y_offset) + "), True))")
+                            self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                else:
+                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append(None)")
+                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+
+        self._code_lines.append("")
+ 
+        string_function_args = "def " + name + "_mouse_keyboard("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")
+        self._code_lines.append("    info_manager = InfoManager()")
+        self._code_lines.append("    sleep_factor = info_manager.get_info(\"ACTIONS DELAY\")")  
+        
+        if self._main_rect_finder.click == True or self._main_rect_finder.rightclick == True or self._main_rect_finder.mousemove == True or self._main_rect_finder.hold_and_release is not None:
+        
+            self.mouse_or_key_is_set = True
+        
+            self._code_lines.append("    main_rect_pos = " + name + "_object.get_result(0)")  
+        
+            if mmanager_declared is False:
+                self._code_lines.append("    m = MouseManager()")
+                mmanager_declared = True
+                
+            self._code_lines.append("    time.sleep(sleep_factor)")
+            
+            if self._main_rect_finder.x_offset is None and self._main_rect_finder.y_offset is None: 
+                if self._main_rect_finder.click == True:
+                    self._code_lines.append("    m.click_2(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 1, " + str(self._main_rect_finder.number_of_clicks) + ", " + str(self._main_rect_finder.click_delay) + ")")
+                elif self._main_rect_finder.rightclick == True:
+                    self._code_lines.append("    m.click(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2), 2)")
+                elif self._main_rect_finder.mousemove == True:
+                    self._code_lines.append("    m.move(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
+                elif self._main_rect_finder.hold_and_release is not None:
+                    if self._main_rect_finder.hold_and_release == 0:
+                        self._code_lines.append("    m.hold(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
+                    elif self._main_rect_finder.hold_and_release == 1:
+                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
+                    elif self._main_rect_finder.hold_and_release == 2:
+                        self._code_lines.append("    m.hold(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2) - " + str(self._main_rect_finder.release_pixel) + ")")
+                    elif self._main_rect_finder.hold_and_release == 3:
+                        self._code_lines.append("    m.hold(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2) + " + str(self._main_rect_finder.release_pixel) + ")")
+                    elif self._main_rect_finder.hold_and_release == 4:
+                        self._code_lines.append("    m.hold(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2) - " + str(self._main_rect_finder.release_pixel) + ", main_rect_pos.y + (main_rect_pos.height/2))")
+                    elif self._main_rect_finder.hold_and_release == 5:
+                        self._code_lines.append("    m.hold(main_rect_pos.x + (main_rect_pos.width/2), main_rect_pos.y + (main_rect_pos.height/2))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (main_rect_pos.width/2) + " + str(self._main_rect_finder.release_pixel) + ", main_rect_pos.y + (main_rect_pos.height/2))")
+            else:
+                if self._main_rect_finder.click == True:
+                    self._code_lines.append("    m.click_2(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "), 1, " + str(self._main_rect_finder.number_of_clicks) + ", " + str(self._main_rect_finder.click_delay) + ")")
+                elif self._main_rect_finder.rightclick == True:
+                    self._code_lines.append("    m.click(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "), 2)")
+                elif self._main_rect_finder.mousemove == True:
+                    self._code_lines.append("    m.move(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+                elif self._main_rect_finder.hold_and_release is not None:
+                    if self._main_rect_finder.hold_and_release == 0:
+                        self._code_lines.append("    m.hold(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+                    elif self._main_rect_finder.hold_and_release == 1:
+                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+                    elif self._main_rect_finder.hold_and_release == 2:
+                        self._code_lines.append("    m.hold(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + ") - " + str(self._main_rect_finder.release_pixel) + ")")
+                    elif self._main_rect_finder.hold_and_release == 3:
+                        self._code_lines.append("    m.hold(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + ") + " + str(self._main_rect_finder.release_pixel) + ")")
+                    elif self._main_rect_finder.hold_and_release == 4:
+                        self._code_lines.append("    m.hold(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + ") - " + str(self._main_rect_finder.release_pixel) + ",  main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+                    elif self._main_rect_finder.hold_and_release == 5:
+                        self._code_lines.append("    m.hold(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + "), main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        self._code_lines.append("    m.release(main_rect_pos.x + (" + str(self._main_rect_finder.x_offset) + ") + " + str(self._main_rect_finder.release_pixel) + ",  main_rect_pos.y + (" + str(self._main_rect_finder.y_offset) + "))")
+        if self._main_rect_finder.sendkeys != "":
+            self.mouse_or_key_is_set = True
+        
+            if kmanager_declared is False:
+                self._code_lines.append("    k  = KeyboardManager()")
+                kmanager_declared = True
+            keys = unicode(self._main_rect_finder.sendkeys, 'utf-8')
+            self._code_lines.append("    time.sleep(sleep_factor)")
+            
+            if self._main_rect_finder.sendkeys_quotes is True:
+                self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_rect_finder.text_encrypted) + ", delay=" + str(self._main_rect_finder.sendkeys_delay) + ", duration=" + str(self._main_rect_finder.sendkeys_duration) + ")")
+            else:
+                self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_rect_finder.text_encrypted) + ", delay=" + str(self._main_rect_finder.sendkeys_delay) + ", duration=" + str(self._main_rect_finder.sendkeys_duration) + ")")
+            
+        cnt = 0
+        for sub_rect in self._sub_rects_finder:
+        
+            if sub_rect.height != 0 and sub_rect.width !=0:
+                if sub_rect.click == True or sub_rect.rightclick == True or sub_rect.mousemove == True or sub_rect.hold_and_release is not None:
+                
+                    self.mouse_or_key_is_set = True
+            
+                    self._code_lines.append("    sub_rect_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
+                
+                    if mmanager_declared is False:
+                        self._code_lines.append("    m = MouseManager()")
+                        mmanager_declared = True
+                    self._code_lines.append("    time.sleep(sleep_factor)")
+                    
+
+                    if sub_rect.x_offset is None and sub_rect.y_offset is None:    
+                        if sub_rect.click == True:
+                            self._code_lines.append("    m.click_2(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 1, " + str(sub_rect.number_of_clicks) + ", " + str(sub_rect.click_delay) + ")")
+                        elif sub_rect.rightclick == True:
+                            self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2), 2)")
+                        elif sub_rect.mousemove == True:
+                            self._code_lines.append("    m.move(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
+                        elif sub_rect.hold_and_release is not None:
+                            if sub_rect.hold_and_release == 0:
+                                self._code_lines.append("    m.hold(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
+                            elif sub_rect.hold_and_release == 1:
+                                self._code_lines.append("    m.release(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
+                            elif sub_rect.hold_and_release == 2:
+                                self._code_lines.append("    m.hold(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2) - " + str(sub_rect.release_pixel) + ")")
+                            elif sub_rect.hold_and_release == 3:
+                                self._code_lines.append("    m.hold(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2) + " + str(sub_rect.release_pixel) + ")")
+                            elif sub_rect.hold_and_release == 4:
+                                self._code_lines.append("    m.hold(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2) - " + str(sub_rect.release_pixel) + ", sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
+                            elif sub_rect.hold_and_release == 5:
+                                self._code_lines.append("    m.hold(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2), sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_rect_" + str(cnt) + "_pos.x + (sub_rect_" + str(cnt) + "_pos.width/2) + " + str(sub_rect.release_pixel) + ", sub_rect_" + str(cnt) + "_pos.y + (sub_rect_" + str(cnt) + "_pos.height/2))")
+                    else:
+                        if sub_rect.click == True:
+                            self._code_lines.append("    m.click_2(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "), 1, " + str(sub_rect.number_of_clicks) + ", " + str(sub_rect.click_delay) + ")")
+                        elif sub_rect.rightclick == True:
+                            self._code_lines.append("    m.click(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "), 2)")
+                        elif sub_rect.mousemove == True:
+                            self._code_lines.append("    m.move(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "))")
+                        elif sub_rect.hold_and_release is not None:
+                            if sub_rect.hold_and_release == 0:
+                                self._code_lines.append("    m.hold(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "))")
+                            elif sub_rect.hold_and_release == 1:
+                                self._code_lines.append("    m.release(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "))")
+                            elif sub_rect.hold_and_release == 2:
+                                self._code_lines.append("    m.hold(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + ") - " + str(sub_rect.release_pixel) + ")")
+                            elif sub_rect.hold_and_release == 3:
+                                self._code_lines.append("    m.hold(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + ") + " + str(sub_rect.release_pixel) + ")")
+                            elif sub_rect.hold_and_release == 4:
+                                self._code_lines.append("    m.hold(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + ") - " + str(sub_rect.release_pixel) + ",  sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "))")
+                            elif sub_rect.hold_and_release == 5:
+                                self._code_lines.append("    m.hold(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + "), sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "))")
+                                self._code_lines.append("    time.sleep(sleep_factor)")
+                                self._code_lines.append("    m.release(sub_rect_" + str(cnt) + "_pos.x + (" + str(sub_rect.x_offset) + ") + " + str(sub_rect.release_pixel) + ",  sub_rect_" + str(cnt) + "_pos.y + (" + str(sub_rect.y_offset) + "))")
+                        
+                if sub_rect.sendkeys != "":
+                
+                    self.mouse_or_key_is_set = True
+                
+                    if kmanager_declared is False:
+                        self._code_lines.append("    k  = KeyboardManager()")
+                        kmanager_declared = True
+                    keys = unicode(sub_rect.sendkeys, 'utf-8')
+                    self._code_lines.append("    time.sleep(sleep_factor)")
+                    
+                    if sub_rect.sendkeys_quotes is True:
+                        self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_rect.text_encrypted) + ", delay=" + str(sub_rect.sendkeys_delay) + ", duration=" + str(sub_rect.sendkeys_duration) + ")")
+                    else:
+                        self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_rect.text_encrypted) + ", delay=" + str(sub_rect.sendkeys_delay) + ", duration=" + str(sub_rect.sendkeys_duration) + ")")
+                       
+                    
+                cnt = cnt + 1
+        self._code_lines.append("")
+        
+        
+        #self._code_lines.append("def " + name + "():")
+        
+        string_function_args = "def " + name + "("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")
+        
+        string_function_args = "    " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+        
+        if self.timeout_exception is False:
+        
+            self._code_lines.append("    info_manager = InfoManager()")
+            self._code_lines.append("    info_manager.set_info(\"DISABLE REPORTS\", True)")
+        
+        
+        if self.find is True:  
+            self._code_lines.append("    " + name + "_object.find()")
+        elif self.wait is True or self.mouse_or_key_is_set is True:
+            self._code_lines.append("    timeout = " + str(self.timeout))
+            self._code_lines.append("    wait_time = " + name + "_object.wait(timeout)")
+        elif self.wait_disapp is True:
+            self._code_lines.append("    timeout = " + str(self.timeout))
+            self._code_lines.append("    wait_time = " + name + "_object.wait_disappear(timeout)")
+           
+           
+        if self.enable_performance is True and self.find is False:
+            self._code_lines.append("    if wait_time == -1:")
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                self._code_lines.append("        return False")
+            if self.wait_disapp is True and self.mouse_or_key_is_set is True:
+                pass
+            else:
+                self._code_lines.append("    elif wait_time < " + repr(self.warning) + ":")
+                self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time, \"sec.\"")
+                self._code_lines.append("    elif wait_time < " + repr(self.critical) + ":")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+                self._code_lines.append("    else:")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+
+                self._code_lines.append("    p = PerfManager()")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+        elif self.find is False:
+            self._code_lines.append("    if wait_time == -1:")
+            if self.timeout_exception is True:
+                self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+            else:
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                self._code_lines.append("        return False")  
+            #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+        
+        string_function_args = "    " + name + "_mouse_keyboard("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+        
+        if self.wait_disapp is True and self.mouse_or_key_is_set is True:
+            self._code_lines.append("    timeout = timeout - wait_time")
+            self._code_lines.append("    wait_time_disappear = " + name + "_object.wait_disappear(timeout)")
+            if self.enable_performance is True and self.find is False:
+                self._code_lines.append("    if wait_time_disappear == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")
+                self._code_lines.append("    elif wait_time + wait_time_disappear < " + repr(self.warning) + ":")
+                self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time + wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    elif wait_time + wait_time_disappear < " + repr(self.critical) + ":")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time + wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    else:")
+                self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time + wait_time_disappear, \"sec.\"")
+                self._code_lines.append("    p = PerfManager()")
+                self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time + wait_time_disappear, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+            elif self.find is False:
+                self._code_lines.append("    if wait_time_disappear == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")  
+                #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+            
+            
+        
+        if self.timeout_exception is False:
+            self._code_lines.append("    return True")
+        self._code_lines.append("")
+        self._code_lines.append("")
+
+        #x = 2
+        
+        #tmp_array =  self._code_lines[:x] + ["aaaaaaaaa"] +  self._code_lines[x:]
+        
+        #self._code_lines = tmp_array
+
+        """
+        for element in self._code_lines:
+            print element
+        """
   
     def build_code(self):
         if self._main_rect_finder is None:
@@ -2534,7 +3168,10 @@ class AlyvixRectFinderView(QWidget):
         release_pixel_node.text = str(self._main_rect_finder.release_pixel)
 
         sendkeys_node = ET.SubElement(main_rect_node, "sendkeys")
+        
         sendkeys_node.set("encrypted", str(self._main_rect_finder.text_encrypted))
+        sendkeys_node.set("delay", str(self._main_rect_finder.sendkeys_delay))
+        sendkeys_node.set("duration", str(self._main_rect_finder.sendkeys_duration))
         sendkeys_node.set("quotes", str(self._main_rect_finder.sendkeys_quotes))
         
         #print self._main_rect_finder.sendkeys
@@ -2610,6 +3247,18 @@ class AlyvixRectFinderView(QWidget):
                 roi_height_node = ET.SubElement(sub_rect_node, "roi_height")
                 roi_height_node.text = str(sub_rect.roi_height)
                 
+                roi_unlimited_up_node = ET.SubElement(sub_rect_node, "roi_unlimited_up")
+                roi_unlimited_up_node.text = str(sub_rect.roi_unlimited_up)
+                
+                roi_unlimited_down_node = ET.SubElement(sub_rect_node, "roi_unlimited_down")
+                roi_unlimited_down_node.text = str(sub_rect.roi_unlimited_down)
+                
+                roi_unlimited_left_node = ET.SubElement(sub_rect_node, "roi_unlimited_left")
+                roi_unlimited_left_node.text = str(sub_rect.roi_unlimited_left)
+                
+                roi_unlimited_right_node = ET.SubElement(sub_rect_node, "roi_unlimited_right")
+                roi_unlimited_right_node.text = str(sub_rect.roi_unlimited_right)
+                
                 click_node = ET.SubElement(sub_rect_node, "click")
                 click_node.text = str(sub_rect.click)
                 
@@ -2642,6 +3291,8 @@ class AlyvixRectFinderView(QWidget):
                 
                 sendkeys_node = ET.SubElement(sub_rect_node, "sendkeys")
                 sendkeys_node.set("encrypted", str(sub_rect.text_encrypted))
+                sendkeys_node.set("delay", str(sub_rect.sendkeys_delay))
+                sendkeys_node.set("duration", str(sub_rect.sendkeys_duration))
                 sendkeys_node.set("quotes", str(sub_rect.sendkeys_quotes))
                 
                 #sendkeys_node.text = unicode(sub_rect.sendkeys, 'utf-8')
@@ -2894,11 +3545,18 @@ class AlyvixRectFinderView(QWidget):
             self._main_rect_finder.sendkeys_quotes = False
             
         try:
+            self._main_rect_finder.sendkeys_delay = int(main_rect_node.getElementsByTagName("sendkeys")[0].attributes["delay"].value)
+        except:
+            pass
+            
+        try:
+            self._main_rect_finder.sendkeys_duration = int(main_rect_node.getElementsByTagName("sendkeys")[0].attributes["duration"].value)
+        except:
+            pass
+            
+        try:
             self._main_rect_finder.sendkeys = main_rect_node.getElementsByTagName("sendkeys")[0].toxml()
-            self._main_rect_finder.sendkeys = self._main_rect_finder.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"False\"><!-- -->","")
-            self._main_rect_finder.sendkeys = self._main_rect_finder.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"True\"><!-- -->","")
-            self._main_rect_finder.sendkeys = self._main_rect_finder.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"False\"><!-- -->","")
-            self._main_rect_finder.sendkeys = self._main_rect_finder.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"True\"><!-- -->","")
+            self._main_rect_finder.sendkeys = re.sub("<sendkeys(.*?)><!-- -->", "", self._main_rect_finder.sendkeys)
             self._main_rect_finder.sendkeys = self._main_rect_finder.sendkeys.replace("<!-- --></sendkeys>","")
             self._main_rect_finder.sendkeys = self._main_rect_finder.sendkeys.replace("<![CDATA[","")
             self._main_rect_finder.sendkeys = self._main_rect_finder.sendkeys.replace("]]>","")
@@ -2942,6 +3600,38 @@ class AlyvixRectFinderView(QWidget):
             sub_rect_obj.roi_width = int(sub_rect_node.getElementsByTagName("roi_width")[0].firstChild.nodeValue)
             sub_rect_obj.roi_height = int(sub_rect_node.getElementsByTagName("roi_height")[0].firstChild.nodeValue)
             
+            try:
+                if "True" in sub_rect_node.getElementsByTagName("roi_unlimited_up")[0].firstChild.nodeValue:
+                    sub_rect_obj.roi_unlimited_up = True
+                else:
+                    sub_rect_obj.roi_unlimited_up = False
+            except:
+                sub_rect_obj.roi_unlimited_up = False
+                
+            try:
+                if "True" in sub_rect_node.getElementsByTagName("roi_unlimited_down")[0].firstChild.nodeValue:
+                    sub_rect_obj.roi_unlimited_down = True
+                else:
+                    sub_rect_obj.roi_unlimited_down = False
+            except:
+                sub_rect_obj.roi_unlimited_down = False
+                
+            try:
+                if "True" in sub_rect_node.getElementsByTagName("roi_unlimited_left")[0].firstChild.nodeValue:
+                    sub_rect_obj.roi_unlimited_left = True
+                else:
+                    sub_rect_obj.roi_unlimited_left = False
+            except:
+                sub_rect_obj.roi_unlimited_left = False
+                
+            try:
+                if "True" in sub_rect_node.getElementsByTagName("roi_unlimited_right")[0].firstChild.nodeValue:
+                    sub_rect_obj.roi_unlimited_right = True
+                else:
+                    sub_rect_obj.roi_unlimited_right = False
+            except:
+                sub_rect_obj.roi_unlimited_right = False
+                
             
             if "True" in sub_rect_node.getElementsByTagName("use_tolerance")[0].firstChild.nodeValue:
                 sub_rect_obj.use_tolerance = True
@@ -3035,13 +3725,20 @@ class AlyvixRectFinderView(QWidget):
                 sub_rect_obj.sendkeys_quotes = True
             else:
                 sub_rect_obj.sendkeys_quotes = False
-            
+                
+            try:
+                sub_rect_obj.sendkeys_delay = int(sub_rect_node.getElementsByTagName("sendkeys")[0].attributes["delay"].value)
+            except:
+                pass               
+                        
+            try:
+                sub_rect_obj.sendkeys_duration = int(sub_rect_node.getElementsByTagName("sendkeys")[0].attributes["duration"].value)
+            except:
+                pass
+      
             try:
                 sub_rect_obj.sendkeys = sub_rect_node.getElementsByTagName("sendkeys")[0].toxml()                
-                sub_rect_obj.sendkeys = sub_rect_obj.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"False\"><!-- -->","")
-                sub_rect_obj.sendkeys = sub_rect_obj.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"True\"><!-- -->","")
-                sub_rect_obj.sendkeys = sub_rect_obj.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"False\"><!-- -->","")
-                sub_rect_obj.sendkeys = sub_rect_obj.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"True\"><!-- -->","")
+                sub_rect_obj.sendkeys = re.sub("<sendkeys(.*?)><!-- -->", "", sub_rect_obj.sendkeys)
                 sub_rect_obj.sendkeys = sub_rect_obj.sendkeys.replace("<!-- --></sendkeys>","")
                 sub_rect_obj.sendkeys = sub_rect_obj.sendkeys.replace("<![CDATA[","")
                 sub_rect_obj.sendkeys = sub_rect_obj.sendkeys.replace("]]>","")
@@ -3177,6 +3874,8 @@ class MainRectForGui:
         self.timeout = 20
         self.timeout_exception = True
         self.sendkeys = ""
+        self.sendkeys_delay = 15
+        self.sendkeys_duration = 15
         self.mouse_or_key_is_set = False
         self.sendkeys_quotes = True
         self.text_encrypted = False
@@ -3201,6 +3900,10 @@ class SubRectForGui:
         self.roi_y = 0
         self.roi_height = 0
         self.roi_width = 0
+        self.roi_unlimited_up = False
+        self.roi_unlimited_down = False
+        self.roi_unlimited_left = False
+        self.roi_unlimited_right = False
         self.deleted_x = None
         self.deleted_y = None
         self.deleted_height = None
@@ -3222,6 +3925,8 @@ class SubRectForGui:
         self.number_of_clicks = 1
         self.click_delay = 10
         self.sendkeys = ""
+        self.sendkeys_delay = 15
+        self.sendkeys_duration = 15
         self.sendkeys_quotes = True
         self.text_encrypted = False
         
@@ -3539,6 +4244,9 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.doubleSpinBoxCritical.setEnabled(False)
             self.labelWarning.setEnabled(False)
             self.labelCritical.setEnabled(False)           
+            
+        self.spinBoxSendKeysDelay.setValue(self.parent._main_rect_finder.sendkeys_delay)
+        self.spinBoxSendKeysDuration.setValue(self.parent._main_rect_finder.sendkeys_duration)
         
         self.connect(self.min_width_spinbox, SIGNAL('valueChanged(int)'), self.min_width_spinbox_change_event)
         self.connect(self.max_width_spinbox, SIGNAL('valueChanged(int)'), self.max_width_spinbox_change_event)
@@ -3583,6 +4291,9 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         
         self.connect(self.inserttext, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event(QString)"))
         #self.connect(self.inserttext, SIGNAL("textChanged()"), self, self.inserttext_event)
+        
+        self.connect(self.spinBoxSendKeysDelay, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event)  
+        self.connect(self.spinBoxSendKeysDuration, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event)  
         
         self.connect(self.namelineedit, SIGNAL("textChanged(QString)"), self, SLOT("namelineedit_event(QString)"))
         #self.connect(self.inserttext, SIGNAL('cursorPositionChanged ( int, int)'), self.inserttext_textchanged_event)
@@ -3647,6 +4358,10 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.clickdelay_spinbox_2, SIGNAL('valueChanged(int)'), self.clickdelay_spinbox_change_event_2) 
         
         self.connect(self.inserttext_2, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event_2(QString)"))
+        
+        self.connect(self.spinBoxSendKeysDelay_2, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event_2) 
+        self.connect(self.spinBoxSendKeysDuration_2, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event_2) 
+        
         self.connect(self.text_encrypted_2, SIGNAL('stateChanged(int)'), self.text_encrypted_event_2)
         #self.connect(self.inserttext, SIGNAL('cursorPositionChanged ( int, int)'), self.inserttext_textchanged_event)
         
@@ -4079,6 +4794,9 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             
         self.clicknumber_spinbox_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].number_of_clicks)
         self.clickdelay_spinbox_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].click_delay)
+        
+        self.spinBoxSendKeysDelay_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].sendkeys_delay)
+        self.spinBoxSendKeysDuration_2.setValue(self.parent._sub_rects_finder[self.sub_rect_index].sendkeys_duration)
        
             
         """
@@ -4282,6 +5000,12 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.parent._main_rect_finder.sendkeys = "".encode('utf-8')
         else:
             self.parent._main_rect_finder.sendkeys = str(text.toUtf8()) #str(self.inserttext.text().toUtf8())
+            
+    def sendKeysDelay_spinbox_change_event(self, event):
+        self.parent._main_rect_finder.sendkeys_delay = self.spinBoxSendKeysDelay.value()
+        
+    def sendKeysDuration_spinbox_change_event(self, event):
+        self.parent._main_rect_finder.sendkeys_duration = self.spinBoxSendKeysDuration.value()
         
     @pyqtSlot(QString)
     def namelineedit_event(self, text):
@@ -4637,6 +5361,12 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.parent._sub_rects_finder[self.sub_rect_index].sendkeys = "".encode('utf-8')
         else:
             self.parent._sub_rects_finder[self.sub_rect_index].sendkeys = str(text.toUtf8())
+            
+    def sendKeysDelay_spinbox_change_event_2(self, event):
+        self.parent._sub_rects_finder[self.sub_rect_index].sendkeys_delay = self.spinBoxSendKeysDelay_2.value()
+        
+    def sendKeysDuration_spinbox_change_event_2(self, event):
+        self.parent._sub_rects_finder[self.sub_rect_index].sendkeys_duration = self.spinBoxSendKeysDuration_2.value()
 
     def text_encrypted_event_2(self, event):
         if self.text_encrypted_2.isChecked() is True:

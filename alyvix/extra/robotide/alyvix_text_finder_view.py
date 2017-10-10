@@ -25,6 +25,7 @@ import cv2
 import copy
 import codecs
 import ast
+import re
 
 import time
 
@@ -132,6 +133,7 @@ class AlyvixTextFinderView(QWidget):
         self.old_mouse_or_key_is_set = self.mouse_or_key_is_set
         self.__old_code_v220 = self.get_old_code_v220()
         self.__old_code_v230 = self.get_old_code_v230()
+        self.__old_code_v250 = self.get_old_code_v250()
         self.__old_code = self.get_old_code()
         self.mouse_or_key_is_set = self.old_mouse_or_key_is_set
         #print self.__old_code
@@ -263,6 +265,43 @@ class AlyvixTextFinderView(QWidget):
                 if self._main_text is not None:
                     self.image_view_properties = AlyvixTextFinderPropertiesView(self)
                     self.image_view_properties.show()
+                    
+        if event.key() == Qt.Key_Down:
+        
+            if self.__flag_capturing_sub_text == True:
+                self._sub_texts_finder[-1].roi_unlimited_down = True
+                self.update()
+            elif self.__flag_capturing_main_text_rect == True:
+                self._main_text.roi_unlimited_down = True
+                self.update()
+                
+        if event.key() == Qt.Key_Up:
+        
+            if self.__flag_capturing_sub_text == True:
+                self._sub_texts_finder[-1].roi_unlimited_up = True
+                self.update()
+            elif self.__flag_capturing_main_text_rect == True:
+                self._main_text.roi_unlimited_up = True
+                self.update()
+                
+        if event.key() == Qt.Key_Left:
+        
+            if self.__flag_capturing_sub_text == True:
+                self._sub_texts_finder[-1].roi_unlimited_left = True
+                self.update()
+            elif self.__flag_capturing_main_text_rect == True:
+                self._main_text.roi_unlimited_left = True
+                self.update()
+                
+        if event.key() == Qt.Key_Right:
+        
+            if self.__flag_capturing_sub_text == True:
+                self._sub_texts_finder[-1].roi_unlimited_right = True
+                self.update()
+            elif self.__flag_capturing_main_text_rect == True:
+                self._main_text.roi_unlimited_right = True
+                self.update()
+                
             """
             self.parent.show()
             self.close()
@@ -467,10 +506,35 @@ class AlyvixTextFinderView(QWidget):
             OuterPath_roi = QPainterPath()
             OuterPath_roi.setFillRule(Qt.WindingFill)
             
-            OuterPath_roi.addRect(self._main_text.roi_x,
-                self._main_text.roi_y,
-                self._main_text.roi_width,
-                self._main_text.roi_height)
+            roi_x =  self._main_text.roi_x
+            roi_y =  self._main_text.roi_y
+            roi_width =  self._main_text.roi_width
+            roi_height =  self._main_text.roi_height
+
+            if  self._main_text.roi_unlimited_up is True:
+                roi_y = 0
+                roi_height =  self._main_text.roi_y + roi_height
+
+            if  self._main_text.roi_unlimited_down is True:
+                if  self._main_text.roi_unlimited_up is True:
+                    roi_height = self._bg_pixmap.height()-1
+                else:
+                    roi_height = self._bg_pixmap.height() - ( self._main_text.roi_y + 1)
+
+            if  self._main_text.roi_unlimited_left is True:
+                roi_x = 0
+                roi_width =  self._main_text.roi_x + roi_width
+
+            if  self._main_text.roi_unlimited_right is True:
+                if  self._main_text.roi_unlimited_left is True:
+                    roi_width = self._bg_pixmap.width() -1
+                else:
+                    roi_width = self._bg_pixmap.width() - ( self._main_text.roi_x + 1)
+            
+            OuterPath_roi.addRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height)
                 
             if self._main_text.x != 0 and self._main_text.y != 0:
             
@@ -493,10 +557,11 @@ class AlyvixTextFinderView(QWidget):
                 FillPath_roi = OuterPath_roi.subtracted(InnerPath_roi)
                 qp.fillPath(FillPath_roi, QBrush(QColor(255, 0, 255, 180), Qt.BDiagPattern))
                 
-                qp.drawRect(QRect(self._main_text.roi_x,
-                    self._main_text.roi_y,
-                    self._main_text.roi_width,
-                    self._main_text.roi_height))  
+            
+                qp.drawRect(QRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height))  
                     
                 qp.fillRect(self._main_text.x,
                     self._main_text.y,
@@ -525,16 +590,16 @@ class AlyvixTextFinderView(QWidget):
                     qp.setBrush(old_brush)
             
             else:
-                qp.fillRect(self._main_text.roi_x + self._main_text.x,
-                    self._main_text.roi_y + self._main_text.y,
-                    self._main_text.roi_width,
-                    self._main_text.roi_height,
+                qp.fillRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height,
                     QBrush(QColor(255, 0, 255, 180), Qt.BDiagPattern))
                     
-                qp.drawRect(QRect(self._main_text.roi_x + self._main_text.x,
-                    self._main_text.roi_y + self._main_text.y,
-                    self._main_text.roi_width,
-                    self._main_text.roi_height))  
+                qp.drawRect(QRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height))  
                 
             #####################################
                 
@@ -571,10 +636,37 @@ class AlyvixTextFinderView(QWidget):
             OuterPath_roi = QPainterPath()
             OuterPath_roi.setFillRule(Qt.WindingFill)
             
-            OuterPath_roi.addRect(text_finder.roi_x + self._main_text.x,
-                text_finder.roi_y + self._main_text.y,
-                text_finder.roi_width,
-                text_finder.roi_height)
+            roi_x = text_finder.roi_x + self._main_text.x
+            roi_y = text_finder.roi_y + self._main_text.y
+            roi_width = text_finder.roi_width
+            roi_height = text_finder.roi_height
+            
+            if text_finder.roi_unlimited_up is True:
+                roi_y = 0
+                roi_height = text_finder.roi_y + self._main_text.y + roi_height
+
+            if text_finder.roi_unlimited_down is True:
+                if text_finder.roi_unlimited_up is True:
+                    roi_height = self._bg_pixmap.height()-1
+                else:
+                    roi_height = self._bg_pixmap.height() - (text_finder.roi_y + self._main_text.y + 1)
+                    
+                    print self._bg_pixmap.width(), (text_finder.roi_x + self._main_text.x)
+
+            if text_finder.roi_unlimited_left is True:
+                roi_x = 0
+                roi_width = text_finder.roi_x + self._main_text.x + roi_width
+
+            if text_finder.roi_unlimited_right is True:
+                if text_finder.roi_unlimited_left is True:
+                    roi_width = self._bg_pixmap.width() -1
+                else:
+                    roi_width = self._bg_pixmap.width() - (text_finder.roi_x + self._main_text.x + 1)
+            
+            OuterPath_roi.addRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height)
                 
             if text_finder.x != 0 and text_finder.y != 0:
             
@@ -597,10 +689,10 @@ class AlyvixTextFinderView(QWidget):
                 FillPath_roi = OuterPath_roi.subtracted(InnerPath_roi)
                 qp.fillPath(FillPath_roi, QBrush(QColor(172, 96, 246, 180), Qt.BDiagPattern))
                 
-                qp.drawRect(QRect(text_finder.roi_x + self._main_text.x,
-                    text_finder.roi_y + self._main_text.y,
-                    text_finder.roi_width,
-                    text_finder.roi_height))  
+                qp.drawRect(QRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height))   
                     
                 qp.fillRect(text_finder.x,
                     text_finder.y,
@@ -630,16 +722,16 @@ class AlyvixTextFinderView(QWidget):
                     qp.setBrush(old_brush)
             
             else:
-                qp.fillRect(text_finder.roi_x + self._main_text.x,
-                    text_finder.roi_y + self._main_text.y,
-                    text_finder.roi_width,
-                    text_finder.roi_height,
+                qp.fillRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height,
                     QBrush(QColor(172, 96, 246, 180), Qt.BDiagPattern))
                     
-                qp.drawRect(QRect(text_finder.roi_x + self._main_text.x,
-                    text_finder.roi_y + self._main_text.y,
-                    text_finder.roi_width,
-                    text_finder.roi_height))  
+                qp.drawRect(QRect(roi_x,
+                    roi_y,
+                    roi_width,
+                    roi_height))  
                 
             """
             qp.fillRect(text_finder.x,
@@ -722,8 +814,34 @@ class AlyvixTextFinderView(QWidget):
         
             x, y, width, height = rect_attributes
             
-            if (x + width > self._main_text.roi_x + self._main_text.x + self._main_text.roi_width) or (x < self._main_text.roi_x + self._main_text.x) or \
-                (y + height > self._main_text.roi_y + self._main_text.y + self._main_text.roi_height) or (y < self._main_text.roi_y + self._main_text.y):
+            roi_x = self._main_text.roi_x
+            roi_y = self._main_text.roi_y
+            roi_width = self._main_text.roi_width
+            roi_height = self._main_text.roi_height
+
+            if self._main_text.roi_unlimited_up is True:
+                roi_y = 0
+                roi_height = self._main_text.roi_y + roi_height
+
+            if self._main_text.roi_unlimited_down is True:
+                if self._main_text.roi_unlimited_up is True:
+                    roi_height = self._bg_pixmap.height()-1
+                else:
+                    roi_height = self._bg_pixmap.height() - (self._main_text.roi_y + 1)
+                    
+
+            if self._main_text.roi_unlimited_left is True:
+                roi_x = 0
+                roi_width = self._main_text.roi_x + roi_width
+
+            if self._main_text.roi_unlimited_right is True:
+                if self._main_text.roi_unlimited_left is True:
+                    roi_width = self._bg_pixmap.width() -1
+                else:
+                    roi_width = self._bg_pixmap.width() - (self._main_text.roi_x + 1)
+            
+            if (x + width > roi_x + roi_width) or (x < roi_x) or \
+                (y + height > roi_y + roi_height) or (y < roi_y):
                 self.__flag_capturing_main_text_rect = True
                 self.__flag_capturing_main_text_rect_roi = False
                 return
@@ -786,8 +904,35 @@ class AlyvixTextFinderView(QWidget):
 
             text_finder = self._sub_texts_finder[-1]
             
-            if (x + width > text_finder.roi_x + self._main_text.x + text_finder.roi_width) or (x < text_finder.roi_x + self._main_text.x) or \
-                (y + height > text_finder.roi_y + self._main_text.y + text_finder.roi_height) or (y < text_finder.roi_y + self._main_text.y):
+            roi_x = text_finder.roi_x + self._main_text.x
+            roi_y = text_finder.roi_y + self._main_text.y
+            roi_width = text_finder.roi_width
+            roi_height = text_finder.roi_height
+
+            if text_finder.roi_unlimited_up is True:
+                roi_y = 0
+                roi_height = text_finder.roi_y + self._main_text.y + roi_height
+
+            if text_finder.roi_unlimited_down is True:
+                if text_finder.roi_unlimited_up is True:
+                    roi_height = self._bg_pixmap.height()-1
+                else:
+                    roi_height = self._bg_pixmap.height() - (text_finder.roi_y + self._main_text.y + 1)
+                    
+                    print self._bg_pixmap.width(), (text_finder.roi_x + self._main_text.x)
+
+            if text_finder.roi_unlimited_left is True:
+                roi_x = 0
+                roi_width = text_finder.roi_x + self._main_text.x + roi_width
+
+            if text_finder.roi_unlimited_right is True:
+                if text_finder.roi_unlimited_left is True:
+                    roi_width = self._bg_pixmap.width() -1
+                else:
+                    roi_width = self._bg_pixmap.width() - (text_finder.roi_x + self._main_text.x + 1)
+            
+            if (x + width > roi_x + roi_width) or (x < roi_x) or \
+                (y + height > roi_y + roi_height) or (y < roi_y):
                 self.__flag_capturing_sub_text = True
                 self.__flag_capturing_sub_text_rect_roi = False
                 return
@@ -1030,6 +1175,7 @@ class AlyvixTextFinderView(QWidget):
         
         file_code_string = file_code_string.replace(unicode(self.__old_code_v220, 'utf-8'), "")
         file_code_string = file_code_string.replace(unicode(self.__old_code_v230, 'utf-8'), "")
+        file_code_string = file_code_string.replace(unicode(self.__old_code_v250, 'utf-8'), "")
         file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), "")
         
         string = file_code_string
@@ -1074,6 +1220,7 @@ class AlyvixTextFinderView(QWidget):
         elif self.action == "edit":
             file_code_string = file_code_string.replace(unicode(self.__old_code_v220, 'utf-8'), current_code_string)
             file_code_string = file_code_string.replace(unicode(self.__old_code_v230, 'utf-8'), current_code_string)
+            file_code_string = file_code_string.replace(unicode(self.__old_code_v250, 'utf-8'), current_code_string)
             file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), current_code_string)
             """
             print self.__old_code
@@ -1102,6 +1249,13 @@ class AlyvixTextFinderView(QWidget):
             return "".encode('utf-8')
         
         self.build_code_array_v230()
+        return self.build_code_string()
+        
+    def get_old_code_v250(self):
+        if self._main_text is None:
+            return "".encode('utf-8')
+        
+        self.build_code_array_v250()
         return self.build_code_string()
     
     def get_old_code(self):
@@ -2517,7 +2671,7 @@ class AlyvixTextFinderView(QWidget):
             print element
         """ 
         
-    def build_code_array(self):
+    def build_code_array_v250(self):
     
         self.mouse_or_key_is_set = False
     
@@ -3126,6 +3280,632 @@ class AlyvixTextFinderView(QWidget):
         for element in self._code_lines:
             print element
         """ 
+        
+    def build_code_array(self):
+    
+        self.mouse_or_key_is_set = False
+    
+        kmanager_declared = False
+        mmanager_declared = False
+       
+        if self._main_text is None:
+            return
+            
+        self._code_lines = []
+        self._code_lines_for_object_finder = []
+            
+        name = self.object_name
+        
+        if name == "" and self.ok_pressed is True:
+            name = time.strftime("text_finder_%d_%m_%y_%H_%M_%S")
+            self.object_name = name
+            
+        #self._code_lines.append("def " + name + "():")
+        
+        strcode = name + "_object = None" #TextFinder(\"" + name + "\")"
+        self._code_lines.append(strcode)
+        self._code_lines_for_object_finder.append(strcode)
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+            
+        
+        #strcode = "    text_finder = TextFinder(\"" + name + "\")"
+        #self._code_lines.append(strcode)
+        #self._code_lines_for_object_finder.append(strcode)
+        
+        roi_x = str(self._main_text.roi_x)
+        roi_y = str(self._main_text.roi_y)
+        roi_width = str(self._main_text.roi_width)
+        roi_height = str(self._main_text.roi_height)
+        
+        roi_unlimited_up = str(self._main_text.roi_unlimited_up)
+        roi_unlimited_down = str(self._main_text.roi_unlimited_down)
+        roi_unlimited_left = str(self._main_text.roi_unlimited_left)
+        roi_unlimited_right = str(self._main_text.roi_unlimited_right)
+        
+        self._code_lines.append("    global " + name + "_object")  
+        self._code_lines.append("    " + name + "_object = TextFinder(\"" + name + "\")")
+        
+        text_to_find = ""
+        
+        if self._main_text.quotes_ocr is True:
+            text_to_find = "\"" + unicode(self._main_text.text, "utf8") + "\""
+        else:
+            text_to_find = self._main_text.text + ".encode('utf8')"
+        
+        if self._main_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
+            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"},"
+        else:
+            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"" + ", \"whitelist\": \"" + unicode(self._main_text.whitelist, "utf8") + "\"},"
+            
+        str2 ="                                   {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + ", \"roi_unlimited_up\": " + roi_unlimited_up + ", \"roi_unlimited_down\": " + roi_unlimited_down + ", \"roi_unlimited_left\": " + roi_unlimited_left + ", \"roi_unlimited_right\": " + roi_unlimited_right + "})"
+            
+        self._code_lines.append(str1)
+        self._code_lines.append(str2)
+        self._code_lines_for_object_finder.append(str1)
+        self._code_lines_for_object_finder.append(str2)
+        
+             
+        if self.scraper is False:
+            if self._main_text.click == True or self._main_text.rightclick == True or self._main_text.mousemove == True or self._main_text.hold_and_release is not None:
+                if self._main_text.x_offset is None and self._main_text.y_offset is None: 
+                    if self._main_text.hold_and_release is not None:
+                        if self._main_text.hold_and_release == 0:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                        elif self._main_text.hold_and_release == 1:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                        elif self._main_text.hold_and_release == 2:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0, 0 - " + str(self._main_text.release_pixel) + ", False)")
+                        elif self._main_text.hold_and_release == 3:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0, 0 + " + str(self._main_text.release_pixel) + ", False)")
+                        elif self._main_text.hold_and_release == 4:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 - " + str(self._main_text.release_pixel) + ", 0, False)")
+                        elif self._main_text.hold_and_release == 5:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + " + str(self._main_text.release_pixel) + ", 0, False)")
+                    else:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0, 0, False)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                else:
+                    if self._main_text.hold_and_release is not None:
+                        if self._main_text.hold_and_release == 0:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                        elif self._main_text.hold_and_release == 1:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+                        elif self._main_text.hold_and_release == 2:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + ") - " + str(self._main_text.release_pixel) + ", True)")
+                        elif self._main_text.hold_and_release == 3:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + ") + " + str(self._main_text.release_pixel) + ", True)")
+                        elif self._main_text.hold_and_release == 4:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_text.x_offset) + ") - " + str(self._main_text.release_pixel) + ",  0 + (" + str(self._main_text.y_offset) + "), True)")
+                        elif self._main_text.hold_and_release == 5:
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                            self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = (0 + (" + str(self._main_text.x_offset) + ") + " + str(self._main_text.release_pixel) + ",  0 + (" + str(self._main_text.y_offset) + "), True)")
+                    else:
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates = (0 + (" + str(self._main_text.x_offset) + "), 0 + (" + str(self._main_text.y_offset) + "), True)")
+                        self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+            else:
+                self._code_lines.append("    "  + name + "_object.main_xy_coordinates = None")
+                self._code_lines.append("    "  + name + "_object.main_xy_coordinates_release = None")
+        
+            #self._code_lines.append("\n")
+        
+            cnt = 1
+            for sub_text in self._sub_texts_finder:
+                if sub_text.height != 0 and sub_text.width !=0:
+                
+                    #sub_text.path = template_text_path + os.sep + "sub_text_" + str(cnt) + ".png"
+                    #sub_text.path = sub_text.path.replace("\\","\\\\")
+                
+                    #roi_x = str(sub_text.roi_x - self._main_text.x)
+                    roi_x = str(sub_text.roi_x)
+                    roi_y = str(sub_text.roi_y)
+                    
+                    roi_width = str(sub_text.roi_width)
+                    roi_height = str(sub_text.roi_height)
+                    
+                    roi_unlimited_up = str(sub_text.roi_unlimited_up)
+                    roi_unlimited_down = str(sub_text.roi_unlimited_down)
+                    roi_unlimited_left = str(sub_text.roi_unlimited_left)
+                    roi_unlimited_right = str(sub_text.roi_unlimited_right)
+                        
+                    text_to_find = ""
+                    if sub_text.quotes_ocr is True:
+                        text_to_find = "\"" + unicode(sub_text.text, "utf8") + "\""
+                    else:
+                        text_to_find = sub_text.text + ".encode('utf8')"
+                
+                    #str1 = "    text_finder.add_sub_component({\"path\": \"" + sub_text.path + "\", \"threshold\":" + repr(sub_text.threshold) + "},"
+                    if sub_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
+                        str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\"},"
+                    else:
+                        str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\", \"whitelist\": \"" + unicode(sub_text.whitelist, "utf8") + "\"},"
+                        
+                    
+                    str2 = "                                  {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + ", \"roi_unlimited_up\": " + roi_unlimited_up + ", \"roi_unlimited_down\": " + roi_unlimited_down + ", \"roi_unlimited_left\": " + roi_unlimited_left + ", \"roi_unlimited_right\": " + roi_unlimited_right + "})"
+        
+                    self._code_lines.append(str1)
+                    self._code_lines.append(str2)
+                    self._code_lines_for_object_finder.append(str1)
+                    self._code_lines_for_object_finder.append(str2)
+                    
+                    if sub_text.click == True or sub_text.rightclick == True or sub_text.mousemove == True or sub_text.hold_and_release is not None:
+                        if sub_text.x_offset is None and sub_text.y_offset is None: 
+                            if sub_text.hold_and_release is not None:
+                                if sub_text.hold_and_release == 0:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                                elif sub_text.hold_and_release == 1:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                                elif sub_text.hold_and_release == 2:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0, 0 - " + str(sub_text.release_pixel) + ", False))")
+                                elif sub_text.hold_and_release == 3:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0, 0 + " + str(sub_text.release_pixel) + ", False))")
+                                elif sub_text.hold_and_release == 4:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 - " + str(sub_text.release_pixel) + ", 0, False))")
+                                elif sub_text.hold_and_release == 5:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + " + str(sub_text.release_pixel) + ", 0, False))")
+                            else:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0, 0, False))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                        else:
+                            if sub_text.hold_and_release is not None:
+                                if sub_text.hold_and_release == 0:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + "), True))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                                elif sub_text.hold_and_release == 1:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + "), True))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                                elif sub_text.hold_and_release == 2:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + "), True))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + ") - " + str(sub_text.release_pixel) + ", True))")
+                                elif sub_text.hold_and_release == 3:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + ")))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + ") + " + str(sub_text.release_pixel) + ", True))")
+                                elif sub_text.hold_and_release == 4:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + ")))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_text.x_offset) + ") - " + str(sub_text.release_pixel) + ",  0 + (" + str(sub_text.y_offset) + "), True))")
+                                elif sub_text.hold_and_release == 5:
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + ")))")
+                                    self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append((0 + (" + str(sub_text.x_offset) + ") + " + str(sub_text.release_pixel) + ",  0 + (" + str(sub_text.y_offset) + "), True))")
+                            else:
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append((0 + (" + str(sub_text.x_offset) + "), 0 + (" + str(sub_text.y_offset) + "), True))")
+                                self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+                    else:
+                        self._code_lines.append("    "  + name + "_object.sub_xy_coordinates.append(None)")
+                        self._code_lines.append("    "  + name + "_object.sub_xy_coordinates_release.append(None)")
+        
+                    #self._code_lines.append("\n")
+                    cnt = cnt + 1
+        
+            self._code_lines.append("")
+            
+            string_function_args = "def " + name + "_mouse_keyboard("
+            
+            args_range = range(1, self.args_number + 1)
+            
+            for arg_num in args_range:
+                string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+            
+            if string_function_args.endswith(", "):
+                string_function_args = string_function_args[:-2]
+            string_function_args = string_function_args + "):"
+            self._code_lines.append(string_function_args)
+            
+            self._code_lines.append("    global " + name + "_object")
+            self._code_lines.append("    info_manager = InfoManager()")
+            self._code_lines.append("    sleep_factor = info_manager.get_info(\"ACTIONS DELAY\")")  
+            
+            if self._main_text.click == True or self._main_text.rightclick == True or self._main_text.mousemove == True or self._main_text.hold_and_release is not None:
+            
+                self.mouse_or_key_is_set = True
+            
+                self._code_lines.append("    main_text_pos = " + name + "_object.get_result(0)")  
+            
+                if mmanager_declared is False:
+                    self._code_lines.append("    m = MouseManager()")
+                    mmanager_declared = True
+                    
+                self._code_lines.append("    time.sleep(sleep_factor)")
+                
+                if self._main_text.x_offset is None and self._main_text.y_offset is None:             
+                    if self._main_text.click == True:
+                        self._code_lines.append("    m.click_2(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1, " + str(self._main_text.number_of_clicks) + ", " + str(self._main_text.click_delay) + ")")
+                    elif self._main_text.rightclick == True:
+                        self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 2)")
+                    elif self._main_text.mousemove == True:
+                        self._code_lines.append("    m.move(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                    elif self._main_text.hold_and_release is not None:
+                        if self._main_text.hold_and_release == 0:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                        elif self._main_text.hold_and_release == 1:
+                            self._code_lines.append("    m.release(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                        elif self._main_text.hold_and_release == 2:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2) - " + str(self._main_text.release_pixel) + ")")
+                        elif self._main_text.hold_and_release == 3:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2) + " + str(self._main_text.release_pixel) + ")")
+                        elif self._main_text.hold_and_release == 4:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (main_text_pos.width/2) - " + str(self._main_text.release_pixel) + ", main_text_pos.y + (main_text_pos.height/2))")
+                        elif self._main_text.hold_and_release == 5:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (main_text_pos.width/2) + " + str(self._main_text.release_pixel) + ", main_text_pos.y + (main_text_pos.height/2))")
+                else:
+                    if self._main_text.click == True:
+                        self._code_lines.append("    m.click_2(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "), 1, " + str(self._main_text.number_of_clicks) + ", " + str(self._main_text.click_delay) + ")")
+                    elif self._main_text.rightclick == True:
+                        self._code_lines.append("    m.click(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "), 2)")
+                    elif self._main_text.mousemove == True:
+                        self._code_lines.append("    m.move(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                    elif self._main_text.hold_and_release is not None:
+                        if self._main_text.hold_and_release == 0:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                        elif self._main_text.hold_and_release == 1:
+                            self._code_lines.append("    m.release(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                        elif self._main_text.hold_and_release == 2:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + ") - " + str(self._main_text.release_pixel) + ")")
+                        elif self._main_text.hold_and_release == 3:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + ") + " + str(self._main_text.release_pixel) + ")")
+                        elif self._main_text.hold_and_release == 4:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (" + str(self._main_text.x_offset) + ") - " + str(self._main_text.release_pixel) + ",  main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                        elif self._main_text.hold_and_release == 5:
+                            self._code_lines.append("    m.hold(main_text_pos.x + (" + str(self._main_text.x_offset) + "), main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                            self._code_lines.append("    time.sleep(sleep_factor)")
+                            self._code_lines.append("    m.release(main_text_pos.x + (" + str(self._main_text.x_offset) + ") + " + str(self._main_text.release_pixel) + ",  main_text_pos.y + (" + str(self._main_text.y_offset) + "))")
+                    
+            if self._main_text.sendkeys != "":
+            
+                self.mouse_or_key_is_set = True
+            
+                if kmanager_declared is False:
+                    self._code_lines.append("    k  = KeyboardManager()")
+                    kmanager_declared = True
+                keys = unicode(self._main_text.sendkeys, 'utf-8')
+                self._code_lines.append("    time.sleep(sleep_factor)")
+                
+                if self._main_text.sendkeys_quotes is True:
+                    self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_text.text_encrypted) + ", delay=" + str(self._main_text.sendkeys_delay) + ", duration=" + str(self._main_text.sendkeys_duration) + ")")
+                else:
+                    self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_text.text_encrypted) + ", delay=" + str(self._main_text.sendkeys_delay) + ", duration=" + str(self._main_text.sendkeys_duration) + ")")
+                
+            cnt = 0
+            for sub_text in self._sub_texts_finder:
+            
+                if sub_text.height != 0 and sub_text.width !=0:
+                    if sub_text.click == True or sub_text.rightclick == True or sub_text.mousemove == True or sub_text.hold_and_release is not None:
+                    
+                        self.mouse_or_key_is_set = True
+                
+                        self._code_lines.append("    sub_text_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
+                    
+                        if mmanager_declared is False:
+                            self._code_lines.append("    m = MouseManager()")
+                            mmanager_declared = True
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                                          
+                        if sub_text.x_offset is None and sub_text.y_offset is None:     
+                            if sub_text.click == True:
+                                self._code_lines.append("    m.click_2(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1, " + str(sub_text.number_of_clicks) + ", " + str(sub_text.click_delay) + ")")
+                            elif sub_text.rightclick == True:
+                                self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 2)")
+                            elif sub_text.mousemove == True:
+                                self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                            elif sub_text.hold_and_release is not None:
+                                if sub_text.hold_and_release == 0:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                elif sub_text.hold_and_release == 1:
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                elif sub_text.hold_and_release == 2:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2) - " + str(sub_text.release_pixel) + ")")
+                                elif sub_text.hold_and_release == 3:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2) + " + str(sub_text.release_pixel) + ")")
+                                elif sub_text.hold_and_release == 4:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2) - " + str(sub_text.release_pixel) + ", sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                elif sub_text.hold_and_release == 5:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2) + " + str(sub_text.release_pixel) + ", sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                        else:
+                            if sub_text.click == True:
+                                self._code_lines.append("    m.click_2(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "), 1, " + str(sub_text.number_of_clicks) + ", " + str(sub_text.click_delay) + ")")
+                            elif sub_text.rightclick == True:
+                                self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "), 2)")
+                            elif sub_text.mousemove == True:
+                                self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                            elif sub_text.hold_and_release is not None:
+                                if sub_text.hold_and_release == 0:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                elif sub_text.hold_and_release == 1:
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                elif sub_text.hold_and_release == 2:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + ") - " + str(sub_text.release_pixel) + ")")
+                                elif sub_text.hold_and_release == 3:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + ") + " + str(sub_text.release_pixel) + ")")
+                                elif sub_text.hold_and_release == 4:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + ") - " + str(sub_text.release_pixel) + ",  sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                elif sub_text.hold_and_release == 5:
+                                    self._code_lines.append("    m.hold(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + "), sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                                    self._code_lines.append("    time.sleep(sleep_factor)")
+                                    self._code_lines.append("    m.release(sub_text_" + str(cnt) + "_pos.x + (" + str(sub_text.x_offset) + ") + " + str(sub_text.release_pixel) + ",  sub_text_" + str(cnt) + "_pos.y + (" + str(sub_text.y_offset) + "))")
+                            
+                             
+                    if sub_text.sendkeys != "":
+                    
+                        self.mouse_or_key_is_set = True
+                    
+                        if kmanager_declared is False:
+                            self._code_lines.append("    k  = KeyboardManager()")
+                            kmanager_declared = True
+                        keys = unicode(sub_text.sendkeys, 'utf-8')
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        
+                        if sub_text.sendkeys_quotes is True:
+                            self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_text.text_encrypted) + ", delay=" + str(sub_text.sendkeys_delay) + ", duration=" + str(sub_text.sendkeys_duration) + ")")
+                        else:
+                            self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_text.text_encrypted) + ", delay=" + str(sub_text.sendkeys_delay) + ", duration=" + str(sub_text.sendkeys_duration) + ")")
+                                  
+                                        
+                    cnt = cnt + 1
+                
+        #if kmanager_declared is False and mmanager_declared is False:
+        #    self._code_lines.append("    pass")
+        
+        self._code_lines.append("")
+        
+        string_function_args = "def " + name + "("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + "):"
+        self._code_lines.append(string_function_args)
+        
+        self._code_lines.append("    global " + name + "_object")  
+
+        string_function_args = "    " + name + "_build_object("
+        
+        args_range = range(1, self.args_number + 1)
+        
+        for arg_num in args_range:
+            string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+        
+        if string_function_args.endswith(", "):
+            string_function_args = string_function_args[:-2]
+        string_function_args = string_function_args + ")"
+        self._code_lines.append(string_function_args)
+        
+        if self.timeout_exception is False:
+        
+            self._code_lines.append("    info_manager = InfoManager()")
+            self._code_lines.append("    info_manager.set_info(\"DISABLE REPORTS\", True)")
+        
+
+        if self.scraper is False:
+            if self.find is True:  
+                self._code_lines.append("    " + name + "_object.find()")
+            elif self.wait is True or self.mouse_or_key_is_set is True:
+                self._code_lines.append("    timeout = " + str(self.timeout))
+                self._code_lines.append("    wait_time = " + name + "_object.wait(timeout)")
+            elif self.wait_disapp is True:
+                self._code_lines.append("    timeout = " + str(self.timeout))
+                self._code_lines.append("    wait_time = " + name + "_object.wait_disappear(timeout)")
+               
+
+            if self.enable_performance is True and self.find is False:
+                self._code_lines.append("    if wait_time == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")              
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")
+                if self.wait_disapp is True and self.mouse_or_key_is_set is True:
+                    pass
+                else:
+                    self._code_lines.append("    elif wait_time < " + repr(self.warning) + ":")
+                    self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time, \"sec.\"")
+                    self._code_lines.append("    elif wait_time < " + repr(self.critical) + ":")
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time, \"sec.\"")
+                    self._code_lines.append("    else:")
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time, \"sec.\"")
+
+                    self._code_lines.append("    p = PerfManager()")
+                    self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+            elif self.find is False:
+                self._code_lines.append("    if wait_time == -1:")
+                if self.timeout_exception is True:
+                    self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                else:
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                    self._code_lines.append("        return False")  
+                #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+     
+            string_function_args = "    " + name + "_mouse_keyboard("
+            
+            args_range = range(1, self.args_number + 1)
+            
+            for arg_num in args_range:
+                string_function_args = string_function_args + "arg" + str(arg_num) + ", " 
+            
+            if string_function_args.endswith(", "):
+                string_function_args = string_function_args[:-2]
+            string_function_args = string_function_args + ")"
+            self._code_lines.append(string_function_args)
+     
+            """
+            if self._main_text.click == True or self._main_text.doubleclick == True or self._main_text.rightclick == True or self._main_text.mousemove == True:
+            
+                self._code_lines.append("    main_text_pos = " + name + "_object.get_result(0)")  
+            
+                if mmanager_declared is False:
+                    self._code_lines.append("    m = MouseManager()")
+                    mmanager_declared = True
+                    
+                self._code_lines.append("    time.sleep(2)")
+                                    
+                if self._main_text.click == True:
+                    self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1)")
+                elif self._main_text.doubleclick == True:
+                    self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 1, 2)")
+                elif self._main_text.rightclick == True:
+                    self._code_lines.append("    m.click(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2), 2)")
+                elif self._main_text.mousemove == True:
+                    self._code_lines.append("    m.move(main_text_pos.x + (main_text_pos.width/2), main_text_pos.y + (main_text_pos.height/2))")
+
+                    
+            if self._main_text.sendkeys != "":
+                if kmanager_declared is False:
+                    self._code_lines.append("    k  = KeyboardManager()")
+                    kmanager_declared = True
+                keys = unicode(self._main_text.sendkeys, 'utf-8')
+                self._code_lines.append("    time.sleep(2)")
+                
+                if self._main_text.sendkeys_quotes is True:
+                    self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(self._main_text.text_encrypted) + ")")
+                else:
+                    self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_text.text_encrypted) + ")")
+                
+            cnt = 0
+            for sub_text in self._sub_texts_finder:
+            
+                if sub_text.height != 0 and sub_text.width !=0:
+                    if sub_text.click == True or sub_text.doubleclick == True or sub_text.rightclick == True or sub_text.mousemove == True:
+                
+                        self._code_lines.append("    sub_text_" + str(cnt) + "_pos = " + name + "_object.get_result(0, " + str(cnt) + ")")  
+                    
+                        if mmanager_declared is False:
+                            self._code_lines.append("    mouse = MouseManager()")
+                            mmanager_declared = True
+                        self._code_lines.append("    time.sleep(2)")
+                                            
+                        if sub_text.click == True:
+                            self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1)")
+                        elif sub_text.doubleclick == True:
+                            self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 1, 2)")
+                        elif sub_text.rightclick == True:
+                            self._code_lines.append("    m.click(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2), 2)")
+                        elif sub_text.mousemove == True:
+                            self._code_lines.append("    m.move(sub_text_" + str(cnt) + "_pos.x + (sub_text_" + str(cnt) + "_pos.width/2), sub_text_" + str(cnt) + "_pos.y + (sub_text_" + str(cnt) + "_pos.height/2))")
+                            
+                    if sub_text.sendkeys != "":
+                        if kmanager_declared is False:
+                            self._code_lines.append("    k  = KeyboardManager()")
+                            kmanager_declared = True
+                        keys = unicode(sub_text.sendkeys, 'utf-8')
+                        self._code_lines.append("    time.sleep(2)")
+                        
+                        if sub_text.sendkeys_quotes is True:
+                            self._code_lines.append("    k.send(\"" + keys + "\", encrypted=" + str(sub_text.text_encrypted) + ")")
+                        else:
+                            self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_text.text_encrypted) + ")")
+                                  
+                                        
+                    cnt = cnt + 1
+            """
+            
+            if self.wait_disapp is True and self.mouse_or_key_is_set is True:
+                self._code_lines.append("    timeout = timeout - wait_time")
+                self._code_lines.append("    wait_time_disappear = " + name + "_object.wait_disappear(timeout)")
+                if self.enable_performance is True and self.find is False:
+                    self._code_lines.append("    if wait_time_disappear == -1:")
+                    if self.timeout_exception is True:
+                        self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                    else:
+                        self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                        self._code_lines.append("        return False")
+                    self._code_lines.append("    elif wait_time + wait_time_disappear < " + repr(self.warning) + ":")
+                    self._code_lines.append("        print \"step " + self.object_name + " is ok, execution time:\", wait_time + wait_time_disappear, \"sec.\"")
+                    self._code_lines.append("    elif  wait_time + wait_time_disappear < " + repr(self.critical) + ":")
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance warning threshold:\", wait_time + wait_time_disappear, \"sec.\"")
+                    self._code_lines.append("    else:")
+                    self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " has exceeded the performance critical threshold:\", wait_time + wait_time_disappear, \"sec.\"")
+                    self._code_lines.append("    p = PerfManager()")
+                    self._code_lines.append("    p.add_perfdata(\"" + str(self.object_name) + "\", wait_time + wait_time_disappear, " + repr(self.warning) + ", " + repr(self.critical) + ")")
+                elif self.find is False:
+                    self._code_lines.append("    if wait_time_disappear == -1:")
+                    if self.timeout_exception is True:
+                        self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")             
+                    else:
+                        self._code_lines.append("        print \"*WARN* step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\"")
+                        self._code_lines.append("        return False")  
+                    #self._code_lines.append("        raise Exception(\"step " + str(self.object_name) + " timed out, execution time: " + str(self.timeout) + "\")")
+                
+                
+            
+            if self.timeout_exception is False:
+                self._code_lines.append("    return True")
+
+            
+        else:
+            self._code_lines.append("    return " + name + "_object.scraper()")
+        self._code_lines.append("")
+        self._code_lines.append("")
+
+        #x = 2
+        
+        #tmp_array =  self._code_lines[:x] + ["aaaaaaaaa"] +  self._code_lines[x:]
+        
+        #self._code_lines = tmp_array
+
+        """
+        for element in self._code_lines:
+            print element
+        """ 
   
     def build_xml(self):
         
@@ -3190,6 +3970,17 @@ class AlyvixTextFinderView(QWidget):
         roi_height_node = ET.SubElement(main_text_node, "roi_height")
         roi_height_node.text = str(self._main_text.roi_height)
         
+        roi_unlimited_up_node = ET.SubElement(main_text_node, "roi_unlimited_up")
+        roi_unlimited_up_node.text = str(self._main_text.roi_unlimited_up)
+        
+        roi_unlimited_down_node = ET.SubElement(main_text_node, "roi_unlimited_down")
+        roi_unlimited_down_node.text = str(self._main_text.roi_unlimited_down)
+        
+        roi_unlimited_left_node = ET.SubElement(main_text_node, "roi_unlimited_left")
+        roi_unlimited_left_node.text = str(self._main_text.roi_unlimited_left)
+        
+        roi_unlimited_right_node = ET.SubElement(main_text_node, "roi_unlimited_right")
+        roi_unlimited_right_node.text = str(self._main_text.roi_unlimited_right)
         """
         find_node = ET.SubElement(main_text_node, "find")
         find_node.text = str(self.find)
@@ -3234,6 +4025,8 @@ class AlyvixTextFinderView(QWidget):
         sendkeys_node = ET.SubElement(main_text_node, "sendkeys")
         
         sendkeys_node.set("encrypted", str(self._main_text.text_encrypted))
+        sendkeys_node.set("delay", str(self._main_text.sendkeys_delay))
+        sendkeys_node.set("duration", str(self._main_text.sendkeys_duration))
         sendkeys_node.set("quotes", str(self._main_text.sendkeys_quotes))
         
         #print self._main_text.sendkeys
@@ -3302,6 +4095,18 @@ class AlyvixTextFinderView(QWidget):
                 roi_height_node = ET.SubElement(sub_text_node, "roi_height")
                 roi_height_node.text = str(sub_text.roi_height)
                 
+                roi_unlimited_up_node = ET.SubElement(sub_text_node, "roi_unlimited_up")
+                roi_unlimited_up_node.text = str(sub_text.roi_unlimited_up)
+                
+                roi_unlimited_down_node = ET.SubElement(sub_text_node, "roi_unlimited_down")
+                roi_unlimited_down_node.text = str(sub_text.roi_unlimited_down)
+                
+                roi_unlimited_left_node = ET.SubElement(sub_text_node, "roi_unlimited_left")
+                roi_unlimited_left_node.text = str(sub_text.roi_unlimited_left)
+                
+                roi_unlimited_right_node = ET.SubElement(sub_text_node, "roi_unlimited_right")
+                roi_unlimited_right_node.text = str(sub_text.roi_unlimited_right)
+                
                 click_node = ET.SubElement(sub_text_node, "click")
                 click_node.text = str(sub_text.click)
                 
@@ -3334,6 +4139,8 @@ class AlyvixTextFinderView(QWidget):
                 
                 sendkeys_node = ET.SubElement(sub_text_node, "sendkeys")
                 sendkeys_node.set("encrypted", str(sub_text.text_encrypted))
+                sendkeys_node.set("delay", str(sub_text.sendkeys_delay))
+                sendkeys_node.set("duration", str(sub_text.sendkeys_duration))
                 sendkeys_node.set("quotes", str(sub_text.sendkeys_quotes))
                 #sendkeys_node.text = unicode(sub_text.sendkeys, 'utf-8')
                 sendkeys_node.append(ET.Comment(' --><![CDATA[' + unicode(sub_text.sendkeys.replace(']]>', ']]]]><![CDATA[>'), 'utf-8') + ']]><!-- '))
@@ -3491,6 +4298,38 @@ class AlyvixTextFinderView(QWidget):
         self._main_text.roi_width = int(main_text_node.getElementsByTagName("roi_width")[0].firstChild.nodeValue)
         self._main_text.roi_height = int(main_text_node.getElementsByTagName("roi_height")[0].firstChild.nodeValue)
         
+        try:
+            if "True" in main_text_node.getElementsByTagName("roi_unlimited_up")[0].firstChild.nodeValue:
+                self._main_text.roi_unlimited_up = True
+            else:
+                self._main_text.roi_unlimited_up = False
+        except:
+            self._main_text.roi_unlimited_up = False
+            
+        try:
+            if "True" in main_text_node.getElementsByTagName("roi_unlimited_down")[0].firstChild.nodeValue:
+                self._main_text.roi_unlimited_down = True
+            else:
+                self._main_text.roi_unlimited_down = False
+        except:
+            self._main_text.roi_unlimited_down = False
+            
+        try:
+            if "True" in main_text_node.getElementsByTagName("roi_unlimited_left")[0].firstChild.nodeValue:
+                self._main_text.roi_unlimited_left = True
+            else:
+                self._main_text.roi_unlimited_left = False
+        except:
+            self._main_text.roi_unlimited_left = False
+            
+        try:
+            if "True" in main_text_node.getElementsByTagName("roi_unlimited_right")[0].firstChild.nodeValue:
+                self._main_text.roi_unlimited_right = True
+            else:
+                self._main_text.roi_unlimited_right = False
+        except:
+            self._main_text.roi_unlimited_right = False
+        
         if "True" in root_node.attributes["find"].value: #main_text_node.getElementsByTagName("find")[0].firstChild.nodeValue:
             self.find = True
         else:
@@ -3607,13 +4446,20 @@ class AlyvixTextFinderView(QWidget):
             self._main_text.sendkeys_quotes = True
         else:
             self._main_text.sendkeys_quotes = False
+            
+        try:
+            self._main_text.sendkeys_delay = int(main_text_node.getElementsByTagName("sendkeys")[0].attributes["delay"].value)
+        except:
+            pass
+            
+        try:
+            self._main_text.sendkeys_duration = int(main_text_node.getElementsByTagName("sendkeys")[0].attributes["duration"].value)
+        except:
+            pass
         
         try:
             self._main_text.sendkeys = main_text_node.getElementsByTagName("sendkeys")[0].toxml()
-            self._main_text.sendkeys = self._main_text.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"False\"><!-- -->","")
-            self._main_text.sendkeys = self._main_text.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"True\"><!-- -->","")
-            self._main_text.sendkeys = self._main_text.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"False\"><!-- -->","")
-            self._main_text.sendkeys = self._main_text.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"True\"><!-- -->","")
+            self._main_text.sendkeys = re.sub("<sendkeys(.*?)><!-- -->", "", self._main_text.sendkeys)
             self._main_text.sendkeys = self._main_text.sendkeys.replace("<!-- --></sendkeys>","")
             self._main_text.sendkeys = self._main_text.sendkeys.replace("<![CDATA[","")
             self._main_text.sendkeys = self._main_text.sendkeys.replace("]]>","")
@@ -3682,6 +4528,38 @@ class AlyvixTextFinderView(QWidget):
             sub_text_obj.roi_y = int(sub_text_node.getElementsByTagName("roi_y")[0].firstChild.nodeValue)
             sub_text_obj.roi_width = int(sub_text_node.getElementsByTagName("roi_width")[0].firstChild.nodeValue)
             sub_text_obj.roi_height = int(sub_text_node.getElementsByTagName("roi_height")[0].firstChild.nodeValue)
+            
+            try:
+                if "True" in sub_text_node.getElementsByTagName("roi_unlimited_up")[0].firstChild.nodeValue:
+                    sub_text_obj.roi_unlimited_up = True
+                else:
+                    sub_text_obj.roi_unlimited_up = False
+            except:
+                sub_text_obj.roi_unlimited_up = False
+                
+            try:
+                if "True" in sub_text_node.getElementsByTagName("roi_unlimited_down")[0].firstChild.nodeValue:
+                    sub_text_obj.roi_unlimited_down = True
+                else:
+                    sub_text_obj.roi_unlimited_down = False
+            except:
+                sub_text_obj.roi_unlimited_down = False
+                
+            try:
+                if "True" in sub_text_node.getElementsByTagName("roi_unlimited_left")[0].firstChild.nodeValue:
+                    sub_text_obj.roi_unlimited_left = True
+                else:
+                    sub_text_obj.roi_unlimited_left = False
+            except:
+                sub_text_obj.roi_unlimited_left = False
+                
+            try:
+                if "True" in sub_text_node.getElementsByTagName("roi_unlimited_right")[0].firstChild.nodeValue:
+                    sub_text_obj.roi_unlimited_right = True
+                else:
+                    sub_text_obj.roi_unlimited_right = False
+            except:
+                sub_text_obj.roi_unlimited_right = False
                 
             if "True" in sub_text_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_text_obj.click = True
@@ -3764,13 +4642,20 @@ class AlyvixTextFinderView(QWidget):
                 sub_text_obj.sendkeys_quotes = True
             else:
                 sub_text_obj.sendkeys_quotes = False
+                
+            try:
+                sub_text_obj.sendkeys_delay = int(sub_text_node.getElementsByTagName("sendkeys")[0].attributes["delay"].value)
+            except:
+                pass               
+                        
+            try:
+                sub_text_obj.sendkeys_duration = int(sub_text_node.getElementsByTagName("sendkeys")[0].attributes["duration"].value)
+            except:
+                pass
             
             try:
                 sub_text_obj.sendkeys = sub_text_node.getElementsByTagName("sendkeys")[0].toxml()                
-                sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"False\"><!-- -->","")
-                sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"True\"><!-- -->","")
-                sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<sendkeys encrypted=\"True\" quotes=\"False\"><!-- -->","")
-                sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<sendkeys encrypted=\"False\" quotes=\"True\"><!-- -->","")
+                sub_text_obj.sendkeys = re.sub("<sendkeys(.*?)><!-- -->", "", sub_text_obj.sendkeys)
                 sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<!-- --></sendkeys>","")
                 sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("<![CDATA[","")
                 sub_text_obj.sendkeys = sub_text_obj.sendkeys.replace("]]>","")
@@ -3887,6 +4772,10 @@ class MainTextForGui:
         self.roi_y = 0
         self.roi_height = 0
         self.roi_width = 0
+        self.roi_unlimited_up = False
+        self.roi_unlimited_down = False
+        self.roi_unlimited_left = False
+        self.roi_unlimited_right = False
         self.deleted_x = None
         self.deleted_y = None
         self.deleted_height = None
@@ -3909,6 +4798,8 @@ class MainTextForGui:
         self.timeout = 20
         self.timeout_exception = True
         self.sendkeys = ""
+        self.sendkeys_delay = 15
+        self.sendkeys_duration = 15
         self.mouse_or_key_is_set = False
         self.sendkeys_quotes = True
         self.text_encrypted = False
@@ -3933,6 +4824,10 @@ class SubTextForGui:
         self.roi_y = 0
         self.roi_height = 0
         self.roi_width = 0
+        self.roi_unlimited_up = False
+        self.roi_unlimited_down = False
+        self.roi_unlimited_left = False
+        self.roi_unlimited_right = False
         self.deleted_x = None
         self.deleted_y = None
         self.deleted_height = None
@@ -3951,6 +4846,8 @@ class SubTextForGui:
         self.click_delay = 10
         self.doubleclick = False
         self.sendkeys = ""
+        self.sendkeys_delay = 15
+        self.sendkeys_duration = 15
         self.sendkeys_quotes = True
         self.text_encrypted = False
         
@@ -4230,6 +5127,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.timeout_spinbox.setEnabled(False)
             self.listWidget.setEnabled(False)
             self.lineEditText.setEnabled(False)
+            self.spinBoxSendKeysDuration.setEnabled(False)
+            self.spinBoxSendKeysDelay.setEnabled(False)
+            self.labelSendKeysDuration.setEnabled(False)
+            self.labelSendKeysDelay.setEnabled(False)
             
             
             self.timeout_exception.setEnabled(False)
@@ -4301,6 +5202,11 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.inserttext.setEnabled(True)
             self.add_quotes.setEnabled(True)
             self.text_encrypted.setEnabled(True)
+            
+            self.spinBoxSendKeysDuration.setEnabled(True)
+            self.spinBoxSendKeysDelay.setEnabled(True)
+            self.labelSendKeysDuration.setEnabled(True)
+            self.labelSendKeysDelay.setEnabled(True)
         
         self.init_block_code() 
 
@@ -4325,6 +5231,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.labelCritical.setEnabled(False)
             
             self.enable_scraper.setEnabled(False)
+            
+        self.spinBoxSendKeysDelay.setValue(self.parent._main_text.sendkeys_delay)
+        self.spinBoxSendKeysDuration.setValue(self.parent._main_text.sendkeys_duration)
            
         self.connect(self.listWidget, SIGNAL('itemSelectionChanged()'), self.listWidget_selection_changed)
         self.connect(self.listWidget, SIGNAL('itemChanged(QListWidgetItem*)'), self, SLOT('listWidget_state_changed(QListWidgetItem*)'))
@@ -4358,6 +5267,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.pushButtonCheck, SIGNAL('clicked()'), self.check_text)
         
         self.connect(self.inserttext, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event(QString)"))
+        
+        self.connect(self.spinBoxSendKeysDelay, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event)  
+        self.connect(self.spinBoxSendKeysDuration, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event)  
+        
         self.connect(self.namelineedit, SIGNAL("textChanged(QString)"), self, SLOT("namelineedit_event(QString)"))
         #self.connect(self.inserttext, SIGNAL('cursorPositionChanged ( int, int)'), self.inserttext_textchanged_event)
         self.connect(self.pushButtonAddBlock, SIGNAL('clicked()'), self.add_block_code)
@@ -4371,6 +5284,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
         #self.inserttext.viewport().installEventFilter(self)
         self.inserttext.installEventFilter(self)
+        
+                
+        self.connect(self.spinBoxSendKeysDelay, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event)  
+        self.connect(self.spinBoxSendKeysDuration, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event)  
         
         self.connect(self.add_quotes, SIGNAL('stateChanged(int)'), self.add_quotes_event)
         self.connect(self.text_encrypted, SIGNAL('stateChanged(int)'), self.text_encrypted_event)
@@ -4419,6 +5336,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.clickdelay_spinbox_2, SIGNAL('valueChanged(int)'), self.clickdelay_spinbox_change_event_2) 
         
         self.connect(self.inserttext_2, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event_2(QString)"))
+        
+        self.connect(self.spinBoxSendKeysDelay_2, SIGNAL('valueChanged(int)'), self.sendKeysDelay_spinbox_change_event_2) 
+        self.connect(self.spinBoxSendKeysDuration_2, SIGNAL('valueChanged(int)'), self.sendKeysDuration_spinbox_change_event_2) 
+        
         #self.connect(self.inserttext, SIGNAL('cursorPositionChanged ( int, int)'), self.inserttext_textchanged_event)
         self.connect(self.lineEditText_2, SIGNAL("textChanged(QString)"), self, SLOT("lineEditText_2_event(QString)"))
         self.connect(self.lineEditLang_2, SIGNAL("textChanged(QString)"), self, SLOT("lineEditLang2_event(QString)"))
@@ -4923,6 +5844,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
         self.clicknumber_spinbox_2.setValue(self.parent._sub_texts_finder[self.sub_text_index].number_of_clicks)
         self.clickdelay_spinbox_2.setValue(self.parent._sub_texts_finder[self.sub_text_index].click_delay)
+        
+        self.spinBoxSendKeysDelay_2.setValue(self.parent._sub_texts_finder[self.sub_text_index].sendkeys_delay)
+        self.spinBoxSendKeysDuration_2.setValue(self.parent._sub_texts_finder[self.sub_text_index].sendkeys_duration)
             
         """
         if self.parent._sub_texts_finder[self.sub_text_index].doubleclick is True:
@@ -5119,6 +6043,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.parent._main_text.sendkeys = str(text.toUtf8()) #str(self.inserttext.text().toUtf8())
             
+    def sendKeysDelay_spinbox_change_event(self, event):
+        self.parent._main_text.sendkeys_delay = self.spinBoxSendKeysDelay.value()
+        
+    def sendKeysDuration_spinbox_change_event(self, event):
+        self.parent._main_text.sendkeys_duration = self.spinBoxSendKeysDuration.value()
+            
     def text_encrypted_event(self, event):
         if self.text_encrypted.isChecked() is True:
             self.parent._main_text.text_encrypted = True
@@ -5173,6 +6103,11 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.add_quotes.setEnabled(False)
             self.text_encrypted.setEnabled(False)
             
+            self.spinBoxSendKeysDuration.setEnabled(False)
+            self.spinBoxSendKeysDelay.setEnabled(False)
+            self.labelSendKeysDuration.setEnabled(False)
+            self.labelSendKeysDelay.setEnabled(False)
+            
             self.parent.scraper = True
         else:
             #self.parent._main_text.quotes_ocr = False
@@ -5225,6 +6160,11 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.inserttext.setEnabled(True)
             self.add_quotes.setEnabled(True)
             self.text_encrypted.setEnabled(True)
+            
+            self.spinBoxSendKeysDuration.setEnabled(True)
+            self.spinBoxSendKeysDelay.setEnabled(True)
+            self.labelSendKeysDuration.setEnabled(True)
+            self.labelSendKeysDelay.setEnabled(True)
             
             self.parent.scraper = False
     
@@ -5663,8 +6603,13 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.parent._sub_texts_finder[self.sub_text_index].sendkeys = "".encode('utf-8')
         else:
             self.parent._sub_texts_finder[self.sub_text_index].sendkeys = str(text.toUtf8())
-
             
+    def sendKeysDelay_spinbox_change_event_2(self, event):
+        self.parent._sub_texts_finder[self.sub_text_index].sendkeys_delay = self.spinBoxSendKeysDelay_2.value()
+        
+    def sendKeysDuration_spinbox_change_event_2(self, event):
+        self.parent._sub_texts_finder[self.sub_text_index].sendkeys_duration = self.spinBoxSendKeysDuration_2.value()
+        
     @pyqtSlot(QString)    
     def lineEditText_2_event(self, text):
         if text == "Type here the Text to find":
