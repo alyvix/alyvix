@@ -26,6 +26,7 @@ import tornado.ioloop
 import tornado.gen
 import time
 import os
+import copy
 
 try:
     from nats.io.client import Client as NATS
@@ -136,13 +137,29 @@ class NatsManager():
         cumsum_value = 0
 
         #publish current performance data
+
+        perf_with_timestamp = []
+        perf_without_timestamp = []
+
         for perfdata in perfdata_list:
 
             #check if current perf has a timestamp
             for cnt_kts in xrange(len(keywords_timestamp_array)):
                 if keywords_timestamp_array[cnt_kts][0] == perfdata.name:
                     perfdata.timestamp = keywords_timestamp_array[cnt_kts][1]
+                    perf_with_timestamp.append(perfdata)
                     break
+
+            if perfdata.timestamp == None:
+                perf_without_timestamp.append(perfdata)
+
+        perf_with_timestamp = sorted(perf_with_timestamp, key=lambda x: x.timestamp, reverse=False)
+
+        perf_with_timestamp.extend(perf_without_timestamp)
+
+        perfdata_list = perf_with_timestamp
+
+        for perfdata in perfdata_list:
 
             #check if current perf has a timeout
             for cnt_ktout in xrange(len(keywords_timeout_array)):
