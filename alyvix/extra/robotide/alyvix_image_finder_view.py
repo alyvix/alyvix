@@ -159,12 +159,51 @@ class AlyvixImageFinderView(QWidget):
         
         try:
             if self.parent.parent.is_object_finder_menu:
+            
+                sel_index = self.parent.parent.last_selected_index
+                
+                obj_main_redraw = False
+                obj_sub_redraw = False
+                
+                if sel_index == 0:
+                    if self.parent.parent._main_object_finder.x != self._main_template.x or self.parent.parent._main_object_finder.y != self._main_template.y or self.parent.parent._main_object_finder.height != self._main_template.height or self.parent.parent._main_object_finder.width != self._main_template.width:
+                        obj_main_redraw = True
+                    self.parent.parent._main_object_finder.x = self._main_template.x
+                    self.parent.parent._main_object_finder.y = self._main_template.y
+                    self.parent.parent._main_object_finder.height = self._main_template.height
+                    self.parent.parent._main_object_finder.width = self._main_template.width
+                else:
+                    if self.parent.parent._sub_objects_finder[sel_index-1].x != self._main_template.x or self.parent.parent._sub_objects_finder[sel_index-1].y != self._main_template.y or self.parent.parent._sub_objects_finder[sel_index-1].height != self._main_template.height or self.parent.parent._sub_objects_finder[sel_index-1].width != self._main_template.width:
+                        obj_sub_redraw = True
+                    self.parent.parent._sub_objects_finder[sel_index-1].x = self._main_template.x
+                    self.parent.parent._sub_objects_finder[sel_index-1].y = self._main_template.y
+                    self.parent.parent._sub_objects_finder[sel_index-1].height = self._main_template.height
+                    self.parent.parent._sub_objects_finder[sel_index-1].width = self._main_template.width
+                
+                try:
+                    #self.parent.parent.pv.showFullScreen()
+                    if obj_main_redraw is True:
+                        self.parent.parent.delete_all_sub_roi()
+                        #self.parent.parent.pv = PaintingView(self.parent.parent)
+                        #image = QImage(self.parent.parent._main_object_finder.xml_path.replace("xml", "png"))   
+                        #self.parent.parent.pv.set_bg_pixmap(image)
+                        self.parent.parent._main_deleted = True
+                        self.parent.parent.pv.showFullScreen()
+                    elif obj_sub_redraw is True:
+                        self.parent.parent.sub_object_index = sel_index-1
+                        self.parent.parent.redraw_roi_event()
+                    else:
+                        self.parent.parent.pv.update()
+                    sel_index = None
+                except:
+                    pass
+            
                 if self.mouse_or_key_is_set is True:
                     
                     self.parent.parent._main_object_finder.mouse_or_key_is_set = True
                     #print "build_objjjjjjjjjjjjjjjjjjjjj"
-        except:
-            pass
+        except Exception, e:
+            print Exception, e
                 
         self.parent.show()
         self.close()
@@ -195,6 +234,19 @@ class AlyvixImageFinderView(QWidget):
                     pass
                 self.parent.show()
                 self.close()
+                
+            elif self.set_xy_offset is not None:
+                if self.set_xy_offset == -1:
+                    self._main_template.x_offset = None
+                    self._main_template.y_offset = None
+                else:
+                    self._sub_templates_finder[self.set_xy_offset].x_offset = None
+                    self._sub_templates_finder[self.set_xy_offset].y_offset = None
+                self.set_xy_offset = None
+                self.last_xy_offset_index = None
+                self.update()
+                self.image_view_properties = AlyvixImageFinderPropertiesView(self)
+                self.image_view_properties.show()
                 
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
         
@@ -3183,12 +3235,12 @@ class AlyvixImageFinderView(QWidget):
             
             
             if sub_template_node.getElementsByTagName("sendkeys")[0].attributes["encrypted"].value == "True":
-                self.mouse_or_key_is_set = True
+                sub_template_obj.text_encrypted = True
             else:
                 sub_template_obj.text_encrypted = False
                 
             if sub_template_node.getElementsByTagName("sendkeys")[0].attributes["quotes"].value == "True":
-                self.mouse_or_key_is_set = True
+                sub_template_obj.sendkeys_quotes = True
             else:
                 sub_template_obj.sendkeys_quotes = False
                 
@@ -3762,6 +3814,13 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
     def pushButtonCancel_event(self):
         self.close()
         self.parent.cancel_all()
+        
+    def is_valid_variable_name(self, name):
+        try:
+            ast.parse('{} = None'.format(name))
+            return True
+        except (SyntaxError, ValueError, TypeError) as e:
+            return False
 
     def pushButtonOk_event(self):
     
@@ -3831,6 +3890,9 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         
         if str(self.namelineedit.text().toUtf8()) == "" or str(self.namelineedit.text().toUtf8()) == "Type the keyword name":
             answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
+        elif self.is_valid_variable_name(self.namelineedit.text()) is False:
+            QMessageBox.critical(self, "Error", "Keyword name is invalid!")
+            return
         elif os.path.isfile(filename) and self.parent.action == "new":
             
             python_file = open(filename).read()

@@ -23,6 +23,7 @@ import os
 import time
 import cv2
 import copy
+from ast import parse
 
 from PyQt4.QtGui import QApplication, QWidget, QCursor, QImage, QPainter, QPainter, QPen, QColor, QPixmap, QBrush, QPainterPath, QDialog, QListWidgetItem , QTextEdit, QHBoxLayout, QTextCharFormat, QMessageBox, QFont, QFontMetrics, QTextCursor
 from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QPoint, QRect, QModelIndex, SLOT, pyqtSlot, QString, QChar
@@ -95,6 +96,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.setupUi(self)
         
         self.parent = parent
+        
+        self.last_selected_index = 0
         
         self.scaling_factor = self.parent.scaling_factor
         
@@ -422,6 +425,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     def pushButtonCancel_event(self):
         self.close()
         self.cancel_all()
+        
+    def is_valid_variable_name(self, name):
+        try:
+            parse('{} = None'.format(name))
+            return True
+        except (SyntaxError, ValueError, TypeError) as e:
+            return False
 
     def pushButtonOk_event(self):
         answer = QMessageBox.Yes
@@ -433,7 +443,10 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 
             if self._main_object_finder.name == "":
                 answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
-
+            elif self.is_valid_variable_name(self.namelineedit.text()) is False:
+                QMessageBox.critical(self, "Error", "Keyword name is invalid!")
+                return
+                
             elif os.path.isfile(filename) and self.action == "new":
                 
                 python_file = open(filename).read()
@@ -670,6 +683,89 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self._sub_objects_finder[cnt].width = main_obj.width
             self._sub_objects_finder[cnt].mouse_or_key_is_set = main_obj.mouse_or_key_is_set
         
+    
+    def tiny_build_objects_2(self):
+    
+        #filename = open(self._path + os.sep + self._xml_name,"r")
+        #print filename
+        
+        try:
+            filehandler = open(self._path + os.sep + self._xml_name,"r")
+        except:
+            return
+
+        doc = minidom.parse(filehandler)
+        
+        main_obj_xml_path = "xml_path"
+        
+        root_node = doc.getElementsByTagName("object_finder")[0]
+        main_obj_node = doc.getElementsByTagName("main_object")[0]
+        
+        xml_name = main_obj_node.getElementsByTagName("xml_path")[0].firstChild.nodeValue
+        
+        main_obj = None           
+        m_controller = dummy()
+        m_controller.action = "new"
+        m_controller.path = self.parent.path
+        m_controller.scaling_factor = self.parent.scaling_factor
+        m_controller.xml_name = xml_name.split(os.sep)[-1]
+        m_controller.objectfinder_view = self
+        
+        if xml_name.endswith('_RectFinder.xml'):
+            main_obj = AlyvixRectFinderView(m_controller)
+            main_obj.build_objects()
+            main_obj = main_obj._main_rect_finder
+        elif xml_name.endswith('_ImageFinder.xml'):
+            main_obj = AlyvixImageFinderView(m_controller)
+            main_obj.build_objects()
+            main_obj = main_obj._main_template
+        elif xml_name.endswith('_TextFinder.xml'):
+            main_obj = AlyvixTextFinderView(m_controller)
+            main_obj.build_objects()
+            main_obj = main_obj._main_text
+            
+        self._main_object_finder.x = main_obj.x
+        self._main_object_finder.y = main_obj.y
+        self._main_object_finder.height = main_obj.height
+        self._main_object_finder.width = main_obj.width
+        self._main_object_finder.mouse_or_key_is_set = main_obj.mouse_or_key_is_set
+        
+        sub_object_nodes = doc.getElementsByTagName("sub_object")
+        
+        cnt=0
+        for sub_object_node in sub_object_nodes:
+            filename = sub_object_node.getElementsByTagName("xml_path")[0].firstChild.nodeValue
+                        
+            item = QListWidgetItem()
+            
+            main_obj = None           
+            m_controller = dummy()
+            m_controller.action = "new"
+            m_controller.path = self.parent.path
+            m_controller.scaling_factor = self.parent.scaling_factor
+            m_controller.xml_name = filename.split(os.sep)[-1]
+            m_controller.objectfinder_view = self
+
+            if filename.endswith('_RectFinder.xml'):
+                main_obj = AlyvixRectFinderView(m_controller)
+                main_obj.build_objects()
+                main_obj = main_obj._main_rect_finder
+            elif filename.endswith('_ImageFinder.xml'):
+                main_obj = AlyvixImageFinderView(m_controller)
+                main_obj.build_objects()
+                main_obj = main_obj._main_template
+            elif filename.endswith('_TextFinder.xml'):
+                main_obj = AlyvixTextFinderView(m_controller)
+                main_obj.build_objects()
+                main_obj = main_obj._main_text
+            
+            self._sub_objects_finder[cnt].x = main_obj.x
+            self._sub_objects_finder[cnt].y = main_obj.y
+            self._sub_objects_finder[cnt].height = main_obj.height
+            self._sub_objects_finder[cnt].width = main_obj.width
+            self._sub_objects_finder[cnt].mouse_or_key_is_set = main_obj.mouse_or_key_is_set
+        
+    
     
     def build_objects(self):
         
@@ -1537,6 +1633,11 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             del self._sub_objects_finder[selected_index - 1]
         self.parent.update_list()
         
+        try:
+            self.pv.update()
+        except:
+            pass
+        
                 
     def restore_all_sub_roi(self):
     
@@ -1563,6 +1664,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             
         
     def edit_obj(self):
+    
+        self.last_selected_index = self.listWidget.currentRow()
     
         m_controller = dummy()
         m_controller.set_parent(self)
@@ -2343,8 +2446,15 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.listWidget.removeItemWidget(item)
             #print "rrrrr"
             del self._sub_objects_finder[selected_index - 1]
+            
+        try:
+            self.pv.update()
+        except:
+            pass
         
     def edit_obj_2(self):
+    
+        self.last_selected_index = self.listWidget.currentRow()
     
         s_controller = dummy()
         s_controller.set_parent(self)
@@ -2385,7 +2495,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
     def redraw_roi_event(self):
     
-        self.tiny_build_objects()
+        #self.tiny_build_objects()
     
         self._sub_objects_finder[self.sub_object_index].roi_x = 0
         self._sub_objects_finder[self.sub_object_index].roi_y = 0
@@ -2694,7 +2804,10 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
             self.add_sub_object()
             
     def push_button_cancel_event(self):
-
+        self.parent.pv = PaintingView(self.parent)
+        image = QImage(self.parent._main_object_finder.xml_path.replace("xml", "png"))   
+        self.parent.pv.set_bg_pixmap(image)
+        self.parent.pv.showFullScreen()
         self.parent.show()
         self.close()
                 
@@ -2903,6 +3016,13 @@ class PaintingView(QWidget):
                 self.parent.show()
                 self.parent.activateWindow()
                 #self.close()
+            elif (event.key() == Qt.Key_Escape and len(self.parent._sub_objects_finder) >0 and self.parent._sub_objects_finder[-1].roi_height == 0 and self.parent._sub_objects_finder[-1].roi_width == 0 and self.parent._main_deleted is False):
+                item = self.parent.listWidget.takeItem(0 + len(self.parent._sub_objects_finder))
+                self.parent.listWidget.removeItemWidget(item)
+                del self.parent._sub_objects_finder[-1]
+                self.parent.show()
+                self.parent.activateWindow()
+
             elif len(self.parent._sub_objects_finder) == 0:
                 self.parent.show()
                 self.parent.activateWindow()

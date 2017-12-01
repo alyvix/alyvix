@@ -296,8 +296,8 @@ class NatsManager():
                 except:
                     pass
 
-            #unique_tag_msg = ",run_code=" + unique_tag_msg + str(self._info_manager.get_info('START TIME'))
-            unique_tag_msg = ""
+            unique_tag_msg = ",run_code=\"" + unique_tag_msg + str(self._info_manager.get_info('START TIME')) + "\""
+            #unique_tag_msg = ""
 
             """
             if point_pre_msg != "":
@@ -317,8 +317,8 @@ class NatsManager():
             """
             message= str(measurement) + user_msg + host_msg + ",test_name=" +str(testcase_name)\
                      + ",transaction_name=" + str(perfdata.name).replace(" ", "_") + ",state=" + perfdata_state +\
-                     msg_extra + msg_custom_tags + unique_tag_msg + " " + msg_warning + msg_critical +\
-                     msg_timeout + msg_perf + msg_cumsum + msg_errorlevel + msg_custom_fields + " " + perf_timestamp
+                     msg_extra + msg_custom_tags + " " + msg_warning + msg_critical +\
+                     msg_timeout + msg_perf + msg_cumsum + msg_errorlevel + msg_custom_fields + unique_tag_msg + " " + perf_timestamp
 
             message = message.replace(" ,"," ")
 

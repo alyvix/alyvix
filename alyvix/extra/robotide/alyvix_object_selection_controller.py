@@ -195,6 +195,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.action = "remove"
         
         selected_index = self.listWidgetAlyObj.currentRow()
+        print "selected_index", selected_index
         #selected_text = self.listWidgetAlyObj.currentItem().text()
         selected_item_data = self.listWidgetAlyObj.currentItem().data(Qt.UserRole).toString()
         self.xml_name = str(selected_item_data)
