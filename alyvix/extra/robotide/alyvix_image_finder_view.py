@@ -179,6 +179,17 @@ class AlyvixImageFinderView(QWidget):
                     self.parent.parent._sub_objects_finder[sel_index-1].y = self._main_template.y
                     self.parent.parent._sub_objects_finder[sel_index-1].height = self._main_template.height
                     self.parent.parent._sub_objects_finder[sel_index-1].width = self._main_template.width
+                    
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_x = 0
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_y = 0
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_height = 0
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_width = 0
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_up = False
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_down = False
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_left = False
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_right = False
+                    
+                    self.parent.parent.redraw_index_from_finder = sel_index-1
                 
                 try:
                     #self.parent.parent.pv.showFullScreen()
@@ -202,8 +213,8 @@ class AlyvixImageFinderView(QWidget):
                     
                     self.parent.parent._main_object_finder.mouse_or_key_is_set = True
                     #print "build_objjjjjjjjjjjjjjjjjjjjj"
-        except Exception, e:
-            print Exception, e
+        except:
+            pass
                 
         self.parent.show()
         self.close()
@@ -226,6 +237,32 @@ class AlyvixImageFinderView(QWidget):
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
             self.restore_rect()
         if event.key() == Qt.Key_Escape:
+            
+            if len(self._sub_templates_finder) == 0 and self._main_template is None:
+                try:
+                    self.image_view_properties.close()
+                except:
+                    pass
+                self.parent.show()
+                self.close()
+            else:
+            
+                if len(self._sub_templates_finder) > 0:
+            
+                    index = -1 #self.__index_deleted_rect_inside_roi
+                    if self._sub_templates_finder[index].x == 0 and self._sub_templates_finder[index].y == 0 \
+                        and self._sub_templates_finder[index].width == 0 and self._sub_templates_finder[index].height == 0:
+                        
+                        del self._sub_templates_finder[-1]
+                        self.__flag_need_to_delete_roi = False
+                        self.__flag_need_to_restore_roi = True
+                        self.__flag_capturing_sub_image_rect_roi = True
+                        self.__flag_capturing_sub_template = False
+        
+                self.set_xy_offset = None
+                self.image_view_properties = AlyvixImageFinderPropertiesView(self)
+                self.image_view_properties.show()
+            """
             if self._main_template is None and self.esc_pressed is False:
                 self.esc_pressed = True
                 try:
@@ -247,7 +284,7 @@ class AlyvixImageFinderView(QWidget):
                 self.update()
                 self.image_view_properties = AlyvixImageFinderPropertiesView(self)
                 self.image_view_properties.show()
-                
+            """    
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
         
             if len(self._sub_templates_finder) == 0 and self._main_template is None:
@@ -3890,7 +3927,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         
         if str(self.namelineedit.text().toUtf8()) == "" or str(self.namelineedit.text().toUtf8()) == "Type the keyword name":
             answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
-        elif self.is_valid_variable_name(self.namelineedit.text()) is False:
+        elif self.is_valid_variable_name(self.namelineedit.text()) is False or "#" in self.namelineedit.text():
             QMessageBox.critical(self, "Error", "Keyword name is invalid!")
             return
         elif os.path.isfile(filename) and self.parent.action == "new":

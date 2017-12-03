@@ -149,6 +149,8 @@ class PerfManager:
 
         for perf_data_in_list in perfdata_list:
             if perf_data_in_list.name == perf_data.name:
+                perf_data.custom_tags = perfdata_list[cnt].custom_tags
+                perf_data.custom_fields = perfdata_list[cnt].custom_fields
 
                 perfdata_list[cnt] = perf_data
                 return

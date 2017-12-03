@@ -202,7 +202,17 @@ class AlyvixRectFinderView(QWidget):
                     self.parent.parent._sub_objects_finder[sel_index-1].y = self._main_rect_finder.y
                     self.parent.parent._sub_objects_finder[sel_index-1].height = self._main_rect_finder.height
                     self.parent.parent._sub_objects_finder[sel_index-1].width = self._main_rect_finder.width
-                
+                    
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_x = 0
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_y = 0
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_height = 0
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_width = 0
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_up = False
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_down = False
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_left = False
+                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_right = False
+                    
+                    self.parent.parent.redraw_index_from_finder = sel_index-1
                 
                 try:
                     #self.parent.parent.pv.showFullScreen()
@@ -246,6 +256,31 @@ class AlyvixRectFinderView(QWidget):
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
             self.restore_rect()
         if event.key() == Qt.Key_Escape:
+            #print len(self._sub_rects_finder)
+            #print self._main_rect_finder
+            if len(self._sub_rects_finder) == 0 and self._main_rect_finder is None:
+                try:
+                    self.rect_view_properties.close()
+                except:
+                    pass
+                self.parent.show()
+                self.close()
+            else:
+                if len(self._sub_rects_finder) > 0:
+            
+                    index = -1 #self.__index_deleted_rect_inside_roi
+                    if self._sub_rects_finder[index].x == 0 and self._sub_rects_finder[index].y == 0 \
+                        and self._sub_rects_finder[index].width == 0 and self._sub_rects_finder[index].height == 0:
+
+                        del self._sub_rects_finder[-1]
+                        self.__flag_need_to_delete_roi = False
+                        self.__flag_need_to_restore_roi = True
+                        self.__flag_capturing_sub_rect_roi = True
+                        self.__flag_capturing_sub_rect = False
+                self.set_xy_offset = None
+                self.rect_view_properties = AlyvixRectFinderPropertiesView(self)
+                self.rect_view_properties.show()
+            """
             if self._main_rect_finder is None and self.esc_pressed is False:
                 self.esc_pressed = True
                 try:
@@ -266,6 +301,7 @@ class AlyvixRectFinderView(QWidget):
                 self.update()
                 self.rect_view_properties = AlyvixRectFinderPropertiesView(self)
                 self.rect_view_properties.show()
+            """
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
             #print len(self._sub_rects_finder)
             #print self._main_rect_finder
@@ -4511,7 +4547,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         #if self.parent.object_name == "" or self.parent.object_name == "Type the keyword name":
         if str(self.namelineedit.text().toUtf8()) == "" or str(self.namelineedit.text().toUtf8()) == "Type the keyword name":
             answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
-        elif self.is_valid_variable_name(self.namelineedit.text()) is False:
+        elif self.is_valid_variable_name(self.namelineedit.text()) is False or "#" in self.namelineedit.text():
             QMessageBox.critical(self, "Error", "Keyword name is invalid!")
             return
         elif os.path.isfile(filename) and self.parent.action == "new":

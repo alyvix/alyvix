@@ -97,6 +97,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self.parent = parent
         
+        self.redraw_index_from_finder = None
+        
         self.last_selected_index = 0
         
         self.scaling_factor = self.parent.scaling_factor
@@ -139,6 +141,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self.is_object_finder_menu = True
         
+        self._can_set_roi_unlim = False
+        
         self.building_code = False
         
         self.button_selected = "set_main_object"
@@ -148,6 +152,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self._main_object_finder = MainObjectForGui()
         self._sub_objects_finder = []
+        self._last_sub_object = None
         self._deleted_sub_objects = []
         
         self._code_lines = []
@@ -406,6 +411,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.close()
         
     def closeEvent(self, event):
+        self.parent.show()
         try:
             self.pv.close()
         except:
@@ -415,6 +421,14 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     def cancel_all(self):
         self._main_object_finder = copy.deepcopy(self._old_main_object)
         self._sub_objects_finder = copy.deepcopy(self._old_sub_objects)
+        
+        if self.action == "edit":
+            self.build_code_array()
+            self.update_lock_list()
+            self.parent.update_list()
+            self.build_xml()
+            self.save_python_file()
+                
         self.parent.show()
         try:
             self.pv.close()
@@ -443,7 +457,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 
             if self._main_object_finder.name == "":
                 answer = QMessageBox.warning(self, "Warning", "The object name is empty. Do you want to create it automatically?", QMessageBox.Yes, QMessageBox.No)
-            elif self.is_valid_variable_name(self.namelineedit.text()) is False:
+            elif self.is_valid_variable_name(self.namelineedit.text()) is False or "#" in self.namelineedit.text():
                 QMessageBox.critical(self, "Error", "Keyword name is invalid!")
                 return
                 
@@ -1661,6 +1675,10 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             sub_obj.roi_y = 0
             sub_obj.roi_height = 0
             sub_obj.roi_width = 0
+            sub_obj.roi_unlimited_up = False
+            sub_obj.roi_unlimited_down = False
+            sub_obj.roi_unlimited_left = False
+            sub_obj.roi_unlimited_right = False
             
         
     def edit_obj(self):
@@ -1866,6 +1884,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
         self.pv.set_bg_pixmap(image)
         self.pv.showFullScreen()
+        self._can_set_roi_unlim = True
         
         return True
                 
@@ -2440,7 +2459,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             item_path = self.parent.path + os.sep + item.data(Qt.UserRole).toString()
             if os.path.exists(item_path.replace(".xml",".alyscraper")):
                 self._main_object_finder.is_scraper = False
-                print "scraper is false"
+                #print "scraper is false"
             
             #print selected_index
             self.listWidget.removeItemWidget(item)
@@ -2496,6 +2515,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     def redraw_roi_event(self):
     
         #self.tiny_build_objects()
+        
+        self._last_sub_object = copy.deepcopy(self._sub_objects_finder[self.sub_object_index])
     
         self._sub_objects_finder[self.sub_object_index].roi_x = 0
         self._sub_objects_finder[self.sub_object_index].roi_y = 0
@@ -2512,6 +2533,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
         self.pv.set_bg_pixmap(image)
         self.pv.showFullScreen()
+        self._can_set_roi_unlim = True
         #self.update()
     
         """
@@ -2804,10 +2826,13 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
             self.add_sub_object()
             
     def push_button_cancel_event(self):
-        self.parent.pv = PaintingView(self.parent)
-        image = QImage(self.parent._main_object_finder.xml_path.replace("xml", "png"))   
-        self.parent.pv.set_bg_pixmap(image)
-        self.parent.pv.showFullScreen()
+           
+        #print self.parent._main_object_finder
+        if self.parent._main_object_finder.xml_path != "":
+            self.parent.pv = PaintingView(self.parent)
+            image = QImage(self.parent._main_object_finder.xml_path.replace("xml", "png"))   
+            self.parent.pv.set_bg_pixmap(image)
+            self.parent.pv.showFullScreen()
         self.parent.show()
         self.close()
                 
@@ -3011,10 +3036,39 @@ class PaintingView(QWidget):
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
             self.restore_sub_roi()    
         if (event.key() == Qt.Key_Escape) or (event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O):
-            if (len(self.parent._sub_objects_finder) >0 and self.parent._sub_objects_finder[-1].roi_height != 0 and self.parent._sub_objects_finder[-1].roi_width != 0 and self.parent._main_deleted is False):
+            
+            if (event.key() == Qt.Key_O and self.parent._last_sub_object != None and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_height != 0 and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_width != 0):
+                self.parent._last_sub_object = None    
+                self.update()
+                self.parent.show()
+                self.parent.activateWindow()
+                self.parent._redraw_index = None
+                self.parent._can_set_roi_unlim = False
+            elif (event.key() == Qt.Key_O and self.parent._last_sub_object != None and self.parent._last_sub_object.roi_x == 0 and self.parent._last_sub_object.roi_y == 0 and self.parent._last_sub_object.roi_width == 0 and self.parent._last_sub_object.roi_width == 0):
+                event.ignore()
+            elif (event.key() == Qt.Key_Escape and self.parent._last_sub_object != None and self.parent._last_sub_object.roi_width != 0 and self.parent._last_sub_object.roi_width != 0):
+                self.parent._sub_objects_finder[self.parent.sub_object_index] = copy.deepcopy(self.parent._last_sub_object)
+                self.parent._last_sub_object = None    
+                self.update()
+                self.parent.show()
+                self.parent.activateWindow()
+                self.parent._redraw_index = None
+                self.parent._can_set_roi_unlim = False
+            elif (event.key() == Qt.Key_Escape and self.parent._last_sub_object != None and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_height != 0 and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_width != 0):
+                self.parent._last_sub_object = None    
+                self.update()
+                self.parent.show()
+                self.parent.activateWindow()
+                self.parent._redraw_index = None
+                self.parent._can_set_roi_unlim = False
+            elif (event.key() == Qt.Key_Escape and self.parent._last_sub_object != None and self.parent._last_sub_object.roi_x == 0 and self.parent._last_sub_object.roi_y == 0 and self.parent._last_sub_object.roi_width == 0 and self.parent._last_sub_object.roi_width == 0):
+                event.ignore()
+            elif (len(self.parent._sub_objects_finder) >0 and self.parent._sub_objects_finder[-1].roi_height != 0 and self.parent._sub_objects_finder[-1].roi_width != 0 and self.parent._main_deleted is False):
                 #self.parent.raise_()
                 self.parent.show()
                 self.parent.activateWindow()
+                self.parent._redraw_index = None
+                self.parent._can_set_roi_unlim = False
                 #self.close()
             elif (event.key() == Qt.Key_Escape and len(self.parent._sub_objects_finder) >0 and self.parent._sub_objects_finder[-1].roi_height == 0 and self.parent._sub_objects_finder[-1].roi_width == 0 and self.parent._main_deleted is False):
                 item = self.parent.listWidget.takeItem(0 + len(self.parent._sub_objects_finder))
@@ -3022,33 +3076,50 @@ class PaintingView(QWidget):
                 del self.parent._sub_objects_finder[-1]
                 self.parent.show()
                 self.parent.activateWindow()
+                self.parent._can_set_roi_unlim = False
 
             elif len(self.parent._sub_objects_finder) == 0:
                 self.parent.show()
                 self.parent.activateWindow()
-        if event.key() == Qt.Key_Down:
+                self.parent._can_set_roi_unlim = False
+            #self.parent._can_set_roi_unlim == True
         
-            if self.__capturing == False:
-                self.parent._sub_objects_finder[-1].roi_unlimited_down = True
-                self.update()
+        
+        if self.parent._can_set_roi_unlim == True:
+        
+            _index_roi = self.parent._redraw_index 
+            
+            if _index_roi == None and self.parent._main_deleted is True:
+                _index_roi = self.parent._roi_restored_after_deleted_main -1
                 
-        if event.key() == Qt.Key_Up:
-        
-            if self.__capturing == False:
-                self.parent._sub_objects_finder[-1].roi_unlimited_up = True
-                self.update()
+            if _index_roi == None:
+                _index_roi = -1
                 
-        if event.key() == Qt.Key_Left:
-        
-            if self.__capturing == False:
-                self.parent._sub_objects_finder[-1].roi_unlimited_left = True
-                self.update()
+            if self.parent._sub_objects_finder[_index_roi].roi_height != 0 and self.parent._sub_objects_finder[_index_roi].roi_width != 0:
+            
+                if event.key() == Qt.Key_Down:
                 
-        if event.key() == Qt.Key_Right:
-        
-            if self.__capturing == False:
-                self.parent._sub_objects_finder[-1].roi_unlimited_right = True
-                self.update()
+                    if self.__capturing == False:
+                        self.parent._sub_objects_finder[_index_roi].roi_unlimited_down = True
+                        self.update()
+                        
+                if event.key() == Qt.Key_Up:
+                
+                    if self.__capturing == False:
+                        self.parent._sub_objects_finder[_index_roi].roi_unlimited_up = True
+                        self.update()
+                        
+                if event.key() == Qt.Key_Left:
+                
+                    if self.__capturing == False:
+                        self.parent._sub_objects_finder[_index_roi].roi_unlimited_left = True
+                        self.update()
+                        
+                if event.key() == Qt.Key_Right:
+                
+                    if self.__capturing == False:
+                        self.parent._sub_objects_finder[_index_roi].roi_unlimited_right = True
+                        self.update()
         
     def set_bg_pixmap(self, image):
         self._bg_pixmap = QPixmap.fromImage(image)
@@ -3142,13 +3213,13 @@ class PaintingView(QWidget):
 
                 if self.parent._redraw_index != None:
                     sub_obj = self.parent._sub_objects_finder[self.parent._redraw_index]
-                    self.parent._redraw_index = None
+
                 else:
                     sub_obj = self.parent._sub_objects_finder[-1]
                     
                     
-                print x, y, width, height
-                print sub_obj.x, sub_obj.y, sub_obj.width, sub_obj.height
+                #print x, y, width, height
+                #print sub_obj.x, sub_obj.y, sub_obj.width, sub_obj.height
                     
                     
                 if x < sub_obj.x and y < sub_obj.y and x + width > sub_obj.x + sub_obj.width and y + height > sub_obj.y + sub_obj.height:
@@ -3156,10 +3227,17 @@ class PaintingView(QWidget):
                     sub_obj.roi_y = y - self.parent._main_object_finder.y
                     sub_obj.roi_height = height
                     sub_obj.roi_width = width
+                    
+                    if self.parent.redraw_index_from_finder != None:
+                        #print "ind_from_find", self.parent.redraw_index_from_finder
+                        #print "red_index", self.parent._redraw_index
+                        #print self.parent._old_sub_objects[self.parent.redraw_index_from_finder].x,self.parent._old_sub_objects[self.parent.redraw_index_from_finder].y
+                        self.parent._old_sub_objects[self.parent.redraw_index_from_finder] = sub_obj
+                        #print self.parent._old_sub_objects[self.parent.redraw_index_from_finder].x,self.parent._old_sub_objects[self.parent.redraw_index_from_finder].y
+                        self.parent.redraw_index_from_finder = None
+                    
                 else:
                     self.parent._sub_objects_finder[-1] = copy.deepcopy(ori_sub)
-                
-                print "main deleted"
                 
             else:
             
@@ -3316,23 +3394,23 @@ class PaintingView(QWidget):
             roi_width = image_finder.roi_width
             roi_height = image_finder.roi_height
             
-            if image_finder.roi_unlimited_up is True:
+            if image_finder.roi_unlimited_up is True and self.parent._main_deleted is False:
                 roi_y = 0
                 roi_height = image_finder.roi_y + self.parent._main_object_finder.y + roi_height
 
-            if image_finder.roi_unlimited_down is True:
+            if image_finder.roi_unlimited_down is True and self.parent._main_deleted is False:
                 if image_finder.roi_unlimited_up is True:
                     roi_height = self._bg_pixmap.height()-1
                 else:
                     roi_height = self._bg_pixmap.height() - (image_finder.roi_y + self.parent._main_object_finder.y + 1)
                     
-                    print self._bg_pixmap.width(), (image_finder.roi_x + self.parent._main_object_finder.x)
+                    #print self._bg_pixmap.width(), (image_finder.roi_x + self.parent._main_object_finder.x)
 
-            if image_finder.roi_unlimited_left is True:
+            if image_finder.roi_unlimited_left is True and self.parent._main_deleted is False:
                 roi_x = 0
                 roi_width = image_finder.roi_x + self.parent._main_object_finder.x + roi_width
 
-            if image_finder.roi_unlimited_right is True:
+            if image_finder.roi_unlimited_right is True and self.parent._main_deleted is False:
                 if image_finder.roi_unlimited_left is True:
                     roi_width = self._bg_pixmap.width() -1
                 else:
