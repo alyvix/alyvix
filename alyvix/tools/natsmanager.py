@@ -200,7 +200,7 @@ class NatsManager():
             if perfdata.value != "" and perfdata.value is not None:
                 msg_perf = ",performance=" + str(int(perfdata.value * 1000))
             elif not_executed is False:
-                msg_perf = ",performance=" + str(int(perfdata.timeout_threshold * 1000))
+                #msg_perf = ",performance=" + str(int(perfdata.timeout_threshold * 1000))
                 timed_out = True
 
             msg_cumsum = ""

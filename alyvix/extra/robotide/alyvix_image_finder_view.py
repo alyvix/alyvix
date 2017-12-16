@@ -168,28 +168,28 @@ class AlyvixImageFinderView(QWidget):
                 if sel_index == 0:
                     if self.parent.parent._main_object_finder.x != self._main_template.x or self.parent.parent._main_object_finder.y != self._main_template.y or self.parent.parent._main_object_finder.height != self._main_template.height or self.parent.parent._main_object_finder.width != self._main_template.width:
                         obj_main_redraw = True
-                    self.parent.parent._main_object_finder.x = self._main_template.x
-                    self.parent.parent._main_object_finder.y = self._main_template.y
-                    self.parent.parent._main_object_finder.height = self._main_template.height
-                    self.parent.parent._main_object_finder.width = self._main_template.width
+                        self.parent.parent._main_object_finder.x = self._main_template.x
+                        self.parent.parent._main_object_finder.y = self._main_template.y
+                        self.parent.parent._main_object_finder.height = self._main_template.height
+                        self.parent.parent._main_object_finder.width = self._main_template.width
                 else:
                     if self.parent.parent._sub_objects_finder[sel_index-1].x != self._main_template.x or self.parent.parent._sub_objects_finder[sel_index-1].y != self._main_template.y or self.parent.parent._sub_objects_finder[sel_index-1].height != self._main_template.height or self.parent.parent._sub_objects_finder[sel_index-1].width != self._main_template.width:
                         obj_sub_redraw = True
-                    self.parent.parent._sub_objects_finder[sel_index-1].x = self._main_template.x
-                    self.parent.parent._sub_objects_finder[sel_index-1].y = self._main_template.y
-                    self.parent.parent._sub_objects_finder[sel_index-1].height = self._main_template.height
-                    self.parent.parent._sub_objects_finder[sel_index-1].width = self._main_template.width
-                    
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_x = 0
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_y = 0
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_height = 0
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_width = 0
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_up = False
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_down = False
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_left = False
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_right = False
-                    
-                    self.parent.parent.redraw_index_from_finder = sel_index-1
+                        self.parent.parent._sub_objects_finder[sel_index-1].x = self._main_template.x
+                        self.parent.parent._sub_objects_finder[sel_index-1].y = self._main_template.y
+                        self.parent.parent._sub_objects_finder[sel_index-1].height = self._main_template.height
+                        self.parent.parent._sub_objects_finder[sel_index-1].width = self._main_template.width
+                        
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_x = 0
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_y = 0
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_height = 0
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_width = 0
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_up = False
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_down = False
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_left = False
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_right = False
+                        
+                        self.parent.parent.redraw_index_from_finder = sel_index-1
                 
                 try:
                     #self.parent.parent.pv.showFullScreen()

@@ -256,6 +256,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         #self.listWidget.item(0).setSelected(True)
         self.timeout_spinbox.setValue(self._main_object_finder.timeout)      
         
+        self.listWidget.setCurrentRow(0)
+        
         if self._main_object_finder.timeout_exception is False:
             self.timeout_exception.setChecked(False)
         else:
@@ -2731,6 +2733,16 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         
         self.connect(self.pushButtonSelect, SIGNAL('clicked()'), self.push_button_select_event)   
         self.connect(self.pushButtonCancel, SIGNAL('clicked()'), self.push_button_cancel_event)   
+        
+    def keyPressEvent(self, event):
+        #print self.parent._main_object_finder
+        if self.parent._main_object_finder.xml_path != "":
+            self.parent.pv = PaintingView(self.parent)
+            image = QImage(self.parent._main_object_finder.xml_path.replace("xml", "png"))   
+            self.parent.pv.set_bg_pixmap(image)
+            self.parent.pv.showFullScreen()
+        self.parent.show()
+        self.close()
         
     def update_list(self):
         #dirs = os.listdir(self.full_file_name)

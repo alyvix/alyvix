@@ -200,32 +200,40 @@ class AlyvixTextFinderView(QWidget):
                 
                 obj_main_redraw = False
                 obj_sub_redraw = False
+                
+                print self.parent.parent.last_selected_index
             
                 if sel_index == 0:
                     if self.parent.parent._main_object_finder.x != self._main_text.x or self.parent.parent._main_object_finder.y != self._main_text.y or self.parent.parent._main_object_finder.height != self._main_text.height or self.parent.parent._main_object_finder.width != self._main_text.width:
                         obj_main_redraw = True
-                    self.parent.parent._main_object_finder.x = self._main_text.x
-                    self.parent.parent._main_object_finder.y = self._main_text.y
-                    self.parent.parent._main_object_finder.height = self._main_text.height
-                    self.parent.parent._main_object_finder.width = self._main_text.width
+                        self.parent.parent._main_object_finder.x = self._main_text.x
+                        self.parent.parent._main_object_finder.y = self._main_text.y
+                        self.parent.parent._main_object_finder.height = self._main_text.height
+                        self.parent.parent._main_object_finder.width = self._main_text.width
                 else:
+                
+                    print self.parent.parent._sub_objects_finder[sel_index-1].x, self.parent.parent._sub_objects_finder[sel_index-1].y, self.parent.parent._sub_objects_finder[sel_index-1].height, self.parent.parent._sub_objects_finder[sel_index-1].width 
+                    
+                    print self._main_text.x, self._main_text.y, self._main_text.height, self._main_text.width
+                    print self.parent.parent._sub_objects_finder[sel_index-1].roi_x
+                
                     if self.parent.parent._sub_objects_finder[sel_index-1].x != self._main_text.x or self.parent.parent._sub_objects_finder[sel_index-1].y != self._main_text.y or self.parent.parent._sub_objects_finder[sel_index-1].height != self._main_text.height or self.parent.parent._sub_objects_finder[sel_index-1].width != self._main_text.width:
                         obj_sub_redraw = True
-                    self.parent.parent._sub_objects_finder[sel_index-1].x = self._main_text.x
-                    self.parent.parent._sub_objects_finder[sel_index-1].y = self._main_text.y
-                    self.parent.parent._sub_objects_finder[sel_index-1].height = self._main_text.height
-                    self.parent.parent._sub_objects_finder[sel_index-1].width = self._main_text.width
+                        self.parent.parent._sub_objects_finder[sel_index-1].x = self._main_text.x
+                        self.parent.parent._sub_objects_finder[sel_index-1].y = self._main_text.y
+                        self.parent.parent._sub_objects_finder[sel_index-1].height = self._main_text.height
+                        self.parent.parent._sub_objects_finder[sel_index-1].width = self._main_text.width
+                        
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_x = 0
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_y = 0
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_height = 0
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_width = 0
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_up = False
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_down = False
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_left = False
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_right = False
                     
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_x = 0
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_y = 0
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_height = 0
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_width = 0
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_up = False
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_down = False
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_left = False
-                    self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_right = False
-                    
-                    self.parent.parent.redraw_index_from_finder = sel_index-1
+                        self.parent.parent.redraw_index_from_finder = sel_index-1
                 
                 try:
                     #self.parent.parent.pv.showFullScreen()
@@ -240,7 +248,11 @@ class AlyvixTextFinderView(QWidget):
                         self.parent.parent.sub_object_index = sel_index-1
                         self.parent.parent.redraw_roi_event()
                     else:
+                        print self.parent.parent._sub_objects_finder[sel_index-1].roi_x
+                
                         self.parent.parent.pv.update()
+                        print self.parent.parent._sub_objects_finder[sel_index-1].roi_x
+                
                     sel_index = None
                 except:
                     pass
@@ -249,8 +261,9 @@ class AlyvixTextFinderView(QWidget):
                     
                     self.parent.parent._main_object_finder.mouse_or_key_is_set = True
                     #print "build_objjjjjjjjjjjjjjjjjjjjj"
-        except:
-            pass
+        except Exception, ex:
+        
+            print Exception, ex
             
         self.parent.show()
         self.close()
