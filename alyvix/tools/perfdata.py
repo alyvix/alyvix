@@ -149,6 +149,8 @@ class PerfManager:
 
         for perf_data_in_list in perfdata_list:
             if perf_data_in_list.name == perf_data.name:
+                perf_data.custom_tags = perfdata_list[cnt].custom_tags
+                perf_data.custom_fields = perfdata_list[cnt].custom_fields
 
                 perfdata_list[cnt] = perf_data
                 return
@@ -168,10 +170,23 @@ class PerfManager:
                 if perf_data_in_list.value == "":
                     raise Exception("The Keyword value is None")
 
+        keywords_timestamp_array = copy.deepcopy(self._info_manager.get_info('KEYWORD TIMESTAMP'))
+
         cnt = 0
+
+        for cnt_kts in xrange(len(keywords_timestamp_array)):
+            if keywords_timestamp_array[cnt_kts][0] == str(new_name):
+                del keywords_timestamp_array[cnt_kts]
 
         old_name_exists = False
         for perf_data_in_list in perfdata_list:
+
+            for cnt_kts in xrange(len(keywords_timestamp_array)):
+                if keywords_timestamp_array[cnt_kts][0] == str(old_name):
+                    keywords_timestamp_array[cnt_kts] = (new_name, keywords_timestamp_array[cnt_kts][1])
+
+            self._info_manager.set_info('KEYWORD TIMESTAMP', keywords_timestamp_array)
+
             if perf_data_in_list.name == str(new_name):
                 deleted_on_rename_list.append(copy.deepcopy(perfdata_list_copy[cnt]))
                 del perfdata_list_copy[cnt]
@@ -216,6 +231,7 @@ class PerfManager:
             cnt += 1
 
         self._info_manager.set_info('SCRAPER COLLECTION', copy.deepcopy(scraper_list_copy))
+
 
     def set_perfdata_extra(self, name, extra):
 
@@ -412,6 +428,23 @@ class PerfManager:
                 if perf.name == perf_name:
 
                     perf.timestamp = smallest_timestamp
+
+                    current_keyword_timestamp_array = self._info_manager.get_info('KEYWORD TIMESTAMP')
+
+                    # current_keyword_timestamp_array_copy = copy.deepcopy(current_keyword_timestamp_array)
+
+                    timestamp_modified = False
+                    for cnt_kts in xrange(len(current_keyword_timestamp_array)):
+                        if current_keyword_timestamp_array[cnt_kts][0] == perf_name:
+                            timestamp_modified = True
+                            current_keyword_timestamp_array[cnt_kts] = (perf_name, smallest_timestamp)
+                            break
+
+                    if timestamp_modified is False:
+                        current_keyword_timestamp_array.append((perf_name, smallest_timestamp))
+
+                    self._info_manager.set_info('KEYWORD TIMESTAMP',
+                                                current_keyword_timestamp_array)
 
                     try:
                         end_timestamp_only_for_summed_perf = (float(biggest_timestamp)/1000) + value_of_last_perf

@@ -642,6 +642,11 @@ class TextFinder(BaseFinder):
             self.api.SetVariable("tessedit_char_whitelist", main_text.whitelist)
             """
 
+            self.api.Init(get_python_lib() + os.sep + "alyvix" + os.sep + "extra" + os.sep +
+                          "Tesseract-OCR" + os.sep, sub_text_arg.lang, tesseract.OEM_DEFAULT)
+            self.api.SetPageSegMode(tesseract.PSM_AUTO)
+            self.api.SetVariable("tessedit_char_whitelist", sub_text_arg.whitelist)
+
             phrase = ""
             concatWord = False
             wordLine = None

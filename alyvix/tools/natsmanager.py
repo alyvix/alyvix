@@ -26,6 +26,7 @@ import tornado.ioloop
 import tornado.gen
 import time
 import os
+import copy
 
 try:
     from nats.io.client import Client as NATS
@@ -136,13 +137,29 @@ class NatsManager():
         cumsum_value = 0
 
         #publish current performance data
+
+        perf_with_timestamp = []
+        perf_without_timestamp = []
+
         for perfdata in perfdata_list:
 
             #check if current perf has a timestamp
             for cnt_kts in xrange(len(keywords_timestamp_array)):
                 if keywords_timestamp_array[cnt_kts][0] == perfdata.name:
                     perfdata.timestamp = keywords_timestamp_array[cnt_kts][1]
+                    perf_with_timestamp.append(perfdata)
                     break
+
+            if perfdata.timestamp == None:
+                perf_without_timestamp.append(perfdata)
+
+        perf_with_timestamp = sorted(perf_with_timestamp, key=lambda x: x.timestamp, reverse=False)
+
+        perf_with_timestamp.extend(perf_without_timestamp)
+
+        perfdata_list = perf_with_timestamp
+
+        for perfdata in perfdata_list:
 
             #check if current perf has a timeout
             for cnt_ktout in xrange(len(keywords_timeout_array)):
@@ -183,7 +200,7 @@ class NatsManager():
             if perfdata.value != "" and perfdata.value is not None:
                 msg_perf = ",performance=" + str(int(perfdata.value * 1000))
             elif not_executed is False:
-                msg_perf = ",performance=" + str(int(perfdata.timeout_threshold * 1000))
+                #msg_perf = ",performance=" + str(int(perfdata.timeout_threshold * 1000))
                 timed_out = True
 
             msg_cumsum = ""
@@ -279,8 +296,8 @@ class NatsManager():
                 except:
                     pass
 
-            #unique_tag_msg = ",run_code=" + unique_tag_msg + str(self._info_manager.get_info('START TIME'))
-            unique_tag_msg = ""
+            unique_tag_msg = ",run_code=\"" + unique_tag_msg + str(self._info_manager.get_info('START TIME')) + "\""
+            #unique_tag_msg = ""
 
             """
             if point_pre_msg != "":
@@ -300,8 +317,8 @@ class NatsManager():
             """
             message= str(measurement) + user_msg + host_msg + ",test_name=" +str(testcase_name)\
                      + ",transaction_name=" + str(perfdata.name).replace(" ", "_") + ",state=" + perfdata_state +\
-                     msg_extra + msg_custom_tags + unique_tag_msg + " " + msg_warning + msg_critical +\
-                     msg_timeout + msg_perf + msg_cumsum + msg_errorlevel + msg_custom_fields + " " + perf_timestamp
+                     msg_extra + msg_custom_tags + " " + msg_warning + msg_critical +\
+                     msg_timeout + msg_perf + msg_cumsum + msg_errorlevel + msg_custom_fields + unique_tag_msg + " " + perf_timestamp
 
             message = message.replace(" ,"," ")
 

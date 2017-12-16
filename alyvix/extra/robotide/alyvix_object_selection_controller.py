@@ -23,7 +23,7 @@ import os
 import time
 import cv2
 
-from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox, QKeySequence
+from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox, QKeySequence, QShortcut
 from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect, QEvent
 
 from PyQt4.QtWebKit import QWebSettings
@@ -35,7 +35,7 @@ from alyvix_image_finder_view import AlyvixImageFinderView
 from alyvix_image_finder_view import AlyvixImageFinderPropertiesView
 from alyvix_text_finder_view import AlyvixTextFinderView
 from alyvix_text_finder_view import AlyvixTextFinderPropertiesView
-from alyvix_object_finder_view import AlyvixObjectFinderView
+from alyvix_object_finder_view import AlyvixObjectFinderView, PaintingView
 from alyvix_code_view import AlyvixCustomCodeView
 
 from alyvix.tools.screen import ScreenManager
@@ -53,6 +53,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
 
     def __init__(self):
         QDialog.__init__(self)
+        
+        self._deleted_obj_name = None
+        self._deleted_file_name = None
 
 
         info_manager = InfoManager()
@@ -120,11 +123,38 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.gridLayoutWidget.hide()
         self.pushButtonCancel.hide()
         
+        QShortcut(QKeySequence("Ctrl+D"), self, self.doSomething)
+        QShortcut(QKeySequence("down"), self, self.goDown)
+        QShortcut(QKeySequence("up"), self, self.goUp)
+        QShortcut(QKeySequence("return"), self, self.edit_item)
+        
+    def doSomething(self):
+        self.remove_item()
+        
+    def goUp(self):
+        selected_index = self.listWidgetAlyObj.currentRow()
+        
+        new_index = selected_index - 1
+        if new_index < 0:
+            new_index = self.listWidgetAlyObj.count()-1
+        
+        self.listWidgetAlyObj.setCurrentRow(new_index)
+    
+    def goDown(self):
+        selected_index = self.listWidgetAlyObj.currentRow()
+        
+        new_index = selected_index + 1
+        if new_index >  self.listWidgetAlyObj.count()-1:
+            new_index = 0
+        
+        self.listWidgetAlyObj.setCurrentRow(new_index)
+        
         
         
     def eventFilter(self, object, event):
         #print event
         #if event.type() == QEvent.KeyPress:
+
         
         try:
             if event.matches(QKeySequence.Copy):
@@ -137,8 +167,6 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 if clip_text != text:
                     clipboard.setText(text)
                     #print "\"" + text + "\""
-            elif Qt.ControlModifier == QApplication.keyboardModifiers() and event.key() == Qt.Key_D:
-                self.remove_item()
         except:
             pass
         return super(AlyvixMainMenuController, self).eventFilter(object, event)
@@ -167,6 +195,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.action = "remove"
         
         selected_index = self.listWidgetAlyObj.currentRow()
+        print "selected_index", selected_index
         #selected_text = self.listWidgetAlyObj.currentItem().text()
         selected_item_data = self.listWidgetAlyObj.currentItem().data(Qt.UserRole).toString()
         self.xml_name = str(selected_item_data)
@@ -186,7 +215,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
         
         if self.xml_name.endswith("_ObjectFinder.xml"):
-            self.alyvix_finder_controller.delete_lock_list()
+            self._deleted_obj_name = self.alyvix_finder_controller.delete_lock_list()
+            
             os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_old_code.txt"))
             
             if (os.path.exists(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))):
@@ -225,9 +255,19 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         item = self.listWidgetAlyObj.takeItem(selected_index)
         self.listWidgetAlyObj.removeItemWidget(item)
         
-        self.update_list()
+        index_main_obj = self.update_list()
+        
+        if index_main_obj == -1:
+            index_main_obj = selected_index
+        
+        self.listWidgetAlyObj.setCurrentRow(index_main_obj)
+        #self.listWidgetAlyObj.setFocus();
+        print index_main_obj
     
     def update_list(self):
+    
+        cnt = 0
+        deleted_index = -1
     
         self.listWidgetAlyObj.clear()
     
@@ -287,10 +327,17 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 elif filename.endswith('_CustomCode.xml'):
                     item.setText(filename[:-15] + " [CC]")
                     
+                if self._deleted_obj_name is not None and (filename[:-15] == self._deleted_obj_name or filename[:-16] == self._deleted_obj_name or filename[:-17] == self._deleted_obj_name):
+                    deleted_index = cnt
+                    self._deleted_obj_name = None
+
+                    
                 item.setData(Qt.UserRole, filename)
                 self.listWidgetAlyObj.addItem(item)
                 
-            #print time.ctime(cdate), os.path.basename(path)
+                
+                #print time.ctime(cdate), os.path.basename(path)
+                cnt += 1
     
         """
         files = []
@@ -304,6 +351,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             
         print self.listWidgetAlyObj.count() 
         """
+            
+        return deleted_index
         
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -385,6 +434,12 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             #self.scaling_factor = info_manager.get_info("SCALING FACTOR FLOAT")
             time.sleep(0.600)
             self.alyvix_finder_controller = AlyvixObjectFinderView(self)
+            
+            self.alyvix_finder_controller.pv = PaintingView(self.alyvix_finder_controller)
+            image = QImage(self.alyvix_finder_controller._main_object_finder.xml_path.replace("xml", "png"))   
+            self.alyvix_finder_controller.pv.set_bg_pixmap(image)
+            self.alyvix_finder_controller.pv.showFullScreen()
+            
             self.alyvix_finder_controller.show()
             return
             
