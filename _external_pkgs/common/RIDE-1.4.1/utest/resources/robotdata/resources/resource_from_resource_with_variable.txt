@@ -1,2 +1,0 @@
-*** User Keywords ***
-UK From Resource from Resource with Variable

@@ -47,9 +47,14 @@ class _Rect():
     height_tolerance = 0
     width_tolerance = 0
 
+
     debug_folder = None
 
     def __init__(self, rect_dict):
+
+        self.red_channel = True
+        self.green_channel = True
+        self.blue_channel = True
         self._set_rect_dictionary(rect_dict)
 
     def _set_rect_dictionary(self, rect_dict):
@@ -74,6 +79,34 @@ class _Rect():
             self.max_width = rect_dict['max_width']
         else:
             raise Exception("Rect dictionary has an incorrect format!")
+
+        try:
+
+            if rect_dict['red_channel'] is True:
+                self.red_channel = True
+            else:
+                self.red_channel = False
+        except:
+            self.red_channel = True
+
+        try:
+
+            if rect_dict['green_channel'] is True:
+                self.green_channel = True
+            else:
+                self.green_channel = False
+        except:
+            self.green_channel = True
+
+        try:
+
+            if rect_dict['blue_channel'] is True:
+                self.blue_channel = True
+
+            else:
+                self.blue_channel = False
+        except:
+            self.blue_channel = True
 
 
 class RectFinder(BaseFinder):
@@ -144,6 +177,7 @@ class RectFinder(BaseFinder):
         :rtype: list[[MatchResult, list[MatchResult]]]
         :return: a list that contains x, y, height, width of rectangle(s) found
         """
+        cnt_channels = 3
         time_before_find = time.time()
         try:
             self._timedout_main_components = []
@@ -171,6 +205,46 @@ class RectFinder(BaseFinder):
 
             main_rect = self._main_component[0]
             roi = self._main_component[1]
+
+            if main_rect.red_channel is False or main_rect.green_channel is False or main_rect.blue_channel is False:
+                color_img = copy.deepcopy(self._source_image_color)
+            elif main_rect.red_channel is True and main_rect.green_channel is True and main_rect.blue_channel is True:
+                color_img = self._source_image_color
+
+
+
+            if main_rect.red_channel is False or main_rect.green_channel is False or main_rect.blue_channel is False:
+                img_b, img_g, img_r = cv2.split(self._source_image_color)
+                one_channel_img = None
+
+                cnt_channels = 0
+
+                if main_rect.red_channel is False:
+                    img_r = numpy.zeros((self._source_image_color.shape[0], self._source_image_color.shape[1]),
+                                        numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_r
+
+                if main_rect.green_channel is False:
+                    img_g = numpy.zeros((self._source_image_color.shape[0], self._source_image_color.shape[1]),
+                                        numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_g
+
+                if main_rect.blue_channel is False:
+                    img_b = numpy.zeros((self._source_image_color.shape[0], self._source_image_color.shape[1]),
+                                        numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_b
+
+                if cnt_channels > 1:
+                    color_img = cv2.merge((img_b, img_g, img_r))
+                else:
+                    color_img = one_channel_img
+                    color_img = cv2.cvtColor(color_img, cv2.COLOR_GRAY2BGR)
 
             if roi is not None:
 
@@ -227,15 +301,16 @@ class RectFinder(BaseFinder):
                     x2 = source_img_width
 
                 #print x1,x2,y1,y2
-                source_image = self._source_image_color[y1:y2, x1:x2]
+                source_image = color_img[y1:y2, x1:x2]
             else:
-                source_image = self._source_image_color
+                source_image = color_img
 
             objects_found = []
             analyzed_points = []
             self._objects_found = []
 
             blue, green, red = cv2.split(source_image)
+
             # Run canny edge detection on each channel
             blue_edges = self.__median_canny(blue, 0.2, 0.3)
             green_edges = self.__median_canny(green, 0.2, 0.3)
@@ -243,8 +318,10 @@ class RectFinder(BaseFinder):
 
             # Join edges back into image
             edges = blue_edges | green_edges | red_edges
+
+
             if self._log_manager.is_log_enable() is True:
-                self._log_manager.save_image(self.__find_log_folder, "source_img.png", source_image)
+                self._log_manager.save_image(self.__find_log_folder, "source_img.png", self._source_image_color)
                 self._log_manager.save_image(self.__find_log_folder, "edges.png", edges)
 
             #self._rect_extra_timedout_image = edges.copy()
@@ -369,6 +446,7 @@ class RectFinder(BaseFinder):
 
             if len(objects_found) > 0:
                 self._objects_found = copy.deepcopy(objects_found)
+                self._source_image_color = source_image
                 if self._is_object_finder is True:
                     self._objects_found_of_sub_object_finder.extend(copy.deepcopy(objects_found))
                     #gray_source_img = cv2.cvtColor(self._source_image, cv2.COLOR_BGR2GRAY)
@@ -379,6 +457,7 @@ class RectFinder(BaseFinder):
 
 
                     self._log_manager.save_objects_found(self._name, self.get_source_image_gray(),
+                    #self._log_manager.save_objects_found(self._name, source_image,
                                                          self._objects_found, [x[1] for x in self._sub_components],
                                                          self.main_xy_coordinates, self.sub_xy_coordinates, finder_type=1)
 
@@ -419,6 +498,7 @@ class RectFinder(BaseFinder):
         :return: returns True if sub template is found, False otherwise
         """
         try:
+            cnt_channels = 3
             rect = sub_rect[0]
             roi = sub_rect[1]
 
@@ -467,15 +547,47 @@ class RectFinder(BaseFinder):
                 x2 = source_img_width
 
             #print x1,x2,y1,y2
-            source_image_cropped = self._source_image_color[y1:y2, x1:x2]
+            color_img_cropped = self._source_image_color[y1:y2, x1:x2]
+
+            if rect.red_channel is False or rect.green_channel is False or rect.blue_channel is False:
+                cnt_channels = 0
+                one_channel_img = None
+                img_b, img_g, img_r = cv2.split(color_img_cropped)
+
+                if rect.red_channel is False:
+                    img_r = numpy.zeros((color_img_cropped.shape[0], color_img_cropped.shape[1]), numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_r
+
+                if rect.green_channel is False:
+                    img_g = numpy.zeros((color_img_cropped.shape[0], color_img_cropped.shape[1]), numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_g
+
+                if rect.blue_channel is False:
+                    img_b = numpy.zeros((color_img_cropped.shape[0], color_img_cropped.shape[1]), numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_b
+
+                if cnt_channels > 1:
+                    color_img_cropped = cv2.merge((img_b, img_g, img_r))
+                else:
+                    color_img_cropped = one_channel_img
+                    color_img_cropped = cv2.cvtColor(color_img_cropped, cv2.COLOR_GRAY2BGR)
+
+            source_image_cropped = color_img_cropped
 
             try:
                 blue, green, red = cv2.split(source_image_cropped)
             except:
                 if self._log_manager.is_log_enable() is True:
-                    #self._log_manager.save_image(self.__find_log_folder, "error_sub_edges.png", edges)
-                    self._log_manager.save_image(self.__find_log_folder, "error_sub_source_img.png", source_image_cropped)
-                    #self._log_manager.save_image(self.__find_log_folder, "sub_edges.png", edges)
+                    # self._log_manager.save_image(self.__find_log_folder, "error_sub_edges.png", edges)
+                    self._log_manager.save_image(self.__find_log_folder, "error_sub_source_img.png",
+                                                 source_image_cropped)
+                    # self._log_manager.save_image(self.__find_log_folder, "sub_edges.png", edges)
                     return None
             # Run canny edge detection on each channel
             blue_edges = self.__median_canny(blue, 0.2, 0.3)
@@ -485,6 +597,7 @@ class RectFinder(BaseFinder):
             # Join edges back into image
             edges = blue_edges | green_edges | red_edges
             #edges = self.__median_canny(source_image_cropped, 0.2, 0.3)
+
 
             if self._log_manager.is_log_enable() is True:
                 self._log_manager.save_image(self.__find_log_folder, "sub_source_img.png", source_image_cropped)

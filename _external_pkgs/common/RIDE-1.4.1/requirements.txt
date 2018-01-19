@@ -1,4 +1,0 @@
-setuptools
-nose
-mock
-paver

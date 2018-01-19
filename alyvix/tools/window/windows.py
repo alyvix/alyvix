@@ -36,7 +36,7 @@ class WinManager(WinManagerBase):
     def get_window_title(self):
         return win32gui.GetWindowText(win32gui.GetForegroundWindow())
 
-    def show_window(self, window_title):
+    def show_window(self, window_title, maximize=False):
         """
         show window.
 
@@ -44,7 +44,8 @@ class WinManager(WinManagerBase):
         :param window_title: regular expression for the window title
         """
         shell = win32com.client.Dispatch('WScript.Shell')
-        shell.Run("python.exe -c \"from alyvix.tools.window import WinManager; wm = WinManager(); wm._show_window('" + window_title + "')\"", 1, 1)
+        shell.Run("python.exe -c \"from alyvix.tools.window import WinManager; wm = WinManager(); wm._show_window('" + window_title + "', maximize=" + str(maximize) + ")\"", 1, 1)
+        #self._show_window(window_title)
 
     def maximize_foreground_window(self):
         """
@@ -180,12 +181,19 @@ class WinManager(WinManagerBase):
     def __window_enumeration_handler(self, hwnd, windows):
         windows.append((hwnd, win32gui.GetWindowText(hwnd)))
 
-    def _show_window(self, window_title):
+    def _show_window(self, window_title, maximize=False):
 
         hwnd_found_list = self._get_hwnd(window_title)
         for hwnd_found in hwnd_found_list:
-            win32gui.ShowWindow(hwnd_found, win32con.SW_RESTORE)
+            if win32gui.IsIconic(hwnd_found) != 0: #restore first
+                win32gui.ShowWindow(hwnd_found, win32con.SW_RESTORE)
+
+
             win32gui.SetWindowPos(hwnd_found,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
             win32gui.SetWindowPos(hwnd_found,win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
             win32gui.SetWindowPos(hwnd_found,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_SHOWWINDOW + win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+
+            if maximize is True:
+                win32gui.ShowWindow(hwnd_found, win32con.SW_MAXIMIZE)
+
             win32gui.SetForegroundWindow(hwnd_found)

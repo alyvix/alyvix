@@ -38,6 +38,9 @@ class _Template():
         self._info_manager = InfoManager()
         self.image_data = None
         self.threshold = 0.7
+        self.red_channel = True
+        self.green_channel = True
+        self.blue_channel = True
         self._set_template_dictionary(template_dict)
 
     def _set_template_dictionary(self, template_dict):
@@ -51,6 +54,7 @@ class _Template():
         if "path" in template_dict and "threshold" in template_dict:
             self.image_data = cv2.imread(template_dict['path'])
 
+            """
             if str(self._info_manager.get_info('channel')).lower() != 'all':
                 img_b, img_g, img_r = cv2.split(self.image_data)
 
@@ -60,6 +64,46 @@ class _Template():
                     self.image_data = cv2.cvtColor(img_g, cv2.COLOR_GRAY2BGR)
                 elif str(self._info_manager.get_info('channel')).lower() == 'r':
                     self.image_data = cv2.cvtColor(img_r, cv2.COLOR_GRAY2BGR)
+            """
+            img_b, img_g, img_r = cv2.split(self.image_data)
+
+
+            try:
+
+                if template_dict['red_channel'] is True:
+                    self.red_channel = True
+
+                else:
+                    self.red_channel = False
+                    img_r = numpy.zeros((self.image_data.shape[0], self.image_data.shape[1]), numpy.uint8)
+            except:
+                self.red_channel = True
+
+            try:
+
+                if template_dict['green_channel'] is True:
+                    self.green_channel = True
+                else:
+                    self.green_channel = False
+                    img_g = numpy.zeros((self.image_data.shape[0], self.image_data.shape[1]), numpy.uint8)
+            except:
+                self.green_channel = True
+
+            try:
+
+                if template_dict['blue_channel'] is True:
+                    self.blue_channel = True
+
+                else:
+                    self.blue_channel = False
+                    img_b = numpy.zeros((self.image_data.shape[0], self.image_data.shape[1]), numpy.uint8)
+            except:
+                self.blue_channel = True
+
+            self.image_data = cv2.merge((img_b, img_g, img_r))
+
+            #cv2.imwrite("c:\\AlyvixTestCase\\tttt.png", self.image_data)
+
 
             self.image_data = cv2.cvtColor(self.image_data, cv2.COLOR_BGR2GRAY)
 
@@ -162,6 +206,9 @@ class ImageFinder(BaseFinder):
         #tzero = time.time()
         time_before_find = time.time()
         try:
+            cnt_channels = 3
+            color_img = None
+            gray_img = None
 
             #x = 1 / 0
 
@@ -185,6 +232,7 @@ class ImageFinder(BaseFinder):
                 self.set_source_image_gray(src_img_gray)
                 source_img_auto_set = True
 
+            """
             if str(self._info_manager.get_info('channel')).lower() != 'all':
                 img_b, img_g, img_r = cv2.split(self._source_image_color)
 
@@ -196,8 +244,7 @@ class ImageFinder(BaseFinder):
                     self._source_image_color = cv2.cvtColor(img_r, cv2.COLOR_GRAY2BGR)
 
                 self._source_image_gray = cv2.cvtColor(self._source_image_color , cv2.COLOR_BGR2GRAY)
-
-            self.__find_log_folder = datetime.datetime.now().strftime("%H_%M_%S") + "_" + "searching"
+            """
 
             offset_x = 0
             offset_y = 0
@@ -206,6 +253,47 @@ class ImageFinder(BaseFinder):
             main_template = self._main_component[0]
             #print "main templ:", main_template
             roi = self._main_component[1]
+
+            if main_template.red_channel is False or main_template.green_channel is False or main_template.blue_channel is False:
+                color_img = copy.deepcopy(self._source_image_color)
+                gray_img = copy.deepcopy(self._source_image_gray)
+            elif main_template.red_channel is True and main_template.green_channel is True and main_template.blue_channel is True:
+                color_img = self._source_image_color
+                gray_img = self._source_image_gray
+
+            if main_template.red_channel is False or main_template.green_channel is False or main_template.blue_channel is False:
+                one_channel_img = None
+                cnt_channels = 0
+                img_b, img_g, img_r = cv2.split(self._source_image_color)
+
+                if main_template.red_channel is False:
+                    img_r = numpy.zeros((self._source_image_color.shape[0], self._source_image_color.shape[1]), numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_r
+
+                if main_template.green_channel is False:
+                    img_g = numpy.zeros((self._source_image_color.shape[0], self._source_image_color.shape[1]), numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_g
+
+                if main_template.blue_channel is False:
+                    img_b = numpy.zeros((self._source_image_color.shape[0], self._source_image_color.shape[1]), numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_b
+
+                if cnt_channels > 1:
+                    color_img = cv2.merge((img_b, img_g, img_r))
+                else:
+                    color_img = one_channel_img
+                    color_img = cv2.cvtColor(color_img, cv2.COLOR_GRAY2BGR)
+
+                gray_img = cv2.cvtColor(color_img, cv2.COLOR_BGR2GRAY)
+
+            self.__find_log_folder = datetime.datetime.now().strftime("%H_%M_%S") + "_" + "searching"
+
 
             if roi is not None:
 
@@ -262,9 +350,9 @@ class ImageFinder(BaseFinder):
                     x2 = source_img_width
 
                 #print x1,x2,y1,y2
-                source_image = self._source_image_gray[y1:y2, x1:x2]
+                source_image = gray_img[y1:y2, x1:x2]
             else:
-                source_image = self._source_image_gray
+                source_image = gray_img
 
 
             if self._log_manager.is_log_enable() is True:
@@ -471,6 +559,8 @@ class ImageFinder(BaseFinder):
         """
         try:
 
+            cnt_channels = 3
+
             template = sub_template[0]
             roi = sub_template[1]
 
@@ -518,8 +608,45 @@ class ImageFinder(BaseFinder):
             elif x2 > source_img_width:
                 x2 = source_img_width
 
-            #print x1,x2,y1,y2
-            source_image_cropped = self._source_image_gray[y1:y2, x1:x2]
+            color_img_cropped = self._source_image_color[y1:y2, x1:x2]
+            gray_img_cropped = self._source_image_gray[y1:y2, x1:x2]
+
+
+
+            if template.red_channel is False or template.green_channel is False or template.blue_channel is False:
+                cnt_channels = 0
+                one_channel_img = None
+                img_b, img_g, img_r = cv2.split(color_img_cropped)
+
+                if template.red_channel is False:
+                    img_r = numpy.zeros((color_img_cropped.shape[0], color_img_cropped.shape[1]), numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_r
+
+                if template.green_channel is False:
+                    img_g = numpy.zeros((color_img_cropped.shape[0], color_img_cropped.shape[1]), numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_g
+
+                if template.blue_channel is False:
+                    img_b = numpy.zeros((color_img_cropped.shape[0], color_img_cropped.shape[1]), numpy.uint8)
+                else:
+                    cnt_channels += 1
+                    one_channel_img = img_b
+
+                if cnt_channels > 1:
+                    color_img_cropped = cv2.merge((img_b, img_g, img_r))
+
+                else:
+                    color_img_cropped = one_channel_img
+                    color_img_cropped = cv2.cvtColor(color_img_cropped, cv2.COLOR_GRAY2BGR)
+
+                gray_img_cropped = cv2.cvtColor(color_img_cropped, cv2.COLOR_BGR2GRAY)
+
+
+            source_image_cropped = gray_img_cropped
 
             if self._log_manager.is_log_enable() is True:
                 self._log_manager.save_image(self.__find_log_folder, "sub_source_img.png", source_image_cropped)

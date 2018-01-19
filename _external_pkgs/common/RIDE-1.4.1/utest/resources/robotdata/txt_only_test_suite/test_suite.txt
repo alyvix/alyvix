@@ -1,9 +1,0 @@
-*** Settings ***
-Documentation   documentation for test suite
-Resource        ../resources/resource.txt
-
-*** Test Cases ***
-Test Case 1
-    [Documentation]  Doc for test case
-    No Operation
-

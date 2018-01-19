@@ -3459,11 +3459,26 @@ class AlyvixTextFinderView(QWidget):
             text_to_find = "\"" + unicode(self._main_text.text, "utf8") + "\""
         else:
             text_to_find = self._main_text.text + ".encode('utf8')"
+            
+        str_channel = ""
+            
+        if self._main_text.red_channel is False:
+            str_channel = str_channel + "\"red_channel\": False, "
+            
+        if self._main_text.green_channel is False:
+            str_channel = str_channel + "\"green_channel\": False, "
+            
+        if self._main_text.blue_channel is False:
+            str_channel = str_channel + "\"blue_channel\": False, "
+            
+        if str_channel != "":
+            str_channel = ", " + str_channel[:-2]
+            
         
         if self._main_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
-            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"},"
+            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"" + str_channel + "},"
         else:
-            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"" + ", \"whitelist\": \"" + unicode(self._main_text.whitelist, "utf8") + "\"},"
+            str1 = "    " + name + "_object.set_main_component({\"text\": " + text_to_find + ", \"lang\": \""  + self._main_text.lang + "\"" + ", \"whitelist\": \"" + unicode(self._main_text.whitelist, "utf8") + "\"" + str_channel + "},"
             
         str2 ="                                   {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + ", \"roi_unlimited_up\": " + roi_unlimited_up + ", \"roi_unlimited_down\": " + roi_unlimited_down + ", \"roi_unlimited_left\": " + roi_unlimited_left + ", \"roi_unlimited_right\": " + roi_unlimited_right + "})"
             
@@ -3472,7 +3487,7 @@ class AlyvixTextFinderView(QWidget):
         self._code_lines_for_object_finder.append(str1)
         self._code_lines_for_object_finder.append(str2)
         
-             
+
         if self.scraper is False:
             if self._main_text.click == True or self._main_text.rightclick == True or self._main_text.mousemove == True or self._main_text.hold_and_release is not None:
                 if self._main_text.x_offset is None and self._main_text.y_offset is None: 
@@ -3545,6 +3560,20 @@ class AlyvixTextFinderView(QWidget):
                     roi_unlimited_down = str(sub_text.roi_unlimited_down)
                     roi_unlimited_left = str(sub_text.roi_unlimited_left)
                     roi_unlimited_right = str(sub_text.roi_unlimited_right)
+                    
+                    str_channel = ""
+            
+                    if sub_text.red_channel is False:
+                        str_channel = str_channel + "\"red_channel\": False, "
+                        
+                    if sub_text.green_channel is False:
+                        str_channel = str_channel + "\"green_channel\": False, "
+                        
+                    if sub_text.blue_channel is False:
+                        str_channel = str_channel + "\"blue_channel\": False, "
+                        
+                    if str_channel != "":
+                        str_channel = ", " + str_channel[:-2]
                         
                     text_to_find = ""
                     if sub_text.quotes_ocr is True:
@@ -3554,9 +3583,9 @@ class AlyvixTextFinderView(QWidget):
                 
                     #str1 = "    text_finder.add_sub_component({\"path\": \"" + sub_text.path + "\", \"threshold\":" + repr(sub_text.threshold) + "},"
                     if sub_text.whitelist == "'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&:/-_\,+()*.=[]<>@":
-                        str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\"},"
+                        str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\"" + str_channel + "},"
                     else:
-                        str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\", \"whitelist\": \"" + unicode(sub_text.whitelist, "utf8") + "\"},"
+                        str1 = "    " + name + "_object.add_sub_component({\"text\": " + text_to_find + ", \"lang\": \"" + sub_text.lang + "\", \"whitelist\": \"" + unicode(sub_text.whitelist, "utf8") + "\"" + str_channel + "},"
                         
                     
                     str2 = "                                  {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + ", \"roi_unlimited_up\": " + roi_unlimited_up + ", \"roi_unlimited_down\": " + roi_unlimited_down + ", \"roi_unlimited_left\": " + roi_unlimited_left + ", \"roi_unlimited_right\": " + roi_unlimited_right + "})"
@@ -4060,6 +4089,15 @@ class AlyvixTextFinderView(QWidget):
         height_node = ET.SubElement(main_text_node, "height")
         height_node.text = str(self._main_text.height)
         
+        red_channel_node = ET.SubElement(main_text_node, "red_channel")
+        red_channel_node.text = str(self._main_text.red_channel)
+        
+        green_channel_node = ET.SubElement(main_text_node, "green_channel")
+        green_channel_node.text = str(self._main_text.green_channel)
+        
+        blue_channel_node = ET.SubElement(main_text_node, "blue_channel")
+        blue_channel_node.text = str(self._main_text.blue_channel)
+        
         text_node = ET.SubElement(main_text_node, "text")
         text_node.set("quotes", str(self._main_text.quotes_ocr))
         text_node.append(ET.Comment(' --><![CDATA[' + unicode(self._main_text.text.replace(']]>', ']]]]><![CDATA[>'), 'utf-8') + ']]><!-- '))
@@ -4194,6 +4232,15 @@ class AlyvixTextFinderView(QWidget):
 
                 whitelist_node = ET.SubElement(sub_text_node, "whitelist")
                 whitelist_node.append(ET.Comment(' --><![CDATA[' + unicode(sub_text.whitelist.replace(']]>', ']]]]><![CDATA[>'), 'utf-8') + ']]><!-- '))
+                
+                red_channel_node = ET.SubElement(sub_text_node, "red_channel")
+                red_channel_node.text = str(sub_text.red_channel)
+
+                green_channel_node = ET.SubElement(sub_text_node, "green_channel")
+                green_channel_node.text = str(sub_text.green_channel)
+
+                blue_channel_node = ET.SubElement(sub_text_node, "blue_channel")
+                blue_channel_node.text = str(sub_text.blue_channel)
                 
                 #whitelist_node.text = str(sub_text.whitelist)
                 
@@ -4393,6 +4440,30 @@ class AlyvixTextFinderView(QWidget):
             self._main_text.text = self._main_text.text.encode('utf-8')
         except AttributeError:
             self._main_text.text = ''.encode('utf-8')
+            
+        try:
+            if "True" in main_text_node.getElementsByTagName("red_channel")[0].firstChild.nodeValue:
+                self._main_text.red_channel = True
+            else:
+                self._main_text.red_channel = False
+        except:
+            pass
+            
+        try:
+            if "True" in main_text_node.getElementsByTagName("green_channel")[0].firstChild.nodeValue:
+                self._main_text.green_channel = True
+            else:
+                self._main_text.green_channel = False
+        except:
+            pass
+            
+        try:
+            if "True" in main_text_node.getElementsByTagName("blue_channel")[0].firstChild.nodeValue:
+                self._main_text.blue_channel = True
+            else:
+                self._main_text.blue_channel = False
+        except:
+            pass 
         
         self._main_text.lang = main_text_node.getElementsByTagName("lang")[0].firstChild.nodeValue
         #self._main_text.whitelist = main_text_node.getElementsByTagName("whitelist")[0].firstChild.nodeValue
@@ -4624,6 +4695,31 @@ class AlyvixTextFinderView(QWidget):
                 sub_text_obj.text = sub_text_obj.text.encode('utf-8')
             except AttributeError:
                 sub_text_obj.text = ''.encode('utf-8')
+                
+                            
+            try:
+                if "True" in sub_text_node.getElementsByTagName("red_channel")[0].firstChild.nodeValue:
+                    sub_text_obj.red_channel = True
+                else:
+                    sub_text_obj.red_channel = False
+            except:
+                pass
+                
+            try:
+                if "True" in sub_text_node.getElementsByTagName("green_channel")[0].firstChild.nodeValue:
+                    sub_text_obj.green_channel = True
+                else:
+                    sub_text_obj.green_channel = False
+            except:
+                pass
+                                  
+            try:
+                if "True" in sub_text_node.getElementsByTagName("blue_channel")[0].firstChild.nodeValue:
+                    sub_text_obj.blue_channel = True
+                else:
+                    sub_text_obj.blue_channel = False
+            except:
+                pass  
             
             sub_text_obj.lang = sub_text_node.getElementsByTagName("lang")[0].firstChild.nodeValue
             #sub_text_obj.whitelist = sub_text_node.getElementsByTagName("whitelist")[0].firstChild.nodeValue
@@ -4871,6 +4967,9 @@ class MainTextForGui:
     
     def __init__(self):
         self.name = ""
+        self.red_channel = True
+        self.blue_channel = True
+        self.green_channel = True
         self.x = 0
         self.y = 0
         self.height = 0
@@ -4924,6 +5023,9 @@ class MainTextForGui:
 class SubTextForGui:
     
     def __init__(self):
+        self.red_channel = True
+        self.blue_channel = True
+        self.green_channel = True
         self.x = 0
         self.y = 0
         self.height = 0
@@ -5346,6 +5448,25 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
             self.enable_scraper.setEnabled(False)
             
+        if self.parent._main_text.red_channel is True:
+            self.checkBoxRedChannel.setChecked(True)
+        else:
+            self.checkBoxRedChannel.setChecked(False)
+            
+        if self.parent._main_text.green_channel is True:
+            self.checkBoxGreenChannel.setChecked(True)
+        else:
+            self.checkBoxGreenChannel.setChecked(False)
+        
+        if self.parent._main_text.blue_channel is True:
+            self.checkBoxBlueChannel.setChecked(True)
+        else:
+            self.checkBoxBlueChannel.setChecked(False)
+            
+        self.connect(self.checkBoxRedChannel, SIGNAL('stateChanged(int)'), self.red_channel_event)
+        self.connect(self.checkBoxGreenChannel, SIGNAL('stateChanged(int)'), self.green_channel_event)
+        self.connect(self.checkBoxBlueChannel, SIGNAL('stateChanged(int)'), self.blue_channel_event)
+            
         self.spinBoxSendKeysDelay.setValue(self.parent._main_text.sendkeys_delay)
         self.spinBoxSendKeysDuration.setValue(self.parent._main_text.sendkeys_duration)
            
@@ -5424,6 +5545,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         ###########
         
         self.connect(self.add_quotes_ocr_2, SIGNAL('stateChanged(int)'), self.add_quotes_ocr_event_2)
+        
+        self.connect(self.checkBoxRedChannel_2, SIGNAL('stateChanged(int)'), self.red_channel_event_2)
+        self.connect(self.checkBoxGreenChannel_2, SIGNAL('stateChanged(int)'), self.green_channel_event_2)
+        self.connect(self.checkBoxBlueChannel_2, SIGNAL('stateChanged(int)'), self.blue_channel_event_2)
         
         self.connect(self.roi_x_spinbox, SIGNAL('valueChanged(int)'), self.roi_x_spinbox_event)
         self.connect(self.roi_y_spinbox, SIGNAL('valueChanged(int)'), self.roi_y_spinbox_event)
@@ -5553,6 +5678,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 QMessageBox.critical(self, "Error", "Invalid text syntax on main conponent")
                 return True
                 
+        if not os.path.exists(get_python_lib() + os.sep + "alyvix\\extra\\Tesseract-OCR\\tessdata" + os.sep + self.parent._main_text.lang + ".traineddata"):
+            QMessageBox.critical(self, "Error", "Invalid language on main component")
+            return True
+                
         cnt = 1
         for sub_text in self.parent._sub_texts_finder:
             if sub_text.sendkeys_quotes is False:
@@ -5604,6 +5733,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 except SyntaxError:
                     QMessageBox.critical(self, "Error", "Invalid text syntax on sub component " + str(cnt))
                     return True
+            if not os.path.exists(get_python_lib() + os.sep + "alyvix\\extra\\Tesseract-OCR\\tessdata" + os.sep + sub_text.lang + ".traineddata"):
+                QMessageBox.critical(self, "Error", "Invalid language on sub component " + str(cnt))
+                return True
+                
             cnt += 1
             
         
@@ -5714,7 +5847,32 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 self.doubleSpinBoxCritical.setEnabled(False)
                 self.labelWarning.setEnabled(False)
                 self.labelCritical.setEnabled(False)
+    
+    def red_channel_event(self, event):
+        print event
+        if self.checkBoxRedChannel.isChecked() is True:
+            self.parent._main_text.red_channel = True
+        elif self.checkBoxGreenChannel.isChecked() is False and self.checkBoxBlueChannel.isChecked() is False:
+            self.checkBoxRedChannel.setCheckState(Qt.Checked)
+        else:
+            self.parent._main_text.red_channel = False
             
+    def green_channel_event(self, event):
+        if self.checkBoxGreenChannel.isChecked() is True:
+            self.parent._main_text.green_channel = True
+        elif self.checkBoxRedChannel.isChecked() is False and self.checkBoxBlueChannel.isChecked() is False:
+            self.checkBoxGreenChannel.setCheckState(Qt.Checked)
+        else:
+            self.parent._main_text.green_channel = False
+            
+    def blue_channel_event(self, event):
+        if self.checkBoxBlueChannel.isChecked() is True:
+            self.parent._main_text.blue_channel = True
+        elif self.checkBoxRedChannel.isChecked() is False and self.checkBoxGreenChannel.isChecked() is False:
+            self.checkBoxBlueChannel.setCheckState(Qt.Checked)
+        else:
+            self.parent._main_text.blue_channel = False
+    
         
     def min_width_spinbox_change_event(self, event):
         self.parent._main_text.min_width = self.min_width_spinbox.value()
@@ -6018,6 +6176,21 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseRadio_2.setChecked(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            
+        if self.parent._sub_texts_finder[self.sub_text_index].red_channel is True:
+            self.checkBoxRedChannel_2.setChecked(True)
+        else:
+            self.checkBoxRedChannel_2.setChecked(False)
+            
+        if self.parent._sub_texts_finder[self.sub_text_index].green_channel is True:
+            self.checkBoxGreenChannel_2.setChecked(True)
+        else:
+            self.checkBoxGreenChannel_2.setChecked(False)
+        
+        if self.parent._sub_texts_finder[self.sub_text_index].blue_channel is True:
+            self.checkBoxBlueChannel_2.setChecked(True)
+        else:
+            self.checkBoxBlueChannel_2.setChecked(False)
             
             
     def clickRadio_event(self, event):
@@ -6663,6 +6836,39 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
 ############
 ############
+
+    def red_channel_event_2(self, event):
+        print event
+        if self.checkBoxRedChannel_2.isChecked() is True:
+            self.parent._sub_texts_finder[self.sub_text_index].red_channel = True
+        elif self.checkBoxGreenChannel_2.isChecked() is False and self.checkBoxBlueChannel_2.isChecked() is False:
+            self.checkBoxRedChannel_2.setCheckState(Qt.Checked)
+        else:
+            self.parent._sub_texts_finder[self.sub_text_index].red_channel = False
+            
+    def green_channel_event_2(self, event):
+        if self.checkBoxGreenChannel_2.isChecked() is True:
+            self.parent._sub_texts_finder[self.sub_text_index].green_channel = True
+        elif self.checkBoxRedChannel_2.isChecked() is False and self.checkBoxBlueChannel_2.isChecked() is False:
+            self.checkBoxGreenChannel_2.setCheckState(Qt.Checked)
+        else:
+            self.parent._sub_texts_finder[self.sub_text_index].green_channel = False
+            
+    def blue_channel_event_2(self, event):
+        if self.checkBoxBlueChannel_2.isChecked() is True:
+            self.parent._sub_texts_finder[self.sub_text_index].blue_channel = True
+        elif self.checkBoxRedChannel_2.isChecked() is False and self.checkBoxGreenChannel_2.isChecked() is False:
+            self.checkBoxBlueChannel_2.setCheckState(Qt.Checked)
+        else:
+            self.parent._sub_texts_finder[self.sub_text_index].blue_channel = False
+
+
+    def text_encrypted_event_2(self, event):
+        if self.text_encrypted_2.isChecked() is True:
+            self.parent._sub_rects_finder[self.sub_rect_index].text_encrypted = True
+        else:
+            self.parent._sub_rects_finder[self.sub_rect_index].text_encrypted = False
+
 
     def text_encrypted_event_2(self, event):
         if self.text_encrypted_2.isChecked() is True:

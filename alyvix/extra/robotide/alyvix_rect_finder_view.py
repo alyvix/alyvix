@@ -2603,19 +2603,33 @@ class AlyvixRectFinderView(QWidget):
         self._code_lines.append("    global " + name + "_object")
         self._code_lines.append("    " + name + "_object = RectFinder(\"" + name + "\")")
         
+        str_channel = ""
+        
+        if self._main_rect_finder.red_channel is False:
+            str_channel = str_channel + "\"red_channel\": False, "
+
+        if self._main_rect_finder.green_channel is False:
+            str_channel = str_channel + "\"green_channel\": False, "
+
+        if self._main_rect_finder.blue_channel is False:
+            str_channel = str_channel + "\"blue_channel\": False, "
+
+        if str_channel != "":
+            str_channel = ", " + str_channel[:-2]
+        
         if self._main_rect_finder.use_min_max is False:                  
             height = str(self._main_rect_finder.height)
             width = str(self._main_rect_finder.width)
             width_tolerance = str(self._main_rect_finder.width_tolerance)
             height_tolerance = str(self._main_rect_finder.height_tolerance)
-            strcode = "    " + name + "_object.set_main_component({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": " + height_tolerance + ", \"width_tolerance\": " + width_tolerance + "})"
+            strcode = "    " + name + "_object.set_main_component({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": " + height_tolerance + ", \"width_tolerance\": " + width_tolerance + str_channel + "})"
             #self._code_lines.append("    rect_finder.set_main_rect({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": " + height_tolerance + ", \"width_tolerance\": " + width_tolerance + "})")
         else:
             min_width = str(self._main_rect_finder.min_width)
             max_width = str(self._main_rect_finder.max_width)
             min_height = str(self._main_rect_finder.min_height)
             max_height = str(self._main_rect_finder.max_height)
-            strcode = "    " + name + "_object.set_main_component({\"min_width\": " + min_width + ", \"max_width\": " + max_width + ", \"min_height\": " + min_height + ", \"max_height\": " + max_height + "})"
+            strcode = "    " + name + "_object.set_main_component({\"min_width\": " + min_width + ", \"max_width\": " + max_width + ", \"min_height\": " + min_height + ", \"max_height\": " + max_height + str_channel + "})"
             #self._code_lines.append("    rect_finder.set_main_rect({\"min_width\": " + min_width + ", \"max_width\": " + max_width + ", \"min_height\": " + min_height + ", \"max_height\": " + max_height + "})")
             
         self._code_lines.append(strcode)
@@ -2690,6 +2704,20 @@ class AlyvixRectFinderView(QWidget):
                 roi_unlimited_left = str(sub_rect.roi_unlimited_left)
                 roi_unlimited_right = str(sub_rect.roi_unlimited_right)
                 
+                str_channel = ""
+                
+                if sub_rect.red_channel is False:
+                    str_channel = str_channel + "\"red_channel\": False, "
+
+                if sub_rect.green_channel is False:
+                    str_channel = str_channel + "\"green_channel\": False, "
+
+                if sub_rect.blue_channel is False:
+                    str_channel = str_channel + "\"blue_channel\": False, "
+
+                if str_channel != "":
+                    str_channel = ", " + str_channel[:-2]
+                
                 if sub_rect.use_min_max is False:  
                     
                     height = str(sub_rect.height)
@@ -2697,7 +2725,7 @@ class AlyvixRectFinderView(QWidget):
                     width_tolerance = str(sub_rect.width_tolerance)
                     height_tolerance = str(sub_rect.height_tolerance)
                 
-                    str1 = "    " + name + "_object.add_sub_component({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": " + height_tolerance + ", \"width_tolerance\": " + width_tolerance + "},"
+                    str1 = "    " + name + "_object.add_sub_component({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": " + height_tolerance + ", \"width_tolerance\": " + width_tolerance + str_channel + "},"
                     str2 = "                             {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + ", \"roi_unlimited_up\": " + roi_unlimited_up + ", \"roi_unlimited_down\": " + roi_unlimited_down + ", \"roi_unlimited_left\": " + roi_unlimited_left + ", \"roi_unlimited_right\": " + roi_unlimited_right + "})"
                     #self._code_lines.append("    rect_finder.add_sub_rect({\"height\": " + height + ", \"width\": " + width + ", \"height_tolerance\": " + height_tolerance + ", \"width_tolerance\": " + width_tolerance + "},")
                     #self._code_lines.append("                             {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})")
@@ -2708,7 +2736,7 @@ class AlyvixRectFinderView(QWidget):
                     min_height = str(sub_rect.min_height)
                     max_height = str(sub_rect.max_height)
                     
-                    str1 = "    " + name + "_object.add_sub_component({\"min_height\": " + min_height + ", \"max_height\": " + max_height + ", \"min_width\": " + min_width + ", \"max_width\": " + max_width + "},"
+                    str1 = "    " + name + "_object.add_sub_component({\"min_height\": " + min_height + ", \"max_height\": " + max_height + ", \"min_width\": " + min_width + ", \"max_width\": " + max_width + str_channel + "},"
                     str2 = "                             {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + ", \"roi_unlimited_up\": " + roi_unlimited_up + ", \"roi_unlimited_down\": " + roi_unlimited_down + ", \"roi_unlimited_left\": " + roi_unlimited_left + ", \"roi_unlimited_right\": " + roi_unlimited_right + "})"
                     #self._code_lines.append("    rect_finder.add_sub_rect({\"min_height\": " + min_height + ", \"max_height\": " + max_height + ", \"min_width\": " + min_width + ", \"max_width\": " + max_width + "},")
                     #self._code_lines.append("                             {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + "})")
@@ -3214,6 +3242,15 @@ class AlyvixRectFinderView(QWidget):
         use_tolerance_node = ET.SubElement(main_rect_node, "use_tolerance")
         use_tolerance_node.text = str(self._main_rect_finder.use_tolerance)
         
+        red_channel_node = ET.SubElement(main_rect_node, "red_channel")
+        red_channel_node.text = str(self._main_rect_finder.red_channel)
+        
+        green_channel_node = ET.SubElement(main_rect_node, "green_channel")
+        green_channel_node.text = str(self._main_rect_finder.green_channel)
+        
+        blue_channel_node = ET.SubElement(main_rect_node, "blue_channel")
+        blue_channel_node.text = str(self._main_rect_finder.blue_channel)
+        
         """
         find_node = ET.SubElement(main_rect_node, "find")
         find_node.text = str(self.find)
@@ -3322,6 +3359,15 @@ class AlyvixRectFinderView(QWidget):
                 
                 use_tolerance_node = ET.SubElement(sub_rect_node, "use_tolerance")
                 use_tolerance_node.text = str(sub_rect.use_tolerance)
+                
+                red_channel_node = ET.SubElement(sub_rect_node, "red_channel")
+                red_channel_node.text = str(sub_rect.red_channel)
+
+                green_channel_node = ET.SubElement(sub_rect_node, "green_channel")
+                green_channel_node.text = str(sub_rect.green_channel)
+
+                blue_channel_node = ET.SubElement(sub_rect_node, "blue_channel")
+                blue_channel_node.text = str(sub_rect.blue_channel)
                 
                 roi_x_node = ET.SubElement(sub_rect_node, "roi_x")
                 roi_x_node.text = str(sub_rect.roi_x)
@@ -3519,7 +3565,31 @@ class AlyvixRectFinderView(QWidget):
             self._main_rect_finder.use_min_max = True
         else:
             self._main_rect_finder.use_min_max = False
-
+            
+        try:
+            if "True" in main_rect_node.getElementsByTagName("red_channel")[0].firstChild.nodeValue:
+                self._main_rect_finder.red_channel = True
+            else:
+                self._main_rect_finder.red_channel = False
+        except:
+            pass
+            
+        try:
+            if "True" in main_rect_node.getElementsByTagName("green_channel")[0].firstChild.nodeValue:
+                self._main_rect_finder.green_channel = True
+            else:
+                self._main_rect_finder.green_channel = False
+        except:
+            pass
+            
+        try:
+            if "True" in main_rect_node.getElementsByTagName("blue_channel")[0].firstChild.nodeValue:
+                self._main_rect_finder.blue_channel = True
+            else:
+                self._main_rect_finder.blue_channel = False
+        except:
+            pass
+            
         if "True" in root_node.attributes["find"].value: #main_rect_node.getElementsByTagName("find")[0].firstChild.nodeValue:
             self.find = True
         else:
@@ -3731,6 +3801,32 @@ class AlyvixRectFinderView(QWidget):
             else:
                 sub_rect_obj.use_min_max = False
                 
+            
+            try:
+                if "True" in sub_rect_node.getElementsByTagName("red_channel")[0].firstChild.nodeValue:
+                    sub_rect_obj.red_channel = True
+                else:
+                    sub_rect_obj.red_channel = False
+            except:
+                pass
+                
+            try:
+                if "True" in sub_rect_node.getElementsByTagName("green_channel")[0].firstChild.nodeValue:
+                    sub_rect_obj.green_channel = True
+                else:
+                    sub_rect_obj.green_channel = False
+            except:
+                pass
+                
+            try:
+                if "True" in sub_rect_node.getElementsByTagName("blue_channel")[0].firstChild.nodeValue:
+                    sub_rect_obj.blue_channel = True
+                else:
+                    sub_rect_obj.blue_channel = False
+            except:
+                pass
+                
+                
             if "True" in sub_rect_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_rect_obj.click = True
                 self.mouse_or_key_is_set = True
@@ -3929,6 +4025,9 @@ class MainRectForGui:
     
     def __init__(self):
         self.name = ""
+        self.red_channel = True
+        self.blue_channel = True
+        self.green_channel = True
         self.x = 0
         self.y = 0
         self.height = 0
@@ -3974,6 +4073,9 @@ class MainRectForGui:
 class SubRectForGui:
     
     def __init__(self):
+        self.red_channel = True
+        self.blue_channel = True
+        self.green_channel = True
         self.x = 0
         self.y = 0
         self.height = 0
@@ -4331,7 +4433,26 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.doubleSpinBoxWarning.setEnabled(False)
             self.doubleSpinBoxCritical.setEnabled(False)
             self.labelWarning.setEnabled(False)
-            self.labelCritical.setEnabled(False)           
+            self.labelCritical.setEnabled(False)       
+
+        if self.parent._main_rect_finder.red_channel is True:
+            self.checkBoxRedChannel.setChecked(True)
+        else:
+            self.checkBoxRedChannel.setChecked(False)
+            
+        if self.parent._main_rect_finder.green_channel is True:
+            self.checkBoxGreenChannel.setChecked(True)
+        else:
+            self.checkBoxGreenChannel.setChecked(False)
+        
+        if self.parent._main_rect_finder.blue_channel is True:
+            self.checkBoxBlueChannel.setChecked(True)
+        else:
+            self.checkBoxBlueChannel.setChecked(False)
+
+        self.connect(self.checkBoxRedChannel, SIGNAL('stateChanged(int)'), self.red_channel_event)
+        self.connect(self.checkBoxGreenChannel, SIGNAL('stateChanged(int)'), self.green_channel_event)
+        self.connect(self.checkBoxBlueChannel, SIGNAL('stateChanged(int)'), self.blue_channel_event)
             
         self.spinBoxSendKeysDelay.setValue(self.parent._main_rect_finder.sendkeys_delay)
         self.spinBoxSendKeysDuration.setValue(self.parent._main_rect_finder.sendkeys_duration)
@@ -4411,6 +4532,11 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         
         ###########
         ###########
+        
+        self.connect(self.checkBoxRedChannel_2, SIGNAL('stateChanged(int)'), self.red_channel_event_2)
+        self.connect(self.checkBoxGreenChannel_2, SIGNAL('stateChanged(int)'), self.green_channel_event_2)
+        self.connect(self.checkBoxBlueChannel_2, SIGNAL('stateChanged(int)'), self.blue_channel_event_2)
+        
         self.connect(self.min_width_spinbox_2, SIGNAL('valueChanged(int)'), self.min_width_spinbox_change_event_2)
         self.connect(self.max_width_spinbox_2, SIGNAL('valueChanged(int)'), self.max_width_spinbox_change_event_2)
         self.connect(self.min_height_spinbox_2, SIGNAL('valueChanged(int)'), self.min_height_spinbox_change_event_2)
@@ -4613,6 +4739,33 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
                 self.doubleSpinBoxCritical.setEnabled(False)
                 self.labelWarning.setEnabled(False)
                 self.labelCritical.setEnabled(False)
+                
+                
+    def red_channel_event(self, event):
+        print event
+        if self.checkBoxRedChannel.isChecked() is True:
+            self.parent._main_rect_finder.red_channel = True
+        elif self.checkBoxGreenChannel.isChecked() is False and self.checkBoxBlueChannel.isChecked() is False:
+            self.checkBoxRedChannel.setCheckState(Qt.Checked)
+        else:
+            self.parent._main_rect_finder.red_channel = False
+            
+    def green_channel_event(self, event):
+        if self.checkBoxGreenChannel.isChecked() is True:
+            self.parent._main_rect_finder.green_channel = True
+        elif self.checkBoxRedChannel.isChecked() is False and self.checkBoxBlueChannel.isChecked() is False:
+            self.checkBoxGreenChannel.setCheckState(Qt.Checked)
+        else:
+            self.parent._main_rect_finder.green_channel = False
+            
+    def blue_channel_event(self, event):
+        if self.checkBoxBlueChannel.isChecked() is True:
+            self.parent._main_rect_finder.blue_channel = True
+        elif self.checkBoxRedChannel.isChecked() is False and self.checkBoxGreenChannel.isChecked() is False:
+            self.checkBoxBlueChannel.setCheckState(Qt.Checked)
+        else:
+            self.parent._main_rect_finder.blue_channel = False
+    
             
         
     def min_width_spinbox_change_event(self, event):
@@ -4944,6 +5097,23 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseRadio_2.setChecked(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            
+            
+        if self.parent._sub_rects_finder[self.sub_rect_index].red_channel is True:
+            self.checkBoxRedChannel_2.setChecked(True)
+        else:
+            self.checkBoxRedChannel_2.setChecked(False)
+            
+        if self.parent._sub_rects_finder[self.sub_rect_index].green_channel is True:
+            self.checkBoxGreenChannel_2.setChecked(True)
+        else:
+            self.checkBoxGreenChannel_2.setChecked(False)
+        
+        if self.parent._sub_rects_finder[self.sub_rect_index].blue_channel is True:
+            self.checkBoxBlueChannel_2.setChecked(True)
+        else:
+            self.checkBoxBlueChannel_2.setChecked(False)
+
             
     def timeout_exception_event(self, event):
         if self.timeout_exception.isChecked() is True:
@@ -5452,6 +5622,37 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         
 ############
 ############
+
+    def red_channel_event_2(self, event):
+        print event
+        if self.checkBoxRedChannel_2.isChecked() is True:
+            self.parent._sub_rects_finder[self.sub_rect_index].red_channel = True
+        elif self.checkBoxGreenChannel_2.isChecked() is False and self.checkBoxBlueChannel_2.isChecked() is False:
+            self.checkBoxRedChannel_2.setCheckState(Qt.Checked)
+        else:
+            self.parent._sub_rects_finder[self.sub_rect_index].red_channel = False
+            
+    def green_channel_event_2(self, event):
+        if self.checkBoxGreenChannel_2.isChecked() is True:
+            self.parent._sub_rects_finder[self.sub_rect_index].green_channel = True
+        elif self.checkBoxRedChannel_2.isChecked() is False and self.checkBoxBlueChannel_2.isChecked() is False:
+            self.checkBoxGreenChannel_2.setCheckState(Qt.Checked)
+        else:
+            self.parent._sub_rects_finder[self.sub_rect_index].green_channel = False
+            
+    def blue_channel_event_2(self, event):
+        if self.checkBoxBlueChannel_2.isChecked() is True:
+            self.parent._sub_rects_finder[self.sub_rect_index].blue_channel = True
+        elif self.checkBoxRedChannel_2.isChecked() is False and self.checkBoxGreenChannel_2.isChecked() is False:
+            self.checkBoxBlueChannel_2.setCheckState(Qt.Checked)
+        else:
+            self.parent._sub_rects_finder[self.sub_rect_index].blue_channel = False
+
+    def text_encrypted_event_2(self, event):
+        if self.text_encrypted_2.isChecked() is True:
+            self.parent._sub_rects_finder[self.sub_rect_index].text_encrypted = True
+        else:
+            self.parent._sub_rects_finder[self.sub_rect_index].text_encrypted = False
 
     @pyqtSlot(QString)
     def inserttext_event_2(self, text):

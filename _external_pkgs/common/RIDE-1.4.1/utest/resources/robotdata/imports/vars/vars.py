@@ -1,2 +1,0 @@
-VARIABLE = 'VALUE'
-

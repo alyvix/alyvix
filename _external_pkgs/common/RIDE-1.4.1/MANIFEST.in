@@ -1,6 +1,0 @@
-include setup.py
-include pavement.py
-include paver-minilib.zip
-include VERSION.txt
-recursive-include src *.png *.ico *.cfg
-recursive-include lib *.*

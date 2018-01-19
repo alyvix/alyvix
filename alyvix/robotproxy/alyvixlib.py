@@ -153,10 +153,18 @@ def kill_process(process_name):
     pm = ProcManager()
     pm.kill_process(process_name)
     
-def show_window(window_title):
+def show_window(window_title, maximize="False"):
+
+    try:
+        if maximize.lower() == "true":
+            maximize_value = True
+        elif maximize.lower() == "false":
+            maximize_value = False
+    except:
+        pass
 
     wm = WinManager()
-    wm.show_window(window_title)
+    wm.show_window(window_title, maximize_value)
     
 def maximize_window(window_title, timeout="60", exception="True"):
 

@@ -1,1 +1,0 @@
-from_my_var = 'res'

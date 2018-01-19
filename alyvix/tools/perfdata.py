@@ -126,6 +126,24 @@ class PerfManager:
 
         if  initts == True:
             perf_data.timestamp = int(time.time() * 1000)
+
+            current_keyword_timestamp_array = self._info_manager.get_info('KEYWORD TIMESTAMP')
+
+            # current_keyword_timestamp_array_copy = copy.deepcopy(current_keyword_timestamp_array)
+
+            timestamp_modified = False
+            for cnt_kts in xrange(len(current_keyword_timestamp_array)):
+                if current_keyword_timestamp_array[cnt_kts][0] == name:
+                    timestamp_modified = True
+                    current_keyword_timestamp_array[cnt_kts] = (name, perf_data.timestamp)
+                    break
+
+            if timestamp_modified is False:
+                current_keyword_timestamp_array.append((name, perf_data.timestamp))
+
+            self._info_manager.set_info('KEYWORD TIMESTAMP',
+                                        current_keyword_timestamp_array)
+
         else:
             perf_data.timestamp = None
 

@@ -2230,7 +2230,21 @@ class AlyvixImageFinderView(QWidget):
        
         #self._main_template.path = self._main_template.path.replace("\\","\\\\")
         
-        strcode = "    "  + name + "_object.set_main_component({\"path\": get_python_lib() + os.sep + \"" + self._main_template.path + "\", \"threshold\":" + repr(self._main_template.threshold) + "})"
+        str_channel = ""
+        
+        if self._main_template.red_channel is False:
+            str_channel = str_channel + "\"red_channel\": False, "
+
+        if self._main_template.green_channel is False:
+            str_channel = str_channel + "\"green_channel\": False, "
+
+        if self._main_template.blue_channel is False:
+            str_channel = str_channel + "\"blue_channel\": False, "
+
+        if str_channel != "":
+            str_channel = ", " + str_channel[:-2]
+        
+        strcode = "    "  + name + "_object.set_main_component({\"path\": get_python_lib() + os.sep + \"" + self._main_template.path + "\", \"threshold\":" + repr(self._main_template.threshold) + str_channel + "})"
         
         self._code_lines.append(strcode)
         self._code_lines_for_object_finder.append(strcode)
@@ -2306,8 +2320,23 @@ class AlyvixImageFinderView(QWidget):
                 roi_unlimited_down = str(sub_template.roi_unlimited_down)
                 roi_unlimited_left = str(sub_template.roi_unlimited_left)
                 roi_unlimited_right = str(sub_template.roi_unlimited_right)
+                
+                        
+                str_channel = ""
+                
+                if sub_template.red_channel is False:
+                    str_channel = str_channel + "\"red_channel\": False, "
+
+                if sub_template.green_channel is False:
+                    str_channel = str_channel + "\"green_channel\": False, "
+
+                if sub_template.blue_channel is False:
+                    str_channel = str_channel + "\"blue_channel\": False, "
+
+                if str_channel != "":
+                    str_channel = ", " + str_channel[:-2]
                     
-                str1 = "    " + name + "_object.add_sub_component({\"path\": get_python_lib() + os.sep + \"" + sub_template.path + "\", \"threshold\":" + repr(sub_template.threshold) + "},"
+                str1 = "    " + name + "_object.add_sub_component({\"path\": get_python_lib() + os.sep + \"" + sub_template.path + "\", \"threshold\":" + repr(sub_template.threshold) + str_channel + "},"
                 str2 = "                                  {\"roi_x\": " + roi_x + ", \"roi_y\": " + roi_y + ", \"roi_width\": " + roi_width + ", \"roi_height\": " + roi_height + ", \"roi_unlimited_up\": " + roi_unlimited_up + ", \"roi_unlimited_down\": " + roi_unlimited_down + ", \"roi_unlimited_left\": " + roi_unlimited_left + ", \"roi_unlimited_right\": " + roi_unlimited_right + "})"
     
                 self._code_lines.append(str1)
@@ -2733,6 +2762,15 @@ class AlyvixImageFinderView(QWidget):
         #path_node.text = str(self._path + os.sep + self.object_name + os.sep + "main_template.png")
         path_node.text = str(self._main_template.path)
         
+        red_channel_node = ET.SubElement(main_template_node, "red_channel")
+        red_channel_node.text = str(self._main_template.red_channel)
+        
+        green_channel_node = ET.SubElement(main_template_node, "green_channel")
+        green_channel_node.text = str(self._main_template.green_channel)
+        
+        blue_channel_node = ET.SubElement(main_template_node, "blue_channel")
+        blue_channel_node.text = str(self._main_template.blue_channel)
+        
         """
         find_node = ET.SubElement(main_template_node, "find")
         find_node.text = str(self.find)
@@ -2823,6 +2861,15 @@ class AlyvixImageFinderView(QWidget):
                 path_node = ET.SubElement(sub_template_node, "path")
                 #path_node.text = str(self._path + os.sep + self.object_name + os.sep + "sub_template_" + str(cnt) + ".png")
                 path_node.text = str(sub_template.path)
+                
+                red_channel_node = ET.SubElement(sub_template_node, "red_channel")
+                red_channel_node.text = str(sub_template.red_channel)
+
+                green_channel_node = ET.SubElement(sub_template_node, "green_channel")
+                green_channel_node.text = str(sub_template.green_channel)
+
+                blue_channel_node = ET.SubElement(sub_template_node, "blue_channel")
+                blue_channel_node.text = str(sub_template.blue_channel)
                 
                 roi_x_node = ET.SubElement(sub_template_node, "roi_x")
                 roi_x_node.text = str(sub_template.roi_x)
@@ -3003,7 +3050,31 @@ class AlyvixImageFinderView(QWidget):
         self._main_template.height = int(main_template_node.getElementsByTagName("height")[0].firstChild.nodeValue)
         self._main_template.threshold = float(main_template_node.getElementsByTagName("threshold")[0].firstChild.nodeValue)
         self._main_template.path = main_template_node.getElementsByTagName("path")[0].firstChild.nodeValue
-        #self.timeout = int(main_template_node.getElementsByTagName("timeout")[0].firstChild.nodeValue)               
+        #self.timeout = int(main_template_node.getElementsByTagName("timeout")[0].firstChild.nodeValue)             
+
+        try:
+            if "True" in main_template_node.getElementsByTagName("red_channel")[0].firstChild.nodeValue:
+                self._main_template.red_channel = True
+            else:
+                self._main_template.red_channel = False
+        except:
+            pass
+            
+        try:
+            if "True" in main_template_node.getElementsByTagName("green_channel")[0].firstChild.nodeValue:
+                self._main_template.green_channel = True
+            else:
+                self._main_template.green_channel = False
+        except:
+            pass
+            
+        try:
+            if "True" in main_template_node.getElementsByTagName("blue_channel")[0].firstChild.nodeValue:
+                self._main_template.blue_channel = True
+            else:
+                self._main_template.blue_channel = False
+        except:
+            pass        
 
         if "True" in root_node.attributes["find"].value: #main_template_node.getElementsByTagName("find")[0].firstChild.nodeValue:
             self.find = True
@@ -3165,6 +3236,31 @@ class AlyvixImageFinderView(QWidget):
             sub_template_obj.roi_y = int(sub_template_node.getElementsByTagName("roi_y")[0].firstChild.nodeValue)
             sub_template_obj.roi_width = int(sub_template_node.getElementsByTagName("roi_width")[0].firstChild.nodeValue)
             sub_template_obj.roi_height = int(sub_template_node.getElementsByTagName("roi_height")[0].firstChild.nodeValue)
+                
+            try:
+                if "True" in sub_template_node.getElementsByTagName("red_channel")[0].firstChild.nodeValue:
+                    sub_template_obj.red_channel = True
+                else:
+                    sub_template_obj.red_channel = False
+            except:
+                pass
+                
+            try:
+                if "True" in sub_template_node.getElementsByTagName("green_channel")[0].firstChild.nodeValue:
+                    sub_template_obj.green_channel = True
+                else:
+                    sub_template_obj.green_channel = False
+            except:
+                pass
+                                  
+            try:
+                if "True" in sub_template_node.getElementsByTagName("blue_channel")[0].firstChild.nodeValue:
+                    sub_template_obj.blue_channel = True
+                else:
+                    sub_template_obj.blue_channel = False
+            except:
+                pass        
+
             
             try:
                 if "True" in sub_template_node.getElementsByTagName("roi_unlimited_up")[0].firstChild.nodeValue:
@@ -3401,6 +3497,9 @@ class MainTemplateForGui:
         self.height = 0
         self.width = 0
         self.show = True
+        self.red_channel = True
+        self.blue_channel = True
+        self.green_channel = True
         self.threshold = 0.7
         self.path = ""
         self.click = False
@@ -3437,6 +3536,9 @@ class SubTemplateForGui:
         self.y = 0
         self.height = 0
         self.width = 0
+        self.red_channel = True
+        self.blue_channel = True
+        self.green_channel = True
         self.threshold = 0.7
         self.path = ""
         self.roi_x = 0
@@ -3730,6 +3832,21 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.labelWarning.setEnabled(False)
             self.labelCritical.setEnabled(False)
             
+        if self.parent._main_template.red_channel is True:
+            self.checkBoxRedChannel.setChecked(True)
+        else:
+            self.checkBoxRedChannel.setChecked(False)
+            
+        if self.parent._main_template.green_channel is True:
+            self.checkBoxGreenChannel.setChecked(True)
+        else:
+            self.checkBoxGreenChannel.setChecked(False)
+        
+        if self.parent._main_template.blue_channel is True:
+            self.checkBoxBlueChannel.setChecked(True)
+        else:
+            self.checkBoxBlueChannel.setChecked(False)
+            
         self.spinBoxSendKeysDelay.setValue(self.parent._main_template.sendkeys_delay)
         self.spinBoxSendKeysDuration.setValue(self.parent._main_template.sendkeys_duration)
 
@@ -3778,6 +3895,11 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.inserttext.installEventFilter(self)
         
         self.connect(self.add_quotes, SIGNAL('stateChanged(int)'), self.add_quotes_event)
+        
+        self.connect(self.checkBoxRedChannel, SIGNAL('stateChanged(int)'), self.red_channel_event)
+        self.connect(self.checkBoxGreenChannel, SIGNAL('stateChanged(int)'), self.green_channel_event)
+        self.connect(self.checkBoxBlueChannel, SIGNAL('stateChanged(int)'), self.blue_channel_event)
+        
         self.connect(self.text_encrypted, SIGNAL('stateChanged(int)'), self.text_encrypted_event)
         
         self.namelineedit.installEventFilter(self)
@@ -3796,6 +3918,10 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         
         ###########
         ###########
+        
+        self.connect(self.checkBoxRedChannel_2, SIGNAL('stateChanged(int)'), self.red_channel_event_2)
+        self.connect(self.checkBoxGreenChannel_2, SIGNAL('stateChanged(int)'), self.green_channel_event_2)
+        self.connect(self.checkBoxBlueChannel_2, SIGNAL('stateChanged(int)'), self.blue_channel_event_2)
 
         self.connect(self.doubleSpinBoxThreshold_2, SIGNAL('valueChanged(double)'), self.threshold_spinbox_event_2)
         
@@ -4050,6 +4176,34 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.parent._main_template.show_tolerance = False
         self.parent.update()
+   
+    def red_channel_event(self, event):
+        print event
+        if self.checkBoxRedChannel.isChecked() is True:
+            self.parent._main_template.red_channel = True
+        elif self.checkBoxGreenChannel.isChecked() is False and self.checkBoxBlueChannel.isChecked() is False:
+            self.checkBoxRedChannel.setCheckState(Qt.Checked)
+        else:
+            self.parent._main_template.red_channel = False
+            
+    def green_channel_event(self, event):
+        if self.checkBoxGreenChannel.isChecked() is True:
+            self.parent._main_template.green_channel = True
+        elif self.checkBoxRedChannel.isChecked() is False and self.checkBoxBlueChannel.isChecked() is False:
+            self.checkBoxGreenChannel.setCheckState(Qt.Checked)
+        else:
+            self.parent._main_template.green_channel = False
+            
+    def blue_channel_event(self, event):
+        if self.checkBoxBlueChannel.isChecked() is True:
+            self.parent._main_template.blue_channel = True
+        elif self.checkBoxRedChannel.isChecked() is False and self.checkBoxGreenChannel.isChecked() is False:
+            self.checkBoxBlueChannel.setCheckState(Qt.Checked)
+        else:
+            self.parent._main_template.blue_channel = False
+     
+        #self.parent._main_template.red_channel = 
+        
         
     def height_tolerance_spinbox_event(self, event):
         self.parent._main_template.height_tolerance = self.height_tolerance_spinbox.value()
@@ -4296,6 +4450,21 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseRadio_2.setChecked(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            
+        if self.parent._sub_templates_finder[self.sub_template_index].red_channel is True:
+            self.checkBoxRedChannel_2.setChecked(True)
+        else:
+            self.checkBoxRedChannel_2.setChecked(False)
+            
+        if self.parent._sub_templates_finder[self.sub_template_index].green_channel is True:
+            self.checkBoxGreenChannel_2.setChecked(True)
+        else:
+            self.checkBoxGreenChannel_2.setChecked(False)
+        
+        if self.parent._sub_templates_finder[self.sub_template_index].blue_channel is True:
+            self.checkBoxBlueChannel_2.setChecked(True)
+        else:
+            self.checkBoxBlueChannel_2.setChecked(False)
             
             
     def clickRadio_event(self, event):
@@ -4792,6 +4961,33 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         
 ############
 ############
+
+
+    def red_channel_event_2(self, event):
+        print event
+        if self.checkBoxRedChannel_2.isChecked() is True:
+            self.parent._sub_templates_finder[self.sub_template_index].red_channel = True
+        elif self.checkBoxGreenChannel_2.isChecked() is False and self.checkBoxBlueChannel_2.isChecked() is False:
+            self.checkBoxRedChannel_2.setCheckState(Qt.Checked)
+        else:
+            self.parent._sub_templates_finder[self.sub_template_index].red_channel = False
+            
+    def green_channel_event_2(self, event):
+        if self.checkBoxGreenChannel_2.isChecked() is True:
+            self.parent._sub_templates_finder[self.sub_template_index].green_channel = True
+        elif self.checkBoxRedChannel_2.isChecked() is False and self.checkBoxBlueChannel_2.isChecked() is False:
+            self.checkBoxGreenChannel_2.setCheckState(Qt.Checked)
+        else:
+            self.parent._sub_templates_finder[self.sub_template_index].green_channel = False
+            
+    def blue_channel_event_2(self, event):
+        if self.checkBoxBlueChannel_2.isChecked() is True:
+            self.parent._sub_templates_finder[self.sub_template_index].blue_channel = True
+        elif self.checkBoxRedChannel_2.isChecked() is False and self.checkBoxGreenChannel_2.isChecked() is False:
+            self.checkBoxBlueChannel_2.setCheckState(Qt.Checked)
+        else:
+            self.parent._sub_templates_finder[self.sub_template_index].blue_channel = False
+            
 
     def text_encrypted_event_2(self, event):
         if self.text_encrypted_2.isChecked() is True:
