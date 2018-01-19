@@ -11,15 +11,15 @@ Alyvix is a **synthetic monitoring system based on computer vision**. Alyvix syn
 
 Alyvix provides **certifications on user perceived quality of IT services**. Alyvix certifies that users are able to successfully complete a certain application task.
 
-[Get started with Alyvix!](http://www.alyvix.com/getting-started-3/)
+[Get started with Alyvix!](http://alyvix.com/doc/getting_started/install.html)
 
 ## Use case examples
 
 + Alyvix automates and measures Outlook through Citrix and RDWebAccess:
 
-     ![Use case: Alyvix on Outlook through Citrix](http://www.alyvix.com/wp-content/uploads/2017/06/alyvix_citrix_outlook_20170606.gif)
-     ![Use case: Alyvix on Outlook through Citrix](http://www.alyvix.com/wp-content/uploads/2017/06/alyvix_rdwa_outlook_20170606.gif)
+     ![Use case: Alyvix on Outlook through Citrix](http://alyvix.com/doc/_images/alyvix_citrix_outlook_20170606.gif)
+     ![Use case: Alyvix on Outlook through Citrix](http://alyvix.com/doc/_images/alyvix_rdwa_outlook_20170606.gif)
 + Alyvix automates and measures Word through Citrix and RDWebAccess:
 
-     ![Use case: Alyvix on Word through RDWebAccess](http://www.alyvix.com/wp-content/uploads/2017/06/alyvix_citrix_word_20170606.gif)
-     ![Use case: Alyvix on Word through RDWebAccess](http://www.alyvix.com/wp-content/uploads/2017/06/alyvix_rdwa_word_20170606.gif)
+     ![Use case: Alyvix on Word through RDWebAccess](http://alyvix.com/doc/_images/alyvix_citrix_word_20170606.gif)
+     ![Use case: Alyvix on Word through RDWebAccess](http://alyvix.com/doc/_images/alyvix_rdwa_word_20170606.gif)
