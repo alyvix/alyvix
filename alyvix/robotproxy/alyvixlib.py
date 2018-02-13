@@ -381,3 +381,11 @@ def print_perfdata(message=None, print_output="True"):
 
     pm = PerfManager()
     return pm.get_output(message_value, print_output_value)
+
+def get_mstsc_hostname(customer='test'):
+    nm = NetManager(customer)
+    if nm.known_hostnames:
+        first_known_hostname = nm.known_hostnames[0]
+        return first_known_hostname
+    else:
+        return False
