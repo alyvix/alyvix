@@ -26,7 +26,7 @@ import json
 
 class NetManager:
 
-    def __init__(self, customer_name='test', exec_name='mstsc.exe'):
+    def __init__(self, customer_name='test', exec_name='mstsc.exe', path_json=''):
         self.customer_name = customer_name
         self.exec_name = exec_name
         self.ip_hostname_map = {}
@@ -36,7 +36,7 @@ class NetManager:
         self.known_hostnames = []
         if customer_name == 'test':
             self.store_json_ip_hostname_map()
-        self.load_json_ip_hostname_map()
+        self.load_json_ip_hostname_map(path_json)
         self.get_name_pid_tl()
         self.get_pid_ip_port_ns()
         self.get_ip_port_hostname()
@@ -60,9 +60,11 @@ class NetManager:
                   fp=open('{0}_ip_hostname_map.json'.format(self.customer_name), 'w'),
                   indent=4)
 
-    def load_json_ip_hostname_map(self):
+    def load_json_ip_hostname_map(self, path_json=''):
+        filename_json = '{0}_ip_hostname_map.json'.format(self.customer_name)
+        path_json_ip_hostname_map = '{0}{1}'.format(path_json, filename_json)
         try:
-            self.ip_hostname_map = json.load(open('{0}_ip_hostname_map.json'.format(self.customer_name)))
+            self.ip_hostname_map = json.load(open(path_json_ip_hostname_map))
         except IOError:
             print('{0}_ip_hostname_map.json does not exist'.format(self.customer_name))
             return False
@@ -143,8 +145,8 @@ class NetManager:
         return True
 
 
-def get_mstsc_hostname(customer='test'):
-    nm = NetManager(customer)
+def get_mstsc_hostname(customer_name='test', path_json=''):
+    nm = NetManager(customer_name=customer_name, path_json=path_json)
     if nm.known_hostnames:
         first_known_hostname = nm.known_hostnames[0]
         return first_known_hostname
@@ -154,7 +156,9 @@ def get_mstsc_hostname(customer='test'):
 
 if __name__ == '__main__':
 
-    print(get_mstsc_hostname('wp'))
+    #path_json = 'C:\\folder_json_ip_hostname_map\\'
+    #path_json = os.getcwd() + '\\'
+    print(get_mstsc_hostname(customer_name='wp'))  # , path_json=path_json))
 
     while False:
         command = raw_input('enter command: ')
