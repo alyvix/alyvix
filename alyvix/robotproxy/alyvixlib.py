@@ -389,3 +389,15 @@ def get_mstsc_hostname(customer_name='test', path_json=''):
         return first_known_hostname
     else:
         return False
+
+def get_aos_id(scraped_string, customer_name='test', path_json='',
+               map_norm=True, verbose=False):
+    sm = StringManager(scraped_string=scraped_string,
+                       customer_name=customer_name,
+                       path_json=path_json,
+                       map_norm=map_norm)
+    if verbose:
+        print(sm)
+    if map_norm:
+        return sm.aos_name, sm.id_session
+    return sm.aos_scrap, sm.id_scrap
