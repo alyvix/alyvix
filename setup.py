@@ -89,7 +89,7 @@ Alyvix is a synthetic monitoring system based on computer vision. It automates a
         
 setup(
     name='alyvix',
-    version='2.5.4',
+    version='2.6.0',
     packages=find_packages(),
     include_package_data=True,
     install_requires=REQUIREMENTS,

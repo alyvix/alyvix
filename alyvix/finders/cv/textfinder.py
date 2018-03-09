@@ -49,10 +49,6 @@ class _Text():
         self.whitelist = ""
         self.api = None
 
-        self.red_channel = True
-        self.green_channel = True
-        self.blue_channel = True
-
         self.set_text_dictionary(text_dict)
 
     def set_text_dictionary(self, text_dict):
@@ -79,34 +75,6 @@ class _Text():
 
         else:
             raise Exception("Rect dictionary has an incorrect format!")
-
-        try:
-
-            if text_dict['red_channel'] is True:
-                self.red_channel = True
-            else:
-                self.red_channel = False
-        except:
-            self.red_channel = True
-
-        try:
-
-            if text_dict['green_channel'] is True:
-                self.green_channel = True
-            else:
-                self.green_channel = False
-        except:
-            self.green_channel = True
-
-        try:
-
-            if text_dict['blue_channel'] is True:
-                self.blue_channel = True
-
-            else:
-                self.blue_channel = False
-        except:
-            self.blue_channel = True
 
 
 class TextFinder(BaseFinder):
@@ -262,7 +230,6 @@ class TextFinder(BaseFinder):
         """
 
         try:
-            cnt_channels = 3
             time_before_find = time.time()
             #print "into find"
             self._timedout_main_components = []
@@ -282,7 +249,6 @@ class TextFinder(BaseFinder):
                 self.set_source_image_gray(src_img_gray)
                 source_img_auto_set = True
 
-
             self.__find_log_folder = datetime.datetime.now().strftime("%H_%M_%S") + "_" + "searching"
 
             offset_x = 0
@@ -290,12 +256,6 @@ class TextFinder(BaseFinder):
 
             main_text = self._main_component[0]
             roi = self._main_component[1]
-
-
-            if main_text.red_channel is False or main_text.green_channel is False or main_text.blue_channel is False:
-                color_img = copy.deepcopy(self._source_image_color)
-            elif main_text.red_channel is True and main_text.green_channel is True and main_text.blue_channel is True:
-                color_img = self._source_image_color
 
             if roi is not None:
 
@@ -344,38 +304,10 @@ class TextFinder(BaseFinder):
                     x2 = source_img_width
 
                 #print x1,x2,y1,y2
-                source_image = color_img[y1:y2, x1:x2]
+                source_image = self._source_image_color[y1:y2, x1:x2]
             else:
-                source_image = color_img
+                source_image = self._source_image_color
 
-            if main_text.red_channel is False or main_text.green_channel is False or main_text.blue_channel is False:
-                img_b, img_g, img_r = cv2.split(source_image)
-                one_channel_img = None
-                cnt_channels = 0
-
-                if main_text.red_channel is False:
-                    img_r = numpy.zeros((source_image.shape[0], source_image.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_r
-
-                if main_text.green_channel is False:
-                    img_g = numpy.zeros((source_image.shape[0], source_image.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_g
-
-                if main_text.blue_channel is False:
-                    img_b = numpy.zeros((source_image.shape[0], source_image.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_b
-
-                if cnt_channels > 1:
-                    source_image = cv2.merge((img_b, img_g, img_r))
-                else:
-                    source_image = one_channel_img
-                    source_image = cv2.cvtColor(source_image, cv2.COLOR_GRAY2BGR)
 
             if self._log_manager.is_log_enable() is True:
                 self._log_manager.save_image(self.__find_log_folder, "source_img.png", source_image)
@@ -644,7 +576,6 @@ class TextFinder(BaseFinder):
         """
 
         try:
-            cnt_channels = 3
             sub_text_arg = sub_text[0]
             roi = sub_text[1]
 
@@ -694,35 +625,6 @@ class TextFinder(BaseFinder):
 
             #print x1,x2,y1,y2
             source_image_cropped = self._source_image_color[y1:y2, x1:x2]
-
-            if sub_text_arg.red_channel is False or sub_text_arg.green_channel is False or sub_text_arg.blue_channel is False:
-                img_b, img_g, img_r = cv2.split(source_image_cropped)
-                cnt_channels = 0
-                one_channel_img = None
-
-                if sub_text_arg.red_channel is False:
-                    img_r = numpy.zeros((source_image_cropped.shape[0], source_image_cropped.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_r
-
-                if sub_text_arg.green_channel is False:
-                    img_g = numpy.zeros((source_image_cropped.shape[0], source_image_cropped.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_g
-
-                if sub_text_arg.blue_channel is False:
-                    img_b = numpy.zeros((source_image_cropped.shape[0], source_image_cropped.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_b
-
-                if cnt_channels > 1:
-                    source_image_cropped = cv2.merge((img_b, img_g, img_r))
-                else:
-                    source_image_cropped = one_channel_img
-                    source_image_cropped = cv2.cvtColor(source_image_cropped, cv2.COLOR_GRAY2BGR)
 
             if self._log_manager.is_log_enable() is True:
                 self._log_manager.save_image(self.__find_log_folder, "sub_source_img.png", source_image_cropped)
