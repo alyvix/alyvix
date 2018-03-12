@@ -196,7 +196,14 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             item.setData(Qt.UserRole, filename)
             
             self.listWidget.addItem(item)
-        
+            
+            """
+            if self._main_object_finder.show is True:
+            
+                self.listWidget.item(0).setCheckState(Qt.Checked)
+            else:
+                self.listWidget.item(0).setCheckState(Qt.Unchecked)
+            """
         if self.action == "edit":
             self.namelineedit.setEnabled(False)
             
@@ -3455,7 +3462,7 @@ class PaintingView(QWidget):
         
         if self.parent._main_object_finder is not None:
         
-            if self.__drag_border is False and self.__move_index is None and self.__capturing is False:
+            if self.__drag_border is False and self.__move_index is None and self.__capturing is False and self.parent._main_object_finder.show is True:
                 pass
                 #if self.is_mouse_inside_rect(self.parent._main_object_finder):
                 #    self.__flag_mouse_is_inside_rect = 0
@@ -3531,9 +3538,10 @@ class PaintingView(QWidget):
         rect_index = 0
         #self.__sub_template_color_index = 0
         cnt_sub = 1
+        cnt_sub_text = 1
         for sub_object_finder in self.parent._sub_objects_finder:
         
-            if self.__drag_border is False and self.__move_index is None and self.__capturing is False:
+            if self.__drag_border is False and self.__move_index is None and self.__capturing is False and sub_object_finder.show is True:
                                         
                 #if self.is_mouse_inside_rect(sub_object_finder):
                 #    self.__flag_mouse_is_inside_rect = cnt_sub
@@ -3661,7 +3669,8 @@ class PaintingView(QWidget):
             #elif self.__move_index is not None:
             #    self.update_position()
         
-            self.draw_sub_templateangle(qp, sub_object_finder)
+            self.draw_sub_templateangle(qp, sub_object_finder, cnt_sub_text)
+            cnt_sub_text += 1
             
         if mouse_on_border is False:
             self.__flag_mouse_is_on_border = None
@@ -4615,6 +4624,13 @@ class PaintingView(QWidget):
             pen.setWidth(1)
             qp.setPen(pen)
             
+            font = qp.font()
+            font.setPixelSize(11 * self.scaling_factor);
+
+            qp.setFont(font)
+            qp.drawText( QPoint(self.parent._main_object_finder.x -1, self.parent._main_object_finder.y -(4*self.scaling_factor)), "M" )
+
+            
             qp.fillRect(self.parent._main_object_finder.x,
                 self.parent._main_object_finder.y,
                 self.parent._main_object_finder.width,
@@ -4627,7 +4643,7 @@ class PaintingView(QWidget):
                 self.parent._main_object_finder.height))  
         
      
-    def draw_sub_templateangle(self, qp, image_finder):
+    def draw_sub_templateangle(self, qp, image_finder, cnt):
     
             if image_finder.show is False:
                 return
@@ -4674,6 +4690,14 @@ class PaintingView(QWidget):
                     roi_height)
                 
             if image_finder.x != 0 and image_finder.y != 0:
+            
+                font = qp.font()
+                font.setPixelSize(11 * self.scaling_factor);
+
+                qp.setFont(font)
+                qp.drawText( QPoint(image_finder.x -1, image_finder.y -(4*self.scaling_factor)), str(cnt) )
+
+
             
                 InnerPath_roi = QPainterPath()
                 

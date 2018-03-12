@@ -725,7 +725,7 @@ class AlyvixTextFinderView(QWidget):
         
                 
 
-            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False:
+            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and self._main_text.show is True:
             
                 if self.is_mouse_inside_rect(self._main_text):
                     self.__flag_mouse_is_inside_rect = 0
@@ -855,10 +855,11 @@ class AlyvixTextFinderView(QWidget):
         #self.__sub_template_color_index = 0
 
         cnt_sub = 1
+        cnt_sub_text = 1
         for sub_text_finder in self._sub_texts_finder:
 
 
-            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False:
+            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and sub_text_finder.show is True:
                                         
                 
                 #if sub_text_finder.show_min_max is False and sub_text_finder.show_tolerance is False:
@@ -987,7 +988,8 @@ class AlyvixTextFinderView(QWidget):
             elif self.__move_index is not None and self.set_xy_offset is None:
                 self.update_position()
         
-            self.draw_sub_textangle(qp, sub_text_finder)
+            self.draw_sub_textangle(qp, sub_text_finder, cnt_sub_text)
+            cnt_sub_text += 1
             
         if mouse_on_border is False:
             self.__flag_mouse_is_on_border = None
@@ -2410,6 +2412,13 @@ class AlyvixTextFinderView(QWidget):
                 
             if self._main_text.x != 0 and self._main_text.y != 0:
             
+                        
+                font = qp.font()
+                font.setPixelSize(11 * self.scaling_factor);
+                
+                qp.setFont(font)
+                qp.drawText( QPoint(self._main_text.x -1,self._main_text.y -(4*self.scaling_factor)), "M" )
+            
                 InnerPath_roi = QPainterPath()
                 
                 """
@@ -2494,7 +2503,7 @@ class AlyvixTextFinderView(QWidget):
             """
         
      
-    def draw_sub_textangle(self, qp, text_finder):
+    def draw_sub_textangle(self, qp, text_finder, cnt):
     
             if text_finder.show is False:
                 return
@@ -2551,6 +2560,11 @@ class AlyvixTextFinderView(QWidget):
                     text_finder.height)
                 """
                 
+                font = qp.font()
+                font.setPixelSize(11 * self.scaling_factor);
+
+                qp.setFont(font)
+                qp.drawText( QPoint(text_finder.x -1, text_finder.y -(4*self.scaling_factor)), str(cnt) )
 
                 InnerPath_roi.addRect(text_finder.x,
                     text_finder.y,
@@ -7059,11 +7073,20 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             if sub_text.x == 0 and sub_text.y == 0:
                 continue
             item = QListWidgetItem()
-            item.setCheckState(Qt.Checked)
+            if sub_text.show is True:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
             item.setText("sub_component_" + str(cnt))
             self.listWidget.addItem(item)
             cnt = cnt + 1
-            
+
+        
+        if self.parent._main_text.show is True:
+            self.listWidget.item(0).setCheckState(Qt.Checked)
+        else:
+            self.listWidget.item(0).setCheckState(Qt.Unchecked)
+                        
         #self.listWidget.setCurrentIndex(QModelIndex(self.listWidget.rootIndex()))
         self.listWidget.item(0).setSelected(True)
         

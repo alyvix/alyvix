@@ -601,7 +601,7 @@ class AlyvixImageFinderView(QWidget):
         
                 
 
-            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False:
+            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and self._main_template.show is True:
             
                 if self.is_mouse_inside_rect(self._main_template):
                     self.__flag_mouse_is_inside_rect = 0
@@ -676,10 +676,11 @@ class AlyvixImageFinderView(QWidget):
         #self.__sub_template_color_index = 0
 
         cnt_sub = 1
+        cnt_sub_text = 1
         for sub_image_finder in self._sub_templates_finder:
 
 
-            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False:
+            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and sub_image_finder.show is True:
                                         
                 if self.is_mouse_inside_rect(sub_image_finder):
                     self.__flag_mouse_is_inside_rect = cnt_sub
@@ -806,7 +807,8 @@ class AlyvixImageFinderView(QWidget):
             elif self.__move_index is not None and self.set_xy_offset is None:
                 self.update_position()
         
-            self.draw_sub_templateangle(qp, sub_image_finder)
+            self.draw_sub_templateangle(qp, sub_image_finder, cnt_sub_text)
+            cnt_sub_text += 1
             
         if mouse_on_border is False:
             self.__flag_mouse_is_on_border = None
@@ -1818,6 +1820,12 @@ class AlyvixImageFinderView(QWidget):
             pen.setWidth(1)
             qp.setPen(pen)
             
+            font = qp.font()
+            font.setPixelSize(11 * self.scaling_factor);
+            
+            qp.setFont(font)
+            qp.drawText( QPoint(self._main_template.x -1,self._main_template.y -(4*self.scaling_factor)), "M" )
+            
             qp.fillRect(self._main_template.x,
                 self._main_template.y,
                 self._main_template.width,
@@ -1843,7 +1851,7 @@ class AlyvixImageFinderView(QWidget):
                 qp.drawEllipse(click_pos, 10, 10)
                 qp.setBrush(old_brush)
      
-    def draw_sub_templateangle(self, qp, image_finder):
+    def draw_sub_templateangle(self, qp, image_finder, cnt):
     
             if image_finder.show is False:
                 return
@@ -1900,7 +1908,13 @@ class AlyvixImageFinderView(QWidget):
                     image_finder.height)
                 """
                 
-                
+                font = qp.font()
+                font.setPixelSize(11 * self.scaling_factor);
+
+                qp.setFont(font)
+                qp.drawText( QPoint(image_finder.x -1, image_finder.y -(4*self.scaling_factor)), str(cnt) )
+
+
 
                 InnerPath_roi.addRect(image_finder.x,
                     image_finder.y,
@@ -5107,10 +5121,18 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             if sub_template.x == 0 and sub_template.y == 0:
                 continue
             item = QListWidgetItem()
-            item.setCheckState(Qt.Checked)
+            if sub_template.show is True:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
             item.setText("sub_component_" + str(cnt))
             self.listWidget.addItem(item)
             cnt = cnt + 1
+            
+        if self.parent._main_template.show is True:
+            self.listWidget.item(0).setCheckState(Qt.Checked)
+        else:
+            self.listWidget.item(0).setCheckState(Qt.Unchecked)
             
         #self.listWidget.setCurrentIndex(QModelIndex(self.listWidget.rootIndex()))
         self.listWidget.item(0).setSelected(True)

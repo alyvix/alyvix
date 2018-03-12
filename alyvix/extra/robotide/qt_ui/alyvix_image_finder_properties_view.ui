@@ -615,7 +615,7 @@ Point</string>
         <enum>Qt::RightToLeft</enum>
        </property>
        <property name="text">
-        <string>Color Matching</string>
+        <string>Colors</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -934,7 +934,7 @@ Point</string>
         <enum>Qt::RightToLeft</enum>
        </property>
        <property name="text">
-        <string>Color Matching</string>
+        <string>Colors</string>
        </property>
        <property name="checked">
         <bool>true</bool>

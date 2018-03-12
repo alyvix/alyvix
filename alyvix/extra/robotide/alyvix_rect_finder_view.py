@@ -583,7 +583,7 @@ class AlyvixRectFinderView(QWidget):
         
                 
 
-            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False:
+            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and self._main_rect_finder.show is True:
             
                 if self.is_mouse_inside_rect(self._main_rect_finder):
                     self.__flag_mouse_is_inside_rect = 0
@@ -658,10 +658,11 @@ class AlyvixRectFinderView(QWidget):
         #self.__sub_template_color_index = 0
 
         cnt_sub = 1
+        cnt_sub_text = 1
         for sub_rect_finder in self._sub_rects_finder:
 
 
-            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False:
+            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and sub_rect_finder.show is True:
                                         
                 
                 if sub_rect_finder.show_min_max is False and sub_rect_finder.show_tolerance is False:
@@ -790,8 +791,8 @@ class AlyvixRectFinderView(QWidget):
             elif self.__move_index is not None and self.set_xy_offset is None:
                 self.update_position()
         
-            self.draw_sub_rectangle(qp, sub_rect_finder)
-            
+            self.draw_sub_rectangle(qp, sub_rect_finder, cnt_sub_text)
+            cnt_sub_text += 1
         if mouse_on_border is False:
             self.__flag_mouse_is_on_border = None
             
@@ -1793,6 +1794,12 @@ class AlyvixRectFinderView(QWidget):
                 pen.setWidth(1)
                 qp.setPen(pen)
                 
+                font = qp.font()
+                font.setPixelSize(11 * self.scaling_factor);
+
+                qp.setFont(font)
+                qp.drawText( QPoint(self._main_rect_finder.x -1,self._main_rect_finder.y -(4*self.scaling_factor)), "M" )
+                
                 qp.fillRect(self._main_rect_finder.x,
                     self._main_rect_finder.y,
                     self._main_rect_finder.width,
@@ -1982,7 +1989,7 @@ class AlyvixRectFinderView(QWidget):
                         self._main_rect_finder.x + (self._main_rect_finder.width / 2),
                         self._main_rect_finder.y + (self._main_rect_finder.height / 2))
      
-    def draw_sub_rectangle(self, qp, rect_finder):
+    def draw_sub_rectangle(self, qp, rect_finder, cnt):
     
             if rect_finder.show is False:
                 return
@@ -2043,6 +2050,15 @@ class AlyvixRectFinderView(QWidget):
                 #qp.fillPath(FillPath_roi, QBrush(QColor(172, 96, 246, 180), Qt.BDiagPattern))
                     
                 if rect_finder.show_min_max is False and rect_finder.show_tolerance is False:
+
+                    font = qp.font()
+                    font.setPixelSize(11 * self.scaling_factor);
+
+                    qp.setFont(font)
+                    qp.drawText( QPoint(rect_finder.x -1, rect_finder.y -(4*self.scaling_factor)), str(cnt) )
+
+
+
 
                     InnerPath_roi.addRect(rect_finder.x,
                         rect_finder.y,
@@ -5674,10 +5690,18 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             if sub_rect.x == 0 and sub_rect.y == 0:
                 continue
             item = QListWidgetItem()
-            item.setCheckState(Qt.Checked)
+            if sub_rect.show is True:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
             item.setText("sub_component_" + str(cnt))
             self.listWidget.addItem(item)
             cnt = cnt + 1
+            
+        if self.parent._main_rect_finder.show is True:
+            self.listWidget.item(0).setCheckState(Qt.Checked)
+        else:
+            self.listWidget.item(0).setCheckState(Qt.Unchecked)
             
         #self.listWidget.setCurrentIndex(QModelIndex(self.listWidget.rootIndex()))
         self.listWidget.item(0).setSelected(True)
