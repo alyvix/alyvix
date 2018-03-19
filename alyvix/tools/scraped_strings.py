@@ -19,6 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import datetime
 import json
 import re
 
@@ -200,6 +201,139 @@ class StringManager:
         return False
 
 
+class CalendarWatchManager:
+
+    def __init__(self, scraped_string='', date_format='dd/mm/yyyy',
+                 time_format='hh:mm:ss', proximity_minutes=60):
+        self.scraped_string = scraped_string
+        self.date_format = date_format
+        self.time_format = time_format
+        self.proximity_minutes = proximity_minutes
+        self.months = {1:  ['jan', 31],
+                       2:  ['feb', 28],
+                       3:  ['mar', 31],
+                       4:  ['apr', 30],
+                       5:  ['may', 31],
+                       6:  ['jun', 30],
+                       7:  ['jul', 31],
+                       8:  ['aug', 31],
+                       9:  ['sep', 30],
+                       10: ['oct', 31],
+                       11: ['nov', 30],
+                       12: ['dec', 31]}
+        self.today = datetime.datetime.today()
+        self.three_letter_previous_month = None
+        self.days_previous_month = None
+        self.date_to_consider_begin = None
+        self.date_to_consider_end = None
+        self.dhms_time_days = None
+        self.hms_time = None
+
+    def __repr__(self):
+        print_message = ''
+        print_message += 'Date of today ({0}): {1}\n'.format(
+            self.date_format, self.get_date_today())
+        print_message += 'Previous month: {0[0]}, {0[1]} days, '.format(
+            self.get_three_letter_days_previous_month())
+        print_message += 'from {0[0]} to {0[1]}\n'.format(
+            self.get_begin_end_dates_previous_month())
+        print_message += '\n'
+        print_message += 'Scraped string: {0}\n'.format(
+            self.scraped_string)
+        print_message += 'Days from dhms time: {0}\n'.format(
+            self.get_dhms_time_days())
+        print_message += 'Time consistency check: {0}\n'.format(
+            self.check_dhms_totaltime_days_previous_month())
+        print_message += 'Time (hh:mm:ss): {0}\n'.format(
+            self.detect_hms_time())
+        print_message += 'Time proximity check: {0}'.format(
+            self.check_hms_time_proximity())
+        return print_message
+
+    def get_date_today(self):
+        if self.date_format == 'dd/mm/yyyy':
+            return self.today.strftime('%d/%m/%Y')
+        if self.date_format == 'mm/dd':
+            return self.today.strftime('%m/%d')
+        return False
+
+    def get_three_letter_days_previous_month(self):
+        current_month = self.today.month
+        if current_month == 1:
+            previous_month = 12
+        else:
+            previous_month = current_month - 1
+        self.three_letter_previous_month = self.months[previous_month][0]
+        self.days_previous_month = self.months[previous_month][1]
+        return self.three_letter_previous_month, self.days_previous_month
+
+    def get_begin_end_dates_previous_month(self):
+        current_month = self.today.month
+        current_year = self.today.year
+        if current_month == 1:
+            month_to_consider = 12
+            year_to_consider = current_year - 1
+        else:
+            month_to_consider = current_month - 1
+            year_to_consider = current_year
+        days_previous_month = self.months[month_to_consider][1]
+        self.date_to_consider_begin = '{0}-{1}-{2}'.format(year_to_consider,
+                                                           month_to_consider,
+                                                           '1')
+        self.date_to_consider_end = '{0}-{1}-{2}'.format(year_to_consider,
+                                                         month_to_consider,
+                                                         days_previous_month)
+        return self.date_to_consider_begin, self.date_to_consider_end
+
+    def get_timestamp_now(self):
+        if self.time_format == 'hh:mm:ss':
+            return self.today.strftime('%H:%M:%S')
+        return False
+
+    def get_dhms_time_days(self):
+        lower_scraped_dhms_time = self.scraped_string.lower()
+        where_mark = lower_scraped_dhms_time.find('d')
+        crop_dhms_time_days = lower_scraped_dhms_time[:where_mark]
+        crop_dhms_time_days = ''.join(crop_dhms_time_days.split())
+        if crop_dhms_time_days.isdigit():
+            self.dhms_time_days = int(crop_dhms_time_days)
+            return self.dhms_time_days
+        else:
+            return False
+
+    def detect_hms_time(self):
+        hms_pattern = '[\s\w]*([0-2]\d:[0-5]\d:[0-5]\d)'
+        try:
+            self.hms_time = re.match(hms_pattern,
+                                     self.scraped_string).groups()[0]
+            return self.hms_time
+        except AttributeError:
+            return False
+
+    def check_dhms_totaltime_days_previous_month(self):
+        self.get_dhms_time_days()
+        self.get_three_letter_days_previous_month()
+        if self.dhms_time_days:
+            if self.dhms_time_days == int(self.days_previous_month):
+                return True
+        return False
+
+    def check_hms_time_proximity(self):
+        self.get_timestamp_now()
+        hms_now = self.get_timestamp_now().split(':')
+        self.detect_hms_time()
+        if self.hms_time:
+            hms_scrap = self.hms_time.split(':')
+            t2 = datetime.timedelta(hours=int(hms_now[0]),
+                                    minutes=int(hms_now[1]))
+            t1 = datetime.timedelta(hours=int(hms_scrap[0]),
+                                    minutes=int(hms_scrap[1]))
+            td = abs((t2-t1).total_seconds()/60)
+            if td <= self.proximity_minutes:
+                return True
+        return False
+
+
 def get_aos_id(scraped_string, customer_name='test', path_json='',
                map_norm=True, verbose=False):
     sm = StringManager(scraped_string=scraped_string,
@@ -213,13 +347,57 @@ def get_aos_id(scraped_string, customer_name='test', path_json='',
     return sm.aos_scrap, sm.id_scrap
 
 
+def get_date_today():
+    cwm = CalendarWatchManager()
+    return cwm.get_date_today()
+
+
+def get_three_letter_days_previous_month():
+    cwm = CalendarWatchManager()
+    return cwm.get_three_letter_days_previous_month()
+
+
+def check_dhms_totaltime_days_previous_month(scraped_string):
+    cwm = CalendarWatchManager(scraped_string=scraped_string)
+    return cwm.check_dhms_totaltime_days_previous_month()
+
+
+def check_hms_time_proximity(scraped_string, proximity_minutes=60):
+    cwm = CalendarWatchManager(scraped_string=scraped_string,
+                               proximity_minutes=proximity_minutes)
+    return cwm.check_hms_time_proximity()
+
+
 if __name__ == "__main__":
 
-    scrap_example_us = "Inc. [t3stl a0 s_1: Session ID - 1 2] - [1 -"
-    scrap_example_it = "S.p.A. [t3stl a0 s_1: ID sessione - 1 2] - [1 -"
-    scrap_example_de = "GmbH [t3stl a0 s_1: Session ID - 1 2] - [1 -"
+    if True:
+        scrap_example_us = "Inc. [t3stl a0 s_1: Session ID - 1 2] - [1 -"
+        scrap_example_it = "S.p.A. [t3stl a0 s_1: ID sessione - 1 2] - [1 -"
+        scrap_example_de = "GmbH [t3stl a0 s_1: Session ID - 1 2] - [1 -"
+        get_aos_id(scraped_string=scrap_example_us,
+                   customer_name='test',
+                   map_norm=True,
+                   verbose=True)
+        print('')
 
-    get_aos_id(scraped_string=scrap_example_us,
-               customer_name='test',
-               map_norm=True,
-               verbose=True)
+    if True:
+        scraped_dhms_time_sample = '28d 7h 7m 46s'
+        scraped_hms_time_sample = '\nbla\nbla10:00:00bla\nbla20:00:00bla\nbla'
+        cwm = CalendarWatchManager(scraped_hms_time_sample)
+        print(cwm)
+        print('')
+
+    if True:
+        print('get_date_today(): {0}'.format(
+            get_date_today()))
+        print('get_three_letter_days_previous_month(): {0}'.format(
+            get_three_letter_days_previous_month()))
+        scraped_string = '28d 7h 7m 46s'
+        print('check_dhms_totaltime_days_previous_month({0}): {1}'.format(
+            scraped_string,
+            check_dhms_totaltime_days_previous_month(scraped_string)))
+        scraped_string = 'bla11:30:00bla'
+        print('check_hms_time_proximity({0}): {1}'.format(
+            scraped_string,
+            check_hms_time_proximity(scraped_string)))
+        print('')
