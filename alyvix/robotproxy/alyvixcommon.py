@@ -34,5 +34,3 @@ from alyvix.tools.window import WinManager
 from alyvix.tools.info import InfoManager
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.db import DbManager
-from alyvix.tools.network_analyzer import NetManager
-from alyvix.tools.scraped_strings import StringManager

@@ -621,6 +621,14 @@ class PerfManager:
         for perfdata in perfdata_list:
 
             name = perfdata.name
+
+            if perfdata.value != "" and perfdata.critical_threshold != "" and perfdata.value >= perfdata.critical_threshold:
+                perfdata.state = 2
+            elif perfdata.value != "" and perfdata.warning_threshold != "" and perfdata.value >= perfdata.warning_threshold:
+                perfdata.state = 1
+            elif perfdata.value != "":
+                perfdata.state = 0
+
             state = perfdata.state
 
             if perfdata.value == '' or perfdata.value is None:
