@@ -403,8 +403,8 @@ def get_aos_id(scraped_string, customer_name='test', path_json='',
     return sm.aos_scrap, sm.id_scrap
 
 
-def get_date_today():
-    cwm = CalendarWatchManager()
+def get_date_today(date_format='dd/mm/yyyy'):
+    cwm = CalendarWatchManager(date_format=date_format)
     return cwm.get_date_today()
 
 
