@@ -33,5 +33,11 @@ from alyvix.tools.process import ProcManager
 from alyvix.tools.window import WinManager
 from alyvix.tools.info import InfoManager
 from alyvix.tools.screen import ScreenManager
+<<<<<<< HEAD
 from alyvix.tools.db import DbManager
+=======
+from alyvix.tools.db import DbManager
+from alyvix.tools.network_analyzer import NetManager
+from alyvix.tools.scraped_strings import StringManager
 from alyvix.tools.scraped_strings import CalendarWatchManager
+>>>>>>> 680dd9de3599f709d521b63e560b99df4eb8f2b4
