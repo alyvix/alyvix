@@ -383,6 +383,28 @@ def print_perfdata(message=None, print_output="True"):
     return pm.get_output(message_value, print_output_value)
 
 
+def get_mstsc_hostname(customer_name='test', path_json=''):
+    nm = NetManager(customer_name=customer_name, path_json=path_json)
+    if nm.known_hostnames:
+        first_known_hostname = nm.known_hostnames[0]
+        return first_known_hostname
+    else:
+        return False
+
+
+def get_aos_id(scraped_string, customer_name='test', path_json='',
+               map_norm=True, verbose=False):
+    sm = StringManager(scraped_string=scraped_string,
+                       customer_name=customer_name,
+                       path_json=path_json,
+                       map_norm=map_norm)
+    if verbose:
+        print(sm)
+    if map_norm:
+        return sm.aos_name, sm.id_session
+    return sm.aos_scrap, sm.id_scrap
+
+
 def get_date_today(date_format='dd/mm/yyyy'):
     cwm = CalendarWatchManager(date_format=date_format)
     return cwm.get_date_today()
