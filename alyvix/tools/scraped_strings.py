@@ -347,8 +347,8 @@ def get_aos_id(scraped_string, customer_name='test', path_json='',
     return sm.aos_scrap, sm.id_scrap
 
 
-def get_date_today():
-    cwm = CalendarWatchManager()
+def get_date_today(date_format='dd/mm/yyyy'):
+    cwm = CalendarWatchManager(date_format=date_format)
     return cwm.get_date_today()
 
 
@@ -388,8 +388,12 @@ if __name__ == "__main__":
         print('')
 
     if True:
-        print('get_date_today(): {0}'.format(
-            get_date_today()))
+        date_format = 'dd/mm/yyyy'
+        print('get_date_today({0}): {1}'.format(
+            date_format, get_date_today(date_format)))
+        date_format = 'mm/dd'
+        print('get_date_today({0}): {1}'.format(
+            date_format, get_date_today(date_format)))
         print('get_three_letter_days_previous_month(): {0}'.format(
             get_three_letter_days_previous_month()))
         scraped_string = '28d 7h 7m 46s'

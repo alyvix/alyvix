@@ -1,6 +1,5 @@
 #! /usr/bin/python
 
-
 """
     Analysis of running processes over network connections on Windows
     Copyright (C) 2018 Francesco Melchiori <https://www.francescomelchiori.com/>
