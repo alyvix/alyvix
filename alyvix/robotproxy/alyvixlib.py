@@ -405,6 +405,21 @@ def get_aos_id(scraped_string, customer_name='test', path_json='',
     return sm.aos_scrap, sm.id_scrap
 
 
+def check_number(scraped_string,
+                 comparison_type='bigger',
+                 comparison_number=0):
+    splitted_scrap = scraped_string.split()
+    for snippet in splitted_scrap:
+        try:
+            candidate_number = float(snippet)
+        except ValueError:
+            continue
+        if comparison_type == 'bigger':
+            if candidate_number > comparison_number:
+                return True
+    return False
+
+
 def get_date_today(date_format='dd/mm/yyyy'):
     cwm = CalendarWatchManager(date_format=date_format)
     return cwm.get_date_today()

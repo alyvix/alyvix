@@ -123,43 +123,22 @@ class StringManager:
         if self.aos_names:
             for aos_name in self.aos_names:
                 aos_name_proc = ''.join(aos_name.lower().split())
-                aos_root = aos_name_proc.rstrip(''.join(
-                    [str(x) for x in range(10)]))
+                aos_root = aos_name_proc.rstrip(str(range(1, 11)))
                 aos_serial = aos_name_proc.split(aos_root, 1)[1]
                 aos_pattern = '('
                 for aos_char in aos_root:
-                    if aos_char == 'b':
-                        aos_pattern += '[b68]'
-                    elif aos_char == 'b':
-                        aos_pattern += '[b68]'
-                    elif aos_char == 'd':
-                        aos_pattern += '[d6o0]'
-                    elif aos_char == 'e':
+                    if aos_char in {'b', 'h', '6', '8'}:
+                        aos_pattern += '[bh68]'
+                    elif aos_char in {'d', 'o', '0'}:
+                        aos_pattern += '[do0]'
+                    elif aos_char in {'e', '3'}:
                         aos_pattern += '[e3]'
-                    elif aos_char == 'f':
-                        aos_pattern += '[f17]'
-                    elif aos_char == 'h':
-                        aos_pattern += '[hb6]'
-                    elif aos_char == 'i':
-                        aos_pattern += '[i1l]'
-                    elif aos_char == 'l':
-                        aos_pattern += '[li1]'
-                    elif aos_char == 'o':
-                        aos_pattern += '[o0]'
-                    elif aos_char == 't':
-                        aos_pattern += '[tfl1]'
-                    elif aos_char == '0':
-                        aos_pattern += '[0do]'
-                    elif aos_char == '1':
-                        aos_pattern += '[1filt]'
-                    elif aos_char == '3':
-                        aos_pattern += '[3e]'
-                    elif aos_char == '6':
-                        aos_pattern += '[6bdh]'
-                    elif aos_char == '7':
-                        aos_pattern += '[7ft]'
-                    elif aos_char == '8':
-                        aos_pattern += '[8b]'
+                    elif aos_char in {'f', 't', '7'}:
+                        aos_pattern += '[ft7]'
+                    elif aos_char in {'i', 'l', '1'}:
+                        aos_pattern += '[il1]'
+                    elif aos_char in {'z', '2'}:
+                        aos_pattern += '[z2]'
                     else:
                         aos_pattern += aos_char
                 aos_pattern += ')'
@@ -177,14 +156,25 @@ class StringManager:
                 return True
             else:
                 aos_scrap_name = ''.join(self.aos_scrap.lower().split())
-                aos_scrap_root = self.aos_scrap.rstrip(''.join(
-                    [str(x) for x in range(10)]))
-                aos_scrap_serial = self.aos_scrap.split(aos_scrap_root, 1)[1]
+                # aos_scrap_root = self.aos_scrap.rstrip(str(range(1, 11)))
+                # aos_scrap_serial = self.aos_scrap.split(aos_scrap_root, 1)[1]
                 for aos_pattern in self.aos_patterns.keys():
-                    if re.match(aos_pattern, aos_scrap_name):
+                    aos_match = re.match(aos_pattern, aos_scrap_name)
+                    if aos_match:
+                        aos_scrap_root = aos_match.group(1)
+                        aos_serial = aos_scrap_name.strip(aos_scrap_root)
+                        aos_serial = aos_serial.replace('d', '0')
+                        aos_serial = aos_serial.replace('o', '0')
+                        aos_serial = aos_serial.replace('i', '1')
+                        aos_serial = aos_serial.replace('l', '1')
+                        aos_serial = aos_serial.replace('z', '2')
+                        aos_serial = aos_serial.replace('e', '3')
+                        aos_serial = aos_serial.replace('f', '7')
+                        aos_serial = aos_serial.replace('t', '7')
+                        aos_serial = aos_serial.replace('b', '8')
                         try:
                             self.aos_name = self.aos_patterns[
-                                aos_pattern][aos_scrap_serial]
+                                aos_pattern][aos_serial]
                             return True
                         except KeyError:
                             return False
@@ -347,6 +337,21 @@ def get_aos_id(scraped_string, customer_name='test', path_json='',
     return sm.aos_scrap, sm.id_scrap
 
 
+def check_number(scraped_string,
+                 comparison_type='bigger',
+                 comparison_number=0):
+    splitted_scrap = scraped_string.split()
+    for snippet in splitted_scrap:
+        try:
+            candidate_number = float(snippet)
+        except ValueError:
+            continue
+        if comparison_type == 'bigger':
+            if candidate_number > comparison_number:
+                return True
+    return False
+
+
 def get_date_today(date_format='dd/mm/yyyy'):
     cwm = CalendarWatchManager(date_format=date_format)
     return cwm.get_date_today()
@@ -370,24 +375,24 @@ def check_hms_time_proximity(scraped_string, proximity_minutes=60):
 
 if __name__ == "__main__":
 
-    if True:
+    if False:
         scrap_example_us = "Inc. [t3stl a0 s_1: Session ID - 1 2] - [1 -"
         scrap_example_it = "S.p.A. [t3stl a0 s_1: ID sessione - 1 2] - [1 -"
         scrap_example_de = "GmbH [t3stl a0 s_1: Session ID - 1 2] - [1 -"
-        get_aos_id(scraped_string=scrap_example_us,
+        get_aos_id(scraped_string=scrap_example_fabbri,
                    customer_name='test',
                    map_norm=True,
                    verbose=True)
         print('')
 
-    if True:
+    if False:
         scraped_dhms_time_sample = '28d 7h 7m 46s'
         scraped_hms_time_sample = '\nbla\nbla10:00:00bla\nbla20:00:00bla\nbla'
         cwm = CalendarWatchManager(scraped_hms_time_sample)
         print(cwm)
         print('')
 
-    if True:
+    if False:
         date_format = 'dd/mm/yyyy'
         print('get_date_today({0}): {1}'.format(
             date_format, get_date_today(date_format)))
@@ -405,3 +410,8 @@ if __name__ == "__main__":
             scraped_string,
             check_hms_time_proximity(scraped_string)))
         print('')
+
+    if False:
+        scraped_string = 'bla 0.1 bla'
+        print('check_number({0}): {1}'.format(
+            scraped_string, check_number(scraped_string)))
