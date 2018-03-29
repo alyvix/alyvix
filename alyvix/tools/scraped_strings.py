@@ -339,7 +339,7 @@ def get_aos_id(scraped_string, customer_name='test', path_json='',
 
 def check_number(scraped_string,
                  comparison_type='bigger',
-                 comparison_number=0):
+                 comparison_number='0'):
     splitted_scrap = scraped_string.split()
     for snippet in splitted_scrap:
         try:
@@ -347,7 +347,7 @@ def check_number(scraped_string,
         except ValueError:
             continue
         if comparison_type == 'bigger':
-            if candidate_number > comparison_number:
+            if candidate_number > float(comparison_number):
                 return True
     return False
 
@@ -414,4 +414,6 @@ if __name__ == "__main__":
     if False:
         scraped_string = 'bla 0.1 bla'
         print('check_number({0}): {1}'.format(
-            scraped_string, check_number(scraped_string)))
+            scraped_string, check_number(scraped_string=scraped_string,
+                                         comparison_type='bigger',
+                                         comparison_number='0')))
