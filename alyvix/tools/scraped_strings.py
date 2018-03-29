@@ -162,22 +162,25 @@ class StringManager:
                     aos_match = re.match(aos_pattern, aos_scrap_name)
                     if aos_match:
                         aos_scrap_root = aos_match.group(1)
-                        aos_serial = aos_scrap_name.strip(aos_scrap_root)
-                        aos_serial = aos_serial.replace('d', '0')
-                        aos_serial = aos_serial.replace('o', '0')
-                        aos_serial = aos_serial.replace('i', '1')
-                        aos_serial = aos_serial.replace('l', '1')
-                        aos_serial = aos_serial.replace('z', '2')
-                        aos_serial = aos_serial.replace('e', '3')
-                        aos_serial = aos_serial.replace('f', '7')
-                        aos_serial = aos_serial.replace('t', '7')
-                        aos_serial = aos_serial.replace('b', '8')
-                        try:
-                            self.aos_name = self.aos_patterns[
-                                aos_pattern][aos_serial]
-                            return True
-                        except KeyError:
-                            return False
+                        aos_scrap_serial = aos_scrap_name.strip(aos_scrap_root)
+                        aos_scrap_serial = aos_scrap_serial.replace('d', '0')
+                        aos_scrap_serial = aos_scrap_serial.replace('o', '0')
+                        aos_scrap_serial = aos_scrap_serial.replace('i', '1')
+                        aos_scrap_serial = aos_scrap_serial.replace('l', '1')
+                        aos_scrap_serial = aos_scrap_serial.replace('z', '2')
+                        aos_scrap_serial = aos_scrap_serial.replace('e', '3')
+                        aos_scrap_serial = aos_scrap_serial.replace('f', '7')
+                        aos_scrap_serial = aos_scrap_serial.replace('t', '7')
+                        aos_scrap_serial = aos_scrap_serial.replace('b', '8')
+                        aos_scrap_serial_length = len(aos_scrap_serial)
+                        aos_serial = aos_scrap_serial
+                        for cut in range(aos_scrap_serial_length):
+                            try:
+                                self.aos_name = self.aos_patterns[
+                                    aos_pattern][aos_serial]
+                                return True
+                            except KeyError:
+                                aos_serial = aos_scrap_serial[:-cut-1]
         return False
 
     def norm_id_session(self):
@@ -376,10 +379,10 @@ def check_hms_time_proximity(scraped_string, proximity_minutes=60):
 if __name__ == "__main__":
 
     if False:
-        scrap_example_us = "Inc. [t3stl a0 s_1: Session ID - 1 2] - [1 -"
-        scrap_example_it = "S.p.A. [t3stl a0 s_1: ID sessione - 1 2] - [1 -"
-        scrap_example_de = "GmbH [t3stl a0 s_1: Session ID - 1 2] - [1 -"
-        get_aos_id(scraped_string=scrap_example_fabbri,
+        scrap_example_us = "Inc. [t3stl a0 s_123: Session ID - 1 2] - [1 -"
+        scrap_example_it = "S.p.A. [t3stl a0 s_123: ID sessione - 1 2] - [1 -"
+        scrap_example_de = "GmbH [t3stl a0 s_123: Session ID - 1 2] - [1 -"
+        get_aos_id(scraped_string=scrap_example_us,
                    customer_name='test',
                    map_norm=True,
                    verbose=True)
