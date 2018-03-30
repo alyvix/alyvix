@@ -137,6 +137,8 @@ class StringManager:
                         aos_pattern += '[ft7]'
                     elif aos_char in {'i', 'l', '1'}:
                         aos_pattern += '[il1]'
+                    elif aos_char in {'s', '5'}:
+                        aos_pattern += '[s5]'
                     elif aos_char in {'z', '2'}:
                         aos_pattern += '[z2]'
                     else:
@@ -169,6 +171,7 @@ class StringManager:
                         aos_scrap_serial = aos_scrap_serial.replace('l', '1')
                         aos_scrap_serial = aos_scrap_serial.replace('z', '2')
                         aos_scrap_serial = aos_scrap_serial.replace('e', '3')
+                        aos_scrap_serial = aos_scrap_serial.replace('s', '5')
                         aos_scrap_serial = aos_scrap_serial.replace('f', '7')
                         aos_scrap_serial = aos_scrap_serial.replace('t', '7')
                         aos_scrap_serial = aos_scrap_serial.replace('b', '8')
@@ -379,9 +382,9 @@ def check_hms_time_proximity(scraped_string, proximity_minutes=60):
 if __name__ == "__main__":
 
     if False:
-        scrap_example_us = "Inc. [t3stl a0 s_123: Session ID - 1 2] - [1 -"
-        scrap_example_it = "S.p.A. [t3stl a0 s_123: ID sessione - 1 2] - [1 -"
-        scrap_example_de = "GmbH [t3stl a0 s_123: Session ID - 1 2] - [1 -"
+        scrap_example_us = "Inc. [t3stl a0 5_123: Session ID - 1 2] - [1 -"
+        scrap_example_it = "S.p.A. [t3stl a0 5_123: ID sessione - 1 2] - [1 -"
+        scrap_example_de = "GmbH [t3stl a0 5_123: Session ID - 1 2] - [1 -"
         get_aos_id(scraped_string=scrap_example_us,
                    customer_name='test',
                    map_norm=True,
