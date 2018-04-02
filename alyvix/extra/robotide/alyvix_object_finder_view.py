@@ -3245,6 +3245,89 @@ class PaintingView(QWidget):
 
             elif self.__drag_border is False:  #and self.__move_rect is False:
                 self.__capturing = True
+                
+        elif event.buttons() == Qt.RightButton:
+
+        
+            if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None:
+
+                index = self.__flag_mouse_is_on_border-1
+                
+                
+                if self.__flag_mouse_is_on_left_border_roi is True:
+                    self.parent._sub_objects_finder[index].roi_unlimited_left = True
+                    
+                if self.__flag_mouse_is_on_right_border_roi is True:
+                    self.parent._sub_objects_finder[index].roi_unlimited_right = True
+                    
+                if self.__flag_mouse_is_on_top_border_roi is True:
+                    self.parent._sub_objects_finder[index].roi_unlimited_up = True
+                    
+                if self.__flag_mouse_is_on_bottom_border_roi is True:
+                    self.parent._sub_objects_finder[index].roi_unlimited_down = True
+                    
+            print self.__flag_mouse_is_inside_rect      
+            if self.__flag_mouse_is_inside_rect is not None:
+                index = self.__flag_mouse_is_inside_rect -1
+                
+                print self.__flag_mouse_is_inside_rect
+                
+                percentage_screen_w = int(0.1 * self._bg_pixmap.width())
+                percentage_screen_h = int(0.1 * self._bg_pixmap.height())
+                percentage_object_w = int(0.5 * self.parent._sub_objects_finder[index].width)
+                percentage_object_h = int(0.5 * self.parent._sub_objects_finder[index].height)
+                
+                roi_height = percentage_screen_h + percentage_object_h + self.parent._sub_objects_finder[index].height
+                
+                roi_width = percentage_screen_w + percentage_object_w + self.parent._sub_objects_finder[index].width
+                
+                roi_width_half = int((roi_width - self.parent._sub_objects_finder[index].width)/2)
+                roi_height_half = int((roi_height - self.parent._sub_objects_finder[index].height)/2)
+                
+                self.parent._sub_objects_finder[index].roi_x =  (self.parent._sub_objects_finder[index].x - self.parent._main_object_finder.x) - roi_width_half
+                self.parent._sub_objects_finder[index].roi_y =  (self.parent._sub_objects_finder[index].y - self.parent._main_object_finder.y) - roi_height_half
+                self.parent._sub_objects_finder[index].roi_height = roi_height
+                self.parent._sub_objects_finder[index].roi_width = roi_width
+                
+                
+                if self.parent._main_object_finder.y + self.parent._sub_objects_finder[index].roi_y < 0:
+                
+                    under_zero = abs(self.parent._main_object_finder.y + self.parent._sub_objects_finder[index].roi_y)
+                    self.parent._sub_objects_finder[index].roi_y = self.parent._sub_objects_finder[index].roi_y + under_zero
+                    self.parent._sub_objects_finder[index].roi_height = self.parent._sub_objects_finder[index].roi_height - under_zero
+                    
+                
+                if self.parent._main_object_finder.y + self.parent._sub_objects_finder[index].roi_y + self.parent._sub_objects_finder[index].roi_height > self._bg_pixmap.height():
+                
+                    diff = (self.parent._main_object_finder.y + self.parent._sub_objects_finder[index].roi_y + self.parent._sub_objects_finder[index].roi_height) - self._bg_pixmap.height()
+
+                    self.parent._sub_objects_finder[index].roi_height = self.parent._sub_objects_finder[index].roi_height - diff - 1
+                    
+                if self.parent._main_object_finder.x + self.parent._sub_objects_finder[index].roi_x < 0:
+                
+                    under_zero = abs(self.parent._main_object_finder.x + self.parent._sub_objects_finder[index].roi_x)
+                    self.parent._sub_objects_finder[index].roi_x = self.parent._sub_objects_finder[index].roi_x + under_zero
+                    self.parent._sub_objects_finder[index].roi_width = self.parent._sub_objects_finder[index].roi_width - under_zero
+                    
+                
+                if self.parent._main_object_finder.x + self.parent._sub_objects_finder[index].roi_x + self.parent._sub_objects_finder[index].roi_width > self._bg_pixmap.width():
+                
+                    diff = (self.parent._main_object_finder.x + self.parent._sub_objects_finder[index].roi_x + self.parent._sub_objects_finder[index].roi_width) - self._bg_pixmap.width()
+
+                    self.parent._sub_objects_finder[index].roi_width = self.parent._sub_objects_finder[index].roi_width - diff - 1
+                
+                
+                
+                self.parent._sub_objects_finder[index].roi_unlimited_left = False
+                
+                self.parent._sub_objects_finder[index].roi_unlimited_right = False
+                
+                self.parent._sub_objects_finder[index].roi_unlimited_up = False
+                
+                self.parent._sub_objects_finder[index].roi_unlimited_down = False
+                
+                    
+            self.update()
             
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -3541,14 +3624,19 @@ class PaintingView(QWidget):
         cnt_sub_text = 1
         for sub_object_finder in self.parent._sub_objects_finder:
         
+            #print "__drag_border", self.__drag_border 
+            #print "__move_index", self.__move_index
+            #print "__capturing", self.__capturing
+            #print "sub_object_finder show", sub_object_finder.show
+        
             if self.__drag_border is False and self.__move_index is None and self.__capturing is False and sub_object_finder.show is True:
                                         
-                #if self.is_mouse_inside_rect(sub_object_finder):
-                #    self.__flag_mouse_is_inside_rect = cnt_sub
-                #    self.setCursor(QCursor(Qt.SizeAllCursor))
+                if self.is_mouse_inside_rect(sub_object_finder):
+                    self.__flag_mouse_is_inside_rect = cnt_sub
+                    #self.setCursor(QCursor(Qt.SizeAllCursor))
                     
         
-                if self.is_mouse_on_left_border_roi(sub_object_finder) and self.is_mouse_on_top_border_roi(sub_object_finder):
+                elif self.is_mouse_on_left_border_roi(sub_object_finder) and self.is_mouse_on_top_border_roi(sub_object_finder):
                     self.__flag_mouse_is_on_left_up_corner_roi = True
                     self.__flag_mouse_is_on_border = cnt_sub
                     mouse_on_border = True
@@ -3685,13 +3773,15 @@ class PaintingView(QWidget):
         
         
     def calc_threshold_inside(self, rect):
-        if rect.roi_height > 16 * self.scaling_factor and rect.roi_width > 16 * self.scaling_factor:
+    
+
+        if rect.height > 16 * self.scaling_factor and rect.width > 16 * self.scaling_factor:
             return int((6 *self.scaling_factor))
-        elif rect.roi_height > 12 * self.scaling_factor and rect.roi_width > 12 * self.scaling_factor:
+        elif rect.height > 12 * self.scaling_factor and rect.width > 12 * self.scaling_factor:
             return int((4 *self.scaling_factor))
-        elif rect.roi_height > 8 * self.scaling_factor and rect.roi_width > 8 * self.scaling_factor:
+        elif rect.height > 8 * self.scaling_factor and rect.width > 8 * self.scaling_factor:
             return int((2 *self.scaling_factor))
-        elif rect.roi_height > 4 * self.scaling_factor and rect.roi_width > 4 * self.scaling_factor:
+        elif rect.height > 4 * self.scaling_factor and rect.width > 4 * self.scaling_factor:
             return int((1 *self.scaling_factor))
         else:
             return 0
@@ -3701,7 +3791,16 @@ class PaintingView(QWidget):
         mouse_position = QPoint(QCursor.pos())
         
         threshold = self.calc_threshold_inside(rect)
+
+        if (mouse_position.x() > rect.x and
+                mouse_position.x() < rect.width + rect.x and
+                mouse_position.y() > rect.y and
+                mouse_position.y() < rect.height + rect.y):
+            return True
+        else:
+            return False
         
+        """
         if (mouse_position.x() > rect.x + threshold and
                 mouse_position.x() < rect.width + rect.x - threshold and
                 mouse_position.y() > rect.y + threshold and
@@ -3709,7 +3808,8 @@ class PaintingView(QWidget):
             return True
         else:
             return False
-            
+        """
+        
     def update_position(self):
     
         rect = None

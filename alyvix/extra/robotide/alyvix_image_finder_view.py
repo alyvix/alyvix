@@ -516,6 +516,87 @@ class AlyvixImageFinderView(QWidget):
             elif self.__drag_border is False:  #and self.__move_rect is False:
                 self.__capturing = True
             
+        elif event.buttons() == Qt.RightButton:
+
+        
+            if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None:
+
+                index = self.__flag_mouse_is_on_border-1
+                
+                
+                if self.__flag_mouse_is_on_left_border_roi is True:
+                    self._sub_templates_finder[index].roi_unlimited_left = True
+                    
+                if self.__flag_mouse_is_on_right_border_roi is True:
+                    self._sub_templates_finder[index].roi_unlimited_right = True
+                    
+                if self.__flag_mouse_is_on_top_border_roi is True:
+                    self._sub_templates_finder[index].roi_unlimited_up = True
+                    
+                if self.__flag_mouse_is_on_bottom_border_roi is True:
+                    self._sub_templates_finder[index].roi_unlimited_down = True
+                    
+                    
+            if self.__flag_mouse_is_inside_rect is not None:
+                index = self.__flag_mouse_is_inside_rect -1
+                
+                percentage_screen_w = int(0.1 * self._bg_pixmap.width())
+                percentage_screen_h = int(0.1 * self._bg_pixmap.height())
+                percentage_object_w = int(0.5 * self._sub_templates_finder[index].width)
+                percentage_object_h = int(0.5 * self._sub_templates_finder[index].height)
+                
+                roi_height = percentage_screen_h + percentage_object_h + self._sub_templates_finder[index].height
+                
+                roi_width = percentage_screen_w + percentage_object_w + self._sub_templates_finder[index].width
+                
+                roi_width_half = int((roi_width - self._sub_templates_finder[index].width)/2)
+                roi_height_half = int((roi_height - self._sub_templates_finder[index].height)/2)
+                
+                self._sub_templates_finder[index].roi_x =  (self._sub_templates_finder[index].x - self._main_template.x) - roi_width_half
+                self._sub_templates_finder[index].roi_y =  (self._sub_templates_finder[index].y - self._main_template.y) - roi_height_half
+                self._sub_templates_finder[index].roi_height = roi_height
+                self._sub_templates_finder[index].roi_width = roi_width
+                
+                
+                if self._main_template.y + self._sub_templates_finder[index].roi_y < 0:
+                
+                    under_zero = abs(self._main_template.y + self._sub_templates_finder[index].roi_y)
+                    self._sub_templates_finder[index].roi_y = self._sub_templates_finder[index].roi_y + under_zero
+                    self._sub_templates_finder[index].roi_height = self._sub_templates_finder[index].roi_height - under_zero
+                    
+                
+                if self._main_template.y + self._sub_templates_finder[index].roi_y + self._sub_templates_finder[index].roi_height > self._bg_pixmap.height():
+                
+                    diff = (self._main_template.y + self._sub_templates_finder[index].roi_y + self._sub_templates_finder[index].roi_height) - self._bg_pixmap.height()
+                    
+                    self._sub_templates_finder[index].roi_height = self._sub_templates_finder[index].roi_height - diff - 1
+                
+                
+                if self._main_template.x + self._sub_templates_finder[index].roi_x < 0:
+                
+                    under_zero = abs(self._main_template.x + self._sub_templates_finder[index].roi_x)
+                    self._sub_templates_finder[index].roi_x = self._sub_templates_finder[index].roi_x + under_zero
+                    self._sub_templates_finder[index].roi_width = self._sub_templates_finder[index].roi_width - under_zero
+                    
+                
+                if self._main_template.x + self._sub_templates_finder[index].roi_x + self._sub_templates_finder[index].roi_width > self._bg_pixmap.width():
+                
+                    diff = (self._main_template.x + self._sub_templates_finder[index].roi_x + self._sub_templates_finder[index].roi_width) - self._bg_pixmap.width()
+                    
+                    self._sub_templates_finder[index].roi_width = self._sub_templates_finder[index].roi_width - diff - 1
+                    
+
+                self._sub_templates_finder[index].roi_unlimited_left = False
+                
+                self._sub_templates_finder[index].roi_unlimited_right = False
+                
+                self._sub_templates_finder[index].roi_unlimited_up = False
+                
+                self._sub_templates_finder[index].roi_unlimited_down = False
+                
+                    
+            self.update()
+            
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.__capturing = False

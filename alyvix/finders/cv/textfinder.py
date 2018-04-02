@@ -200,8 +200,6 @@ class TextFinder(BaseFinder):
                                              [],
                                              self.main_xy_coordinates, self.sub_xy_coordinates, finder_type=None)
 
-        print "text from scraper: " + sc_text
-
         source_image = self._source_image_gray
 
         self._log_manager.save_objects_found(self._name, source_image,
@@ -214,6 +212,8 @@ class TextFinder(BaseFinder):
         self._source_image_gray = None
 
         if self._is_object_finder is False:
+            print "text from scraper: " + sc_text
+
             sc_collection = self._info_manager.get_info('SCRAPER COLLECTION')
             sc_collection.append((self.get_name(), self.timestamp, sc_text))
 

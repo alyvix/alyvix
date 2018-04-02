@@ -54,6 +54,9 @@ class ObjectFinder(BaseFinder):
         self._main_indexes_to_keep = []
         self._sub_indexes_to_keep = []
 
+        self._temp_scraped_string = []
+        self._index_of_obj_with_scraped_found = []
+
         self._scraped_text = ""
 
         the_name = "object_finder"
@@ -162,6 +165,9 @@ class ObjectFinder(BaseFinder):
 
     def get_scraped_text(self):
 
+        sc_index = self._index_of_obj_with_scraped_found[0]
+        self._scraped_text = self._temp_scraped_string[sc_index]
+
         sc_collection = self._info_manager.get_info('SCRAPER COLLECTION')
         sc_collection.append((self.get_name(), self.timestamp, self._scraped_text))
 
@@ -170,6 +176,8 @@ class ObjectFinder(BaseFinder):
         return self._scraped_text
 
     def find(self):
+
+        self._temp_scraped_string = []
 
         self._info_manager.set_info('last log image order', 0)
         self._info_manager.set_info('LOG OBJ FINDER COLOR COUNTER', 0)
@@ -293,7 +301,8 @@ class ObjectFinder(BaseFinder):
                     #sub_object._objects_found = []
 
                     if self._sub_components_scraper[cnt_sub_obj] == True:
-                        (self._scraped_text,sub_template_coordinates) = self.find_sub_object((x, y), sub_object, scraper=True)
+                        (scraped_string,sub_template_coordinates) = self.find_sub_object((x, y), sub_object, scraper=True)
+                        self._temp_scraped_string.append(scraped_string)
 
                     else:
                         sub_template_coordinates = copy.deepcopy(self.find_sub_object((x, y), sub_object))
@@ -322,6 +331,11 @@ class ObjectFinder(BaseFinder):
 
                         objects_found.append(object_found)
                         self._main_indexes_to_keep.append(cnt)
+
+                        if len(self._temp_scraped_string)>0:
+                            #self._scraped_text = self._temp_scraped_string[cnt]
+                            print "text from scraper: " + self._temp_scraped_string[cnt]
+                            self._index_of_obj_with_scraped_found.append(cnt)
 
                     cnt_sub_obj += 1
 
