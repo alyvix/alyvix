@@ -1216,7 +1216,9 @@ alyvix/tools/db.py
 alyvix/tools/info.py
 alyvix/tools/log.py
 alyvix/tools/natsmanager.py
+alyvix/tools/network_analyzer.py
 alyvix/tools/perfdata.py
+alyvix/tools/scraped_strings.py
 alyvix/tools/crypto/__init__.py
 alyvix/tools/crypto/base.py
 alyvix/tools/crypto/linux.py

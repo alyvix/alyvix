@@ -38,10 +38,12 @@ class _Template():
         self._info_manager = InfoManager()
         self.image_data = None
         self.threshold = 0.7
-        self.red_channel = True
-        self.green_channel = True
-        self.blue_channel = True
+        self.hist_red = None
+        self.hist_green = None
+        self.hist_blue = None
+        self.match_colors = False
         self._set_template_dictionary(template_dict)
+
 
     def _set_template_dictionary(self, template_dict):
         """
@@ -54,7 +56,6 @@ class _Template():
         if "path" in template_dict and "threshold" in template_dict:
             self.image_data = cv2.imread(template_dict['path'])
 
-            """
             if str(self._info_manager.get_info('channel')).lower() != 'all':
                 img_b, img_g, img_r = cv2.split(self.image_data)
 
@@ -64,46 +65,17 @@ class _Template():
                     self.image_data = cv2.cvtColor(img_g, cv2.COLOR_GRAY2BGR)
                 elif str(self._info_manager.get_info('channel')).lower() == 'r':
                     self.image_data = cv2.cvtColor(img_r, cv2.COLOR_GRAY2BGR)
-            """
-            img_b, img_g, img_r = cv2.split(self.image_data)
-
 
             try:
-
-                if template_dict['red_channel'] is True:
-                    self.red_channel = True
-
-                else:
-                    self.red_channel = False
-                    img_r = numpy.zeros((self.image_data.shape[0], self.image_data.shape[1]), numpy.uint8)
+                self.match_colors = template_dict['match_colors']
             except:
-                self.red_channel = True
+                pass
 
-            try:
-
-                if template_dict['green_channel'] is True:
-                    self.green_channel = True
-                else:
-                    self.green_channel = False
-                    img_g = numpy.zeros((self.image_data.shape[0], self.image_data.shape[1]), numpy.uint8)
-            except:
-                self.green_channel = True
-
-            try:
-
-                if template_dict['blue_channel'] is True:
-                    self.blue_channel = True
-
-                else:
-                    self.blue_channel = False
-                    img_b = numpy.zeros((self.image_data.shape[0], self.image_data.shape[1]), numpy.uint8)
-            except:
-                self.blue_channel = True
-
-            self.image_data = cv2.merge((img_b, img_g, img_r))
-
-            #cv2.imwrite("c:\\AlyvixTestCase\\tttt.png", self.image_data)
-
+            self.hist_blue = cv2.calcHist([self.image_data],[0],None,[256],[0,256])
+            self.hist_green = cv2.calcHist([self.image_data], [1], None, [256], [0, 256])
+            self.hist_red = cv2.calcHist([self.image_data], [2], None, [256], [0, 256])
+            self.hist_rgb = hist = cv2.calcHist([self.image_data], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
+            self.hist_rgb = cv2.normalize(self.hist_rgb).flatten()
 
             self.image_data = cv2.cvtColor(self.image_data, cv2.COLOR_BGR2GRAY)
 
@@ -206,9 +178,6 @@ class ImageFinder(BaseFinder):
         #tzero = time.time()
         time_before_find = time.time()
         try:
-            cnt_channels = 3
-            color_img = None
-            gray_img = None
 
             #x = 1 / 0
 
@@ -232,7 +201,6 @@ class ImageFinder(BaseFinder):
                 self.set_source_image_gray(src_img_gray)
                 source_img_auto_set = True
 
-            """
             if str(self._info_manager.get_info('channel')).lower() != 'all':
                 img_b, img_g, img_r = cv2.split(self._source_image_color)
 
@@ -244,7 +212,8 @@ class ImageFinder(BaseFinder):
                     self._source_image_color = cv2.cvtColor(img_r, cv2.COLOR_GRAY2BGR)
 
                 self._source_image_gray = cv2.cvtColor(self._source_image_color , cv2.COLOR_BGR2GRAY)
-            """
+
+            self.__find_log_folder = datetime.datetime.now().strftime("%H_%M_%S") + "_" + "searching"
 
             offset_x = 0
             offset_y = 0
@@ -253,47 +222,6 @@ class ImageFinder(BaseFinder):
             main_template = self._main_component[0]
             #print "main templ:", main_template
             roi = self._main_component[1]
-
-            if main_template.red_channel is False or main_template.green_channel is False or main_template.blue_channel is False:
-                color_img = copy.deepcopy(self._source_image_color)
-                gray_img = copy.deepcopy(self._source_image_gray)
-            elif main_template.red_channel is True and main_template.green_channel is True and main_template.blue_channel is True:
-                color_img = self._source_image_color
-                gray_img = self._source_image_gray
-
-            if main_template.red_channel is False or main_template.green_channel is False or main_template.blue_channel is False:
-                one_channel_img = None
-                cnt_channels = 0
-                img_b, img_g, img_r = cv2.split(self._source_image_color)
-
-                if main_template.red_channel is False:
-                    img_r = numpy.zeros((self._source_image_color.shape[0], self._source_image_color.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_r
-
-                if main_template.green_channel is False:
-                    img_g = numpy.zeros((self._source_image_color.shape[0], self._source_image_color.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_g
-
-                if main_template.blue_channel is False:
-                    img_b = numpy.zeros((self._source_image_color.shape[0], self._source_image_color.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_b
-
-                if cnt_channels > 1:
-                    color_img = cv2.merge((img_b, img_g, img_r))
-                else:
-                    color_img = one_channel_img
-                    color_img = cv2.cvtColor(color_img, cv2.COLOR_GRAY2BGR)
-
-                gray_img = cv2.cvtColor(color_img, cv2.COLOR_BGR2GRAY)
-
-            self.__find_log_folder = datetime.datetime.now().strftime("%H_%M_%S") + "_" + "searching"
-
 
             if roi is not None:
 
@@ -350,9 +278,9 @@ class ImageFinder(BaseFinder):
                     x2 = source_img_width
 
                 #print x1,x2,y1,y2
-                source_image = gray_img[y1:y2, x1:x2]
+                source_image = self._source_image_gray[y1:y2, x1:x2]
             else:
-                source_image = gray_img
+                source_image = self._source_image_gray
 
 
             if self._log_manager.is_log_enable() is True:
@@ -389,8 +317,6 @@ class ImageFinder(BaseFinder):
 
             #cv2.imwrite("c:\\log\\res_norm.png",res_norm)
             #cv2.imwrite("c:\\log\\res.png",res)
-
-            #loadddd = cv2.imread("c:\\log\\aaaaaaaaaaaaaaaa.png")
 
             #res_norm.resize(res_norm.shape[0], res_norm.shape[0], 3L, refcheck=False)
 
@@ -441,7 +367,24 @@ class ImageFinder(BaseFinder):
 
                 if is_already_found == False:
 
+                    #hist_blue = cv2.calcHist([self._source_image_color[y:y+h, x:x+w]], [0], None, [256], [0, 256])
+                    #hist_green = cv2.calcHist([self._source_image_color[y:y+h, x:x+w]], [1], None, [256], [0, 256])
+                    #hist_red = cv2.calcHist([self._source_image_color[y:y+h, x:x+w]], [2], None, [256], [0, 256])
+
+                    hist_rgb = cv2.calcHist([self._source_image_color[y:y+h, x:x+w]], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
+                    hist_rgb = cv2.normalize(hist_rgb).flatten()
+
+                    #comp_blue = cv2.compareHist(hist_blue,main_template.hist_blue,cv2.cv.CV_COMP_BHATTACHARYYA)
+                    #comp_green = cv2.compareHist(hist_green, main_template.hist_green, cv2.cv.CV_COMP_BHATTACHARYYA)
+                    #comp_red = cv2.compareHist(hist_red, main_template.hist_red, cv2.cv.CV_COMP_BHATTACHARYYA)
+                    comp_rgb = cv2.compareHist(hist_rgb, main_template.hist_rgb, cv2.cv.CV_COMP_BHATTACHARYYA)
+
                     analyzed_points.append((x, y, w, h))
+
+
+                    #if (comp_blue > 0.3 or comp_green > 0.3 or comp_red > 0.3) and main_template.match_colors is True:
+                    if comp_rgb > 0.2 and main_template.match_colors is True:
+                        continue
 
                     self._timedout_main_components.append(MatchResult((x, y, w, h)))
 
@@ -559,7 +502,8 @@ class ImageFinder(BaseFinder):
         """
         try:
 
-            cnt_channels = 3
+            objects_found = []
+            analyzed_points = []
 
             template = sub_template[0]
             roi = sub_template[1]
@@ -608,45 +552,9 @@ class ImageFinder(BaseFinder):
             elif x2 > source_img_width:
                 x2 = source_img_width
 
-            color_img_cropped = self._source_image_color[y1:y2, x1:x2]
-            gray_img_cropped = self._source_image_gray[y1:y2, x1:x2]
-
-
-
-            if template.red_channel is False or template.green_channel is False or template.blue_channel is False:
-                cnt_channels = 0
-                one_channel_img = None
-                img_b, img_g, img_r = cv2.split(color_img_cropped)
-
-                if template.red_channel is False:
-                    img_r = numpy.zeros((color_img_cropped.shape[0], color_img_cropped.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_r
-
-                if template.green_channel is False:
-                    img_g = numpy.zeros((color_img_cropped.shape[0], color_img_cropped.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_g
-
-                if template.blue_channel is False:
-                    img_b = numpy.zeros((color_img_cropped.shape[0], color_img_cropped.shape[1]), numpy.uint8)
-                else:
-                    cnt_channels += 1
-                    one_channel_img = img_b
-
-                if cnt_channels > 1:
-                    color_img_cropped = cv2.merge((img_b, img_g, img_r))
-
-                else:
-                    color_img_cropped = one_channel_img
-                    color_img_cropped = cv2.cvtColor(color_img_cropped, cv2.COLOR_GRAY2BGR)
-
-                gray_img_cropped = cv2.cvtColor(color_img_cropped, cv2.COLOR_BGR2GRAY)
-
-
-            source_image_cropped = gray_img_cropped
+            #print x1,x2,y1,y2
+            source_image_cropped = self._source_image_gray[y1:y2, x1:x2]
+            source_image_cropped_color = self._source_image_color[y1:y2, x1:x2]
 
             if self._log_manager.is_log_enable() is True:
                 self._log_manager.save_image(self.__find_log_folder, "sub_source_img.png", source_image_cropped)
@@ -668,23 +576,63 @@ class ImageFinder(BaseFinder):
 
             self.__timed_out_sub_extra_images.append((res_norm, (x1, y1)))
 
-            #cv2.imwrite("c:\\log\\gggg2.png", out)
+            #min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
-            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+            loc = numpy.where(res >= template.threshold)
 
-            if max_val >= template.threshold:
-                point = max_loc
+            cnt = 0
+            for point in zip(*loc[::-1]):
+
+
+                #if max_val >= template.threshold:
 
                 x = point[0]
                 y = point[1]
 
-                if self._log_manager.is_log_enable() is True:
-                    img_copy = source_image_cropped.copy()
-                    cv2.rectangle(img_copy, (x, y), (x+tmpl_w, y+tmpl_h), (0, 0, 255), 2)
-                    self._log_manager.save_image(self.__find_log_folder, "sub_object_found.png", img_copy)
+                is_already_found = False
 
-                sub_object_result = MatchResult((x1 + x, y1 + y, tmpl_w, tmpl_h))
-                return sub_object_result
+                for point_already_analyzed in analyzed_points:
+
+                    # tolerance_region_w = (tpl_w/2)  + (20 * self._scaling_factor)
+                    # tolerance_region_h = (tpl_h/2) + (20 * self._scaling_factor)
+
+                    tolerance_region_w = (tmpl_w / 2) + (self._overlapping_factor * self._scaling_factor)
+                    tolerance_region_h = (tmpl_h / 2) + (self._overlapping_factor * self._scaling_factor)
+
+                    if (x >= point_already_analyzed[0] - tolerance_region_w and
+                                x <= point_already_analyzed[0] + tolerance_region_w) and \
+                            (y >= point_already_analyzed[1] - tolerance_region_h and
+                                     y <= point_already_analyzed[1] + tolerance_region_h):
+                        is_already_found = True
+                        # print point[0],point_already_analyzed[0],point[1],point_already_analyzed[1]
+
+                if is_already_found == False:
+
+                    #hist_blue = cv2.calcHist(self._source_image_color[y1 + y:y1 + y + tmpl_h, x1 + x:x1 + x + tmpl_w], [0], None, [256], [0, 256])
+                    #hist_green = cv2.calcHist(self._source_image_color[y1 + y:y1 + y + tmpl_h, x1 + x:x1 + x + tmpl_w], [1], None, [256], [0, 256])
+                    #hist_red = cv2.calcHist(self._source_image_color[y1 + y:y1 + y + tmpl_h, x1 + x:x1 + x + tmpl_w], [2], None, [256], [0, 256])
+
+                    hist_rgb = cv2.calcHist([self._source_image_color[y1 + y:y1 + y + tmpl_h, x1 + x:x1 + x + tmpl_w]], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
+                    hist_rgb = cv2.normalize(hist_rgb).flatten()
+
+                    #comp_blue = cv2.compareHist(hist_blue, template.hist_blue, cv2.cv.CV_COMP_BHATTACHARYYA)
+                    #comp_green = cv2.compareHist(hist_green, template.hist_green, cv2.cv.CV_COMP_BHATTACHARYYA)
+                    #comp_red = cv2.compareHist(hist_red, template.hist_red, cv2.cv.CV_COMP_BHATTACHARYYA)
+                    comp_rgb = cv2.compareHist(hist_rgb, template.hist_rgb, cv2.cv.CV_COMP_BHATTACHARYYA)
+
+                    analyzed_points.append((x, y, img_w, img_h))
+
+                    #if (comp_blue > 0.3 or comp_green > 0.3 or comp_red > 0.3) and template.match_colors is True:
+                    if comp_rgb > 0.2  and template.match_colors is True:
+                        continue
+
+                    if self._log_manager.is_log_enable() is True:
+                        img_copy = source_image_cropped.copy()
+                        cv2.rectangle(img_copy, (x, y), (x+tmpl_w, y+tmpl_h), (0, 0, 255), 2)
+                        self._log_manager.save_image(self.__find_log_folder, "sub_object_found.png", img_copy)
+
+                    sub_object_result = MatchResult((x1 + x, y1 + y, tmpl_w, tmpl_h))
+                    return sub_object_result
 
             return None
         except Exception, err:

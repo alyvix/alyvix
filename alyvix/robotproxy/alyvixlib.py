@@ -381,3 +381,46 @@ def print_perfdata(message=None, print_output="True"):
 
     pm = PerfManager()
     return pm.get_output(message_value, print_output_value)
+
+
+def get_mstsc_hostname(customer_name='test', path_json=''):
+    nm = NetManager(customer_name=customer_name, path_json=path_json)
+    if nm.known_hostnames:
+        first_known_hostname = nm.known_hostnames[0]
+        return first_known_hostname
+    else:
+        return False
+
+
+def get_aos_id(scraped_string, customer_name='test', path_json='',
+               map_norm=True, verbose=False):
+    sm = StringManager(scraped_string=scraped_string,
+                       customer_name=customer_name,
+                       path_json=path_json,
+                       map_norm=map_norm)
+    if verbose:
+        print(sm)
+    if map_norm:
+        return sm.aos_name, sm.id_session
+    return sm.aos_scrap, sm.id_scrap
+
+
+def get_date_today(date_format='dd/mm/yyyy'):
+    cwm = CalendarWatchManager(date_format=date_format)
+    return cwm.get_date_today()
+
+
+def get_three_letter_days_previous_month():
+    cwm = CalendarWatchManager()
+    return cwm.get_three_letter_days_previous_month()
+
+
+def check_dhms_totaltime_days_previous_month(scraped_string):
+    cwm = CalendarWatchManager(scraped_string=scraped_string)
+    return cwm.check_dhms_totaltime_days_previous_month()
+
+
+def check_hms_time_proximity(scraped_string, proximity_minutes=60):
+    cwm = CalendarWatchManager(scraped_string=scraped_string,
+                               proximity_minutes=proximity_minutes)
+    return cwm.check_hms_time_proximity()

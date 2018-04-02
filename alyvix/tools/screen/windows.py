@@ -223,7 +223,18 @@ class ScreenManager(ScreenManagerBase):
 
                 dcObj.DeleteDC()
 
-                if height != v_DESKTOPVERTRES or width != v_DESKTOPHORZRES:
+                scaling = round(float(v_DESKTOPVERTRES) / float(v_VERTRES), 2)  # two decimal
+
+                #if scaling >= 1.0:
+                #    return False
+
+                if width == 1366: #fix for the windows 7 bug with rdp and 1366x768 res
+                    if v_DESKTOPHORZRES >= 1364 and v_DESKTOPHORZRES <= 1368\
+                            and height == v_DESKTOPVERTRES:
+                        return True
+                    else:
+                        return False
+                elif height != v_DESKTOPVERTRES or width != v_DESKTOPHORZRES:
                     return False
         except:
             pass

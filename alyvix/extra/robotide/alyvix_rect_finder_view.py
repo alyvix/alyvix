@@ -75,6 +75,8 @@ class AlyvixRectFinderView(QWidget):
         self._bg_pixmap = QPixmap()
         self.__capturing = False
         
+        self.__drag_border = False
+        
         self.__click_position = QPoint(0,0)
         
         self._main_rect_finder = None
@@ -87,7 +89,13 @@ class AlyvixRectFinderView(QWidget):
         
         #flags
         #self.__flag_mouse_left_button_is_pressed = False
-        self.__flag_mouse_is_inside_rect = False
+        self.__flag_mouse_is_inside_rect = None
+
+        self.__move_index = None
+        self.__flag_moving_rect = False
+        self.__position_offset_x = 0;
+        self.__position_offset_y = 0;
+
         self.__flag_capturing_main_rect = True
         self.__flag_capturing_sub_rect_roi = False
         self.__flag_capturing_sub_rect = False
@@ -99,9 +107,52 @@ class AlyvixRectFinderView(QWidget):
         self._old_min_width = None
         self._old_min_height = None
         self._self_show_tolerance = False
+        
+        self._mouse_pressed = False
 
+        
+        self.__flag_mouse_is_on_left_border = False
+        self.__flag_mouse_is_on_right_border = False
+        self.__flag_mouse_is_on_top_border = False
+        self.__flag_mouse_is_on_bottom_border = False
+        self.__flag_mouse_is_on_border = None
+        
+        self.__flag_mouse_is_on_left_up_corner = False
+        self.__flag_mouse_is_on_right_up_corner = False
+        self.__flag_mouse_is_on_right_bottom_corner = False
+        self.__flag_mouse_is_on_left_bottom_corner = False
+        
+        self.__border_index = None
+        
+        
+        
+        self.__flag_mouse_is_on_left_border_roi = False
+        self.__flag_mouse_is_on_right_border_roi = False
+        self.__flag_mouse_is_on_top_border_roi = False
+        self.__flag_mouse_is_on_bottom_border_roi = False
+        
+        self.__flag_mouse_is_on_left_up_corner_roi = False
+        self.__flag_mouse_is_on_right_up_corner_roi = False
+        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+        
+        
         self.__index_deleted_rect_inside_roi = -1
         self.__restored_rect_roi = False
+        
+        
+        self._old_width_rect = 0
+        self._old_height_rect = 0
+        self._old_x_rect = 0
+        self._old_y_rect = 0
+        self._old_roi_width_rect = 0
+        self._old_roi_height_rect = 0
+        self._old_roi_x_rect = 0
+        self._old_roi_y_rect = 0
+    
+        
+        self.scaling_factor = self.parent.scaling_factor
+             
         
                 
         self._xml_name = self.parent.xml_name
@@ -400,6 +451,8 @@ class AlyvixRectFinderView(QWidget):
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
         
+            self._mouse_pressed = True
+        
             self.__click_position = QPoint(QCursor.pos())
             
             if self.set_xy_offset is not None:
@@ -409,16 +462,61 @@ class AlyvixRectFinderView(QWidget):
                 else:
                     self._sub_rects_finder[self.set_xy_offset].x_offset = self.__click_position.x() - self._sub_rects_finder[self.set_xy_offset].x
                     self._sub_rects_finder[self.set_xy_offset].y_offset = self.__click_position.y() - self._sub_rects_finder[self.set_xy_offset].y
-            else:
+            elif self.__flag_mouse_is_on_border is not None:
+                self.__border_index = self.__flag_mouse_is_on_border
+                self.__drag_border = True
+                if self.__border_index == 0:
+                    self._old_height_rect = self._main_rect_finder.height
+                    self._old_width_rect = self._main_rect_finder.width
+                    self._old_x_rect = self._main_rect_finder.x
+                    self._old_y_rect = self._main_rect_finder.y
+                else:
+                    self._old_height_rect = self._sub_rects_finder[self.__border_index-1].height
+                    self._old_width_rect = self._sub_rects_finder[self.__border_index-1].width
+                    self._old_x_rect = self._sub_rects_finder[self.__border_index-1].x
+                    self._old_y_rect = self._sub_rects_finder[self.__border_index-1].y
+                    
+                    self._old_roi_height_rect = self._sub_rects_finder[self.__border_index-1].roi_height
+                    self._old_roi_width_rect = self._sub_rects_finder[self.__border_index-1].roi_width
+                    self._old_roi_x_rect = self._sub_rects_finder[self.__border_index-1].roi_x
+                    self._old_roi_y_rect = self._sub_rects_finder[self.__border_index-1].roi_y
+                    
+            elif self.__flag_mouse_is_inside_rect is not None:
+                self.__move_index = self.__flag_mouse_is_inside_rect
+                
+        
+                if self.__move_index == 0:
+                    rect = self._main_rect_finder
+                else:
+                    rect = self._sub_rects_finder[self.__move_index - 1]
+                
+                self.__position_offset_x = self.__click_position.x() - rect.x
+                self.__position_offset_y =  self.__click_position.y() - rect.y
+
+            elif self.__drag_border is False:  #and self.__move_rect is False:
                 self.__capturing = True
             
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
+        
+            self._mouse_pressed = True
             self.__capturing = False
             
             if self.set_xy_offset is not None:
                 self.last_xy_offset_index = self.set_xy_offset
                 #self.set_xy_offset = None
+            
+            elif self.__move_index is not None:
+                self.__move_index = None
+                
+            elif self.__drag_border is True:
+                self.__drag_border = False
+                self.__flag_mouse_is_on_left_border = False
+                self.__flag_mouse_is_on_right_border = False
+                self.__flag_mouse_is_on_top_border = False
+                self.__flag_mouse_is_on_bottom_border = False
+                self.__flag_mouse_is_on_border = None
+                self.__border_index = None
                 
             elif self.__flag_capturing_main_rect is True:
                 self.last_xy_offset_index = None
@@ -446,54 +544,1244 @@ class AlyvixRectFinderView(QWidget):
         
     def paintEvent(self, event):
     
+        mouse_on_border = False
+    
         qp = QPainter()
         qp.begin(self)
         qp.drawPixmap(0, 0, self._bg_pixmap)
         
-        self.__flag_mouse_is_inside_rect = False
+        
+        self.__flag_mouse_is_inside_rect = None
         self.__index_of_rectangle_with_mouse_inside = -2
         
+        if self.__drag_border is False:
+            self.__flag_mouse_is_on_left_border = False
+            self.__flag_mouse_is_on_right_border = False
+            self.__flag_mouse_is_on_top_border = False
+            self.__flag_mouse_is_on_bottom_border = False
+            
+            self.__flag_mouse_is_on_left_up_corner = False
+            self.__flag_mouse_is_on_right_up_corner = False
+            self.__flag_mouse_is_on_right_bottom_corner = False
+            self.__flag_mouse_is_on_left_bottom_corner = False
+            
+            self.__flag_mouse_is_on_left_border_roi = False
+            self.__flag_mouse_is_on_right_border_roi = False
+            self.__flag_mouse_is_on_top_border_roi = False
+            self.__flag_mouse_is_on_bottom_border_roi = False
+            
+            self.__flag_mouse_is_on_left_up_corner_roi = False
+            self.__flag_mouse_is_on_right_up_corner_roi = False
+            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+            
+        #if self.__flag_mouse_is_on_border is None:
+        #    self.setCursor(QCursor(Qt.CrossCursor))
+
+        
         if self._main_rect_finder is not None:
+        
+                
+
+            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and self._main_rect_finder.show is True:
             
+                if self.is_mouse_inside_rect(self._main_rect_finder):
+                    self.__flag_mouse_is_inside_rect = 0
+                    self.setCursor(QCursor(Qt.SizeAllCursor))
+                    
+                elif self.is_mouse_on_left_border(self._main_rect_finder) and self.is_mouse_on_top_border(self._main_rect_finder):
+                    self.__flag_mouse_is_on_left_up_corner = True
+                    self.__flag_mouse_is_on_border = 0
+                    mouse_on_border = True
+                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                    #self.setCursor(Qt.SizeFDiagCursor)
+                    
+                elif self.is_mouse_on_right_border(self._main_rect_finder) and self.is_mouse_on_top_border(self._main_rect_finder):
+                    self.__flag_mouse_is_on_right_up_corner = True
+                    self.__flag_mouse_is_on_border = 0
+                    mouse_on_border = True
+                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                    
+                elif self.is_mouse_on_right_border(self._main_rect_finder) and self.is_mouse_on_bottom_border(self._main_rect_finder):
+                    self.__flag_mouse_is_on_right_bottom_corner = True
+                    self.__flag_mouse_is_on_border = 0
+                    mouse_on_border = True
+                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                    #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
+                    
+                elif self.is_mouse_on_left_border(self._main_rect_finder) and self.is_mouse_on_bottom_border(self._main_rect_finder):
+                    self.__flag_mouse_is_on_left_bottom_corner = True
+                    self.__flag_mouse_is_on_border = 0
+                    mouse_on_border = True
+                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                    
+                elif self.is_mouse_on_left_border(self._main_rect_finder):
+                    self.__flag_mouse_is_on_left_border = True
+                    self.__flag_mouse_is_on_border = 0
+                    mouse_on_border = True
+                    self.setCursor(QCursor(Qt.SizeHorCursor))
+                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+                                        
+                elif self.is_mouse_on_top_border(self._main_rect_finder):
+                    self.__flag_mouse_is_on_top_border = True
+                    self.__flag_mouse_is_on_border = 0
+                    mouse_on_border = True
+                    self.setCursor(QCursor(Qt.SizeVerCursor))
+                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                    
+                elif self.is_mouse_on_right_border(self._main_rect_finder):
+                    self.__flag_mouse_is_on_right_border = True
+                    self.__flag_mouse_is_on_border = 0
+                    mouse_on_border = True
+                    self.setCursor(QCursor(Qt.SizeHorCursor))
+                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+
+                    
+                elif self.is_mouse_on_bottom_border(self._main_rect_finder):
+                    self.__flag_mouse_is_on_bottom_border = True
+                    self.__flag_mouse_is_on_border = 0
+                    mouse_on_border = True
+                    self.setCursor(QCursor(Qt.SizeVerCursor))
+                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+
+            elif self.__drag_border is True and self.set_xy_offset is None:
+                self.update_border()
+            elif self.__move_index is not None and self.set_xy_offset is None:
+                self.update_position()
+                
+                        
             self.draw_main_rectangle(qp)
-            
-            if self.is_mouse_inside_rect(self._main_rect_finder):
-                self.__flag_mouse_is_inside_rect = True
-        
+                
         rect_index = 0
-        #self.__sub_rect_color_index = 0
+        #self.__sub_template_color_index = 0
+
+        cnt_sub = 1
+        cnt_sub_text = 1
         for sub_rect_finder in self._sub_rects_finder:
-        
-            self.draw_sub_rectangle(qp, sub_rect_finder)
+
+
+            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and sub_rect_finder.show is True:
+                                        
+                
+                if sub_rect_finder.show_min_max is False and sub_rect_finder.show_tolerance is False:
+                    if self.is_mouse_inside_rect(sub_rect_finder):
+                        self.__flag_mouse_is_inside_rect = cnt_sub
+                        self.setCursor(QCursor(Qt.SizeAllCursor))
+                        
             
-            if self.is_mouse_inside_rect(sub_rect_finder):
-                self.__flag_mouse_is_inside_rect = True
- 
+                    elif self.is_mouse_on_left_border_roi(sub_rect_finder) and self.is_mouse_on_top_border_roi(sub_rect_finder):
+                        self.__flag_mouse_is_on_left_up_corner_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #self.setCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(sub_rect_finder) and self.is_mouse_on_top_border_roi(sub_rect_finder):
+                        self.__flag_mouse_is_on_right_up_corner_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(sub_rect_finder) and self.is_mouse_on_bottom_border_roi(sub_rect_finder):
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border_roi(sub_rect_finder) and self.is_mouse_on_bottom_border_roi(sub_rect_finder):
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border_roi(sub_rect_finder):
+                        self.__flag_mouse_is_on_left_border_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+                                            
+                    elif self.is_mouse_on_top_border_roi(sub_rect_finder):
+                        self.__flag_mouse_is_on_top_border_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(sub_rect_finder):
+                        self.__flag_mouse_is_on_right_border_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+
+                        
+                    elif self.is_mouse_on_bottom_border_roi(sub_rect_finder):
+                        self.__flag_mouse_is_on_bottom_border_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+
+                    elif self.is_mouse_on_left_border(sub_rect_finder) and self.is_mouse_on_top_border(sub_rect_finder):
+                        self.__flag_mouse_is_on_left_up_corner = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #self.setCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border(sub_rect_finder) and self.is_mouse_on_top_border(sub_rect_finder):
+                        self.__flag_mouse_is_on_right_up_corner = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border(sub_rect_finder) and self.is_mouse_on_bottom_border(sub_rect_finder):
+                        self.__flag_mouse_is_on_right_bottom_corner = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border(sub_rect_finder) and self.is_mouse_on_bottom_border(sub_rect_finder):
+                        self.__flag_mouse_is_on_left_bottom_corner = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border(sub_rect_finder):
+                        self.__flag_mouse_is_on_left_border = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+                                            
+                    elif self.is_mouse_on_top_border(sub_rect_finder):
+                        self.__flag_mouse_is_on_top_border = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                        
+                    elif self.is_mouse_on_right_border(sub_rect_finder):
+                        self.__flag_mouse_is_on_right_border = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+
+                        
+                    elif self.is_mouse_on_bottom_border(sub_rect_finder):
+                        self.__flag_mouse_is_on_bottom_border = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                    
+                cnt_sub = cnt_sub + 1
+
+            elif self.__drag_border is True and self.set_xy_offset is None:
+                self.update_border()
+            elif self.__move_index is not None and self.set_xy_offset is None:
+                self.update_position()
         
-        if self.set_xy_offset is None:
+            self.draw_sub_rectangle(qp, sub_rect_finder, cnt_sub_text)
+            cnt_sub_text += 1
+        if mouse_on_border is False:
+            self.__flag_mouse_is_on_border = None
+            
+                    
+        #if self.__flag_mouse_is_on_border is None:
+        #    self.setCursor(QCursor(Qt.CrossCursor))
+
+
+        if self.set_xy_offset is None and self.__flag_mouse_is_on_border is None and self.__flag_mouse_is_inside_rect is None:
+        
             if self.__capturing is False:
                 self.draw_cross_lines(qp)
-            elif self.set_xy_offset is not None:
-                pass
+                
             elif self.__flag_capturing_main_rect is True:
                 self.draw_capturing_rectangle_lines(qp)
             elif self.__flag_capturing_sub_rect_roi is True:
                 self.draw_capturing_roi_lines(qp)
             elif self.__flag_capturing_sub_rect is True:
                 self.draw_capturing_rectangle_lines(qp)
+            
         qp.end()
+        
+    def calc_threshold_inside(self, rect, roi=False):
+        
+    
+        if roi is True:
+            if rect.roi_height > 16 * self.scaling_factor and rect.roi_width > 16 * self.scaling_factor:
+                return int((6 *self.scaling_factor))
+            elif rect.roi_height > 12 * self.scaling_factor and rect.roi_width > 12 * self.scaling_factor:
+                return int((4 *self.scaling_factor))
+            elif rect.roi_height > 8 * self.scaling_factor and rect.roi_width > 8 * self.scaling_factor:
+                return int((2 *self.scaling_factor))
+            elif rect.roi_height > 4 * self.scaling_factor and rect.roi_width > 4 * self.scaling_factor:
+                return int((1 *self.scaling_factor))
+            else:
+                return 0
+
+        else:
+            if rect.height > 16 * self.scaling_factor and rect.width > 16 * self.scaling_factor:
+                return int((6 *self.scaling_factor))
+            elif rect.height > 12 * self.scaling_factor and rect.width > 12 * self.scaling_factor:
+                return int((4 *self.scaling_factor))
+            elif rect.height > 8 * self.scaling_factor and rect.width > 8 * self.scaling_factor:
+                return int((2 *self.scaling_factor))
+            elif rect.height > 4 * self.scaling_factor and rect.width > 4 * self.scaling_factor:
+                return int((1 *self.scaling_factor))
+            else:
+                return 0
         
     def is_mouse_inside_rect(self, rect):
     
+    
         mouse_position = QPoint(QCursor.pos())
         
-        if (mouse_position.x() > rect.x and
-                mouse_position.x() < rect.width + rect.x and
-                mouse_position.y() > rect.y and
-                mouse_position.y() < rect.height + rect.y):
+        threshold = self.calc_threshold_inside(rect)
+        
+        if (mouse_position.x() > rect.x + threshold and
+                mouse_position.x() < rect.width + rect.x - threshold and
+                mouse_position.y() > rect.y + threshold and
+                mouse_position.y() < rect.height + rect.y - threshold):
             return True
         else:
             return False
+            
+    def update_position(self):
+    
+        rect = None
+        
+        if self.__move_index is None:
+            return
+        
+        if self.__move_index == 0:
+            rect = self._main_rect_finder
+        else:
+            rect = self._sub_rects_finder[self.__move_index - 1]
+    
+        old_x = rect.x
+        old_width = rect.width 
+        old_y = rect.y
+        old_height = rect.height 
+        
+        mouse_position = QPoint(QCursor.pos())
+        #print mouse_position
+        
+
+        rect.x = mouse_position.x() - self.__position_offset_x 
+        rect.y =  mouse_position.y() - self.__position_offset_y
+        
+        if  rect.x + rect.width > self._bg_pixmap.width():
+            rect.x =  (self._bg_pixmap.width()-1) - rect.width
+            
+        if rect.x < 0:
+            rect.x = 1
+ 
+        if  rect.y + rect.height > self._bg_pixmap.height():
+            rect.y = (self._bg_pixmap.height()-1) - rect.height
+            
+        if rect.y < 0:
+            rect.y = 1 
+            
+        if self.__move_index != 0:
+            if self._main_rect_finder.x + rect.roi_x + rect.roi_width > self._bg_pixmap.width():
+                rect.roi_width = self._bg_pixmap.width() - (self._main_rect_finder.x + rect.roi_x)
+                
+            if self._main_rect_finder.y + rect.roi_y + rect.roi_height > self._bg_pixmap.height():
+                rect.roi_height = self._bg_pixmap.height() - (self._main_rect_finder.y + rect.roi_y)
+         
+               
+            if self._main_rect_finder.x + rect.roi_x < 0:
+                old_roi_x = rect.roi_x
+                rect.roi_x = -self._main_rect_finder.x
+                
+                width_diff = rect.roi_x - old_roi_x
+                rect.roi_width = rect.roi_width - width_diff
+                
+            if self._main_rect_finder.y + rect.roi_y < 0:
+                old_roi_y = rect.roi_y
+                rect.roi_y = -self._main_rect_finder.y
+                
+                height_diff = rect.roi_y - old_roi_y
+                rect.roi_height = rect.roi_height - height_diff
+                
+        
+        x_offset =  old_x - rect.x
+        y_offset =  old_y - rect.y
+
+        if rect.x_offset is not None and rect.y_offset is not None:
+            rect.y_offset = rect.y_offset + y_offset
+            rect.x_offset = rect.x_offset + x_offset
+            
+        if self.__move_index == 0:
+            for sub_image_finder in self._sub_rects_finder:
+                sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
+                sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
+        else:
+            rect.roi_x = rect.roi_x - x_offset
+            rect.roi_y = rect.roi_y - y_offset
+            
+
+
+    def calc_threshold_border(self, rect, roi=False):
+        
+    
+        if roi is True:
+            if rect.roi_height > 16 * self.scaling_factor and rect.roi_width > 16 * self.scaling_factor:
+                return int((8 *self.scaling_factor))
+            elif rect.roi_height > 12 * self.scaling_factor and rect.roi_width > 12 * self.scaling_factor:
+                return int((6 *self.scaling_factor))
+            elif rect.roi_height > 8 * self.scaling_factor and rect.roi_width > 8 * self.scaling_factor:
+                return int((4 *self.scaling_factor))
+            elif rect.roi_height > 4 * self.scaling_factor and rect.roi_width > 4 * self.scaling_factor:
+                return int((2 *self.scaling_factor))
+            else:
+                return int(self.scaling_factor)
+        else:
+            if rect.height > 16 * self.scaling_factor and rect.width > 16 * self.scaling_factor:
+                return int((8 *self.scaling_factor))
+            elif rect.height > 12 * self.scaling_factor and rect.width > 12 * self.scaling_factor:
+                return int((6 *self.scaling_factor))
+            elif rect.height > 8 * self.scaling_factor and rect.width > 8 * self.scaling_factor:
+                return int((4 *self.scaling_factor))
+            elif rect.height > 4 * self.scaling_factor and rect.width > 4 * self.scaling_factor:
+                return int((2 *self.scaling_factor))
+            else:
+                return int(self.scaling_factor)
+        
+            
+    def update_border(self):
+    
+        rect = None
+        
+        if self.__border_index is None:
+            return
+        
+        if self.__border_index == 0:
+            rect = self._main_rect_finder
+        else:
+            rect = self._sub_rects_finder[self.__border_index - 1]
+            
+            
+            
+            
+            
+            
+            
+            
+            
+        if  self.__flag_mouse_is_on_left_up_corner_roi is True:
+            
+            mouse_position = QPoint(QCursor.pos())
+        
+            old_x = rect.roi_x
+            old_width = rect.roi_width 
+            
+            
+            rect.roi_x = mouse_position.x() - self._main_rect_finder.x
+            rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_rect_finder.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_rect_finder.x - mouse_position.x())
+
+            
+            
+            if rect.x < rect.roi_x + self._main_rect_finder.x:
+                rect.roi_x = rect.x - self._main_rect_finder.x - 1 #rect.roi_x +  self._main_rect_finder.x
+                rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_rect_finder.x))
+                
+                
+             
+                    
+            old_y = rect.roi_y
+            old_height = rect.roi_height 
+            
+            
+            rect.roi_y = mouse_position.y() - self._main_rect_finder.y
+            rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_rect_finder.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_rect_finder.y - mouse_position.y())
+
+            
+            
+            if rect.y < rect.roi_y + self._main_rect_finder.y:
+                rect.roi_y = rect.y - self._main_rect_finder.y -1#rect.roi_y +  self._main_rect_finder.y
+                rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_rect_finder.y))
+                
+                
+                
+        elif  self.__flag_mouse_is_on_right_up_corner_roi == True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            mouse_position = QPoint(QCursor.pos())
+
+            old_width = rect.roi_width 
+            
+            #rect.width = mouse_position.x() - rect.x
+            
+            rect.roi_width = mouse_position.x() - (rect.roi_x + self._main_rect_finder.x)
+            #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_rect_finder.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_rect_finder.x - mouse_position.x())
+
+
+            if rect.x + rect.width > rect.roi_x + self._main_rect_finder.x + rect.roi_width:
+                #rect.y = old_y #rect.roi_x +  self._main_rect_finder.x
+                rect.roi_width = (rect.x - (self._old_roi_x_rect + self._main_rect_finder.x)) + rect.width + 1
+               
+            old_y = rect.roi_y
+            old_height = rect.roi_height 
+            
+            
+            rect.roi_y = mouse_position.y() - self._main_rect_finder.y
+            rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_rect_finder.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_rect_finder.y - mouse_position.y())
+
+            
+            
+            if rect.y < rect.roi_y + self._main_rect_finder.y:
+                rect.roi_y = rect.y - self._main_rect_finder.y -1#rect.roi_y +  self._main_rect_finder.y
+                rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_rect_finder.y))
+                
+                
+        elif  self.__flag_mouse_is_on_right_bottom_corner_roi == True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            
+            old_width = rect.roi_width 
+            
+            #rect.width = mouse_position.x() - rect.x
+            
+            rect.roi_width = mouse_position.x() - (rect.roi_x + self._main_rect_finder.x)
+            #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_rect_finder.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_rect_finder.x - mouse_position.x())
+
+
+            if rect.x + rect.width > rect.roi_x + self._main_rect_finder.x + rect.roi_width:
+                #rect.y = old_y #rect.roi_x +  self._main_rect_finder.x
+                rect.roi_width = (rect.x - (self._old_roi_x_rect + self._main_rect_finder.x)) + rect.width + 1
+            
+            old_height = rect.roi_height 
+            
+            #rect.height = mouse_position.y() - rect.y
+            
+            rect.roi_height = mouse_position.y() - (rect.roi_y + self._main_rect_finder.y)
+            #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_rect_finder.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_rect_finder.y - mouse_position.y())
+
+
+            if rect.y + rect.height > rect.roi_y + self._main_rect_finder.y + rect.roi_height:
+                #rect.y = old_y #rect.roi_y +  self._main_rect_finder.y
+                rect.roi_height = (rect.y - (self._old_roi_y_rect + self._main_rect_finder.y)) + rect.height + 1
+            
+                
+                
+        elif  self.__flag_mouse_is_on_left_bottom_corner_roi == True:
+            mouse_position = QPoint(QCursor.pos())
+
+            old_x = rect.roi_x
+            old_width = rect.roi_width 
+            
+            
+            rect.roi_x = mouse_position.x() - self._main_rect_finder.x
+            rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_rect_finder.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_rect_finder.x - mouse_position.x())
+
+            
+            
+            if rect.x < rect.roi_x + self._main_rect_finder.x:
+                rect.roi_x = rect.x - self._main_rect_finder.x - 1 #rect.roi_x +  self._main_rect_finder.x
+                rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_rect_finder.x))
+                
+                    
+                
+            old_height = rect.roi_height 
+            
+            #rect.height = mouse_position.y() - rect.y
+            
+            rect.roi_height = mouse_position.y() - (rect.roi_y + self._main_rect_finder.y)
+            #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_rect_finder.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_rect_finder.y - mouse_position.y())
+
+
+            if rect.y + rect.height > rect.roi_y + self._main_rect_finder.y + rect.roi_height:
+                #rect.y = old_y #rect.roi_y +  self._main_rect_finder.y
+                rect.roi_height = (rect.y - (self._old_roi_y_rect + self._main_rect_finder.y)) + rect.height + 1
+            
+            
+        
+        elif self.__flag_mouse_is_on_left_border_roi is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            old_x = rect.roi_x
+            old_width = rect.roi_width 
+            
+            
+            rect.roi_x = mouse_position.x() - self._main_rect_finder.x
+            rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_rect_finder.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_rect_finder.x - mouse_position.x())
+
+            
+            
+            if rect.x < rect.roi_x + self._main_rect_finder.x:
+                rect.roi_x = rect.x - self._main_rect_finder.x - 1 #rect.roi_x +  self._main_rect_finder.x
+                rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_rect_finder.x))
+                
+            """
+            if rect.roi_width < int(4 * self.scaling_factor):
+                rect.roi_width = old_width
+                rect.roi_x = old_x
+            """    
+        elif self.__flag_mouse_is_on_top_border_roi is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            old_y = rect.roi_y
+            old_height = rect.roi_height 
+            
+            
+            rect.roi_y = mouse_position.y() - self._main_rect_finder.y
+            rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_rect_finder.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_rect_finder.y - mouse_position.y())
+
+            
+            
+            if rect.y < rect.roi_y + self._main_rect_finder.y:
+                rect.roi_y = rect.y - self._main_rect_finder.y -1#rect.roi_y +  self._main_rect_finder.y
+                rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_rect_finder.y))
+                
+        elif self.__flag_mouse_is_on_bottom_border_roi is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            old_height = rect.roi_height 
+            
+            #rect.height = mouse_position.y() - rect.y
+            
+            rect.roi_height = mouse_position.y() - (rect.roi_y + self._main_rect_finder.y)
+            #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_rect_finder.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_rect_finder.y - mouse_position.y())
+
+
+            if rect.y + rect.height > rect.roi_y + self._main_rect_finder.y + rect.roi_height:
+                #rect.y = old_y #rect.roi_y +  self._main_rect_finder.y
+                rect.roi_height = (rect.y - (self._old_roi_y_rect + self._main_rect_finder.y)) + rect.height + 1
+            
+                
+
+            #print rect.x
+        elif self.__flag_mouse_is_on_right_border_roi is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            old_width = rect.roi_width 
+            
+            #rect.width = mouse_position.x() - rect.x
+            
+            rect.roi_width = mouse_position.x() - (rect.roi_x + self._main_rect_finder.x)
+            #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_rect_finder.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_rect_finder.x - mouse_position.x())
+
+
+            if rect.x + rect.width > rect.roi_x + self._main_rect_finder.x + rect.roi_width:
+                #rect.y = old_y #rect.roi_x +  self._main_rect_finder.x
+                rect.roi_width = (rect.x - (self._old_roi_x_rect + self._main_rect_finder.x)) + rect.width + 1
+
+
+        elif  self.__flag_mouse_is_on_left_up_corner is True:
+            
+            mouse_position = QPoint(QCursor.pos())
+        
+            old_x = rect.x
+
+                                    
+            rect.x = mouse_position.x()
+            rect.width = self._old_width_rect + (self._old_x_rect - mouse_position.x()) 
+            
+      
+            
+            if rect.x < 1:
+                rect.x = 1
+            
+            if self.__border_index != 0:
+                if  mouse_position.x() < (rect.roi_x +  self._main_rect_finder.x):
+                
+                    if rect.roi_unlimited_left:
+                        rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                    else:
+                        rect.x = rect.roi_x +  self._main_rect_finder.x + 1
+                        rect.width = self._old_width_rect + (self._old_x_rect - (rect.roi_x +  self._main_rect_finder.x)) 
+                        
+                        #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        
+            
+            if rect.width < int(4 * self.scaling_factor):
+                rect.width = int(4 * self.scaling_factor)
+                rect.x = self._old_x_rect + self._old_width_rect - int(4 * self.scaling_factor)
+                 
+            x_offset =  old_x - rect.x
+
+                                    
+            if rect.x_offset is not None and rect.y_offset is not None:
+                rect.x_offset = rect.x_offset + x_offset
+            
+            #print x_offset
+                        
+            if self.__border_index == 0:
+                for sub_image_finder in self._sub_rects_finder:
+                    sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
+                    
+            old_y = rect.y
+            
+            rect.y = mouse_position.y()
+            rect.height = self._old_height_rect + (self._old_y_rect - mouse_position.y()) 
+            
+            if rect.y < 1:
+                rect.y = 1
+                
+            if self.__border_index != 0:
+                if  mouse_position.y() < (rect.roi_y +  self._main_rect_finder.y):
+            
+                    if rect.roi_unlimited_up:
+                        rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                        rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                    else:
+                        rect.y = rect.roi_y +  self._main_rect_finder.y + 1
+                        rect.height = self._old_height_rect + (self._old_y_rect - (rect.roi_y +  self._main_rect_finder.y)) 
+                        
+                        #rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+
+            
+            if rect.height < int(4 * self.scaling_factor):
+                rect.height = int(4 * self.scaling_factor)
+                rect.y = self._old_y_rect + self._old_height_rect - int(4 * self.scaling_factor)
+                
+                 
+            y_offset =  old_y - rect.y
+            
+            if rect.x_offset is not None and rect.y_offset is not None:
+                rect.y_offset = rect.y_offset + y_offset
+                
+            #print x_offset
+            if self.__border_index == 0:
+                for sub_image_finder in self._sub_rects_finder:
+                    sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
+                
+        elif  self.__flag_mouse_is_on_right_up_corner == True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            old_width = rect.width 
+            
+            rect.width = mouse_position.x() - rect.x
+            
+            if rect.x + rect.width > self._bg_pixmap.width() + 1:
+                rect.width = self._bg_pixmap.width() - rect.x - 1
+            
+            
+            if self.__border_index != 0:
+                if  rect.x + rect.width > rect.roi_x + self._main_rect_finder.x + rect.roi_width:
+                
+                    if rect.roi_unlimited_right:
+                        rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_rect_finder.x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                    else:
+                        # -- rect.x = rect.roi_x +  self._main_rect_finder.x
+                        rect.width = self._old_width_rect + ((rect.roi_x + rect.roi_width + self._main_rect_finder.x) - (self._old_x_rect + self._old_width_rect)) - 1
+
+                        #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_rect_finder.x + rect.roi_width))
+                        
+
+            
+            if rect.width < int(4 * self.scaling_factor):
+                rect.width = int(4 * self.scaling_factor)
+                #rect.x = self._old_x_rect + self._old_width_rect + 4
+                
+                 
+            old_y = rect.y
+            
+            rect.y = mouse_position.y()
+            rect.height = self._old_height_rect + (self._old_y_rect - mouse_position.y()) 
+            
+            if rect.y < 1:
+                rect.y = 1
+                
+            if self.__border_index != 0:
+                if  mouse_position.y() < (rect.roi_y +  self._main_rect_finder.y):
+            
+                    if rect.roi_unlimited_up:
+                        rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                        rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                    else:
+                        rect.y = rect.roi_y +  self._main_rect_finder.y + 1
+                        rect.height = self._old_height_rect + (self._old_y_rect - (rect.roi_y +  self._main_rect_finder.y)) 
+                        
+                        #rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+
+            
+            if rect.height < int(4 * self.scaling_factor):
+                rect.height = int(4 * self.scaling_factor)
+                rect.y = self._old_y_rect + self._old_height_rect - int(4 * self.scaling_factor)
+                
+                 
+            y_offset =  old_y - rect.y
+            
+            if rect.x_offset is not None and rect.y_offset is not None:
+                rect.y_offset = rect.y_offset + y_offset
+                
+            #print x_offset
+            if self.__border_index == 0:
+                for sub_image_finder in self._sub_rects_finder:
+                    sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
+                
+        elif  self.__flag_mouse_is_on_right_bottom_corner == True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            old_width = rect.width 
+            
+            rect.width = mouse_position.x() - rect.x
+            
+            if rect.x + rect.width > self._bg_pixmap.width() + 1:
+                rect.width = self._bg_pixmap.width() - rect.x - 1
+            
+            
+            if self.__border_index != 0:
+                if  rect.x + rect.width > rect.roi_x + self._main_rect_finder.x + rect.roi_width:
+                
+                    if rect.roi_unlimited_right:
+                        rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_rect_finder.x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                    else:
+                        # -- rect.x = rect.roi_x +  self._main_rect_finder.x
+                        rect.width = self._old_width_rect + ((rect.roi_x + rect.roi_width + self._main_rect_finder.x) - (self._old_x_rect + self._old_width_rect)) -1 
+
+                        #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_rect_finder.x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+
+
+            
+            if rect.width < int(4 * self.scaling_factor):
+                rect.width = int(4 * self.scaling_factor)
+                #rect.x = self._old_x_rect + self._old_width_rect + 4
+
+            old_height = rect.height 
+            
+            rect.height = mouse_position.y() - rect.y
+       
+            if rect.y + rect.height > self._bg_pixmap.height() + 1:
+                rect.height = self._bg_pixmap.height() - rect.y - 1
+            
+            
+            if self.__border_index != 0:
+                if  rect.y + rect.height > rect.roi_y + self._main_rect_finder.y + rect.roi_height:
+                
+                    if rect.roi_unlimited_down:
+                        rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_rect_finder.y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                    else:
+                        # -- rect.y = rect.roi_y +  self._main_rect_finder.y
+                        rect.height = self._old_height_rect + ((rect.roi_y + rect.roi_height + self._main_rect_finder.y) - (self._old_y_rect + self._old_height_rect)) -1
+
+                        #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_rect_finder.y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+
+            
+            if rect.height < int(4 * self.scaling_factor):
+                rect.height = int(4 * self.scaling_factor)
+                #rect.y = self._old_y_rect + self._old_height_rect + 4
+                
+        elif  self.__flag_mouse_is_on_left_bottom_corner == True:
+            mouse_position = QPoint(QCursor.pos())
+
+            mouse_position = QPoint(QCursor.pos())
+
+            old_x = rect.x
+            
+            #rect.width = rect.width + (rect.x - mouse_position.x())
+            #rect.x = mouse_position.x()
+
+                                    
+            rect.x = mouse_position.x()
+            rect.width = self._old_width_rect + (self._old_x_rect - mouse_position.x()) 
+          
+            
+            if rect.x < 1:
+                rect.x = 1
+            
+            if self.__border_index != 0:
+                if  mouse_position.x() < (rect.roi_x +  self._main_rect_finder.x):
+                
+                    if rect.roi_unlimited_left:
+                        rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                    else:
+                        rect.x = rect.roi_x +  self._main_rect_finder.x + 1
+                        rect.width = self._old_width_rect + (self._old_x_rect - (rect.roi_x +  self._main_rect_finder.x)) 
+                        
+                        #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        
+            
+            if rect.width < int(4 * self.scaling_factor):
+                rect.width = int(4 * self.scaling_factor)
+                rect.x = self._old_x_rect + self._old_width_rect - int(4 * self.scaling_factor)
+                 
+            x_offset =  old_x - rect.x
+
+                                    
+            if rect.x_offset is not None and rect.y_offset is not None:
+                rect.x_offset = rect.x_offset + x_offset
+            
+            #print x_offset
+                        
+            if self.__border_index == 0:
+                for sub_image_finder in self._sub_rects_finder:
+                    sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
+                    
+                
+            old_height = rect.height 
+            
+            rect.height = mouse_position.y() - rect.y
+       
+            if rect.y + rect.height > self._bg_pixmap.height() + 1:
+                rect.height = self._bg_pixmap.height() - rect.y - 1
+            
+            
+            if self.__border_index != 0:
+                if  rect.y + rect.height > rect.roi_y + self._main_rect_finder.y + rect.roi_height:
+                
+                    if rect.roi_unlimited_down:
+                        rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_rect_finder.y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                    else:
+                        # -- rect.y = rect.roi_y +  self._main_rect_finder.y
+                        rect.height = self._old_height_rect + ((rect.roi_y + rect.roi_height + self._main_rect_finder.y) - (self._old_y_rect + self._old_height_rect)) -1
+
+                        #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_rect_finder.y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+
+            
+            if rect.height < int(4 * self.scaling_factor):
+                rect.height = int(4 * self.scaling_factor)
+                #rect.y = self._old_y_rect + self._old_height_rect + 4
+        
+        elif self.__flag_mouse_is_on_left_border is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            old_x = rect.x
+            
+            #rect.width = rect.width + (rect.x - mouse_position.x())
+            #rect.x = mouse_position.x()
+
+                                    
+            rect.x = mouse_position.x()
+            rect.width = self._old_width_rect + (self._old_x_rect - mouse_position.x()) 
+            
+            """
+                            
+            if self.__border_index != 0:
+                
+                if rect.roi_unlimited_left:
+                    if  mouse_position.x() < rect.roi_x +  self._main_rect_finder.x:
+                        rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                else:
+                    if  mouse_position.x() < (rect.roi_x +  self._main_rect_finder.x):
+
+                        rect.x = rect.roi_x +  self._main_rect_finder.x
+                        rect.width = ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        
+                        #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+            """
+            
+            if rect.x < 1:
+                rect.x = 1
+            
+            if self.__border_index != 0:
+                if  mouse_position.x() < (rect.roi_x +  self._main_rect_finder.x):
+                
+                    if rect.roi_unlimited_left:
+                        rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                    else:
+                        rect.x = rect.roi_x +  self._main_rect_finder.x + 1
+                        rect.width = self._old_width_rect + (self._old_x_rect - (rect.roi_x +  self._main_rect_finder.x)) 
+                        
+                        #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                        
+            
+            if rect.width < int(4 * self.scaling_factor):
+                rect.width = int(4 * self.scaling_factor)
+                rect.x = self._old_x_rect + self._old_width_rect - int(4 * self.scaling_factor)
+                 
+            x_offset =  old_x - rect.x
+
+                                    
+            if rect.x_offset is not None and rect.y_offset is not None:
+                rect.x_offset = rect.x_offset + x_offset
+            
+            #print x_offset
+                        
+            if self.__border_index == 0:
+                for sub_image_finder in self._sub_rects_finder:
+                    sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
+                
+        elif self.__flag_mouse_is_on_top_border is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            old_y = rect.y
+            
+            rect.y = mouse_position.y()
+            rect.height = self._old_height_rect + (self._old_y_rect - mouse_position.y()) 
+            
+            if rect.y < 1:
+                rect.y = 1
+                
+            if self.__border_index != 0:
+                if  mouse_position.y() < (rect.roi_y +  self._main_rect_finder.y):
+            
+                    if rect.roi_unlimited_up:
+                        rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                        rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                    else:
+                        rect.y = rect.roi_y +  self._main_rect_finder.y + 1
+                        rect.height = self._old_height_rect + (self._old_y_rect - (rect.roi_y +  self._main_rect_finder.y)) 
+                        
+                        #rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+
+            
+            if rect.height < int(4 * self.scaling_factor):
+                rect.height = int(4 * self.scaling_factor)
+                rect.y = self._old_y_rect + self._old_height_rect - int(4 * self.scaling_factor)
+                
+                 
+            y_offset =  old_y - rect.y
+            
+            if rect.x_offset is not None and rect.y_offset is not None:
+                rect.y_offset = rect.y_offset + y_offset
+                
+            #print x_offset
+            if self.__border_index == 0:
+                for sub_image_finder in self._sub_rects_finder:
+                    sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
+                
+        elif self.__flag_mouse_is_on_bottom_border is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            old_height = rect.height 
+            
+            rect.height = mouse_position.y() - rect.y
+       
+            if rect.y + rect.height > self._bg_pixmap.height() + 1:
+                rect.height = self._bg_pixmap.height() - rect.y - 1
+            
+            
+            if self.__border_index != 0:
+                if  rect.y + rect.height > rect.roi_y + self._main_rect_finder.y + rect.roi_height:
+                
+                    if rect.roi_unlimited_down:
+                        rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_rect_finder.y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+                    else:
+                        # -- rect.y = rect.roi_y +  self._main_rect_finder.y
+                        rect.height = self._old_height_rect + ((rect.roi_y + rect.roi_height + self._main_rect_finder.y) - (self._old_y_rect + self._old_height_rect)) -1
+
+                        #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_rect_finder.y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_rect_finder.y) - rect.y)
+
+            
+            if rect.height < int(4 * self.scaling_factor):
+                rect.height = int(4 * self.scaling_factor)
+                #rect.y = self._old_y_rect + self._old_height_rect + 4
+                
+
+            #print rect.x
+        elif self.__flag_mouse_is_on_right_border is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            old_width = rect.width 
+            
+            rect.width = mouse_position.x() - rect.x
+            
+            if rect.x + rect.width > self._bg_pixmap.width() + 1:
+                rect.width = self._bg_pixmap.width() - rect.x - 1
+            
+            
+            if self.__border_index != 0:
+                if  rect.x + rect.width > rect.roi_x + self._main_rect_finder.x + rect.roi_width:
+                
+                    if rect.roi_unlimited_right:
+                        rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_rect_finder.x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+                    else:
+                        # -- rect.x = rect.roi_x +  self._main_rect_finder.x
+                        rect.width = self._old_width_rect + ((rect.roi_x + rect.roi_width + self._main_rect_finder.x) - (self._old_x_rect + self._old_width_rect)) -1
+
+                        #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_rect_finder.x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_rect_finder.x) - rect.x)
+
+
+            
+            if rect.width < int(4 * self.scaling_factor):
+                rect.width = int(4 * self.scaling_factor)
+                #rect.x = self._old_x_rect + self._old_width_rect + 4
+
+
+        
+     
+    def is_mouse_on_left_border(self, rect):
+        mouse_position = QPoint(QCursor.pos())
+        
+        threshold = self.calc_threshold_border(rect)
+        
+        if (mouse_position.x() > rect.x - threshold and
+                mouse_position.x() < rect.x + threshold and
+                mouse_position.y() > rect.y - threshold and
+                mouse_position.y() < rect.height + rect.y + threshold):
+            return True
+        else:
+            return False
+            
+    def is_mouse_on_left_border_roi(self, rect):
+    
+        threshold = self.calc_threshold_border(rect, True)
+    
+        if rect.x == 0 and rect.width == 0 and rect.y == 0 and rect.height == 0:
+            return False
+        mouse_position = QPoint(QCursor.pos())
+        
+        if (rect.roi_unlimited_left is True ):
+            return False
+        elif (mouse_position.x() > rect.roi_x + self._main_rect_finder.x - threshold and
+                mouse_position.x() < rect.roi_x + self._main_rect_finder.x + threshold and
+                mouse_position.y() > rect.roi_y + self._main_rect_finder.y - threshold and
+                mouse_position.y() < rect.roi_height + rect.roi_y + self._main_rect_finder.y + threshold):
+            return True
+        elif ((rect.roi_unlimited_up is True or rect.roi_unlimited_down is True) and
+                mouse_position.x() > rect.roi_x + self._main_rect_finder.x - threshold and
+                mouse_position.x() < rect.roi_x + self._main_rect_finder.x + threshold): #and
+                #mouse_position.y() > rect.roi_y + self._main_rect_finder.y - int((8 *self.scaling_factor)) and
+                #mouse_position.y() < rect.roi_y + self._main_rect_finder.y + int((8 *self.scaling_factor))):
+            return True
+        else:
+            return False
+            
+    def is_mouse_on_right_border(self, rect):
+        mouse_position = QPoint(QCursor.pos())
+        threshold = self.calc_threshold_border(rect)
+        
+        if (mouse_position.x() > rect.x + rect.width - threshold and
+                mouse_position.x() < rect.x + rect.width + threshold and
+                mouse_position.y() > rect.y -  threshold and
+                mouse_position.y() < rect.height + rect.y +  threshold ):
+            return True
+        else:
+            return False
+            
+    def is_mouse_on_right_border_roi(self, rect):
+    
+        threshold = self.calc_threshold_border(rect, True)
+    
+        if rect.x == 0 and rect.width == 0 and rect.y == 0 and rect.height == 0:
+            return False
+            
+        mouse_position = QPoint(QCursor.pos())
+        
+        if (rect.roi_unlimited_right is True ):
+            return False
+        elif (mouse_position.x() > rect.roi_x + self._main_rect_finder.x + rect.roi_width - threshold and
+                mouse_position.x() < rect.roi_x + self._main_rect_finder.x + rect.roi_width + threshold and
+                mouse_position.y() > rect.roi_y + self._main_rect_finder.y - threshold and
+                mouse_position.y() < rect.roi_height + rect.roi_y + self._main_rect_finder.y + threshold):
+            return True
+        elif ((rect.roi_unlimited_up is True or rect.roi_unlimited_down is True) and
+                mouse_position.x() > rect.roi_x + self._main_rect_finder.x + rect.roi_width - threshold and
+                mouse_position.x() < rect.roi_x + self._main_rect_finder.x + rect.roi_width + threshold):
+            return True
+        else:
+            return False
+            
+    def is_mouse_on_top_border(self, rect):
+        mouse_position = QPoint(QCursor.pos())
+        
+        threshold = self.calc_threshold_border(rect)
+        
+        if (mouse_position.x() > rect.x - threshold and
+                mouse_position.x() < rect.x + rect.width + threshold and
+                mouse_position.y() > rect.y - threshold and
+                mouse_position.y() < rect.y + threshold):
+            return True
+        else:
+            return False
+            
+    def is_mouse_on_top_border_roi(self, rect):
+    
+        threshold = self.calc_threshold_border(rect, True)
+    
+        if rect.x == 0 and rect.width == 0 and rect.y == 0 and rect.height == 0:
+            return False
+            
+        mouse_position = QPoint(QCursor.pos())
+        
+        if (rect.roi_unlimited_up is True ):
+            return False
+        elif (mouse_position.x() > rect.roi_x + self._main_rect_finder.x - threshold and
+                mouse_position.x() < rect.roi_x + self._main_rect_finder.x + rect.roi_width + threshold and
+                mouse_position.y() > rect.roi_y + self._main_rect_finder.y - threshold and
+                mouse_position.y() < rect.roi_y + self._main_rect_finder.y + threshold ):
+            return True
+        elif ((rect.roi_unlimited_left is True or rect.roi_unlimited_right is True) and
+                mouse_position.y() > rect.roi_y + self._main_rect_finder.y - threshold and
+                mouse_position.y() < rect.roi_y + self._main_rect_finder.y + threshold):
+            return True
+
+        else:
+            return False
+            
+    def is_mouse_on_bottom_border(self, rect):
+        mouse_position = QPoint(QCursor.pos())
+        threshold = self.calc_threshold_border(rect)
+        
+        if (mouse_position.x() > rect.x - threshold and
+                mouse_position.x() < rect.x + rect.width + threshold and
+                mouse_position.y() > rect.y + rect.height - threshold and
+                mouse_position.y() < rect.y + rect.height + threshold):
+            return True
+        else:
+            return False
+            
+    def is_mouse_on_bottom_border_roi(self, rect):
+    
+        threshold = self.calc_threshold_border(rect, True)
+    
+        if rect.x == 0 and rect.width == 0 and rect.y == 0 and rect.height == 0:
+            return False
+            
+        mouse_position = QPoint(QCursor.pos())
+        
+        if (rect.roi_unlimited_down is True ):
+            return False
+        elif (mouse_position.x() > rect.roi_x + self._main_rect_finder.x  - threshold and
+                mouse_position.x() < rect.roi_x + self._main_rect_finder.x + rect.roi_width + threshold and
+                mouse_position.y() > rect.roi_y + self._main_rect_finder.y + rect.roi_height - threshold and
+                mouse_position.y() < rect.roi_y + self._main_rect_finder.y + rect.roi_height + threshold):
+            return True
+        elif ((rect.roi_unlimited_left is True or rect.roi_unlimited_right is True) and
+                mouse_position.y() > rect.roi_y + self._main_rect_finder.y + rect.roi_height - threshold and
+                mouse_position.y() < rect.roi_y + self._main_rect_finder.y + rect.roi_height + threshold):
+            return True
+        else:
+            return False
+        
  
     def draw_main_rectangle(self, qp):
     
@@ -505,6 +1793,12 @@ class AlyvixRectFinderView(QWidget):
                 pen.setBrush(QColor(255, 0, 0, 255))
                 pen.setWidth(1)
                 qp.setPen(pen)
+                
+                font = qp.font()
+                font.setPixelSize(11 * self.scaling_factor);
+
+                qp.setFont(font)
+                qp.drawText( QPoint(self._main_rect_finder.x -1,self._main_rect_finder.y -(4*self.scaling_factor)), "M" )
                 
                 qp.fillRect(self._main_rect_finder.x,
                     self._main_rect_finder.y,
@@ -695,7 +1989,7 @@ class AlyvixRectFinderView(QWidget):
                         self._main_rect_finder.x + (self._main_rect_finder.width / 2),
                         self._main_rect_finder.y + (self._main_rect_finder.height / 2))
      
-    def draw_sub_rectangle(self, qp, rect_finder):
+    def draw_sub_rectangle(self, qp, rect_finder, cnt):
     
             if rect_finder.show is False:
                 return
@@ -756,6 +2050,15 @@ class AlyvixRectFinderView(QWidget):
                 #qp.fillPath(FillPath_roi, QBrush(QColor(172, 96, 246, 180), Qt.BDiagPattern))
                     
                 if rect_finder.show_min_max is False and rect_finder.show_tolerance is False:
+
+                    font = qp.font()
+                    font.setPixelSize(11 * self.scaling_factor);
+
+                    qp.setFont(font)
+                    qp.drawText( QPoint(rect_finder.x -1, rect_finder.y -(4*self.scaling_factor)), str(cnt) )
+
+
+
 
                     InnerPath_roi.addRect(rect_finder.x,
                         rect_finder.y,
@@ -3241,7 +4544,7 @@ class AlyvixRectFinderView(QWidget):
         
         use_tolerance_node = ET.SubElement(main_rect_node, "use_tolerance")
         use_tolerance_node.text = str(self._main_rect_finder.use_tolerance)
-        
+        """
         red_channel_node = ET.SubElement(main_rect_node, "red_channel")
         red_channel_node.text = str(self._main_rect_finder.red_channel)
         
@@ -3251,7 +4554,7 @@ class AlyvixRectFinderView(QWidget):
         blue_channel_node = ET.SubElement(main_rect_node, "blue_channel")
         blue_channel_node.text = str(self._main_rect_finder.blue_channel)
         
-        """
+
         find_node = ET.SubElement(main_rect_node, "find")
         find_node.text = str(self.find)
         
@@ -3360,6 +4663,7 @@ class AlyvixRectFinderView(QWidget):
                 use_tolerance_node = ET.SubElement(sub_rect_node, "use_tolerance")
                 use_tolerance_node.text = str(sub_rect.use_tolerance)
                 
+                """
                 red_channel_node = ET.SubElement(sub_rect_node, "red_channel")
                 red_channel_node.text = str(sub_rect.red_channel)
 
@@ -3368,6 +4672,7 @@ class AlyvixRectFinderView(QWidget):
 
                 blue_channel_node = ET.SubElement(sub_rect_node, "blue_channel")
                 blue_channel_node.text = str(sub_rect.blue_channel)
+                """
                 
                 roi_x_node = ET.SubElement(sub_rect_node, "roi_x")
                 roi_x_node.text = str(sub_rect.roi_x)
@@ -3566,6 +4871,7 @@ class AlyvixRectFinderView(QWidget):
         else:
             self._main_rect_finder.use_min_max = False
             
+        """
         try:
             if "True" in main_rect_node.getElementsByTagName("red_channel")[0].firstChild.nodeValue:
                 self._main_rect_finder.red_channel = True
@@ -3589,7 +4895,8 @@ class AlyvixRectFinderView(QWidget):
                 self._main_rect_finder.blue_channel = False
         except:
             pass
-            
+        """
+        
         if "True" in root_node.attributes["find"].value: #main_rect_node.getElementsByTagName("find")[0].firstChild.nodeValue:
             self.find = True
         else:
@@ -3801,7 +5108,7 @@ class AlyvixRectFinderView(QWidget):
             else:
                 sub_rect_obj.use_min_max = False
                 
-            
+            """
             try:
                 if "True" in sub_rect_node.getElementsByTagName("red_channel")[0].firstChild.nodeValue:
                     sub_rect_obj.red_channel = True
@@ -3825,7 +5132,7 @@ class AlyvixRectFinderView(QWidget):
                     sub_rect_obj.blue_channel = False
             except:
                 pass
-                
+            """    
                 
             if "True" in sub_rect_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_rect_obj.click = True
@@ -4383,10 +5690,18 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             if sub_rect.x == 0 and sub_rect.y == 0:
                 continue
             item = QListWidgetItem()
-            item.setCheckState(Qt.Checked)
+            if sub_rect.show is True:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
             item.setText("sub_component_" + str(cnt))
             self.listWidget.addItem(item)
             cnt = cnt + 1
+            
+        if self.parent._main_rect_finder.show is True:
+            self.listWidget.item(0).setCheckState(Qt.Checked)
+        else:
+            self.listWidget.item(0).setCheckState(Qt.Unchecked)
             
         #self.listWidget.setCurrentIndex(QModelIndex(self.listWidget.rootIndex()))
         self.listWidget.item(0).setSelected(True)
@@ -4435,6 +5750,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.labelWarning.setEnabled(False)
             self.labelCritical.setEnabled(False)       
 
+        """
         if self.parent._main_rect_finder.red_channel is True:
             self.checkBoxRedChannel.setChecked(True)
         else:
@@ -4450,10 +5766,12 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.checkBoxBlueChannel.setChecked(False)
 
+
         self.connect(self.checkBoxRedChannel, SIGNAL('stateChanged(int)'), self.red_channel_event)
         self.connect(self.checkBoxGreenChannel, SIGNAL('stateChanged(int)'), self.green_channel_event)
         self.connect(self.checkBoxBlueChannel, SIGNAL('stateChanged(int)'), self.blue_channel_event)
-            
+        """
+        
         self.spinBoxSendKeysDelay.setValue(self.parent._main_rect_finder.sendkeys_delay)
         self.spinBoxSendKeysDuration.setValue(self.parent._main_rect_finder.sendkeys_duration)
         
@@ -4533,9 +5851,11 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         ###########
         ###########
         
+        """
         self.connect(self.checkBoxRedChannel_2, SIGNAL('stateChanged(int)'), self.red_channel_event_2)
         self.connect(self.checkBoxGreenChannel_2, SIGNAL('stateChanged(int)'), self.green_channel_event_2)
         self.connect(self.checkBoxBlueChannel_2, SIGNAL('stateChanged(int)'), self.blue_channel_event_2)
+        """
         
         self.connect(self.min_width_spinbox_2, SIGNAL('valueChanged(int)'), self.min_width_spinbox_change_event_2)
         self.connect(self.max_width_spinbox_2, SIGNAL('valueChanged(int)'), self.max_width_spinbox_change_event_2)
@@ -5098,7 +6418,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
             
-            
+        """
         if self.parent._sub_rects_finder[self.sub_rect_index].red_channel is True:
             self.checkBoxRedChannel_2.setChecked(True)
         else:
@@ -5113,7 +6433,8 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.checkBoxBlueChannel_2.setChecked(True)
         else:
             self.checkBoxBlueChannel_2.setChecked(False)
-
+        """
+        
             
     def timeout_exception_event(self, event):
         if self.timeout_exception.isChecked() is True:
