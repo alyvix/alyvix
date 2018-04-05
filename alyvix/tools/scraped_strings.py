@@ -223,6 +223,7 @@ class CalendarWatchManager:
         self.date_to_consider_begin = None
         self.date_to_consider_end = None
         self.dhms_time_days = None
+        self.dhms_time_hours = None
         self.hms_time = None
 
     def __repr__(self):
@@ -238,6 +239,8 @@ class CalendarWatchManager:
             self.scraped_string)
         print_message += 'Days from dhms time: {0}\n'.format(
             self.get_dhms_time_days())
+        print_message += 'Hours from dhms time: {0}\n'.format(
+            self.get_dhms_time_hours())
         print_message += 'Time consistency check: {0}\n'.format(
             self.check_dhms_totaltime_days_previous_month())
         print_message += 'Time (hh:mm:ss): {0}\n'.format(
@@ -297,6 +300,22 @@ class CalendarWatchManager:
         else:
             return False
 
+    def get_dhms_time_hours(self):
+        lower_scraped_dhms_time = self.scraped_string.lower()
+        mark_days = 'd'
+        where_mark_days = lower_scraped_dhms_time.find(mark_days)
+        crop_dhms_time_hours = lower_scraped_dhms_time[
+                               (where_mark_days+len(mark_days)):]
+        mark_hours = 'h'
+        where_mark_hours = crop_dhms_time_hours.find(mark_hours)
+        crop_dhms_time_hours = crop_dhms_time_hours[:where_mark_hours]
+        crop_dhms_time_hours = ''.join(crop_dhms_time_hours.split())
+        if crop_dhms_time_hours.isdigit():
+            self.dhms_time_hours = int(crop_dhms_time_hours)
+            return self.dhms_time_hours
+        else:
+            return False
+
     def detect_hms_time(self):
         hms_pattern = '[\s\w]*([0-2]\d:[0-5]\d:[0-5]\d)'
         try:
@@ -312,6 +331,12 @@ class CalendarWatchManager:
         if self.dhms_time_days:
             if self.dhms_time_days == int(self.days_previous_month):
                 return True
+            else:
+                if self.three_letter_previous_month == 'mar':
+                    self.get_dhms_time_hours()
+                    if self.dhms_time_days == int(self.days_previous_month)-1:
+                        if self.dhms_time_hours == 24-1:
+                            return True
         return False
 
     def check_hms_time_proximity(self):
@@ -392,9 +417,9 @@ if __name__ == "__main__":
         print('')
 
     if False:
-        scraped_dhms_time_sample = '28d 7h 7m 46s'
+        scraped_dhms_time_sample = '30d 23h 0m 00s'
         scraped_hms_time_sample = '\nbla\nbla10:00:00bla\nbla20:00:00bla\nbla'
-        cwm = CalendarWatchManager(scraped_hms_time_sample)
+        cwm = CalendarWatchManager(scraped_dhms_time_sample)
         print(cwm)
         print('')
 
@@ -407,7 +432,7 @@ if __name__ == "__main__":
             date_format, get_date_today(date_format)))
         print('get_three_letter_days_previous_month(): {0}'.format(
             get_three_letter_days_previous_month()))
-        scraped_string = '28d 7h 7m 46s'
+        scraped_string = '30d 23h 0m 00s'
         print('check_dhms_totaltime_days_previous_month({0}): {1}'.format(
             scraped_string,
             check_dhms_totaltime_days_previous_month(scraped_string)))
