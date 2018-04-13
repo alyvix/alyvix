@@ -446,3 +446,8 @@ def check_hms_time_proximity(scraped_string, proximity_minutes=60):
     cwm = CalendarWatchManager(scraped_string=scraped_string,
                                proximity_minutes=proximity_minutes)
     return cwm.check_hms_time_proximity()
+
+
+def check_date_today(scraped_string):
+    cwm = CalendarWatchManager(scraped_string)
+    return cwm.check_date_today()

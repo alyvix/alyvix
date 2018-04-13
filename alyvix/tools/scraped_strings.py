@@ -354,6 +354,36 @@ class CalendarWatchManager:
                 return True
         return False
 
+    def check_date_today(self):
+        lower_scraped_date = self.scraped_string.lower()
+        lower_fixed_scraped_date = lower_scraped_date.replace('|', '/')
+        lower_fixed_scraped_date = lower_fixed_scraped_date.replace('l', '/')
+        lower_compact_scraped_date = ''.join(lower_fixed_scraped_date.split())
+        pattern_ddmm_yyyy_date = '[0-3]?[0-9]\/[0-1]?[0-9](\/20[1-9][0-9])?'
+        ddmm_yyyy_date_search = re.search(pattern_ddmm_yyyy_date,
+                                          lower_compact_scraped_date)
+        if ddmm_yyyy_date_search:
+            ddmm_yyyy_date_searched = ddmm_yyyy_date_search.group()
+            ddmm_yyyy_searched = map(int, ddmm_yyyy_date_searched.split('/'))
+            ddmm_yyyy_today = [self.today.day, self.today.month]
+            if len(ddmm_yyyy_searched) == 3:
+                ddmm_yyyy_today.append(self.today.year)
+            if ddmm_yyyy_searched == ddmm_yyyy_today:
+                return True, ddmm_yyyy_date_searched
+        pattern_mmdd_yyyy_date = '[0-1]?[0-9]\/[0-3]?[0-9](\/20[1-9][0-9])?'
+        mmdd_yyyy_date_search = re.search(pattern_mmdd_yyyy_date,
+                                          lower_compact_scraped_date)
+        if mmdd_yyyy_date_search:
+            mmdd_yyyy_date_searched = mmdd_yyyy_date_search.group()
+            mmdd_yyyy_searched = map(int,
+                                     mmdd_yyyy_date_searched.split('/'))
+            mmdd_yyyy_today = [self.today.month, self.today.day]
+            if len(mmdd_yyyy_searched) == 3:
+                mmdd_yyyy_today.append(self.today.year)
+            if mmdd_yyyy_searched == mmdd_yyyy_today:
+                return True, mmdd_yyyy_date_searched
+        return False, None
+
 
 def get_aos_id(scraped_string, customer_name='test', path_json='',
                map_norm=True, verbose=False):
@@ -410,6 +440,11 @@ def check_hms_time_proximity(scraped_string, proximity_minutes=60):
     return cwm.check_hms_time_proximity()
 
 
+def check_date_today(scraped_string):
+    cwm = CalendarWatchManager(scraped_string)
+    return cwm.check_date_today()
+
+
 def main():
     if True:
         scrap_example_us = "Inc. [t3stl a0 5_123: Session ID - 1 2] - [1 -"
@@ -445,6 +480,26 @@ def main():
         print('check_hms_time_proximity({0}): {1}'.format(
             scraped_string,
             check_hms_time_proximity(scraped_string)))
+        scraped_string = 'Logs of date: 13 / 04 / 2018 (Files: 10)'
+        print('check_date_today({0}): {1}'.format(
+            scraped_string,
+            check_date_today(scraped_string)))
+        scraped_string = 'Logs of date: 13 / 04 (Files: 10)'
+        print('check_date_today({0}): {1}'.format(
+            scraped_string,
+            check_date_today(scraped_string)))
+        scraped_string = 'Logs of date: 04 / 13 / 2018 (Files: 10)'
+        print('check_date_today({0}): {1}'.format(
+            scraped_string,
+            check_date_today(scraped_string)))
+        scraped_string = 'Logs of date: 04 / 13 (Files: 10)'
+        print('check_date_today({0}): {1}'.format(
+            scraped_string,
+            check_date_today(scraped_string)))
+        scraped_string = '04l1312:02:30 N/A Success Audit'
+        print('check_date_today({0}): {1}'.format(
+            scraped_string,
+            check_date_today(scraped_string)))
         print('')
 
     if True:
