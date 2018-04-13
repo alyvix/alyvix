@@ -373,14 +373,20 @@ def check_number(scraped_string,
                  comparison_number='0'):
     splitted_scrap = scraped_string.split()
     for snippet in splitted_scrap:
-        try:
-            candidate_number = float(snippet)
-        except ValueError:
-            continue
-        if comparison_type == 'bigger':
-            if candidate_number > float(comparison_number):
-                return True
-    return False
+        number_pattern = '[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?'
+        number_search = re.search(number_pattern, snippet)
+        if number_search:
+            number_searched = number_search.group()
+            try:
+                candidate_number = float(number_searched)
+            except ValueError:
+                continue
+            if comparison_type == 'bigger':
+                if candidate_number > float(comparison_number):
+                    return True, candidate_number
+                else:
+                    return False, candidate_number
+    return False, None
 
 
 def get_date_today(date_format='dd/mm/yyyy'):
@@ -404,26 +410,25 @@ def check_hms_time_proximity(scraped_string, proximity_minutes=60):
     return cwm.check_hms_time_proximity()
 
 
-if __name__ == "__main__":
-
-    if False:
+def main():
+    if True:
         scrap_example_us = "Inc. [t3stl a0 5_123: Session ID - 1 2] - [1 -"
-        scrap_example_it = "S.p.A. [t3stl a0 5_123: ID sessione - 1 2] - [1 -"
-        scrap_example_de = "GmbH [t3stl a0 5_123: Session ID - 1 2] - [1 -"
+        # scrap_example_it = "S.p.A. [t3stl a0 5_123: ID sessione - 1 2] - [1 -"
+        # scrap_example_de = "GmbH [t3stl a0 5_123: Session ID - 1 2] - [1 -"
         get_aos_id(scraped_string=scrap_example_us,
                    customer_name='test',
                    map_norm=True,
                    verbose=True)
         print('')
 
-    if False:
+    if True:
         scraped_dhms_time_sample = '30d 23h 0m 00s'
-        scraped_hms_time_sample = '\nbla\nbla10:00:00bla\nbla20:00:00bla\nbla'
+        # scraped_hms_time_sample = '\nbla\nbla10:00:00bla\nbla20:00:00bla\nbla'
         cwm = CalendarWatchManager(scraped_dhms_time_sample)
         print(cwm)
         print('')
 
-    if False:
+    if True:
         date_format = 'dd/mm/yyyy'
         print('get_date_today({0}): {1}'.format(
             date_format, get_date_today(date_format)))
@@ -442,9 +447,13 @@ if __name__ == "__main__":
             check_hms_time_proximity(scraped_string)))
         print('')
 
-    if False:
-        scraped_string = 'bla 0.1 bla'
+    if True:
+        scraped_string = '!@#bla!@#-236.4/5 142.0/5 3.9/5 J!@#bla!@#'
         print('check_number({0}): {1}'.format(
             scraped_string, check_number(scraped_string=scraped_string,
                                          comparison_type='bigger',
                                          comparison_number='0')))
+
+
+if __name__ == "__main__":
+    main()

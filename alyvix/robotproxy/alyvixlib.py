@@ -22,6 +22,7 @@
 from alyvixcommon import *
 from robot.api import logger
 from robot.libraries.BuiltIn import BuiltIn
+import re
 
 
 def overwrite_alyvix_screen(overwrite="true"):
@@ -410,14 +411,20 @@ def check_number(scraped_string,
                  comparison_number='0'):
     splitted_scrap = scraped_string.split()
     for snippet in splitted_scrap:
-        try:
-            candidate_number = float(snippet)
-        except ValueError:
-            continue
-        if comparison_type == 'bigger':
-            if candidate_number > float(comparison_number):
-                return True
-    return False
+        number_pattern = '[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?'
+        number_search = re.search(number_pattern, snippet)
+        if number_search:
+            number_searched = number_search.group()
+            try:
+                candidate_number = float(number_searched)
+            except ValueError:
+                continue
+            if comparison_type == 'bigger':
+                if candidate_number > float(comparison_number):
+                    return True, candidate_number
+                else:
+                    return False, candidate_number
+    return False, None
 
 
 def get_date_today(date_format='dd/mm/yyyy'):
