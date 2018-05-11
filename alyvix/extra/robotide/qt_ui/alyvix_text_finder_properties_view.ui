@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>561</width>
-    <height>501</height>
+    <height>504</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -130,7 +130,7 @@
    <property name="geometry">
     <rect>
      <x>171</x>
-     <y>8000</y>
+     <y>9000</y>
      <width>381</width>
      <height>348</height>
     </rect>
@@ -221,19 +221,6 @@
        <property name="maximum">
         <number>9999</number>
        </property>
-      </widget>
-     </item>
-     <item row="8" column="0" colspan="2">
-      <widget class="QRadioButton" name="holdreleaseRadio_2">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Hold'n'Release</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_4</string>
-       </attribute>
       </widget>
      </item>
      <item row="6" column="1" rowspan="2">
@@ -379,43 +366,6 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="8" column="2">
-      <widget class="QComboBox" name="holdreleaseComboBox_2">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <item>
-        <property name="text">
-         <string>Hold</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Release</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Release Up</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Release Down</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Release Left</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Release Right</string>
-        </property>
-       </item>
-      </widget>
-     </item>
      <item row="5" column="2">
       <widget class="QRadioButton" name="movemouseRadio_2">
        <property name="layoutDirection">
@@ -474,6 +424,69 @@ Point</string>
      </item>
      <item row="1" column="1" colspan="2">
       <widget class="QComboBox" name="comboBoxLang_2"/>
+     </item>
+     <item row="8" column="0">
+      <widget class="QRadioButton" name="holdreleaseRadio_2">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Hold'n'Release</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_4</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="8" column="1">
+      <widget class="QComboBox" name="holdreleaseComboBox_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <item>
+        <property name="text">
+         <string>Hold</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Release</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Release Up</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Release Down</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Release Left</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Release Right</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="8" column="2">
+      <widget class="QLabel" name="labelPixels_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Pixels [px]</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -542,19 +555,6 @@ Point</string>
        <property name="checked">
         <bool>true</bool>
        </property>
-      </widget>
-     </item>
-     <item row="12" column="0" colspan="2">
-      <widget class="QRadioButton" name="holdreleaseRadio">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Hold'n'Release</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_2</string>
-       </attribute>
       </widget>
      </item>
      <item row="11" column="2">
@@ -844,7 +844,43 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="12" column="2">
+     <item row="3" column="1" colspan="2">
+      <widget class="QLineEdit" name="lineEditText">
+       <property name="text">
+        <string>Type here the Text to find</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="labelArgs">
+       <property name="text">
+        <string>Arguments</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="QSpinBox" name="spinBoxArgs"/>
+     </item>
+     <item row="5" column="1" colspan="2">
+      <widget class="QComboBox" name="comboBoxLang"/>
+     </item>
+     <item row="12" column="0">
+      <widget class="QRadioButton" name="holdreleaseRadio">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Hold'n'Release</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_2</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="12" column="1">
       <widget class="QComboBox" name="holdreleaseComboBox">
        <property name="enabled">
         <bool>false</bool>
@@ -881,28 +917,18 @@ Point</string>
        </item>
       </widget>
      </item>
-     <item row="3" column="1" colspan="2">
-      <widget class="QLineEdit" name="lineEditText">
-       <property name="text">
-        <string>Type here the Text to find</string>
+     <item row="12" column="2">
+      <widget class="QLabel" name="labelPixels">
+       <property name="enabled">
+        <bool>false</bool>
        </property>
-      </widget>
-     </item>
-     <item row="1" column="2">
-      <widget class="QLabel" name="labelArgs">
        <property name="text">
-        <string>Arguments</string>
+        <string>Pixels [px]</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
-     </item>
-     <item row="1" column="3">
-      <widget class="QSpinBox" name="spinBoxArgs"/>
-     </item>
-     <item row="5" column="1" colspan="2">
-      <widget class="QComboBox" name="comboBoxLang"/>
      </item>
     </layout>
    </widget>
@@ -1235,6 +1261,39 @@ Point</string>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>440</y>
+     <width>158</width>
+     <height>54</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_3">
+    <item row="0" column="0">
+     <widget class="QPushButton" name="pushButtonSelAll">
+      <property name="text">
+       <string>Select All</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QPushButton" name="pushButtonDesAll">
+      <property name="text">
+       <string>Deselect All</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="2">
+     <widget class="QPushButton" name="pushButtonDelete">
+      <property name="text">
+       <string>Remove</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

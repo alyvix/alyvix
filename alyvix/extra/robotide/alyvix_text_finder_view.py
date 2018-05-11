@@ -27,6 +27,8 @@ import codecs
 import ast
 import re
 
+import numpy as np
+
 import time
 
 from PyQt4.QtGui import QApplication, QWidget, QCursor, QImage, QPainter, QPainter, QPen, QColor, QPixmap, QBrush, QPainterPath, QDialog, QListWidgetItem , QTextEdit, QHBoxLayout, QTextCharFormat, QMessageBox, QFont, QFontMetrics, QTextCursor
@@ -54,6 +56,16 @@ class AlyvixTextFinderView(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self)
         #self.setupUi(self)
+        
+        self._last_pos = None
+        
+        self._ctrl_is_pressed = False
+        
+        self._imageBoxes = []
+        self._textBoxes = []
+        self._rectBoxes = []
+        self._boundingRects = []
+        self._show_boundingrects = False
         
         self.object_name = ""
         self.wait = True
@@ -195,6 +207,181 @@ class AlyvixTextFinderView(QWidget):
         
     def set_bg_pixmap(self, image):
         self._bg_pixmap = QPixmap.fromImage(image)
+
+        scaling_factor = self.scaling_factor
+
+        #original = cv2.imread(self.parent.path + os.sep + self.parent.xml_name.replace("xml", "png"))
+        
+        if not os.path.exists(self._path):
+            os.makedirs(self._path)
+            
+        image_name = self._path + os.sep + time.strftime("image_finder_%d_%m_%y_%H_%M_%S_temp_img.png")
+        self._bg_pixmap.save(image_name,"PNG", -1)
+        time.sleep(0.05)
+        original = cv2.imread(image_name)
+        #print cv_image
+        #time.sleep(0.1)
+        os.remove(image_name)
+
+        print scaling_factor
+        
+        original = cv2.resize(original, (0,0), fx=1/scaling_factor, fy=1/scaling_factor)
+
+        print original.shape
+        t0 = time.time()
+
+        img = original.copy()
+
+
+        edges = cv2.Canny(original.copy(), 50, 200, apertureSize=3, L2gradient=True)
+        edges_ori = edges.copy()
+        bw = edges.copy()
+
+
+        lines = cv2.HoughLinesP(edges.copy(), rho=1, theta=np.pi / 180, threshold=10, minLineLength=30, maxLineGap=1)
+        for x in range(0, len(lines)):
+            for x1, y1, x2, y2 in lines[x]:
+                angle = np.arctan2(y2 - y1, x2 - x1) * 180. / np.pi
+                if angle == 0 or abs(angle) == 90:
+                    cv2.line(bw, (x1, y1), (x2, y2), (0, 0, 0), 3)
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
+        bw = cv2.morphologyEx(bw, cv2.MORPH_GRADIENT, kernel)
+        #bw = cv2.dilate(bw, kernel, iterations=1)
+
+        contours, hierarchy = cv2.findContours(bw.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+        boundingBoxes = [cv2.boundingRect(c) for c in contours]
+
+        boundingBoxes = sorted(boundingBoxes, key=lambda element: (element[1], element[0]))
+
+
+        bw_copy = bw.copy()
+
+        ori_shape = original.shape
+        blank_image = np.zeros((ori_shape[0], ori_shape[1]), np.uint8)
+
+        self._textBoxes = []
+
+        for i, box in enumerate(boundingBoxes):
+
+            x, y, w, h = box
+
+            area = w * h
+
+            roi_img = bw[y:y + h, x:x + w]
+
+            hist = cv2.calcHist([roi_img], [0], None, [256], [0, 256])
+
+            # cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
+
+
+            if hist[255] > area * 0.45 and (w > 4 and h > 4):
+                # and (w > h * 1.3)
+
+                if (w > h * 1.3):
+                    font = cv2.FONT_HERSHEY_PLAIN
+                    # cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
+                    cv2.rectangle(bw_copy, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
+                    cv2.rectangle(edges, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
+                    
+                    x *= self.scaling_factor
+                    y *= self.scaling_factor
+                    w *= self.scaling_factor
+                    h *= self.scaling_factor
+                    
+            
+                    self._textBoxes.append((int(x), int(y), int(w), int(h)))
+
+                    # cv2.putText(original, str(i), (x - 2, y - 2), font, 1, (0, 255, 0), 1, cv2.CV_AA)
+
+        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 2))
+        #blank_image = cv2.dilate(blank_image,kernel,iterations = 1)
+
+
+        contours, hierarchy = cv2.findContours(bw_copy.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+        boundingBoxes = [cv2.boundingRect(c) for c in contours]
+
+        boundingBoxes = sorted(boundingBoxes, key=lambda element: (element[1], element[0]))
+
+        self._imageBoxes = []
+
+        for i, box in enumerate(boundingBoxes):
+            x, y, w, h = box
+
+            area = w * h
+
+            roi_img = bw_copy[y:y + h, x:x + w]
+
+            hist = cv2.calcHist([roi_img], [0], None, [256], [0, 256])
+
+            # cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
+
+
+            if hist[255] > area * 0.15 and (w > 4 and h > 4):
+                # and (w > h * 1.3)
+
+                if ( h > w*1.2) and h < 10 and w < 5:
+                    continue
+
+                font = cv2.FONT_HERSHEY_PLAIN
+                # cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
+                cv2.rectangle(bw_copy, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
+                cv2.rectangle(edges, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
+                
+                x *= self.scaling_factor
+                y *= self.scaling_factor
+                w *= self.scaling_factor
+                h *= self.scaling_factor
+                    
+                self._imageBoxes.append((int(x), int(y), int(w), int(h)))
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
+        edges = cv2.dilate(edges,kernel,iterations = 1)
+
+        contours, hierarchy = cv2.findContours(edges.copy(), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+
+        boundingBoxes = [cv2.boundingRect(c) for c in contours]
+
+        boundingBoxes = sorted(boundingBoxes, key=lambda element: (element[1], element[0]))
+
+        self._rectBoxes = []
+
+        for i, box in enumerate(boundingBoxes):
+            x, y, w, h = box
+
+            if h > 10 and w > 20 and w < 500 and h < 500:
+
+                font = cv2.FONT_HERSHEY_PLAIN
+                # cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
+                cv2.rectangle(bw_copy, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
+                #cv2.rectangle(edges, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
+                x *= self.scaling_factor
+                y *= self.scaling_factor
+                w *= self.scaling_factor
+                h *= self.scaling_factor
+
+                self._rectBoxes.append((int(x), int(y), int(w), int(h)))
+
+
+
+        for i, box in enumerate(self._imageBoxes):
+            x, y, w, h = box
+            cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
+
+        for i, box in enumerate(self._textBoxes):
+            x, y, w, h = box
+            cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 0, 255), 1)
+
+        for i, box in enumerate(self._rectBoxes):
+            x, y, w, h = box
+            cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (255, 0,0), 1)  
+           
+           
+        self._boundingRects.extend(self._textBoxes)
+        #self._boundingRects.extend(self._imageBoxes)
+        #self._boundingRects.extend(self._rectBoxes)
         
     def save_all(self):
     
@@ -322,6 +509,14 @@ class AlyvixTextFinderView(QWidget):
         self.close()
         
     def keyPressEvent(self, event):
+    
+        if event.modifiers() == Qt.ControlModifier:
+            self._ctrl_is_pressed = True
+    
+        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Space and self.__flag_capturing_sub_text is False and self.__flag_capturing_main_text_rect is False: 
+            self._show_boundingrects = True
+            self.update()
+            
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
             if self.set_xy_offset is None:
                 self.delete_rect()
@@ -510,6 +705,13 @@ class AlyvixTextFinderView(QWidget):
             cnt = cnt + 1
     """
     
+    def keyReleaseEvent(self, event):
+        if event.modifiers() == Qt.ControlModifier:
+            self._ctrl_is_pressed = False
+        if event.modifiers() == Qt.ControlModifier or event.key() == Qt.Key_Space: 
+            self._show_boundingrects = False
+        self.update()
+    
     def closeEvent(self, event):
         self.close
         
@@ -541,8 +743,14 @@ class AlyvixTextFinderView(QWidget):
         if event.buttons() == Qt.LeftButton:
         
             self.__click_position = QPoint(QCursor.pos())
+
+            if  self._show_boundingrects is True:
             
-            if self.set_xy_offset is not None:
+                rect = self.is_mouse_inside_bounding_rects()
+                
+                if rect is not None:
+                    self.add_rect_from_boundings_rects(rect)
+            elif self.set_xy_offset is not None:
                 if self.set_xy_offset == -1:
                     self._main_text.x_offset = self.__click_position.x() - self._main_text.x
                     self._main_text.y_offset = self.__click_position.y() - self._main_text.y
@@ -590,156 +798,200 @@ class AlyvixTextFinderView(QWidget):
                 self.__capturing = True
                 
         elif event.buttons() == Qt.RightButton:
+        
+            if event.modifiers() == Qt.ControlModifier and self.set_xy_offset is None:
+                index = 0
+                delete_sub = False
+                delete_main = False
+                
+                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect == 0 and len(self._sub_texts_finder) == 0:
+                    index = 0
+                    delete_main = True
+                
+                if self.__flag_mouse_is_on_border == 0 and self.__flag_mouse_is_on_border is not None and len(self._sub_texts_finder) == 0:
+                    index = 0
+                    delete_main = True
+
+                
+                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect != 0 and len(self._sub_texts_finder) > 0:
+                    index = self.__flag_mouse_is_inside_rect -1
+                    delete_sub = True
+                
+                if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None and len(self._sub_texts_finder) > 0:
+                    index = self.__flag_mouse_is_on_border -1
+                    delete_sub = True
+                    
+                if delete_sub is True:
+                    if self._sub_texts_finder[-1].x != 0 and self._sub_texts_finder[-1].y != 0 \
+                    and self._sub_texts_finder[-1].width != 0 and self._sub_texts_finder[-1].height != 0:
+
+                        self.__deleted_texts.append(self._sub_texts_finder[index])
+                        del self._sub_texts_finder[index]
+                        
+                        self.__flag_need_to_delete_roi = False
+                        self.__flag_need_to_restore_roi = True
+                        self.__flag_capturing_sub_text_rect_roi = True
+                        self.__flag_capturing_sub_text = False
+                elif delete_main is True:
+                    
+                            
+                    self.__deleted_texts.append(self._main_text)
+                    self._main_text = None
+                    self.__flag_need_to_delete_main_roi = False
+                    self.__flag_need_to_restore_main_roi = True
+                    self.__flag_capturing_main_text_rect_roi = True
+                    self.__flag_capturing_sub_text_rect_roi = False
+            else:
 
         
-            if self.__flag_mouse_is_on_border == 0 and self.__flag_mouse_is_on_border is not None:
+                if self.__flag_mouse_is_on_border == 0 and self.__flag_mouse_is_on_border is not None:
 
-                index = self.__flag_mouse_is_on_border-1
-                
-                
-                if self.__flag_mouse_is_on_left_border_roi is True:
-                    self._main_text.roi_unlimited_left = True
+                    index = self.__flag_mouse_is_on_border-1
                     
-                if self.__flag_mouse_is_on_right_border_roi is True:
-                    self._main_text.roi_unlimited_right = True
                     
-                if self.__flag_mouse_is_on_top_border_roi is True:
-                    self._main_text.roi_unlimited_up = True
-                    
-                if self.__flag_mouse_is_on_bottom_border_roi is True:
-                    self._main_text.roi_unlimited_down = True
-                    
-            elif self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None:
+                    if self.__flag_mouse_is_on_left_border_roi is True:
+                        self._main_text.roi_unlimited_left = True
+                        
+                    if self.__flag_mouse_is_on_right_border_roi is True:
+                        self._main_text.roi_unlimited_right = True
+                        
+                    if self.__flag_mouse_is_on_top_border_roi is True:
+                        self._main_text.roi_unlimited_up = True
+                        
+                    if self.__flag_mouse_is_on_bottom_border_roi is True:
+                        self._main_text.roi_unlimited_down = True
+                        
+                elif self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None:
 
-                index = self.__flag_mouse_is_on_border-1
-                
-                
-                if self.__flag_mouse_is_on_left_border_roi is True:
-                    self._sub_texts_finder[index].roi_unlimited_left = True
+                    index = self.__flag_mouse_is_on_border-1
                     
-                if self.__flag_mouse_is_on_right_border_roi is True:
-                    self._sub_texts_finder[index].roi_unlimited_right = True
                     
-                if self.__flag_mouse_is_on_top_border_roi is True:
-                    self._sub_texts_finder[index].roi_unlimited_up = True
+                    if self.__flag_mouse_is_on_left_border_roi is True:
+                        self._sub_texts_finder[index].roi_unlimited_left = True
+                        
+                    if self.__flag_mouse_is_on_right_border_roi is True:
+                        self._sub_texts_finder[index].roi_unlimited_right = True
+                        
+                    if self.__flag_mouse_is_on_top_border_roi is True:
+                        self._sub_texts_finder[index].roi_unlimited_up = True
+                        
+                    if self.__flag_mouse_is_on_bottom_border_roi is True:
+                        self._sub_texts_finder[index].roi_unlimited_down = True
+                        
+                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect == 0:
+                    index = self.__flag_mouse_is_inside_rect -1
                     
-                if self.__flag_mouse_is_on_bottom_border_roi is True:
-                    self._sub_texts_finder[index].roi_unlimited_down = True
+                    percentage_screen_w = int(0.1 * self._bg_pixmap.width())
+                    percentage_screen_h = int(0.1 * self._bg_pixmap.height())
+                    percentage_object_w = int(0.5 * self._main_text.width)
+                    percentage_object_h = int(0.5 * self._main_text.height)
                     
-            if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect == 0:
-                index = self.__flag_mouse_is_inside_rect -1
-                
-                percentage_screen_w = int(0.1 * self._bg_pixmap.width())
-                percentage_screen_h = int(0.1 * self._bg_pixmap.height())
-                percentage_object_w = int(0.5 * self._main_text.width)
-                percentage_object_h = int(0.5 * self._main_text.height)
-                
-                roi_height = percentage_screen_h + percentage_object_h + self._main_text.height
-                
-                roi_width = percentage_screen_w + percentage_object_w + self._main_text.width
-                
-                roi_width_half = int((roi_width - self._main_text.width)/2)
-                roi_height_half = int((roi_height - self._main_text.height)/2)
-                
-                self._main_text.roi_x =  (self._main_text.x) - roi_width_half
-                self._main_text.roi_y =  (self._main_text.y) - roi_height_half
-                self._main_text.roi_height = roi_height
-                self._main_text.roi_width = roi_width
-                
-                
-                if self._main_text.roi_y < 0:
-                
-                    under_zero = abs(self._main_text.roi_y)
-                    self._main_text.roi_y = self._main_text.roi_y + under_zero
-                    self._main_text.roi_height = self._main_text.roi_height - under_zero
+                    roi_height = percentage_screen_h + percentage_object_h + self._main_text.height
                     
-                
-                if self._main_text.roi_y + self._main_text.roi_height > self._bg_pixmap.height():
-                
-                    diff = (self._main_text.roi_y + self._main_text.roi_height) - self._bg_pixmap.height()
+                    roi_width = percentage_screen_w + percentage_object_w + self._main_text.width
                     
-                    self._main_text.roi_height = self._main_text.roi_height - diff - 1
-                
-                
-                if self._main_text.roi_x < 0:
-                
-                    under_zero = abs(self._main_text.roi_x)
-                    self._main_text.roi_x = self._main_text.roi_x + under_zero
-                    self._main_text.roi_width = self._main_text.roi_width - under_zero
+                    roi_width_half = int((roi_width - self._main_text.width)/2)
+                    roi_height_half = int((roi_height - self._main_text.height)/2)
                     
-                
-                if self._main_text.roi_x + self._main_text.roi_width > self._bg_pixmap.width():
-                
-                    diff = (self._main_text.roi_x + self._main_text.roi_width) - self._bg_pixmap.width()
+                    self._main_text.roi_x =  (self._main_text.x) - roi_width_half
+                    self._main_text.roi_y =  (self._main_text.y) - roi_height_half
+                    self._main_text.roi_height = roi_height
+                    self._main_text.roi_width = roi_width
                     
-                    self._main_text.roi_width = self._main_text.roi_width - diff - 1
-
-
-                self._main_text.roi_unlimited_left = False
-                
-                self._main_text.roi_unlimited_right = False
-                
-                self._main_text.roi_unlimited_up = False
-                
-                self._main_text.roi_unlimited_down = False
-                
-            elif self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect != 0:
-                index = self.__flag_mouse_is_inside_rect -1
-                
-                percentage_screen_w = int(0.1 * self._bg_pixmap.width())
-                percentage_screen_h = int(0.1 * self._bg_pixmap.height())
-                percentage_object_w = int(0.5 * self._sub_texts_finder[index].width)
-                percentage_object_h = int(0.5 * self._sub_texts_finder[index].height)
-                
-                roi_height = percentage_screen_h + percentage_object_h + self._sub_texts_finder[index].height
-                
-                roi_width = percentage_screen_w + percentage_object_w + self._sub_texts_finder[index].width
-                
-                roi_width_half = int((roi_width - self._sub_texts_finder[index].width)/2)
-                roi_height_half = int((roi_height - self._sub_texts_finder[index].height)/2)
-                
-                self._sub_texts_finder[index].roi_x =  (self._sub_texts_finder[index].x - self._main_text.x) - roi_width_half
-                self._sub_texts_finder[index].roi_y =  (self._sub_texts_finder[index].y - self._main_text.y) - roi_height_half
-                self._sub_texts_finder[index].roi_height = roi_height
-                self._sub_texts_finder[index].roi_width = roi_width
-                
-                
-                if self._main_text.y + self._sub_texts_finder[index].roi_y < 0:
-                
-                    under_zero = abs(self._main_text.y + self._sub_texts_finder[index].roi_y)
-                    self._sub_texts_finder[index].roi_y = self._sub_texts_finder[index].roi_y + under_zero
-                    self._sub_texts_finder[index].roi_height = self._sub_texts_finder[index].roi_height - under_zero
                     
-                
-                if self._main_text.y + self._sub_texts_finder[index].roi_y + self._sub_texts_finder[index].roi_height > self._bg_pixmap.height():
-                
-                    diff = (self._main_text.y + self._sub_texts_finder[index].roi_y + self._sub_texts_finder[index].roi_height) - self._bg_pixmap.height()
+                    if self._main_text.roi_y < 0:
                     
-                    self._sub_texts_finder[index].roi_height = self._sub_texts_finder[index].roi_height - diff - 1
+                        under_zero = abs(self._main_text.roi_y)
+                        self._main_text.roi_y = self._main_text.roi_y + under_zero
+                        self._main_text.roi_height = self._main_text.roi_height - under_zero
+                        
                     
-                if self._main_text.x + self._sub_texts_finder[index].roi_x < 0:
-                
-                    under_zero = abs(self._main_text.x + self._sub_texts_finder[index].roi_x)
-                    self._sub_texts_finder[index].roi_x = self._sub_texts_finder[index].roi_x + under_zero
-                    self._sub_texts_finder[index].roi_width = self._sub_texts_finder[index].roi_width - under_zero
+                    if self._main_text.roi_y + self._main_text.roi_height > self._bg_pixmap.height():
                     
-                
-                if self._main_text.x + self._sub_texts_finder[index].roi_x + self._sub_texts_finder[index].roi_width > self._bg_pixmap.width():
-                
-                    diff = (self._main_text.x + self._sub_texts_finder[index].roi_x + self._sub_texts_finder[index].roi_width) - self._bg_pixmap.width()
+                        diff = (self._main_text.roi_y + self._main_text.roi_height) - self._bg_pixmap.height()
+                        
+                        self._main_text.roi_height = self._main_text.roi_height - diff - 1
                     
-                    self._sub_texts_finder[index].roi_width = self._sub_texts_finder[index].roi_width - diff - 1
-                
+                    
+                    if self._main_text.roi_x < 0:
+                    
+                        under_zero = abs(self._main_text.roi_x)
+                        self._main_text.roi_x = self._main_text.roi_x + under_zero
+                        self._main_text.roi_width = self._main_text.roi_width - under_zero
+                        
+                    
+                    if self._main_text.roi_x + self._main_text.roi_width > self._bg_pixmap.width():
+                    
+                        diff = (self._main_text.roi_x + self._main_text.roi_width) - self._bg_pixmap.width()
+                        
+                        self._main_text.roi_width = self._main_text.roi_width - diff - 1
 
 
-                self._sub_texts_finder[index].roi_unlimited_left = False
+                    self._main_text.roi_unlimited_left = False
+                    
+                    self._main_text.roi_unlimited_right = False
+                    
+                    self._main_text.roi_unlimited_up = False
+                    
+                    self._main_text.roi_unlimited_down = False
+                    
+                elif self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect != 0:
+                    index = self.__flag_mouse_is_inside_rect -1
+                    
+                    percentage_screen_w = int(0.1 * self._bg_pixmap.width())
+                    percentage_screen_h = int(0.1 * self._bg_pixmap.height())
+                    percentage_object_w = int(0.5 * self._sub_texts_finder[index].width)
+                    percentage_object_h = int(0.5 * self._sub_texts_finder[index].height)
+                    
+                    roi_height = percentage_screen_h + percentage_object_h + self._sub_texts_finder[index].height
+                    
+                    roi_width = percentage_screen_w + percentage_object_w + self._sub_texts_finder[index].width
+                    
+                    roi_width_half = int((roi_width - self._sub_texts_finder[index].width)/2)
+                    roi_height_half = int((roi_height - self._sub_texts_finder[index].height)/2)
+                    
+                    self._sub_texts_finder[index].roi_x =  (self._sub_texts_finder[index].x - self._main_text.x) - roi_width_half
+                    self._sub_texts_finder[index].roi_y =  (self._sub_texts_finder[index].y - self._main_text.y) - roi_height_half
+                    self._sub_texts_finder[index].roi_height = roi_height
+                    self._sub_texts_finder[index].roi_width = roi_width
+                    
+                    
+                    if self._main_text.y + self._sub_texts_finder[index].roi_y < 0:
+                    
+                        under_zero = abs(self._main_text.y + self._sub_texts_finder[index].roi_y)
+                        self._sub_texts_finder[index].roi_y = self._sub_texts_finder[index].roi_y + under_zero
+                        self._sub_texts_finder[index].roi_height = self._sub_texts_finder[index].roi_height - under_zero
+                        
+                    
+                    if self._main_text.y + self._sub_texts_finder[index].roi_y + self._sub_texts_finder[index].roi_height > self._bg_pixmap.height():
+                    
+                        diff = (self._main_text.y + self._sub_texts_finder[index].roi_y + self._sub_texts_finder[index].roi_height) - self._bg_pixmap.height()
+                        
+                        self._sub_texts_finder[index].roi_height = self._sub_texts_finder[index].roi_height - diff - 1
+                        
+                    if self._main_text.x + self._sub_texts_finder[index].roi_x < 0:
+                    
+                        under_zero = abs(self._main_text.x + self._sub_texts_finder[index].roi_x)
+                        self._sub_texts_finder[index].roi_x = self._sub_texts_finder[index].roi_x + under_zero
+                        self._sub_texts_finder[index].roi_width = self._sub_texts_finder[index].roi_width - under_zero
+                        
+                    
+                    if self._main_text.x + self._sub_texts_finder[index].roi_x + self._sub_texts_finder[index].roi_width > self._bg_pixmap.width():
+                    
+                        diff = (self._main_text.x + self._sub_texts_finder[index].roi_x + self._sub_texts_finder[index].roi_width) - self._bg_pixmap.width()
+                        
+                        self._sub_texts_finder[index].roi_width = self._sub_texts_finder[index].roi_width - diff - 1
+                    
+
+
+                    self._sub_texts_finder[index].roi_unlimited_left = False
+                    
+                    self._sub_texts_finder[index].roi_unlimited_right = False
+                    
+                    self._sub_texts_finder[index].roi_unlimited_up = False
+                    
+                    self._sub_texts_finder[index].roi_unlimited_down = False
                 
-                self._sub_texts_finder[index].roi_unlimited_right = False
-                
-                self._sub_texts_finder[index].roi_unlimited_up = False
-                
-                self._sub_texts_finder[index].roi_unlimited_down = False
-            
                 
             self.update()
             
@@ -850,322 +1102,328 @@ class AlyvixTextFinderView(QWidget):
         self.__flag_mouse_is_inside_rect = None
         self.__index_of_rectangle_with_mouse_inside = -2
         
-        if self.__drag_border is False:
-            self.__flag_mouse_is_on_left_border = False
-            self.__flag_mouse_is_on_right_border = False
-            self.__flag_mouse_is_on_top_border = False
-            self.__flag_mouse_is_on_bottom_border = False
-            
-            self.__flag_mouse_is_on_left_up_corner = False
-            self.__flag_mouse_is_on_right_up_corner = False
-            self.__flag_mouse_is_on_right_bottom_corner = False
-            self.__flag_mouse_is_on_left_bottom_corner = False
-            
-            self.__flag_mouse_is_on_left_border_roi = False
-            self.__flag_mouse_is_on_right_border_roi = False
-            self.__flag_mouse_is_on_top_border_roi = False
-            self.__flag_mouse_is_on_bottom_border_roi = False
-            
-            self.__flag_mouse_is_on_left_up_corner_roi = False
-            self.__flag_mouse_is_on_right_up_corner_roi = False
-            self.__flag_mouse_is_on_right_bottom_corner_roi = False
-            self.__flag_mouse_is_on_left_bottom_corner_roi = False
-            
-        #if self.__flag_mouse_is_on_border is None:
-        #    self.setCursor(QCursor(Qt.CrossCursor))
-
-        
-        if self._main_text is not None:
-        
                 
+        if self._show_boundingrects is True:
+            self.setCursor(QCursor(Qt.ArrowCursor))
+            self.draw_bounding_rects(qp)
+        
+        else:
+            if self.__drag_border is False:
+                self.__flag_mouse_is_on_left_border = False
+                self.__flag_mouse_is_on_right_border = False
+                self.__flag_mouse_is_on_top_border = False
+                self.__flag_mouse_is_on_bottom_border = False
+                
+                self.__flag_mouse_is_on_left_up_corner = False
+                self.__flag_mouse_is_on_right_up_corner = False
+                self.__flag_mouse_is_on_right_bottom_corner = False
+                self.__flag_mouse_is_on_left_bottom_corner = False
+                
+                self.__flag_mouse_is_on_left_border_roi = False
+                self.__flag_mouse_is_on_right_border_roi = False
+                self.__flag_mouse_is_on_top_border_roi = False
+                self.__flag_mouse_is_on_bottom_border_roi = False
+                
+                self.__flag_mouse_is_on_left_up_corner_roi = False
+                self.__flag_mouse_is_on_right_up_corner_roi = False
+                self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                
+            #if self.__flag_mouse_is_on_border is None:
+            #    self.setCursor(QCursor(Qt.CrossCursor))
 
-            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and self._main_text.show is True:
             
-                if self.is_mouse_inside_rect(self._main_text):
-                    self.__flag_mouse_is_inside_rect = 0
-                    self.setCursor(QCursor(Qt.SizeAllCursor))
-                elif self.is_mouse_on_left_border_roi(self._main_text) and self.is_mouse_on_top_border_roi(self._main_text):
-                    self.__flag_mouse_is_on_left_up_corner_roi = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #self.setCursor(Qt.SizeFDiagCursor)
+            if self._main_text is not None:
+            
                     
-                elif self.is_mouse_on_right_border_roi(self._main_text) and self.is_mouse_on_top_border_roi(self._main_text):
-                    self.__flag_mouse_is_on_right_up_corner_roi = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_right_border_roi(self._main_text) and self.is_mouse_on_bottom_border_roi(self._main_text):
-                    self.__flag_mouse_is_on_right_bottom_corner_roi = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_left_border_roi(self._main_text) and self.is_mouse_on_bottom_border_roi(self._main_text):
-                    self.__flag_mouse_is_on_left_bottom_corner_roi = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_left_border_roi(self._main_text):
-                    self.__flag_mouse_is_on_left_border_roi = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
-                                        
-                elif self.is_mouse_on_top_border_roi(self._main_text):
-                    self.__flag_mouse_is_on_top_border_roi = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
-                    
-                elif self.is_mouse_on_right_border_roi(self._main_text):
-                    self.__flag_mouse_is_on_right_border_roi = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
 
-                    
-                elif self.is_mouse_on_bottom_border_roi(self._main_text):
-                    self.__flag_mouse_is_on_bottom_border_roi = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
+                if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and self._main_text.show is True:
+                
+                    if self.is_mouse_inside_rect(self._main_text):
+                        self.__flag_mouse_is_inside_rect = 0
+                        self.setCursor(QCursor(Qt.SizeAllCursor))
+                    elif self.is_mouse_on_left_border_roi(self._main_text) and self.is_mouse_on_top_border_roi(self._main_text):
+                        self.__flag_mouse_is_on_left_up_corner_roi = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #self.setCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(self._main_text) and self.is_mouse_on_top_border_roi(self._main_text):
+                        self.__flag_mouse_is_on_right_up_corner_roi = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(self._main_text) and self.is_mouse_on_bottom_border_roi(self._main_text):
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border_roi(self._main_text) and self.is_mouse_on_bottom_border_roi(self._main_text):
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border_roi(self._main_text):
+                        self.__flag_mouse_is_on_left_border_roi = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+                                            
+                    elif self.is_mouse_on_top_border_roi(self._main_text):
+                        self.__flag_mouse_is_on_top_border_roi = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(self._main_text):
+                        self.__flag_mouse_is_on_right_border_roi = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
 
-                elif self.is_mouse_on_left_border(self._main_text) and self.is_mouse_on_top_border(self._main_text):
-                    self.__flag_mouse_is_on_left_up_corner = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #self.setCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_right_border(self._main_text) and self.is_mouse_on_top_border(self._main_text):
-                    self.__flag_mouse_is_on_right_up_corner = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_right_border(self._main_text) and self.is_mouse_on_bottom_border(self._main_text):
-                    self.__flag_mouse_is_on_right_bottom_corner = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_left_border(self._main_text) and self.is_mouse_on_bottom_border(self._main_text):
-                    self.__flag_mouse_is_on_left_bottom_corner = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_left_border(self._main_text):
-                    self.__flag_mouse_is_on_left_border = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
-                                        
-                elif self.is_mouse_on_top_border(self._main_text):
-                    self.__flag_mouse_is_on_top_border = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
-                    
-                elif self.is_mouse_on_right_border(self._main_text):
-                    self.__flag_mouse_is_on_right_border = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+                        
+                    elif self.is_mouse_on_bottom_border_roi(self._main_text):
+                        self.__flag_mouse_is_on_bottom_border_roi = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
 
-                    
-                elif self.is_mouse_on_bottom_border(self._main_text):
-                    self.__flag_mouse_is_on_bottom_border = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                    elif self.is_mouse_on_left_border(self._main_text) and self.is_mouse_on_top_border(self._main_text):
+                        self.__flag_mouse_is_on_left_up_corner = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #self.setCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border(self._main_text) and self.is_mouse_on_top_border(self._main_text):
+                        self.__flag_mouse_is_on_right_up_corner = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border(self._main_text) and self.is_mouse_on_bottom_border(self._main_text):
+                        self.__flag_mouse_is_on_right_bottom_corner = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border(self._main_text) and self.is_mouse_on_bottom_border(self._main_text):
+                        self.__flag_mouse_is_on_left_bottom_corner = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border(self._main_text):
+                        self.__flag_mouse_is_on_left_border = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+                                            
+                    elif self.is_mouse_on_top_border(self._main_text):
+                        self.__flag_mouse_is_on_top_border = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                        
+                    elif self.is_mouse_on_right_border(self._main_text):
+                        self.__flag_mouse_is_on_right_border = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
 
-            elif self.__drag_border is True and self.set_xy_offset is None:
-                self.update_border()
-            elif self.__move_index is not None and self.set_xy_offset is None:
-                self.update_position()
+                        
+                    elif self.is_mouse_on_bottom_border(self._main_text):
+                        self.__flag_mouse_is_on_bottom_border = True
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+
+                elif self.__drag_border is True and self.set_xy_offset is None:
+                    self.update_border()
+                elif self.__move_index is not None and self.set_xy_offset is None:
+                    self.update_position()
+                    
+                            
+                self.draw_main_text_rect(qp)
+                    
+            rect_index = 0
+            #self.__sub_template_color_index = 0
+
+            cnt_sub = 1
+            cnt_sub_text = 1
+            for sub_text_finder in self._sub_texts_finder:
+
+
+                if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and sub_text_finder.show is True:
+                                            
+                    
+                    #if sub_text_finder.show_min_max is False and sub_text_finder.show_tolerance is False:
+                    if self.is_mouse_inside_rect(sub_text_finder):
+                        self.__flag_mouse_is_inside_rect = cnt_sub
+                        self.setCursor(QCursor(Qt.SizeAllCursor))
+                        
+            
+                    elif self.is_mouse_on_left_border_roi(sub_text_finder) and self.is_mouse_on_top_border_roi(sub_text_finder):
+                        self.__flag_mouse_is_on_left_up_corner_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #self.setCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(sub_text_finder) and self.is_mouse_on_top_border_roi(sub_text_finder):
+                        self.__flag_mouse_is_on_right_up_corner_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(sub_text_finder) and self.is_mouse_on_bottom_border_roi(sub_text_finder):
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border_roi(sub_text_finder) and self.is_mouse_on_bottom_border_roi(sub_text_finder):
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border_roi(sub_text_finder):
+                        self.__flag_mouse_is_on_left_border_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+                                            
+                    elif self.is_mouse_on_top_border_roi(sub_text_finder):
+                        self.__flag_mouse_is_on_top_border_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(sub_text_finder):
+                        self.__flag_mouse_is_on_right_border_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+
+                        
+                    elif self.is_mouse_on_bottom_border_roi(sub_text_finder):
+                        self.__flag_mouse_is_on_bottom_border_roi = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+
+                    elif self.is_mouse_on_left_border(sub_text_finder) and self.is_mouse_on_top_border(sub_text_finder):
+                        self.__flag_mouse_is_on_left_up_corner = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #self.setCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border(sub_text_finder) and self.is_mouse_on_top_border(sub_text_finder):
+                        self.__flag_mouse_is_on_right_up_corner = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border(sub_text_finder) and self.is_mouse_on_bottom_border(sub_text_finder):
+                        self.__flag_mouse_is_on_right_bottom_corner = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border(sub_text_finder) and self.is_mouse_on_bottom_border(sub_text_finder):
+                        self.__flag_mouse_is_on_left_bottom_corner = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border(sub_text_finder):
+                        self.__flag_mouse_is_on_left_border = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+                                            
+                    elif self.is_mouse_on_top_border(sub_text_finder):
+                        self.__flag_mouse_is_on_top_border = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                        
+                    elif self.is_mouse_on_right_border(sub_text_finder):
+                        self.__flag_mouse_is_on_right_border = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+
+                        
+                    elif self.is_mouse_on_bottom_border(sub_text_finder):
+                        self.__flag_mouse_is_on_bottom_border = True
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                        
+                    cnt_sub = cnt_sub + 1
+
+                elif self.__drag_border is True and self.set_xy_offset is None:
+                    self.update_border()
+                elif self.__move_index is not None and self.set_xy_offset is None:
+                    self.update_position()
+            
+                self.draw_sub_textangle(qp, sub_text_finder, cnt_sub_text)
+                cnt_sub_text += 1
+                
+            if mouse_on_border is False:
+                self.__flag_mouse_is_on_border = None
                 
                         
-            self.draw_main_text_rect(qp)
+            #if self.__flag_mouse_is_on_border is None:
+            #    self.setCursor(QCursor(Qt.CrossCursor))
+
+
+            if self.set_xy_offset is None and self.__flag_mouse_is_on_border is None and self.__flag_mouse_is_inside_rect is None:
+            
+                if self.__capturing is False:
+                    self.draw_cross_lines(qp)
+                elif self.__flag_capturing_main_text_rect_roi is True:
+                    self.draw_capturing_roi_lines(qp)  
+                elif self.__flag_capturing_main_text_rect is True:
+                    self.draw_capturing_rectangle_lines(qp)
+                elif self.__flag_capturing_sub_text_rect_roi is True:
+                    self.draw_capturing_roi_lines(qp)
+                elif self.__flag_capturing_sub_text is True:
+                    self.draw_capturing_rectangle_lines(qp)
                 
-        rect_index = 0
-        #self.__sub_template_color_index = 0
-
-        cnt_sub = 1
-        cnt_sub_text = 1
-        for sub_text_finder in self._sub_texts_finder:
-
-
-            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and sub_text_finder.show is True:
-                                        
-                
-                #if sub_text_finder.show_min_max is False and sub_text_finder.show_tolerance is False:
-                if self.is_mouse_inside_rect(sub_text_finder):
-                    self.__flag_mouse_is_inside_rect = cnt_sub
-                    self.setCursor(QCursor(Qt.SizeAllCursor))
-                    
-        
-                elif self.is_mouse_on_left_border_roi(sub_text_finder) and self.is_mouse_on_top_border_roi(sub_text_finder):
-                    self.__flag_mouse_is_on_left_up_corner_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #self.setCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_right_border_roi(sub_text_finder) and self.is_mouse_on_top_border_roi(sub_text_finder):
-                    self.__flag_mouse_is_on_right_up_corner_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_right_border_roi(sub_text_finder) and self.is_mouse_on_bottom_border_roi(sub_text_finder):
-                    self.__flag_mouse_is_on_right_bottom_corner_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_left_border_roi(sub_text_finder) and self.is_mouse_on_bottom_border_roi(sub_text_finder):
-                    self.__flag_mouse_is_on_left_bottom_corner_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_left_border_roi(sub_text_finder):
-                    self.__flag_mouse_is_on_left_border_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
-                                        
-                elif self.is_mouse_on_top_border_roi(sub_text_finder):
-                    self.__flag_mouse_is_on_top_border_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
-                    
-                elif self.is_mouse_on_right_border_roi(sub_text_finder):
-                    self.__flag_mouse_is_on_right_border_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
-
-                    
-                elif self.is_mouse_on_bottom_border_roi(sub_text_finder):
-                    self.__flag_mouse_is_on_bottom_border_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-
-                elif self.is_mouse_on_left_border(sub_text_finder) and self.is_mouse_on_top_border(sub_text_finder):
-                    self.__flag_mouse_is_on_left_up_corner = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #self.setCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_right_border(sub_text_finder) and self.is_mouse_on_top_border(sub_text_finder):
-                    self.__flag_mouse_is_on_right_up_corner = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_right_border(sub_text_finder) and self.is_mouse_on_bottom_border(sub_text_finder):
-                    self.__flag_mouse_is_on_right_bottom_corner = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_left_border(sub_text_finder) and self.is_mouse_on_bottom_border(sub_text_finder):
-                    self.__flag_mouse_is_on_left_bottom_corner = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_left_border(sub_text_finder):
-                    self.__flag_mouse_is_on_left_border = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
-                                        
-                elif self.is_mouse_on_top_border(sub_text_finder):
-                    self.__flag_mouse_is_on_top_border = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
-                    
-                elif self.is_mouse_on_right_border(sub_text_finder):
-                    self.__flag_mouse_is_on_right_border = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
-
-                    
-                elif self.is_mouse_on_bottom_border(sub_text_finder):
-                    self.__flag_mouse_is_on_bottom_border = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
-                    
-                cnt_sub = cnt_sub + 1
-
-            elif self.__drag_border is True and self.set_xy_offset is None:
-                self.update_border()
-            elif self.__move_index is not None and self.set_xy_offset is None:
-                self.update_position()
-        
-            self.draw_sub_textangle(qp, sub_text_finder, cnt_sub_text)
-            cnt_sub_text += 1
-            
-        if mouse_on_border is False:
-            self.__flag_mouse_is_on_border = None
-            
-                    
-        #if self.__flag_mouse_is_on_border is None:
-        #    self.setCursor(QCursor(Qt.CrossCursor))
-
-
-        if self.set_xy_offset is None and self.__flag_mouse_is_on_border is None and self.__flag_mouse_is_inside_rect is None:
-        
-            if self.__capturing is False:
-                self.draw_cross_lines(qp)
-            elif self.__flag_capturing_main_text_rect_roi is True:
-                self.draw_capturing_roi_lines(qp)  
-            elif self.__flag_capturing_main_text_rect is True:
-                self.draw_capturing_rectangle_lines(qp)
-            elif self.__flag_capturing_sub_text_rect_roi is True:
-                self.draw_capturing_roi_lines(qp)
-            elif self.__flag_capturing_sub_text is True:
-                self.draw_capturing_rectangle_lines(qp)
-            
         qp.end()
         
     def calc_threshold_inside(self, rect, roi=False):
@@ -1194,6 +1452,28 @@ class AlyvixTextFinderView(QWidget):
                 return int((1 *self.scaling_factor))
             else:
                 return 0
+                
+    def is_mouse_inside_bounding_rects(self):
+        mouse_position = QPoint(QCursor.pos())
+        
+        mouse_in_rects = []
+        
+        for box in self._boundingRects:
+            
+            x, y, w, h = box
+            
+            if (mouse_position.x() > x and
+                    mouse_position.x() < w + x and
+                    mouse_position.y() > y and
+                    mouse_position.y() < h + y):
+                    
+                mouse_in_rects.append(box)
+                
+        if len(mouse_in_rects) > 0:
+            mouse_in_rects = sorted(mouse_in_rects, key=lambda element: (element[2], element[3]))
+            return mouse_in_rects[0]
+        else:
+            return None
         
     def is_mouse_inside_rect(self, rect):
     
@@ -2845,6 +3125,125 @@ class AlyvixTextFinderView(QWidget):
             mouse_position.x() - self.__click_position.x(), mouse_position.y() - self.__click_position.y())
             
         qp.drawRect(rect)
+        
+    def draw_bounding_rects(self, qp):
+            
+        mouse_position = QPoint(QCursor.pos())
+        
+        pen = QPen()
+        pen.setWidth(1)
+        pen.setStyle(Qt.SolidLine)
+        pen.setBrush(QBrush(QColor(0, 255, 0, 255)))
+        
+        qp.setPen(pen)
+        
+                    
+        for box in self._textBoxes:
+        
+            x, y, w, h = box
+        
+            qp.fillRect(x + 1,
+                y + 1,
+                w - 1,
+                h - 1,
+                QBrush(QColor(32, 178, 170, 100)))
+                
+            rect = QRect(x, y,
+                w, h)
+            
+            qp.drawRect(rect)
+        
+        """
+        for box in self._imageBoxes:
+        
+            x, y, w, h = box
+            
+        
+            qp.fillRect(x + 1,
+                y + 1,
+                w - 1,
+                h - 1,
+                QBrush(QColor(32, 178, 170, 100)))
+                
+            rect = QRect(x, y,
+                w, h)
+            
+            qp.drawRect(rect)
+
+            
+        for box in self._rectBoxes:
+        
+            x, y, w, h = box            
+        
+            qp.fillRect(x + 1,
+                y + 1,
+                w - 1,
+                h - 1,
+                QBrush(QColor(32, 178, 170, 100)))
+                
+            rect = QRect(x, y,
+                w, h)
+            
+            qp.drawRect(rect)
+        """
+            
+    def add_rect_from_boundings_rects(self, rect):
+        x, y, width, height = rect
+        
+        if self._main_text is None or (self._main_text.x == 0 and self._main_text.y == 0 and self._main_text.width == 0 and self._main_text.height == 0):
+        
+
+        
+            text_finder = MainTextForGui()
+            self.__flag_capturing_main_text_rect = False
+
+            self.__flag_capturing_main_text_rect_roi = False
+
+            self.__flag_capturing_sub_text_rect_roi = True
+            
+        else:
+            text_finder = SubTextForGui()   
+        
+        text_finder.x = x
+        text_finder.y = y
+        text_finder.height = height
+        text_finder.width = width
+        text_finder.min_height = height/2
+        text_finder.max_height = height*2
+        text_finder.min_width = width/2
+        text_finder.max_width = width*2
+
+        percentage_screen_w = int(0.1 * self._bg_pixmap.width())
+        percentage_screen_h = int(0.1 * self._bg_pixmap.height())
+        percentage_object_w = int(0.5 * text_finder.width)
+        percentage_object_h = int(0.5 * text_finder.height)
+
+        roi_height = percentage_screen_h + percentage_object_h + text_finder.height
+
+        roi_width = percentage_screen_w + percentage_object_w + text_finder.width
+
+        roi_width_half = int((roi_width - text_finder.width)/2)
+        roi_height_half = int((roi_height - text_finder.height)/2)
+
+
+        if self._main_text is None or (self._main_text.x == 0 and self._main_text.y == 0 and self._main_text.width == 0 and self._main_text.height == 0):
+
+        
+            text_finder.roi_x =  text_finder.x - roi_width_half
+            text_finder.roi_y =  text_finder.y - roi_height_half
+            text_finder.roi_height = roi_height
+            text_finder.roi_width = roi_width
+            self._main_text = text_finder
+            
+        else: 
+            
+            text_finder.roi_x =  (text_finder.x - self._main_text.x) - roi_width_half
+            text_finder.roi_y =  (text_finder.y - self._main_text.y) - roi_height_half
+            text_finder.roi_height = roi_height
+            text_finder.roi_width = roi_width
+            self._sub_texts_finder.append(text_finder)
+            
+        
     
     def add_main_rect(self):
     
@@ -7073,10 +7472,15 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                                           int(self.gridLayoutWidget_2.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().height() * self.scaling_factor)))
 
 
-
+        self.gridLayoutWidget_3.setGeometry(QRect(int(self.gridLayoutWidget_3.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget_3.geometry().y() * self.scaling_factor),
+                                          int(self.gridLayoutWidget_3.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_3.geometry().height() * self.scaling_factor)))
+                
         #self.setWindowTitle('Application Object Properties')
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         
+        if self.parent._last_pos is not None:
+            self.move(self.parent._last_pos.x(),self.parent._last_pos.y())
+            
         #self.lineEditText.setText(self.parent._main_text.text)
         #self.lineEditLang.setText(self.parent._main_text.lang)
         
@@ -7192,13 +7596,16 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
             if self.parent._main_text.hold_and_release == 0 or self.parent._main_text.hold_and_release == 1:
                 self.holdreleaseSpinBox.setEnabled(False)
+                self.labelPixels.setEnabled(False)
                 self.holdreleaseSpinBox.setValue(self.parent._main_text.release_pixel)
             else: 
                 self.holdreleaseSpinBox.setEnabled(True)
+                self.labelPixels.setEnabled(True)
                 self.holdreleaseSpinBox.setValue(self.parent._main_text.release_pixel)
                 
         else:
             self.holdreleaseRadio.setChecked(False)
+            self.labelPixels.setEnabled(False)
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
             
@@ -7320,6 +7727,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseRadio.setEnabled(False)
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
             self.inserttext.setEnabled(False)
             self.add_quotes.setEnabled(False)
             self.text_encrypted.setEnabled(False)
@@ -7371,6 +7779,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
             if combo_index != 0 and combo_index != 1 and self.holdreleaseRadio.isChecked():
                 self.holdreleaseSpinBox.setEnabled(True)
+                self.labelPixels.setEnabled(True)
             
             self.inserttext.setEnabled(True)
             self.add_quotes.setEnabled(True)
@@ -7429,6 +7838,11 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.spinBoxSendKeysDuration.setValue(self.parent._main_text.sendkeys_duration)
            
         self.connect(self.listWidget, SIGNAL('itemSelectionChanged()'), self.listWidget_selection_changed)
+        
+        self.connect(self.pushButtonSelAll, SIGNAL('clicked()'), self.sel_all_event)
+        self.connect(self.pushButtonDesAll, SIGNAL('clicked()'), self.des_all_event)
+        self.connect(self.pushButtonDelete, SIGNAL('clicked()'), self.delete_event)
+        
         self.connect(self.listWidget, SIGNAL('itemChanged(QListWidgetItem*)'), self, SLOT('listWidget_state_changed(QListWidgetItem*)'))
         
         self.connect(self.wait_radio, SIGNAL('toggled(bool)'), self.wait_radio_event)
@@ -7563,6 +7977,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
             self.listWidget.setCurrentRow(self.parent.last_view_index)
 
+    def moveEvent(self, event):
+        self.parent._last_pos = event.pos()
+    
     def get_lang_list(self):
         langs = []
         lang_dir = get_python_lib() + os.sep + "alyvix\\extra\\Tesseract-OCR\\tessdata"
@@ -7589,6 +8006,10 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
     
         answer = QMessageBox.Yes
         filename = self.parent._alyvix_proxy_path + os.sep + "AlyvixProxy" + self.parent._robot_file_name + ".py"
+        
+        if self.enable_scraper.isChecked() is True:
+            self.parent.args_number = 0
+            self.spinBoxArgs.setValue(0)
         
         arg_list = []       
         args_range = range(1, self.parent.args_number + 1)
@@ -7971,6 +8392,73 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.update_sub_text_view()
 
         #print self.listWidget.currentItem().text()
+
+    def sel_all_event(self):
+  
+        #print "count",self.listWidget.count()
+        for row_index in range(self.listWidget.count()):
+        
+            self.listWidget.item(row_index).setCheckState(Qt.Checked)
+            
+       
+    def des_all_event(self):
+
+        for row_index in range(self.listWidget.count()):
+        
+            self.listWidget.item(row_index).setCheckState(Qt.Unchecked)
+        
+    def delete_event(self):
+    
+        answer = QMessageBox.No
+
+        answer = QMessageBox.warning(self, "Warning", "Are you sure you want to delete selected items?", QMessageBox.Yes, QMessageBox.No)
+          
+        if answer == QMessageBox.No:
+            return
+    
+        index_to_remove = []
+        #print self.parent._sub_texts_finder
+        for row_index in range(self.listWidget.count()):
+                if row_index != 0 and self.listWidget.item(row_index).checkState() == 2:
+                    #print row_index - 1
+                    #del self.parent._sub_texts_finder[row_index-1]
+                    index_to_remove.append(row_index-1)
+        
+        self.parent._sub_texts_finder = [i for j, i in enumerate(self.parent._sub_texts_finder) if j not in index_to_remove]
+        
+        self.listWidget.clear()
+        
+        item = QListWidgetItem()
+        item.setText("main_component")
+        self.listWidget.addItem(item)
+        
+        cnt = 1
+        for sub_template in self.parent._sub_texts_finder:
+        
+            if sub_template.x == 0 and sub_template.y == 0:
+                continue
+            item = QListWidgetItem()
+            if sub_template.show is True:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
+            item.setText("sub_component_" + str(cnt))
+            self.listWidget.addItem(item)
+            cnt = cnt + 1
+            
+        if self.parent._main_text.show is True:
+            self.listWidget.item(0).setCheckState(Qt.Checked)
+        else:
+            self.listWidget.item(0).setCheckState(Qt.Unchecked)
+        
+        self.listWidget.item(0).setSelected(True)  
+        
+        self.widget_2.hide()
+        self.widget.show()
+        #self.widget.setGeometry(QRect(168, 9, 413, 433))
+        self.widget.setGeometry(QRect(self.widget.geometry().x(), self.widget.geometry().y(),
+                                self.widget.geometry().width(), self.widget.geometry().height()))        
+        self.parent.update()        
         
     @pyqtSlot(QListWidgetItem)
     def listWidget_state_changed(self, item):
@@ -8163,15 +8651,18 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
             if self.parent._sub_texts_finder[self.sub_text_index].hold_and_release == 0 or self.parent._sub_texts_finder[self.sub_text_index].hold_and_release == 1:
                 self.holdreleaseSpinBox_2.setEnabled(False)
+                self.labelPixels_2.setEnabled(False)
                 self.holdreleaseSpinBox_2.setValue(self.parent._sub_texts_finder[self.sub_text_index].release_pixel)
             else: 
                 self.holdreleaseSpinBox_2.setEnabled(True)
+                self.labelPixels_2.setEnabled(True)
                 self.holdreleaseSpinBox_2.setValue(self.parent._sub_texts_finder[self.sub_text_index].release_pixel)
                 
         else:
             self.holdreleaseRadio_2.setChecked(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
         
         """
         if self.parent._sub_texts_finder[self.sub_text_index].red_channel is True:
@@ -8209,6 +8700,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
             
         self.parent.update()
         
@@ -8234,6 +8726,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox.setEnabled(False)
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
             
         self.parent.update()
             
@@ -8249,6 +8742,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox.setEnabled(False)
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
             
         self.parent.update()
              
@@ -8266,6 +8760,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox.setEnabled(False)
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
             
         self.parent.update()
             
@@ -8298,16 +8793,20 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
             if combo_index == 0 or combo_index == 1:
                 self.holdreleaseSpinBox.setEnabled(False)
+                self.labelPixels.setEnabled(False)
             else: 
                 self.holdreleaseSpinBox.setEnabled(True)
+                self.labelPixels.setEnabled(True)
                 
             self.parent._main_text.hold_and_release = combo_index
                 
     def holdreleaseComboBox_event(self, event):
         if event == 0 or event == 1:
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
         else: 
             self.holdreleaseSpinBox.setEnabled(True)
+            self.labelPixels.setEnabled(True)
             
         self.parent._main_text.hold_and_release = event
         
@@ -8394,6 +8893,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseRadio.setEnabled(False)
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
             self.inserttext.setEnabled(False)
             self.add_quotes.setEnabled(False)
             self.text_encrypted.setEnabled(False)
@@ -8451,6 +8951,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
             if combo_index != 0 and combo_index != 1 and self.holdreleaseRadio.isChecked():
                 self.holdreleaseSpinBox.setEnabled(True)
+                self.labelPixels.setEnabled(True)
             
             self.inserttext.setEnabled(True)
             self.add_quotes.setEnabled(True)
@@ -9114,6 +9615,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
             
         self.parent.update()
         
@@ -9139,6 +9641,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
             
         self.parent.update()
             
@@ -9154,6 +9657,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
             
         self.parent.update()
              
@@ -9170,6 +9674,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
             
         self.parent.update()
             
@@ -9202,16 +9707,20 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
             if combo_index == 0 or combo_index == 1:
                 self.holdreleaseSpinBox_2.setEnabled(False)
+                self.labelPixels_2.setEnabled(False)
             else: 
                 self.holdreleaseSpinBox_2.setEnabled(True)
+                self.labelPixels_2.setEnabled(True)
             
             self.parent._sub_texts_finder[self.sub_text_index].hold_and_release = combo_index
             
     def holdreleaseComboBox_event_2(self, event):
         if event == 0 or event == 1:
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
         else: 
             self.holdreleaseSpinBox_2.setEnabled(True)
+            self.labelPixels_2.setEnabled(True)
             
         self.parent._sub_texts_finder[self.sub_text_index].hold_and_release = event
         

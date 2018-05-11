@@ -2,7 +2,8 @@
 
 # Form implementation generated from reading ui file 'alyvix_object_finder_properties_view.ui'
 #
-# Created by: PyQt4 UI code generator 4.11.4
+# Created: Thu May 10 00:17:13 2018
+#      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -25,7 +26,7 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(560, 267)
+        Form.resize(560, 298)
         self.pushButtonOk = QtGui.QPushButton(Form)
         self.pushButtonOk.setGeometry(QtCore.QRect(393, 226, 75, 23))
         self.pushButtonOk.setObjectName(_fromUtf8("pushButtonOk"))
@@ -62,6 +63,7 @@ class Ui_Form(object):
         self.gridLayoutWidget_2.setGeometry(QtCore.QRect(0, 0, 376, 67))
         self.gridLayoutWidget_2.setObjectName(_fromUtf8("gridLayoutWidget_2"))
         self.gridLayout_2 = QtGui.QGridLayout(self.gridLayoutWidget_2)
+        self.gridLayout_2.setMargin(0)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.pushButtonRoiRedraw = QtGui.QPushButton(self.gridLayoutWidget_2)
         self.pushButtonRoiRedraw.setObjectName(_fromUtf8("pushButtonRoiRedraw"))
@@ -83,6 +85,7 @@ class Ui_Form(object):
         self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 378, 202))
         self.gridLayoutWidget.setObjectName(_fromUtf8("gridLayoutWidget"))
         self.gridLayout = QtGui.QGridLayout(self.gridLayoutWidget)
+        self.gridLayout.setMargin(0)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.labelWarning = QtGui.QLabel(self.gridLayoutWidget)
         self.labelWarning.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
@@ -210,6 +213,21 @@ class Ui_Form(object):
         self.find_radio.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.find_radio.setObjectName(_fromUtf8("find_radio"))
         self.buttonGroup_5.addButton(self.find_radio)
+        self.gridLayoutWidget_3 = QtGui.QWidget(Form)
+        self.gridLayoutWidget_3.setGeometry(QtCore.QRect(10, 220, 158, 61))
+        self.gridLayoutWidget_3.setObjectName(_fromUtf8("gridLayoutWidget_3"))
+        self.gridLayout_3 = QtGui.QGridLayout(self.gridLayoutWidget_3)
+        self.gridLayout_3.setMargin(0)
+        self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
+        self.pushButtonSelAll = QtGui.QPushButton(self.gridLayoutWidget_3)
+        self.pushButtonSelAll.setObjectName(_fromUtf8("pushButtonSelAll"))
+        self.gridLayout_3.addWidget(self.pushButtonSelAll, 0, 0, 1, 1)
+        self.pushButtonDesAll = QtGui.QPushButton(self.gridLayoutWidget_3)
+        self.pushButtonDesAll.setObjectName(_fromUtf8("pushButtonDesAll"))
+        self.gridLayout_3.addWidget(self.pushButtonDesAll, 0, 1, 1, 1)
+        self.pushButtonDelete = QtGui.QPushButton(self.gridLayoutWidget_3)
+        self.pushButtonDelete.setObjectName(_fromUtf8("pushButtonDelete"))
+        self.gridLayout_3.addWidget(self.pushButtonDelete, 1, 0, 1, 2)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -243,4 +261,7 @@ class Ui_Form(object):
         self.roi_height_label.setText(_translate("Form", "Roi Height", None))
         self.labelArgs.setText(_translate("Form", "Arguments", None))
         self.find_radio.setText(_translate("Form", "Find", None))
+        self.pushButtonSelAll.setText(_translate("Form", "Select All", None))
+        self.pushButtonDesAll.setText(_translate("Form", "Deselect All", None))
+        self.pushButtonDelete.setText(_translate("Form", "Remove", None))
 
