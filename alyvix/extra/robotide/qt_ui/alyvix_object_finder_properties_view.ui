@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>560</width>
-    <height>298</height>
+    <height>260</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>393</x>
-     <y>226</y>
+     <y>230</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -30,7 +30,7 @@
    <property name="geometry">
     <rect>
      <x>476</x>
-     <y>226</y>
+     <y>230</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -172,7 +172,7 @@
      <x>9</x>
      <y>9</y>
      <width>157</width>
-     <height>203</height>
+     <height>182</height>
     </rect>
    </property>
    <property name="selectionMode">
@@ -548,8 +548,8 @@
   <widget class="QWidget" name="gridLayoutWidget_3">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>220</y>
+     <x>9</x>
+     <y>196</y>
      <width>158</width>
      <height>61</height>
     </rect>

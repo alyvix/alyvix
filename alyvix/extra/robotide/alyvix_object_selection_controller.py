@@ -108,7 +108,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #self.setWindowTitle('Application Object Properties')
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
         
-        self.connect(self.pushButtonNew, SIGNAL("clicked()"), self.add_item)
+        #self.connect(self.pushButtonNew, SIGNAL("clicked()"), self.add_item)
         self.connect(self.pushButtonEdit, SIGNAL("clicked()"), self.edit_item)
         self.connect(self.pushButtonRemove, SIGNAL("clicked()"), self.remove_item)
         self.connect(self.pushButtonCancel, SIGNAL("clicked()"), self.cancel_action)
@@ -153,6 +153,13 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.resizeTimer = QTimer()
         self.connect(self.resizeTimer, SIGNAL("timeout()"), self.resize_done)
         
+        self.setMinimumWidth(int(340 * self.scaling_factor))
+        self.setMinimumHeight(int(290 * self.scaling_factor))
+        
+        
+        header = self.tableWidget.horizontalHeader();
+        header.setDefaultAlignment(Qt.AlignLeft)
+        
         
         
     def resizeEvent(self, event):
@@ -165,15 +172,18 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     
     def resize_all(self):
 
+        #340 310
         
         #if resize_factor_h >= 1 and resize_factor_w >= 1:
         self.widget.setGeometry(QRect(self.widget.x(), self.widget.y(),
                                             int(self.frameGeometry().width()), int(self.frameGeometry().height())))
                                             
         self.gridLayoutWidget_2.setGeometry(QRect(self.gridLayoutWidget_2.x(), self.gridLayoutWidget_2.y(),
-                                            int(self.frameGeometry().width() - (26*self.scaling_factor)), int(self.frameGeometry().height() - (60*self.scaling_factor))))
+                                            int(self.frameGeometry().width() - (220*self.scaling_factor)), int(self.frameGeometry().height() - (60*self.scaling_factor))))
                                             
-            
+        self.gridLayoutWidget.setGeometry(QRect(self.gridLayoutWidget_2.x() + self.gridLayoutWidget_2.width() + (10*self.scaling_factor), self.gridLayoutWidget.y(),
+                                            int(self.gridLayoutWidget.width()), int(self.gridLayoutWidget.height())))
+                                                
         #self.resizeTimer.start(500)
         self.widget_2.setGeometry(QRect(int((self.width()/2) - (self.widget_2.width()/2)), int(10*self.scaling_factor),
                                int(self.widget_2.width()), int(self.widget_2.height())))
@@ -264,7 +274,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                     #print('Row %d is selected' % index.row())
                     last_index = index.row()
                     
-                text = str(self.tableWidget.item(last_index, 2).data(Qt.EditRole).toString())
+                text = str(self.tableWidget.item(last_index, 0).data(Qt.EditRole).toString())
                 #print selected_item_data
 
                 clipboard = QApplication.clipboard()
@@ -311,7 +321,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print "name", self.tableWidget.item(last_index, 2).data(Qt.EditRole).toString()
         #print "filename", self.tableWidget.item(last_index, 0).data(Qt.UserRole).toString()
         
-        self.xml_name = str(self.tableWidget.item(last_index, 0).data(Qt.UserRole).toString())
+        self.xml_name = str(self.tableWidget.item(last_index, 1).data(Qt.UserRole).toString())
         #self.xml_name = selected_text + ".xml"
         if self.xml_name.endswith("_RectFinder.xml"):
             self.alyvix_finder_controller = AlyvixRectFinderView(self)
@@ -374,7 +384,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
         self.tableWidget.selectRow(index_main_obj)
         #self.listWidgetAlyObj.setFocus();
-        print index_main_obj
+        #print index_main_obj
     
     def update_list(self, text_to_search=None):
     
@@ -413,7 +423,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
 
         for cdate, path in sorted(entries):
             filename = os.path.basename(path)
-            print cdate
+            #print cdate
             
             extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
             
@@ -470,13 +480,14 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                     self.tableWidget.insertRow ( self.tableWidget.rowCount() );
                     self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
                              0, 
-                             item_type)
+                             item_name);
+                             
                     self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
                              1, 
-                             item_date);
+                             item_type)
                     self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
                              2, 
-                             item_name);
+                             item_date);
                 else:
 
                     name = str(item_name.data(Qt.EditRole).toString()) + " " + date.strftime("%Y-%m-%d %H:%M:%S")
@@ -485,13 +496,15 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                         self.tableWidget.insertRow ( self.tableWidget.rowCount() );
                         self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
                                  0, 
-                                 item_type)
+                                 item_name);
+                                 
                         self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
                                  1, 
-                                 item_date);
+                                 item_type)
                         self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
                                  2, 
-                                 item_name);
+                                 item_date);
+
                         
 
  
@@ -533,7 +546,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             self.window.close()
     
     def cancel_action(self):
-        self.restore_view()
+        self.close()
         
     def restore_view(self):
         self.widget.show()
@@ -571,7 +584,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print "name", self.tableWidget.item(last_index, 2).data(Qt.EditRole).toString()
         #print "filename", self.tableWidget.item(last_index, 0).data(Qt.UserRole).toString()
         
-        self.xml_name = str(self.tableWidget.item(last_index, 0).data(Qt.UserRole).toString())
+        self.xml_name = str(self.tableWidget.item(last_index, 1).data(Qt.UserRole).toString())
         #print selected_item_data
         
         if self.xml_name.endswith("_ObjectFinder.xml"):
@@ -719,16 +732,21 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.tableWidget.insertRow ( self.tableWidget.rowCount() );
         self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
                  0, 
-                 item_type)
+                 item_name);
         self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
                  1, 
-                 item_date);
+                 item_type)
         self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
                  2, 
-                 item_name);
+                 item_date);
+
         #self.update()
         
     def open_rectfinder_view(self):
+    
+        self.action = "new"
+        self.lineEditSearch.setText("search...")
+    
         self.xml_name = None
         self.restore_view()
         screen_manager = ScreenManager()
@@ -744,6 +762,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
           
         
     def open_imagefinder_view(self):
+        self.action = "new"
+        self.lineEditSearch.setText("search...")
+    
         self.xml_name = None
         self.restore_view()
         screen_manager = ScreenManager()
@@ -758,6 +779,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_image_finder_controller.showFullScreen()
         
     def open_textfinder_view(self):
+        self.action = "new"
+        self.lineEditSearch.setText("search...")
+    
         self.xml_name = None
         self.restore_view()
         screen_manager = ScreenManager()
@@ -772,6 +796,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_text_finder_controller.showFullScreen()
         
     def open_objectfinder_controller(self):
+        self.action = "new"
+        self.lineEditSearch.setText("search...")
+    
         self.xml_name = None
         self.restore_view()
         self.hide()

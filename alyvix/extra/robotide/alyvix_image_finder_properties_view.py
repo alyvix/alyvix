@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'alyvix_image_finder_properties_view.ui'
 #
-# Created: Thu May 10 00:17:13 2018
+# Created: Mon May 14 15:22:31 2018
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(564, 533)
+        Form.resize(564, 499)
         self.pushButtonCancel = QtGui.QPushButton(Form)
         self.pushButtonCancel.setGeometry(QtCore.QRect(481, 470, 75, 23))
         self.pushButtonCancel.setObjectName(_fromUtf8("pushButtonCancel"))
@@ -57,7 +57,7 @@ class Ui_Form(object):
         self.spinBoxLine.setMaximum(99999)
         self.spinBoxLine.setObjectName(_fromUtf8("spinBoxLine"))
         self.listWidget = QtGui.QListWidget(Form)
-        self.listWidget.setGeometry(QtCore.QRect(9, 9, 157, 441))
+        self.listWidget.setGeometry(QtCore.QRect(9, 9, 157, 419))
         self.listWidget.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.listWidget.setObjectName(_fromUtf8("listWidget"))
         item = QtGui.QListWidgetItem()
@@ -453,7 +453,7 @@ class Ui_Form(object):
         self.find_radio.setObjectName(_fromUtf8("find_radio"))
         self.buttonGroup_5.addButton(self.find_radio)
         self.gridLayoutWidget_3 = QtGui.QWidget(Form)
-        self.gridLayoutWidget_3.setGeometry(QtCore.QRect(10, 460, 158, 61))
+        self.gridLayoutWidget_3.setGeometry(QtCore.QRect(9, 436, 158, 61))
         self.gridLayoutWidget_3.setObjectName(_fromUtf8("gridLayoutWidget_3"))
         self.gridLayout_3 = QtGui.QGridLayout(self.gridLayoutWidget_3)
         self.gridLayout_3.setMargin(0)

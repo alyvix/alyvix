@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>594</width>
-    <height>582</height>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -756,7 +756,7 @@ Point</string>
      <x>9</x>
      <y>9</y>
      <width>157</width>
-     <height>501</height>
+     <height>481</height>
     </rect>
    </property>
    <property name="selectionMode">
@@ -1399,8 +1399,8 @@ Point</string>
   <widget class="QWidget" name="gridLayoutWidget_3">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>520</y>
+     <x>9</x>
+     <y>500</y>
      <width>158</width>
      <height>54</height>
     </rect>

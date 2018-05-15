@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'alyvix_text_finder_properties_view.ui'
 #
-# Created: Thu May 10 00:17:13 2018
+# Created: Mon May 14 15:22:31 2018
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(561, 504)
+        Form.resize(561, 488)
         self.pushButtonCancel = QtGui.QPushButton(Form)
         self.pushButtonCancel.setGeometry(QtCore.QRect(478, 457, 75, 23))
         self.pushButtonCancel.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -209,7 +209,7 @@ class Ui_Form(object):
         self.labelPixels_2.setObjectName(_fromUtf8("labelPixels_2"))
         self.gridLayout_2.addWidget(self.labelPixels_2, 8, 2, 1, 1)
         self.listWidget = QtGui.QListWidget(Form)
-        self.listWidget.setGeometry(QtCore.QRect(9, 9, 157, 421))
+        self.listWidget.setGeometry(QtCore.QRect(9, 9, 157, 407))
         self.listWidget.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.listWidget.setObjectName(_fromUtf8("listWidget"))
         item = QtGui.QListWidgetItem()
@@ -487,7 +487,7 @@ class Ui_Form(object):
         self.labelWarning.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.labelWarning.setObjectName(_fromUtf8("labelWarning"))
         self.gridLayoutWidget_3 = QtGui.QWidget(Form)
-        self.gridLayoutWidget_3.setGeometry(QtCore.QRect(10, 440, 158, 54))
+        self.gridLayoutWidget_3.setGeometry(QtCore.QRect(9, 427, 158, 54))
         self.gridLayoutWidget_3.setObjectName(_fromUtf8("gridLayoutWidget_3"))
         self.gridLayout_3 = QtGui.QGridLayout(self.gridLayoutWidget_3)
         self.gridLayout_3.setMargin(0)

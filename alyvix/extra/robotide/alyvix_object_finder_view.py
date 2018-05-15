@@ -139,7 +139,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         
         if last_pos is not None:
-            self.move(last_pos.x(), last_pos.y())
+            self.move(last_pos[0],last_pos[1])
 
         self._path = self.parent.path
         self.action = self.parent.action
@@ -410,7 +410,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
     def moveEvent(self, event):
         global last_pos
-        last_pos = event.pos()
+        last_pos = (self.frameGeometry().x(), self.frameGeometry().y())
         
     def save_all(self):
         if self._main_object_finder != None and self.ok_pressed is False:
@@ -3269,7 +3269,7 @@ class PaintingView(QWidget):
                 self.parent.show()
                 self.parent.activateWindow()
                 if last_pos is not None:
-                    self.parent.move(last_pos)
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._redraw_index = None
                 self.parent._can_set_roi_unlim = False
             elif (event.key() == Qt.Key_O and self.parent._last_sub_object != None and self.parent._last_sub_object.roi_x == 0 and self.parent._last_sub_object.roi_y == 0 and self.parent._last_sub_object.roi_width == 0 and self.parent._last_sub_object.roi_width == 0):
@@ -3281,7 +3281,7 @@ class PaintingView(QWidget):
                 self.parent.show()
                 self.parent.activateWindow()
                 if last_pos is not None:
-                    self.parent.move(last_pos)
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._redraw_index = None
                 self.parent._can_set_roi_unlim = False
             elif (event.key() == Qt.Key_Escape and self.parent._last_sub_object != None and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_height != 0 and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_width != 0):
@@ -3290,7 +3290,7 @@ class PaintingView(QWidget):
                 self.parent.show()
                 self.parent.activateWindow()
                 if last_pos is not None:
-                    self.parent.move(last_pos)
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._redraw_index = None
                 self.parent._can_set_roi_unlim = False
             elif (event.key() == Qt.Key_Escape and self.parent._last_sub_object != None and self.parent._last_sub_object.roi_x == 0 and self.parent._last_sub_object.roi_y == 0 and self.parent._last_sub_object.roi_width == 0 and self.parent._last_sub_object.roi_width == 0):
@@ -3300,7 +3300,7 @@ class PaintingView(QWidget):
                 self.parent.show()
                 self.parent.activateWindow()
                 if last_pos is not None:
-                    self.parent.move(last_pos)
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._redraw_index = None
                 self.parent._can_set_roi_unlim = False
                 #self.close()
@@ -3311,14 +3311,14 @@ class PaintingView(QWidget):
                 self.parent.show()
                 self.parent.activateWindow()
                 if last_pos is not None:
-                    self.parent.move(last_pos)
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._can_set_roi_unlim = False
 
             elif len(self.parent._sub_objects_finder) == 0:
                 self.parent.show()
                 self.parent.activateWindow()
                 if last_pos is not None:
-                    self.parent.move(last_pos)
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._can_set_roi_unlim = False
             #self.parent._can_set_roi_unlim == True
         

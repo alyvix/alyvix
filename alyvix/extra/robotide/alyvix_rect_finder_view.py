@@ -5986,7 +5986,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         
         if self.parent._last_pos is not None:
-            self.move(self.parent._last_pos.x(),self.parent._last_pos.y())
+            self.move(self.parent._last_pos[0],self.parent._last_pos[1])
         
         if self.parent.action == "edit":
             self.namelineedit.setEnabled(False)
@@ -6406,7 +6406,7 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
             self.listWidget.setCurrentRow(self.parent.last_view_index)
 
     def moveEvent(self, event):
-        self.parent._last_pos = event.pos()
+        self.parent._last_pos = (self.frameGeometry().x(), self.frameGeometry().y())
         
     def pushButtonCancel_event(self):
         self.close()
@@ -6735,12 +6735,6 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         
     def delete_event(self):
         
-        answer = QMessageBox.No
-
-        answer = QMessageBox.warning(self, "Warning", "Are you sure you want to delete selected items?", QMessageBox.Yes, QMessageBox.No)
-          
-        if answer == QMessageBox.No:
-            return
     
         index_to_remove = []
         #print self.parent._sub_rects_finder
@@ -6749,6 +6743,15 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
                     #print row_index - 1
                     #del self.parent._sub_rects_finder[row_index-1]
                     index_to_remove.append(row_index-1)
+                    
+        if len(index_to_remove) > 0:
+                
+            answer = QMessageBox.No
+
+            answer = QMessageBox.warning(self, "Warning", "Are you sure you want to delete selected items?", QMessageBox.Yes, QMessageBox.No)
+              
+            if answer == QMessageBox.No:
+                return
         
         self.parent._sub_rects_finder = [i for j, i in enumerate(self.parent._sub_rects_finder) if j not in index_to_remove]
         

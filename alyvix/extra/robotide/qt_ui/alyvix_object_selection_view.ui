@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>457</width>
-    <height>329</height>
+    <width>647</width>
+    <height>330</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,83 +38,13 @@
      <height>240</height>
     </rect>
    </property>
-   <widget class="QWidget" name="gridLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>6</x>
-      <y>5</y>
-      <width>218</width>
-      <height>231</height>
-     </rect>
-    </property>
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Delay:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QSpinBox" name="spinBoxDelay">
-       <property name="maximum">
-        <number>60</number>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" colspan="2">
-      <widget class="QPushButton" name="pushButtonRF">
-       <property name="text">
-        <string>Rect Finder</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" colspan="2">
-      <widget class="QPushButton" name="pushButtonIF">
-       <property name="text">
-        <string>Image Finder</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0" colspan="2">
-      <widget class="QPushButton" name="pushButtonTF">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="text">
-        <string>Text Finder</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0" colspan="2">
-      <widget class="QPushButton" name="pushButtonOF">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="text">
-        <string>Object Finder</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0" colspan="2">
-      <widget class="QPushButton" name="pushButtonCancel">
-       <property name="text">
-        <string>Cancel</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
   </widget>
   <widget class="QWidget" name="widget" native="true">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>10</y>
-     <width>458</width>
+     <width>647</width>
      <height>321</height>
     </rect>
    </property>
@@ -179,69 +109,146 @@
        </row>
        <column>
         <property name="text">
+         <string>Name</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
          <string>Type</string>
         </property>
        </column>
        <column>
         <property name="text">
-         <string>Last Modified</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Name</string>
+         <string>Date Modified</string>
         </property>
        </column>
        <item row="0" column="0">
         <property name="text">
-         <string>RF</string>
+         <string>ewfdsfdsfsdfdsfdsfsdfs</string>
         </property>
        </item>
        <item row="0" column="1">
         <property name="text">
-         <string>15-02-1940</string>
+         <string>RF</string>
         </property>
        </item>
        <item row="0" column="2">
         <property name="text">
-         <string>ewfdsfdsfsdfdsfdsfsdfs</string>
+         <string>15-02-1940</string>
         </property>
        </item>
        <item row="1" column="0">
         <property name="text">
-         <string>IF</string>
+         <string>citrix_login_to_xamarin_with_a</string>
         </property>
        </item>
        <item row="1" column="1">
         <property name="text">
-         <string>15-02-1929</string>
+         <string>IF</string>
         </property>
        </item>
        <item row="1" column="2">
         <property name="text">
-         <string>citrix_login_to_xamarin_with_a</string>
+         <string>15-02-1929</string>
         </property>
        </item>
       </widget>
      </item>
-     <item row="2" column="2">
-      <widget class="QPushButton" name="pushButtonRemove">
+    </layout>
+   </widget>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>459</x>
+      <y>2</y>
+      <width>180</width>
+      <height>276</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="9" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonCancel">
        <property name="text">
-        <string>Remove</string>
+        <string>Cancel</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
+     <item row="3" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonTF">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Text Finder</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0" colspan="2">
       <widget class="QPushButton" name="pushButtonEdit">
        <property name="text">
         <string>Edit</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QPushButton" name="pushButtonNew">
+     <item row="7" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonRemove">
        <property name="text">
-        <string>New</string>
+        <string>Remove</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonOF">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Object Finder</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonIF">
+       <property name="text">
+        <string>Image Finder</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0" colspan="2">
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Delay[s]:</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QSpinBox" name="spinBoxDelay">
+       <property name="maximum">
+        <number>60</number>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonRF">
+       <property name="text">
+        <string>Rect Finder</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0" colspan="2">
+      <widget class="Line" name="line_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
       </widget>
      </item>

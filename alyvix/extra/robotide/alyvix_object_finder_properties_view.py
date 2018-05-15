@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'alyvix_object_finder_properties_view.ui'
 #
-# Created: Thu May 10 00:17:13 2018
+# Created: Mon May 14 15:22:31 2018
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,12 +26,12 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(560, 298)
+        Form.resize(560, 260)
         self.pushButtonOk = QtGui.QPushButton(Form)
-        self.pushButtonOk.setGeometry(QtCore.QRect(393, 226, 75, 23))
+        self.pushButtonOk.setGeometry(QtCore.QRect(393, 230, 75, 23))
         self.pushButtonOk.setObjectName(_fromUtf8("pushButtonOk"))
         self.pushButtonCancel = QtGui.QPushButton(Form)
-        self.pushButtonCancel.setGeometry(QtCore.QRect(476, 226, 75, 23))
+        self.pushButtonCancel.setGeometry(QtCore.QRect(476, 230, 75, 23))
         self.pushButtonCancel.setObjectName(_fromUtf8("pushButtonCancel"))
         self.label_line = QtGui.QLabel(Form)
         self.label_line.setGeometry(QtCore.QRect(76, 1027, 61, 21))
@@ -75,7 +75,7 @@ class Ui_Form(object):
         self.pushButtonRemoveObj_2.setObjectName(_fromUtf8("pushButtonRemoveObj_2"))
         self.gridLayout_2.addWidget(self.pushButtonRemoveObj_2, 0, 2, 1, 1)
         self.listWidget = QtGui.QListWidget(Form)
-        self.listWidget.setGeometry(QtCore.QRect(9, 9, 157, 203))
+        self.listWidget.setGeometry(QtCore.QRect(9, 9, 157, 182))
         self.listWidget.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.listWidget.setObjectName(_fromUtf8("listWidget"))
         self.widget = QtGui.QWidget(Form)
@@ -214,7 +214,7 @@ class Ui_Form(object):
         self.find_radio.setObjectName(_fromUtf8("find_radio"))
         self.buttonGroup_5.addButton(self.find_radio)
         self.gridLayoutWidget_3 = QtGui.QWidget(Form)
-        self.gridLayoutWidget_3.setGeometry(QtCore.QRect(10, 220, 158, 61))
+        self.gridLayoutWidget_3.setGeometry(QtCore.QRect(9, 196, 158, 61))
         self.gridLayoutWidget_3.setObjectName(_fromUtf8("gridLayoutWidget_3"))
         self.gridLayout_3 = QtGui.QGridLayout(self.gridLayoutWidget_3)
         self.gridLayout_3.setMargin(0)
