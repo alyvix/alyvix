@@ -232,8 +232,9 @@ class AlyvixTextFinderView(QWidget):
 
         img = original.copy()
 
-
-        edges = cv2.Canny(original.copy(), 50, 200, apertureSize=3, L2gradient=True)
+        median = np.median(original)
+        edges = cv2.Canny(original.copy(), median * 0.2, median * 0.3, apertureSize=3, L2gradient=True)
+        #edges = cv2.Canny(original.copy(), 50, 200, apertureSize=3, L2gradient=True)
         edges_ori = edges.copy()
         bw = edges.copy()
 
@@ -340,29 +341,80 @@ class AlyvixTextFinderView(QWidget):
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
         edges = cv2.dilate(edges,kernel,iterations = 1)
 
-        contours, hierarchy = cv2.findContours(edges.copy(), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+  
+        
+        contours, hierarchy = cv2.findContours(edges_ori.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+        #contours, hierarchy = cv2.findContours(edges_ori.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+
 
         boundingBoxes = [cv2.boundingRect(c) for c in contours]
 
-        boundingBoxes = sorted(boundingBoxes, key=lambda element: (element[1], element[0]))
-
         self._rectBoxes = []
+
+        analyzed_points = []
+
+
+        other_objects_found = copy.deepcopy(self._imageBoxes)
+        other_objects_found.extend(self._textBoxes)
+
 
         for i, box in enumerate(boundingBoxes):
             x, y, w, h = box
+            
+            if (w < 5 or h < 5):
+                continue
+                
+            if (w >= 800 and h >= 100):
+                continue
+                
+            if (w >= 100 and h >= 800):
+                continue
 
-            if h > 10 and w > 20 and w < 500 and h < 500:
+            if ( h > w*2) and (w <= 10):
+                continue
+                
+            if ( w > h*2) and (h <= 10):
+                continue
+                
+            #rectBoxes.append((x, y, w, h))
 
-                font = cv2.FONT_HERSHEY_PLAIN
-                # cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
-                cv2.rectangle(bw_copy, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
-                #cv2.rectangle(edges, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
-                x *= self.scaling_factor
-                y *= self.scaling_factor
-                w *= self.scaling_factor
-                h *= self.scaling_factor
+            is_already_found = False
 
-                self._rectBoxes.append((int(x), int(y), int(w), int(h)))
+            for point_already_analyzed in analyzed_points:
+
+                tolerance_region_w = 10
+                tolerance_region_h = 10
+
+                #tolerance_region = 20 * self._scaling_factor
+
+                if (x >= point_already_analyzed[0] - tolerance_region_w and
+                            x <= point_already_analyzed[0] + tolerance_region_w) and\
+                        (y >= point_already_analyzed[1] - tolerance_region_h and
+                            y <= point_already_analyzed[1] + tolerance_region_h):
+
+                    is_already_found = True
+                    break
+
+            if is_already_found == False:
+            
+                is_already_found_on_other = False
+                
+                for other_object in other_objects_found:
+                    other_x, other_y, other_w, other_h = other_object
+                    
+                    if x >= other_x and y >= other_y and w <= other_w and h <= other_h and other_h < 40 and other_w < 80:
+                        is_already_found_on_other = True
+                        break
+            
+            
+                if is_already_found_on_other is False:
+                    analyzed_points.append((x, y, w, h))
+                    x *= self.scaling_factor
+                    y *= self.scaling_factor
+                    w *= self.scaling_factor
+                    h *= self.scaling_factor
+
+                    self._rectBoxes.append((int(x), int(y), int(w), int(h)))
 
 
 
