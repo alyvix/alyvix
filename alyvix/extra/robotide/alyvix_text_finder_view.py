@@ -59,6 +59,8 @@ class AlyvixTextFinderView(QWidget):
         
         self._last_pos = None
         
+        self.ignore_release = False
+        
         self._ctrl_is_pressed = False
         
         self._imageBoxes = []
@@ -452,6 +454,10 @@ class AlyvixTextFinderView(QWidget):
                 self._sub_texts_finder = []
                 
                 self._main_text.text = ""
+                self._main_text.quotes_ocr = True
+                self._main_text.sendkeys_quotes = True
+                self._main_text.sendkeys = ""
+                self._main_text.text_encrypted = False
 
                 if not os.path.exists(scraper_file_name):
                     with open(scraper_file_name, 'w') as f:
@@ -488,10 +494,19 @@ class AlyvixTextFinderView(QWidget):
                 obj_sub_redraw = False
                 
                 #print self.parent.parent.last_selected_index
+                
+                old_main_pos = None
             
                 if sel_index == 0:
-                    if self.parent.parent._main_object_finder.x != self._main_text.x or self.parent.parent._main_object_finder.y != self._main_text.y or self.parent.parent._main_object_finder.height != self._main_text.height or self.parent.parent._main_object_finder.width != self._main_text.width:
+                    if self.parent.parent._main_object_finder.x != self._main_text.x or self.parent.parent._main_object_finder.y != self._main_text.y or \
+                    self.parent.parent._main_object_finder.height != self._main_text.height or \
+                    self.parent.parent._main_object_finder.width != self._main_text.width or \
+                    self.parent.parent._main_object_finder.roi_width != self._main_text.roi_width or \
+                    self.parent.parent._main_object_finder.roi_height != self._main_text.roi_height or \
+                    self.parent.parent._main_object_finder.roi_x != self._main_text.roi_x + self._main_object_finder.x or \
+                    self.parent.parent._main_object_finder.roi_y != self._main_text.roi_y + self._main_object_finder.y:
                         obj_main_redraw = True
+                        old_main_pos = (self.parent.parent._main_object_finder.x, self.parent.parent._main_object_finder.y)
                         self.parent.parent._main_object_finder.x = self._main_text.x
                         self.parent.parent._main_object_finder.y = self._main_text.y
                         self.parent.parent._main_object_finder.height = self._main_text.height
@@ -503,36 +518,69 @@ class AlyvixTextFinderView(QWidget):
                     #print self._main_text.x, self._main_text.y, self._main_text.height, self._main_text.width
                     #print self.parent.parent._sub_objects_finder[sel_index-1].roi_x
                 
-                    if self.parent.parent._sub_objects_finder[sel_index-1].x != self._main_text.x or self.parent.parent._sub_objects_finder[sel_index-1].y != self._main_text.y or self.parent.parent._sub_objects_finder[sel_index-1].height != self._main_text.height or self.parent.parent._sub_objects_finder[sel_index-1].width != self._main_text.width:
+                    if self.parent.parent._sub_objects_finder[sel_index-1].x != self._main_text.x or self.parent.parent._sub_objects_finder[sel_index-1].y != self._main_text.y or \
+                        self.parent.parent._sub_objects_finder[sel_index-1].height != self._main_text.height or \
+                        self.parent.parent._sub_objects_finder[sel_index-1].width != self._main_text.width or \
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_width != self._main_text.roi_width or \
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_height != self._main_text.roi_height or \
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_x != self._main_text.roi_x + self._main_object_finder.x or \
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_y != self._main_text.roi_y + self._main_object_finder.y:
+                        
+                        #print "different"
+                        
                         obj_sub_redraw = True
                         self.parent.parent._sub_objects_finder[sel_index-1].x = self._main_text.x
                         self.parent.parent._sub_objects_finder[sel_index-1].y = self._main_text.y
                         self.parent.parent._sub_objects_finder[sel_index-1].height = self._main_text.height
                         self.parent.parent._sub_objects_finder[sel_index-1].width = self._main_text.width
                         
+
+                        
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_x = self._main_text.roi_x - self.parent.parent._main_object_finder.x
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_y = self._main_text.roi_y - self.parent.parent._main_object_finder.y
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_height = self._main_text.roi_height
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_width = self._main_text.roi_width
+                        
+                        """
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_x =  (self.parent.parent._sub_objects_finder[sel_index-1].x - self.parent.parent._main_object_finder.x) - roi_width_half
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_y =  (self.parent.parent._sub_objects_finder[sel_index-1].y - self.parent.parent._main_object_finder.y) - roi_height_half
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_height = roi_height
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_width = roi_width
+                        """
+                        
+                        """
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_x = 0
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_y = 0
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_height = 0
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_width = 0
-                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_up = False
-                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_down = False
-                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_left = False
-                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_right = False
+                        """
+                        
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_up = self._main_text.roi_unlimited_up
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_down = self._main_text.roi_unlimited_down
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_left = self._main_text.roi_unlimited_left
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_right = self._main_text.roi_unlimited_right
                     
                         self.parent.parent.redraw_index_from_finder = sel_index-1
                 
                 try:
                     #self.parent.parent.pv.showFullScreen()
                     if obj_main_redraw is True:
-                        self.parent.parent.delete_all_sub_roi()
+                        self.parent.parent.reset_all_sub_roi(old_main_pos)
                         #self.parent.parent.pv = PaintingView(self.parent.parent)
                         #image = QImage(self.parent.parent._main_object_finder.xml_path.replace("xml", "png"))   
                         #self.parent.parent.pv.set_bg_pixmap(image)
-                        self.parent.parent._main_deleted = True
-                        self.parent.parent.pv.showFullScreen()
+                        #self.parent.parent._main_deleted = True
+                        self.parent.parent.pv.update()
                     elif obj_sub_redraw is True:
                         self.parent.parent.sub_object_index = sel_index-1
-                        self.parent.parent.redraw_roi_event()
+                        
+                        try:
+                            self.parent.parent._old_main_object = copy.deepcopy(self.parent.parent._main_object_finder)
+                            self.parent.parent._old_sub_objects = copy.deepcopy(self.parent.parent._sub_objects_finder)
+                        except:
+                            pass
+                        #self.parent.parent.redraw_roi_event()
+                        self.parent.parent.pv.update()
                     else:
                         #print self.parent.parent._sub_objects_finder[sel_index-1].roi_x
                 
@@ -565,8 +613,9 @@ class AlyvixTextFinderView(QWidget):
         if event.modifiers() == Qt.ControlModifier:
             self._ctrl_is_pressed = True
     
-        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Space and self.__flag_capturing_sub_text is False and self.__flag_capturing_main_text_rect is False: 
+        if event.key() == Qt.Key_Space and self.__flag_capturing_sub_text is False and self.__flag_capturing_main_text_rect is False: 
             self._show_boundingrects = True
+            self.ignore_release = True
             self.update()
             
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
@@ -760,8 +809,9 @@ class AlyvixTextFinderView(QWidget):
     def keyReleaseEvent(self, event):
         if event.modifiers() == Qt.ControlModifier:
             self._ctrl_is_pressed = False
-        if event.modifiers() == Qt.ControlModifier or event.key() == Qt.Key_Space: 
+        if event.key() == Qt.Key_Space: 
             self._show_boundingrects = False
+            #self.ignore_release = False
         self.update()
     
     def closeEvent(self, event):
@@ -794,145 +844,12 @@ class AlyvixTextFinderView(QWidget):
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
         
-            self.__click_position = QPoint(QCursor.pos())
-
-            if  self._show_boundingrects is True:
+            if event.modifiers() == Qt.ControlModifier:
+                self.ignore_release = True
             
-                rect = self.is_mouse_inside_bounding_rects()
-                
-                if rect is not None:
-                    self.add_rect_from_boundings_rects(rect)
-            elif self.set_xy_offset is not None:
-                if self.set_xy_offset == -1:
-                    self._main_text.x_offset = self.__click_position.x() - self._main_text.x
-                    self._main_text.y_offset = self.__click_position.y() - self._main_text.y
-                else:
-                    self._sub_texts_finder[self.set_xy_offset].x_offset = self.__click_position.x() - self._sub_texts_finder[self.set_xy_offset].x
-                    self._sub_texts_finder[self.set_xy_offset].y_offset = self.__click_position.y() - self._sub_texts_finder[self.set_xy_offset].y
-            elif self.__flag_mouse_is_on_border is not None:
-                self.__border_index = self.__flag_mouse_is_on_border
-                self.__drag_border = True
-                if self.__border_index == 0:
-                    self._old_height_rect = self._main_text.height
-                    self._old_width_rect = self._main_text.width
-                    self._old_x_rect = self._main_text.x
-                    self._old_y_rect = self._main_text.y
-                    
-                    self._old_roi_height_rect = self._main_text.roi_height
-                    self._old_roi_width_rect = self._main_text.roi_width
-                    self._old_roi_x_rect = self._main_text.roi_x
-                    self._old_roi_y_rect = self._main_text.roi_y
-                else:
-                    self._old_height_rect = self._sub_texts_finder[self.__border_index-1].height
-                    self._old_width_rect = self._sub_texts_finder[self.__border_index-1].width
-                    self._old_x_rect = self._sub_texts_finder[self.__border_index-1].x
-                    self._old_y_rect = self._sub_texts_finder[self.__border_index-1].y
-                    
-                    self._old_roi_height_rect = self._sub_texts_finder[self.__border_index-1].roi_height
-                    self._old_roi_width_rect = self._sub_texts_finder[self.__border_index-1].roi_width
-                    self._old_roi_x_rect = self._sub_texts_finder[self.__border_index-1].roi_x
-                    self._old_roi_y_rect = self._sub_texts_finder[self.__border_index-1].roi_y
-       
-            elif self.__flag_mouse_is_inside_rect is not None:
-                self.__move_index = self.__flag_mouse_is_inside_rect
-                
-        
-                if self.__move_index == 0:
-                    rect = self._main_text
-                else:
-                    rect = self._sub_texts_finder[self.__move_index - 1]
-                
-                self.__position_offset_x = self.__click_position.x() - rect.x
-                self.__position_offset_y =  self.__click_position.y() - rect.y
-
-            
-            else:
-                self.__capturing = True
-                
-        elif event.buttons() == Qt.RightButton:
-        
-            if event.modifiers() == Qt.ControlModifier and self.set_xy_offset is None:
-                index = 0
-                delete_sub = False
-                delete_main = False
-                
-                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect == 0 and len(self._sub_texts_finder) == 0:
-                    index = 0
-                    delete_main = True
-                
-                if self.__flag_mouse_is_on_border == 0 and self.__flag_mouse_is_on_border is not None and len(self._sub_texts_finder) == 0:
-                    index = 0
-                    delete_main = True
-
-                
-                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect != 0 and len(self._sub_texts_finder) > 0:
-                    index = self.__flag_mouse_is_inside_rect -1
-                    delete_sub = True
-                
-                if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None and len(self._sub_texts_finder) > 0:
-                    index = self.__flag_mouse_is_on_border -1
-                    delete_sub = True
-                    
-                if delete_sub is True:
-                    if self._sub_texts_finder[-1].x != 0 and self._sub_texts_finder[-1].y != 0 \
-                    and self._sub_texts_finder[-1].width != 0 and self._sub_texts_finder[-1].height != 0:
-
-                        self.__deleted_texts.append(self._sub_texts_finder[index])
-                        del self._sub_texts_finder[index]
-                        
-                        self.__flag_need_to_delete_roi = False
-                        self.__flag_need_to_restore_roi = True
-                        self.__flag_capturing_sub_text_rect_roi = True
-                        self.__flag_capturing_sub_text = False
-                elif delete_main is True:
-                    
-                            
-                    self.__deleted_texts.append(self._main_text)
-                    self._main_text = None
-                    self.__flag_need_to_delete_main_roi = False
-                    self.__flag_need_to_restore_main_roi = True
-                    self.__flag_capturing_main_text_rect_roi = True
-                    self.__flag_capturing_sub_text_rect_roi = False
-            else:
-
-        
-                if self.__flag_mouse_is_on_border == 0 and self.__flag_mouse_is_on_border is not None:
-
-                    index = self.__flag_mouse_is_on_border-1
-                    
-                    
-                    if self.__flag_mouse_is_on_left_border_roi is True:
-                        self._main_text.roi_unlimited_left = True
-                        
-                    if self.__flag_mouse_is_on_right_border_roi is True:
-                        self._main_text.roi_unlimited_right = True
-                        
-                    if self.__flag_mouse_is_on_top_border_roi is True:
-                        self._main_text.roi_unlimited_up = True
-                        
-                    if self.__flag_mouse_is_on_bottom_border_roi is True:
-                        self._main_text.roi_unlimited_down = True
-                        
-                elif self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None:
-
-                    index = self.__flag_mouse_is_on_border-1
-                    
-                    
-                    if self.__flag_mouse_is_on_left_border_roi is True:
-                        self._sub_texts_finder[index].roi_unlimited_left = True
-                        
-                    if self.__flag_mouse_is_on_right_border_roi is True:
-                        self._sub_texts_finder[index].roi_unlimited_right = True
-                        
-                    if self.__flag_mouse_is_on_top_border_roi is True:
-                        self._sub_texts_finder[index].roi_unlimited_up = True
-                        
-                    if self.__flag_mouse_is_on_bottom_border_roi is True:
-                        self._sub_texts_finder[index].roi_unlimited_down = True
-                        
                 if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect == 0:
                     index = self.__flag_mouse_is_inside_rect -1
-                    
+                    """
                     percentage_screen_w = int(0.1 * self._bg_pixmap.width())
                     percentage_screen_h = int(0.1 * self._bg_pixmap.height())
                     percentage_object_w = int(0.5 * self._main_text.width)
@@ -941,12 +858,45 @@ class AlyvixTextFinderView(QWidget):
                     roi_height = percentage_screen_h + percentage_object_h + self._main_text.height
                     
                     roi_width = percentage_screen_w + percentage_object_w + self._main_text.width
+                    """
                     
+                                        
+                    #roi_height = int(15*self.scaling_factor) + self._main_text.height
+                    
+                    #roi_width = int(15*self.scaling_factor) + self._main_text.width
+                    
+                    #roi_width_half = int((roi_width - self._main_text.width)/2)
+                    #roi_height_half = int((roi_height - self._main_text.height)/2)
+                    
+                    #self._main_text.roi_x =  (self._main_text.x) - roi_width_half
+                    #self._main_text.roi_y =  (self._main_text.y) - roi_height_half
+                    #self._main_text.roi_height = roi_height
+                    #self._main_text.roi_width = roi_width
+                    
+                    """
+                    self._main_text.roi_x =  (self._main_text.x) - int(1*self.scaling_factor)
+                    self._main_text.roi_y =  (self._main_text.y) - int(1*self.scaling_factor)
+                    self._main_text.roi_height = self._main_text.height + int(6*self.scaling_factor)
+                    self._main_text.roi_width = self._main_text.width + int(6*self.scaling_factor)
+                    """
+                    
+                    hw_factor = 0
+                    
+                    if self._main_text.height < self._main_text.width:
+                        hw_factor = self._main_text.height
+                    else:
+                        hw_factor = self._main_text.width
+                    
+                    roi_height = int(0.30*hw_factor*self.scaling_factor) + self._main_text.height #int(10*self.scaling_factor) + self._main_text.height
+
+                    roi_width = int(0.30*hw_factor*self.scaling_factor) + self._main_text.width #int(10*self.scaling_factor) + self._main_text.width
+
+
                     roi_width_half = int((roi_width - self._main_text.width)/2)
                     roi_height_half = int((roi_height - self._main_text.height)/2)
-                    
-                    self._main_text.roi_x =  (self._main_text.x) - roi_width_half
-                    self._main_text.roi_y =  (self._main_text.y) - roi_height_half
+
+                    self._main_text.roi_x =  self._main_text.x - roi_width_half
+                    self._main_text.roi_y =  self._main_text.y - roi_height_half
                     self._main_text.roi_height = roi_height
                     self._main_text.roi_width = roi_width
                     
@@ -990,6 +940,7 @@ class AlyvixTextFinderView(QWidget):
                 elif self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect != 0:
                     index = self.__flag_mouse_is_inside_rect -1
                     
+                    """
                     percentage_screen_w = int(0.1 * self._bg_pixmap.width())
                     percentage_screen_h = int(0.1 * self._bg_pixmap.height())
                     percentage_object_w = int(0.5 * self._sub_texts_finder[index].width)
@@ -1001,11 +952,45 @@ class AlyvixTextFinderView(QWidget):
                     
                     roi_width_half = int((roi_width - self._sub_texts_finder[index].width)/2)
                     roi_height_half = int((roi_height - self._sub_texts_finder[index].height)/2)
+                    """
+                    self.ignore_release = True
+                    #roi_height = int(15*self.scaling_factor) + self._sub_texts_finder[index].height
                     
+                    #roi_width = int(15*self.scaling_factor) + self._sub_texts_finder[index].width
+                    
+                    #roi_width_half = int((roi_width - self._sub_texts_finder[index].width)/2)
+                    #roi_height_half = int((roi_height - self._sub_texts_finder[index].height)/2)
+                    
+                    """
+                    self._sub_texts_finder[index].roi_x =  (self._sub_texts_finder[index].x - self._main_text.x) - int(1*self.scaling_factor)
+                    self._sub_texts_finder[index].roi_y =  (self._sub_texts_finder[index].y - self._main_text.y) - int(1*self.scaling_factor)
+                    self._sub_texts_finder[index].roi_height = self._sub_texts_finder[index].height + int(6*self.scaling_factor)
+                    self._sub_texts_finder[index].roi_width = self._sub_texts_finder[index].width + int(6*self.scaling_factor)
+                    """
+                    
+                    hw_factor = 0
+                    
+                    if self._sub_texts_finder[index].height < self._sub_texts_finder[index].width:
+                        hw_factor = self._sub_texts_finder[index].height
+                    else:
+                        hw_factor = self._sub_texts_finder[index].width
+                    
+                    roi_height = int(0.30*hw_factor*self.scaling_factor) + self._sub_texts_finder[index].height #int(10*self.scaling_factor) + self._sub_texts_finder[index].height
+
+                    roi_width = int(0.30*hw_factor*self.scaling_factor) + self._sub_texts_finder[index].width #int(10*self.scaling_factor) + self._sub_texts_finder[index].width
+
+                    roi_width_half = int((roi_width - self._sub_texts_finder[index].width)/2)
+                    roi_height_half = int((roi_height - self._sub_texts_finder[index].height)/2)
+
                     self._sub_texts_finder[index].roi_x =  (self._sub_texts_finder[index].x - self._main_text.x) - roi_width_half
                     self._sub_texts_finder[index].roi_y =  (self._sub_texts_finder[index].y - self._main_text.y) - roi_height_half
                     self._sub_texts_finder[index].roi_height = roi_height
                     self._sub_texts_finder[index].roi_width = roi_width
+                    
+                    #self._sub_texts_finder[index].roi_x =  (self._sub_texts_finder[index].x - self._main_text.x) - roi_width_half
+                    #self._sub_texts_finder[index].roi_y =  (self._sub_texts_finder[index].y - self._main_text.y) - roi_height_half
+                    #self._sub_texts_finder[index].roi_height = roi_height
+                    #self._sub_texts_finder[index].roi_width = roi_width
                     
                     
                     if self._main_text.y + self._sub_texts_finder[index].roi_y < 0:
@@ -1045,10 +1030,175 @@ class AlyvixTextFinderView(QWidget):
                     self._sub_texts_finder[index].roi_unlimited_down = False
                 
                 
+            
+            elif self.ignore_release is False:
+        
+                self.__click_position = QPoint(QCursor.pos())
+
+                if self.set_xy_offset is not None:
+                    if self.set_xy_offset == -1:
+                        self._main_text.x_offset = self.__click_position.x() - self._main_text.x
+                        self._main_text.y_offset = self.__click_position.y() - self._main_text.y
+                    else:
+                        self._sub_texts_finder[self.set_xy_offset].x_offset = self.__click_position.x() - self._sub_texts_finder[self.set_xy_offset].x
+                        self._sub_texts_finder[self.set_xy_offset].y_offset = self.__click_position.y() - self._sub_texts_finder[self.set_xy_offset].y
+                elif self.__flag_mouse_is_on_border is not None:
+                    self.__border_index = self.__flag_mouse_is_on_border
+                    self.__drag_border = True
+                    if self.__border_index == 0:
+                        self._old_height_rect = self._main_text.height
+                        self._old_width_rect = self._main_text.width
+                        self._old_x_rect = self._main_text.x
+                        self._old_y_rect = self._main_text.y
+                        
+                        self._old_roi_height_rect = self._main_text.roi_height
+                        self._old_roi_width_rect = self._main_text.roi_width
+                        self._old_roi_x_rect = self._main_text.roi_x
+                        self._old_roi_y_rect = self._main_text.roi_y
+                    else:
+                        self._old_height_rect = self._sub_texts_finder[self.__border_index-1].height
+                        self._old_width_rect = self._sub_texts_finder[self.__border_index-1].width
+                        self._old_x_rect = self._sub_texts_finder[self.__border_index-1].x
+                        self._old_y_rect = self._sub_texts_finder[self.__border_index-1].y
+                        
+                        self._old_roi_height_rect = self._sub_texts_finder[self.__border_index-1].roi_height
+                        self._old_roi_width_rect = self._sub_texts_finder[self.__border_index-1].roi_width
+                        self._old_roi_x_rect = self._sub_texts_finder[self.__border_index-1].roi_x
+                        self._old_roi_y_rect = self._sub_texts_finder[self.__border_index-1].roi_y
+           
+                elif self.__flag_mouse_is_inside_rect is not None:
+                    self.__move_index = self.__flag_mouse_is_inside_rect
+                    
+            
+                    if self.__move_index == 0:
+                        rect = self._main_text
+                    else:
+                        rect = self._sub_texts_finder[self.__move_index - 1]
+                    
+                    self.__position_offset_x = self.__click_position.x() - rect.x
+                    self.__position_offset_y =  self.__click_position.y() - rect.y
+
+                
+                else:
+                    self.__capturing = True
+                
+        elif event.buttons() == Qt.RightButton:
+        
+            if event.modifiers() == Qt.ControlModifier and self.set_xy_offset is None:
+                self.ignore_release = True
+                index = 0
+                delete_sub = False
+                delete_main = False
+                
+                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect == 0 and len(self._sub_texts_finder) == 0:
+                    index = 0
+                    delete_main = True
+                
+                if self.__flag_mouse_is_on_border == 0 and self.__flag_mouse_is_on_border is not None and len(self._sub_texts_finder) == 0:
+                    index = 0
+                    delete_main = True
+
+                
+                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect != 0 and len(self._sub_texts_finder) > 0:
+                    index = self.__flag_mouse_is_inside_rect -1
+                    delete_sub = True
+                
+                if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None and len(self._sub_texts_finder) > 0:
+                    index = self.__flag_mouse_is_on_border -1
+                    delete_sub = True
+                    
+                if delete_sub is True:
+                    if self._sub_texts_finder[-1].x != 0 and self._sub_texts_finder[-1].y != 0 \
+                    and self._sub_texts_finder[-1].width != 0 and self._sub_texts_finder[-1].height != 0:
+
+                        self._sub_texts_finder[index].deleted_x = self._sub_texts_finder[index].x
+                        self._sub_texts_finder[index].deleted_y = self._sub_texts_finder[index].y
+                        self._sub_texts_finder[index].deleted_width = self._sub_texts_finder[index].width
+                        self._sub_texts_finder[index].deleted_height = self._sub_texts_finder[index].height
+
+                        self._sub_texts_finder[index].x = 0
+                        self._sub_texts_finder[index].y = 0
+                        self._sub_texts_finder[index].width = 0
+                        self._sub_texts_finder[index].height = 0
+
+                    
+                        self.__deleted_texts.append(self._sub_texts_finder[index])
+                        del self._sub_texts_finder[index]
+                        
+                        
+                        self.__flag_need_to_delete_roi = False
+                        self.__flag_need_to_restore_roi = True
+                        self.__flag_capturing_sub_text_rect_roi = True
+                        self.__flag_capturing_sub_text = False
+                elif delete_main is True:
+                
+                    self._main_text.deleted_x = self._main_text.x
+                    self._main_text.deleted_y = self._main_text.y
+                    self._main_text.deleted_width = self._main_text.width
+                    self._main_text.deleted_height = self._main_text.height
+
+                    self._main_text.x = 0
+                    self._main_text.y = 0
+                    self._main_text.width = 0
+                    self._main_text.height = 0
+                    
+                            
+                    self.__deleted_texts.append(self._main_text)
+                    self._main_text = None
+                    
+                    
+                    self.__flag_need_to_delete_main_roi = False
+                    self.__flag_need_to_restore_main_roi = True
+                    self.__flag_capturing_main_text_rect_roi = True
+                    self.__flag_capturing_sub_text_rect_roi = False
+            else:
+
+                rect = self.is_mouse_inside_bounding_rects()
+        
+                if self.__flag_mouse_is_on_border == 0 and self.__flag_mouse_is_on_border is not None:
+
+                    index = self.__flag_mouse_is_on_border-1
+                    
+                    
+                    if self.__flag_mouse_is_on_left_border_roi is True:
+                        self._main_text.roi_unlimited_left = True
+                        
+                    if self.__flag_mouse_is_on_right_border_roi is True:
+                        self._main_text.roi_unlimited_right = True
+                        
+                    if self.__flag_mouse_is_on_top_border_roi is True:
+                        self._main_text.roi_unlimited_up = True
+                        
+                    if self.__flag_mouse_is_on_bottom_border_roi is True:
+                        self._main_text.roi_unlimited_down = True
+                        
+                elif self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None:
+
+                    index = self.__flag_mouse_is_on_border-1
+                    
+                    
+                    if self.__flag_mouse_is_on_left_border_roi is True:
+                        self._sub_texts_finder[index].roi_unlimited_left = True
+                        
+                    if self.__flag_mouse_is_on_right_border_roi is True:
+                        self._sub_texts_finder[index].roi_unlimited_right = True
+                        
+                    if self.__flag_mouse_is_on_top_border_roi is True:
+                        self._sub_texts_finder[index].roi_unlimited_up = True
+                        
+                    if self.__flag_mouse_is_on_bottom_border_roi is True:
+                        self._sub_texts_finder[index].roi_unlimited_down = True
+
+                elif rect is not None:
+                    self.add_rect_from_boundings_rects(rect)
+                    
             self.update()
             
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if self.ignore_release is True:
+            self.ignore_release = False
+            event.ignore()
+        elif event.button() == Qt.LeftButton:
             self.__capturing = False
             
             if self.set_xy_offset is not None:
@@ -3185,59 +3335,70 @@ class AlyvixTextFinderView(QWidget):
         pen = QPen()
         pen.setWidth(1)
         pen.setStyle(Qt.SolidLine)
-        pen.setBrush(QBrush(QColor(0, 255, 0, 255)))
         
-        qp.setPen(pen)
+        m_x = None
+        m_y = None
+        m_w = None
+        m_h = None
+        
+        if self._main_text is not None:
+            m_x = self._main_text.x
+            m_y = self._main_text.y
+            m_w = self._main_text.width
+            m_h = self._main_text.height
         
                     
         for box in self._textBoxes:
-        
-            x, y, w, h = box
-        
-            qp.fillRect(x + 1,
-                y + 1,
-                w - 1,
-                h - 1,
-                QBrush(QColor(32, 178, 170, 100)))
-                
-            rect = QRect(x, y,
-                w, h)
-            
-            qp.drawRect(rect)
-        
-        """
-        for box in self._imageBoxes:
-        
-            x, y, w, h = box
-            
-        
-            qp.fillRect(x + 1,
-                y + 1,
-                w - 1,
-                h - 1,
-                QBrush(QColor(32, 178, 170, 100)))
-                
-            rect = QRect(x, y,
-                w, h)
-            
-            qp.drawRect(rect)
 
+        
+            x, y, w, h = box
             
-        for box in self._rectBoxes:
-        
-            x, y, w, h = box            
-        
-            qp.fillRect(x + 1,
-                y + 1,
-                w - 1,
-                h - 1,
-                QBrush(QColor(32, 178, 170, 100)))
+            is_in_objects = False
+            
+                        
+            if x == m_x and y == m_y and w == m_w and h == m_h:
+                is_in_objects = True
+            
+            for sub_box in self._sub_texts_finder:
+            
+                if is_in_objects is True:
+                    break
+                    
+                s_x = sub_box.x
+                s_y = sub_box.y
+                s_w = sub_box.width
+                s_h = sub_box.height
                 
+                if x == s_x and y == s_y and w == s_w and h == s_h:
+                    is_in_objects = True
+                    break
+
+            if is_in_objects is True:
+                pen.setBrush(QBrush(QColor(255, 0, 0, 255)))
+                qp.setPen(pen)
+                
+                qp.fillRect(x + 1,
+                    y + 1,
+                    w - 1,
+                    h - 1,
+                    QBrush(QColor(255, 0, 255, 130)))
+                    
+            else:
+            
+                pen.setBrush(QBrush(QColor(0, 255, 0, 255)))
+
+                qp.setPen(pen)
+                
+                qp.fillRect(x + 1,
+                    y + 1,
+                    w - 1,
+                    h - 1,
+                    QBrush(QColor(32, 178, 170, 100)))
+                    
             rect = QRect(x, y,
                 w, h)
             
             qp.drawRect(rect)
-        """
             
     def add_rect_from_boundings_rects(self, rect):
         x, y, width, height = rect
@@ -3264,7 +3425,7 @@ class AlyvixTextFinderView(QWidget):
         text_finder.max_height = height*2
         text_finder.min_width = width/2
         text_finder.max_width = width*2
-
+        """
         percentage_screen_w = int(0.1 * self._bg_pixmap.width())
         percentage_screen_h = int(0.1 * self._bg_pixmap.height())
         percentage_object_w = int(0.5 * text_finder.width)
@@ -3276,23 +3437,140 @@ class AlyvixTextFinderView(QWidget):
 
         roi_width_half = int((roi_width - text_finder.width)/2)
         roi_height_half = int((roi_height - text_finder.height)/2)
+        
+        """
 
 
         if self._main_text is None or (self._main_text.x == 0 and self._main_text.y == 0 and self._main_text.width == 0 and self._main_text.height == 0):
 
-        
+            """                    
+            text_finder.roi_x =  (text_finder.x) - int(1*self.scaling_factor)
+            text_finder.roi_y =  (text_finder.y) - int(1*self.scaling_factor)
+            text_finder.roi_height = text_finder.height + int(6*self.scaling_factor)
+            text_finder.roi_width = text_finder.width + int(6*self.scaling_factor)
+            """
+             
+            """
             text_finder.roi_x =  text_finder.x - roi_width_half
             text_finder.roi_y =  text_finder.y - roi_height_half
             text_finder.roi_height = roi_height
             text_finder.roi_width = roi_width
+
+            """
+            
+            hw_factor = 0
+            
+            if text_finder.height < text_finder.width:
+                hw_factor = text_finder.height
+            else:
+                hw_factor = text_finder.width
+            
+            roi_height = int(0.30*hw_factor*self.scaling_factor) + text_finder.height #int(10*self.scaling_factor) + text_finder.height
+
+            roi_width = int(0.30*hw_factor*self.scaling_factor) + text_finder.width #int(10*self.scaling_factor) + text_finder.width
+
+
+            roi_width_half = int((roi_width - text_finder.width)/2)
+            roi_height_half = int((roi_height - text_finder.height)/2)
+
+            text_finder.roi_x =  text_finder.x - roi_width_half
+            text_finder.roi_y =  text_finder.y - roi_height_half
+            text_finder.roi_height = roi_height
+            text_finder.roi_width = roi_width
+            
+            
+            if text_finder.roi_y < 0:
+            
+                under_zero = abs(text_finder.roi_y)
+                text_finder.roi_y = text_finder.roi_y + under_zero
+                text_finder.roi_height = text_finder.roi_height - under_zero
+                
+            
+            if text_finder.roi_y + text_finder.roi_height > self._bg_pixmap.height():
+            
+                diff = (text_finder.roi_y + text_finder.roi_height) - self._bg_pixmap.height()
+                
+                text_finder.roi_height = text_finder.roi_height - diff - 1
+            
+            
+            if text_finder.roi_x < 0:
+            
+                under_zero = abs(text_finder.roi_x)
+                text_finder.roi_x = text_finder.roi_x + under_zero
+                text_finder.roi_width = text_finder.roi_width - under_zero
+                
+            
+            if text_finder.roi_x + text_finder.roi_width > self._bg_pixmap.width():
+            
+                diff = (text_finder.roi_x + text_finder.roi_width) - self._bg_pixmap.width()
+                
+                text_finder.roi_width = text_finder.roi_width - diff - 1
+
+
+            
             self._main_text = text_finder
             
         else: 
-            
+               
+            """
+            text_finder.roi_x =  (text_finder.x - self._main_text.x) - int(1*self.scaling_factor)
+            text_finder.roi_y =  (text_finder.y - self._main_text.y) - int(1*self.scaling_factor)
+            text_finder.roi_height = text_finder.height + int(6*self.scaling_factor)
+            text_finder.roi_width = text_finder.width + int(6*self.scaling_factor)
+            """
+
+            """
             text_finder.roi_x =  (text_finder.x - self._main_text.x) - roi_width_half
             text_finder.roi_y =  (text_finder.y - self._main_text.y) - roi_height_half
             text_finder.roi_height = roi_height
             text_finder.roi_width = roi_width
+            """
+            
+            hw_factor = 0
+            
+            if text_finder.height < text_finder.width:
+                hw_factor = text_finder.height
+            else:
+                hw_factor = text_finder.width
+                
+            roi_height = int(0.30*hw_factor*self.scaling_factor) + text_finder.height #int(10*self.scaling_factor) + text_finder.height
+
+            roi_width = int(0.30*hw_factor*self.scaling_factor) + text_finder.width #int(10*self.scaling_factor) + text_finder.width
+
+            roi_width_half = int((roi_width - text_finder.width)/2)
+            roi_height_half = int((roi_height - text_finder.height)/2)
+
+            text_finder.roi_x =  (text_finder.x - self._main_text.x) - roi_width_half
+            text_finder.roi_y =  (text_finder.y - self._main_text.y) - roi_height_half
+            text_finder.roi_height = roi_height
+            text_finder.roi_width = roi_width
+            
+            if self._main_text.y + text_finder.roi_y < 0:
+                    
+                under_zero = abs(self._main_text.y + text_finder.roi_y)
+                text_finder.roi_y = text_finder.roi_y + under_zero
+                text_finder.roi_height = text_finder.roi_height - under_zero
+                
+            
+            if self._main_text.y + text_finder.roi_y + text_finder.roi_height > self._bg_pixmap.height():
+            
+                diff = (self._main_text.y + text_finder.roi_y + text_finder.roi_height) - self._bg_pixmap.height()
+                
+                text_finder.roi_height = text_finder.roi_height - diff - 1
+                
+            if self._main_text.x + text_finder.roi_x < 0:
+            
+                under_zero = abs(self._main_text.x + text_finder.roi_x)
+                text_finder.roi_x = text_finder.roi_x + under_zero
+                text_finder.roi_width = text_finder.roi_width - under_zero
+                
+            
+            if self._main_text.x + text_finder.roi_x + text_finder.roi_width > self._bg_pixmap.width():
+            
+                diff = (self._main_text.x + text_finder.roi_x + text_finder.roi_width) - self._bg_pixmap.width()
+                
+                text_finder.roi_width = text_finder.roi_width - diff - 1
+                                
             self._sub_texts_finder.append(text_finder)
             
         
@@ -6128,6 +6406,22 @@ class AlyvixTextFinderView(QWidget):
                 else:
                     self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_text.text_encrypted) + ", delay=" + str(self._main_text.sendkeys_delay) + ", duration=" + str(self._main_text.sendkeys_duration) + ")")
                 
+            if self._main_text.enable_scrolls is True:
+                self._code_lines.append("    time.sleep(sleep_factor)")
+                
+                direction = "m.wheel_up"
+                
+                if self._main_text.scrolls_direction == 0:
+                    direction = "m.wheel_up"
+                elif self._main_text.scrolls_direction == 1:
+                    direction = "m.wheel_down"
+                elif self._main_text.scrolls_direction == 2:
+                    direction = "m.wheel_left"
+                elif self._main_text.scrolls_direction == 3:
+                    direction = "m.wheel_right"
+                
+                self._code_lines.append("    m.scroll(" + str(self._main_text.scrolls_value) + ", " + direction + ")")
+            
             cnt = 0
             for sub_text in self._sub_texts_finder:
             
@@ -6217,6 +6511,22 @@ class AlyvixTextFinderView(QWidget):
                             self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_text.text_encrypted) + ", delay=" + str(sub_text.sendkeys_delay) + ", duration=" + str(sub_text.sendkeys_duration) + ")")
                                   
                                         
+                    if sub_text.enable_scrolls is True:
+                        self._code_lines.append("    time.sleep(sleep_factor)")
+                        
+                        direction = "m.wheel_up"
+                        
+                        if sub_text.scrolls_direction == 0:
+                            direction = "m.wheel_up"
+                        elif sub_text.scrolls_direction == 1:
+                            direction = "m.wheel_down"
+                        elif sub_text.scrolls_direction == 2:
+                            direction = "m.wheel_left"
+                        elif sub_text.scrolls_direction == 3:
+                            direction = "m.wheel_right"
+                        
+                        self._code_lines.append("    m.scroll(" + str(sub_text.scrolls_value) + ", " + direction + ")")     
+                    
                     cnt = cnt + 1
                 
         #if kmanager_declared is False and mmanager_declared is False:
@@ -6552,6 +6862,15 @@ class AlyvixTextFinderView(QWidget):
         
         release_pixel_node = ET.SubElement(main_text_node, "release_pixel")
         release_pixel_node.text = str(self._main_text.release_pixel)
+        
+        scrolls_enabled_node = ET.SubElement(main_text_node, "enable_scrolls")
+        scrolls_enabled_node.text = str(self._main_text.enable_scrolls)
+        
+        scrolls_value_node = ET.SubElement(main_text_node, "scrolls_value")
+        scrolls_value_node.text = str(self._main_text.scrolls_value)
+        
+        scrolls_direction_node = ET.SubElement(main_text_node, "scrolls_direction")
+        scrolls_direction_node.text = str(self._main_text.scrolls_direction)
 
         sendkeys_node = ET.SubElement(main_text_node, "sendkeys")
         
@@ -6678,6 +6997,15 @@ class AlyvixTextFinderView(QWidget):
                 release_pixel_node = ET.SubElement(sub_text_node, "release_pixel")
                 release_pixel_node.text = str(sub_text.release_pixel)
                 
+                scrolls_enabled_node = ET.SubElement(sub_text_node, "enable_scrolls")
+                scrolls_enabled_node.text = str(sub_text.enable_scrolls)
+
+                scrolls_value_node = ET.SubElement(sub_text_node, "scrolls_value")
+                scrolls_value_node.text = str(sub_text.scrolls_value)
+
+                scrolls_direction_node = ET.SubElement(sub_text_node, "scrolls_direction")
+                scrolls_direction_node.text = str(sub_text.scrolls_direction)
+                
                 sendkeys_node = ET.SubElement(sub_text_node, "sendkeys")
                 sendkeys_node.set("encrypted", str(sub_text.text_encrypted))
                 sendkeys_node.set("delay", str(sub_text.sendkeys_delay))
@@ -6767,9 +7095,10 @@ class AlyvixTextFinderView(QWidget):
 
     def build_objects(self):
         
-        #print self._path + "\\text_finder.xml"
         
         try:
+            #print self._path + "\\text_finder.xml"
+            print "tx path", self._path + os.sep + self._xml_name
             filehandler = open(self._path + os.sep + self._xml_name,"r")
         except:
             return
@@ -6992,6 +7321,24 @@ class AlyvixTextFinderView(QWidget):
             
         try:    
             self._main_text.release_pixel = int(main_text_node.getElementsByTagName("release_pixel")[0].firstChild.nodeValue)
+        except:
+            pass
+            
+        try:    
+            if "True" in main_text_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
+                self._main_text.enable_scrolls = True
+            else:
+                self._main_text.enable_scrolls = False
+        except:
+            pass
+            
+        try:    
+            self._main_text.scrolls_value = int(main_text_node.getElementsByTagName("scrolls_value")[0].firstChild.nodeValue)
+        except:
+            pass
+        
+        try:    
+            self._main_text.scrolls_direction = int(main_text_node.getElementsByTagName("scrolls_direction")[0].firstChild.nodeValue)
         except:
             pass
             
@@ -7225,6 +7572,24 @@ class AlyvixTextFinderView(QWidget):
             except:
                 pass
                 
+            try:    
+                if "True" in sub_text_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
+                    sub_text_obj.enable_scrolls = True
+                else:
+                    sub_text_obj.enable_scrolls = False
+            except:
+                pass
+                
+            try:    
+                sub_text_obj.scrolls_value = int(sub_text_node.getElementsByTagName("scrolls_value")[0].firstChild.nodeValue)
+            except:
+                pass
+            
+            try:    
+                sub_text_obj.scrolls_direction = int(sub_text_node.getElementsByTagName("scrolls_direction")[0].firstChild.nodeValue)
+            except:
+                pass
+                
                 
             if sub_text_node.getElementsByTagName("sendkeys")[0].attributes["encrypted"].value == "True":
                 sub_text_obj.text_encrypted = True
@@ -7384,6 +7749,9 @@ class MainTextForGui:
         self.x_offset = None
         self.y_offset = None
         self.hold_and_release = None
+        self.scrolls_value = 0
+        self.scrolls_direction = 1
+        self.enable_scrolls = False
         self.release_pixel = 1
         self.number_of_clicks = 1
         self.click_delay = 10
@@ -7440,6 +7808,9 @@ class SubTextForGui:
         self.x_offset = None
         self.y_offset = None
         self.hold_and_release = None
+        self.scrolls_value = 0
+        self.scrolls_direction = 1
+        self.enable_scrolls = False
         self.release_pixel = 1
         self.number_of_clicks = 1
         self.click_delay = 10
@@ -7866,6 +8237,22 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             
             self.enable_scraper.setEnabled(False)
             
+            
+        if self.parent._main_text.enable_scrolls is True:
+            self.scrollsLabel.setEnabled(True)
+            self.labelDirectionScroll.setEnabled(True)
+            self.comboBoxScrolls.setEnabled(True)
+            self.spinBoxScrolls.setEnabled(True)
+        else:
+            self.scrollsLabel.setEnabled(False)
+            self.labelDirectionScroll.setEnabled(False)
+            self.comboBoxScrolls.setEnabled(False)
+            self.spinBoxScrolls.setEnabled(False)
+            
+        self.comboBoxScrolls.setCurrentIndex(self.parent._main_text.scrolls_direction)
+            
+        self.spinBoxScrolls.setValue(self.parent._main_text.scrolls_value)
+            
         """
         if self.parent._main_text.red_channel is True:
             self.checkBoxRedChannel.setChecked(True)
@@ -7917,6 +8304,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.holdreleaseRadio, SIGNAL('toggled(bool)'), self.holdreleaseRadio_event)
         self.connect(self.holdreleaseComboBox, SIGNAL("currentIndexChanged(int)"), self.holdreleaseComboBox_event)
         self.connect(self.holdreleaseSpinBox, SIGNAL('valueChanged(int)'), self.holdreleaseSpinBox_event)
+        
+        self.connect(self.spinBoxScrolls, SIGNAL('valueChanged(int)'), self.spinbox_scrolls_event)          
+        self.connect(self.comboBoxScrolls, SIGNAL("currentIndexChanged(int)"), self.combobox_scrolls_event)
         
         self.connect(self.pushButtonXYoffset, SIGNAL('clicked()'), self.pushButtonXYoffset_event)
         
@@ -7996,6 +8386,9 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
 
         self.connect(self.holdreleaseSpinBox_2, SIGNAL('valueChanged(int)'), self.holdreleaseSpinBox_event_2)
         
+        self.connect(self.spinBoxScrolls_2, SIGNAL('valueChanged(int)'), self.spinbox_scrolls_event_2)          
+        self.connect(self.comboBoxScrolls_2, SIGNAL("currentIndexChanged(int)"), self.combobox_scrolls_event_2)
+        
         self.connect(self.pushButtonXYoffset_2, SIGNAL('clicked()'), self.pushButtonXYoffset_event_2)
         
         self.connect(self.clicknumber_spinbox_2, SIGNAL('valueChanged(int)'), self.clicknumber_spinbox_change_event_2)    
@@ -8069,7 +8462,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         for arg_num in args_range:
             arg_list.append("arg" + str(arg_num))
         
-        if self.parent._main_text.sendkeys_quotes is False:
+        if self.parent._main_text.sendkeys_quotes is False and self.parent.scraper is False:
             try:
             
                 node = ast.parse(self.parent._main_text.sendkeys)
@@ -8096,7 +8489,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 QMessageBox.critical(self, "Error", "Invalid Keystroke syntax on main conponent")
                 return True
                 
-        if self.parent._main_text.quotes_ocr is False:
+        if self.parent._main_text.quotes_ocr is False and self.parent.scraper is False:
             try:
             
                 node = ast.parse(self.parent._main_text.text)
@@ -8129,7 +8522,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 
         cnt = 1
         for sub_text in self.parent._sub_texts_finder:
-            if sub_text.sendkeys_quotes is False:
+            if sub_text.sendkeys_quotes is False and self.parent.scraper is False:
                 try:
                     node = ast.parse(sub_text.sendkeys)
                     
@@ -8154,7 +8547,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                     QMessageBox.critical(self, "Error", "Invalid Keystroke syntax on sub component " + str(cnt))
                     return True
                     
-            if sub_text.quotes_ocr is False:
+            if sub_text.quotes_ocr is False and self.parent.scraper is False:
                 try:
                     node = ast.parse(sub_text.text)
                     
@@ -8734,6 +9127,22 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.checkBoxBlueChannel_2.setChecked(False)
         """
+        
+        if self.parent._sub_texts_finder[self.sub_text_index].enable_scrolls is True:
+            self.scrollsLabel_2.setEnabled(True)
+            self.labelDirectionScroll_2.setEnabled(True)
+            self.comboBoxScrolls_2.setEnabled(True)
+            self.spinBoxScrolls_2.setEnabled(True)
+        else:
+            self.scrollsLabel_2.setEnabled(False)
+            self.labelDirectionScroll_2.setEnabled(False)
+            self.comboBoxScrolls_2.setEnabled(False)
+            self.spinBoxScrolls_2.setEnabled(False)
+            
+        
+        self.comboBoxScrolls_2.setCurrentIndex(self.parent._sub_texts_finder[self.sub_text_index].scrolls_direction)
+            
+        self.spinBoxScrolls_2.setValue(self.parent._sub_texts_finder[self.sub_text_index].scrolls_value)
             
             
     def clickRadio_event(self, event):
@@ -8744,6 +9153,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.pushButtonXYoffset.setEnabled(True) 
             self.labelClickNumber.setEnabled(True)
             self.clicknumber_spinbox.setEnabled(True)
+            
+            self.parent._main_text.enable_scrolls = True
+            self.scrollsLabel.setEnabled(True)
+            self.labelDirectionScroll.setEnabled(True)
+            self.comboBoxScrolls.setEnabled(True)
+            self.spinBoxScrolls.setEnabled(True)
             
             if self.clicknumber_spinbox.value() > 1:
                 self.labelClickDelay.setEnabled(True)
@@ -8774,6 +9189,13 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.parent._main_text.rightclick = True 
             self.pushButtonXYoffset.setEnabled(True) 
+            
+            self.parent._main_text.enable_scrolls = True
+            self.scrollsLabel.setEnabled(True)
+            self.labelDirectionScroll.setEnabled(True)
+            self.comboBoxScrolls.setEnabled(True)
+            self.spinBoxScrolls.setEnabled(True)
+            
             self.labelClickNumber.setEnabled(False)
             self.clicknumber_spinbox.setEnabled(False)
             self.labelClickDelay.setEnabled(False)
@@ -8790,6 +9212,13 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.parent._main_text.mousemove = True 
             self.pushButtonXYoffset.setEnabled(True) 
+            
+            self.parent._main_text.enable_scrolls = True
+            self.scrollsLabel.setEnabled(True)
+            self.labelDirectionScroll.setEnabled(True)
+            self.comboBoxScrolls.setEnabled(True)
+            self.spinBoxScrolls.setEnabled(True)
+            
             self.labelClickNumber.setEnabled(False)
             self.clicknumber_spinbox.setEnabled(False)
             self.labelClickDelay.setEnabled(False)
@@ -8815,6 +9244,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
             self.labelPixels.setEnabled(False)
+            
+            self.parent._main_text.enable_scrolls = False
+            self.scrollsLabel.setEnabled(False)
+            self.labelDirectionScroll.setEnabled(False)
+            self.comboBoxScrolls.setEnabled(False)
+            self.spinBoxScrolls.setEnabled(False)
             
         self.parent.update()
             
@@ -8853,6 +9288,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 self.labelPixels.setEnabled(True)
                 
             self.parent._main_text.hold_and_release = combo_index
+            
+            self.parent._main_text.enable_scrolls = False
+            self.scrollsLabel.setEnabled(False)
+            self.labelDirectionScroll.setEnabled(False)
+            self.comboBoxScrolls.setEnabled(False)
+            self.spinBoxScrolls.setEnabled(False)
                 
     def holdreleaseComboBox_event(self, event):
         if event == 0 or event == 1:
@@ -8866,6 +9307,14 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         
     def holdreleaseSpinBox_event(self, event):
         self.parent._main_text.release_pixel = self.holdreleaseSpinBox.value()
+        
+    def combobox_scrolls_event(self, event):
+
+        self.parent._main_text.scrolls_direction = event
+        
+    def spinbox_scrolls_event(self, event):
+        self.parent._main_text.scrolls_value = self.spinBoxScrolls.value()
+        
         
     def clickdelay_spinbox_change_event (self, event):
         self.parent._main_text.click_delay = self.clickdelay_spinbox.value()
@@ -9671,6 +10120,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseSpinBox_2.setEnabled(False)
             self.labelPixels_2.setEnabled(False)
             
+            self.parent._sub_texts_finder[self.sub_text_index].enable_scrolls = True
+            self.scrollsLabel_2.setEnabled(True)
+            self.labelDirectionScroll_2.setEnabled(True)
+            self.comboBoxScrolls_2.setEnabled(True)
+            self.spinBoxScrolls_2.setEnabled(True)
+            
         self.parent.update()
         
     def doubleclickRadio_event_2(self, event):
@@ -9697,6 +10152,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseSpinBox_2.setEnabled(False)
             self.labelPixels_2.setEnabled(False)
             
+            self.parent._sub_texts_finder[self.sub_text_index].enable_scrolls = True
+            self.scrollsLabel_2.setEnabled(True)
+            self.labelDirectionScroll_2.setEnabled(True)
+            self.comboBoxScrolls_2.setEnabled(True)
+            self.spinBoxScrolls_2.setEnabled(True)
+            
         self.parent.update()
             
     def rightclickRadio_event_2(self, event):
@@ -9712,6 +10173,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
             self.labelPixels_2.setEnabled(False)
+            
+            self.parent._sub_texts_finder[self.sub_text_index].enable_scrolls = True
+            self.scrollsLabel_2.setEnabled(True)
+            self.labelDirectionScroll_2.setEnabled(True)
+            self.comboBoxScrolls_2.setEnabled(True)
+            self.spinBoxScrolls_2.setEnabled(True)
             
         self.parent.update()
              
@@ -9729,6 +10196,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
             self.labelPixels_2.setEnabled(False)
+            
+            self.parent._sub_texts_finder[self.sub_text_index].enable_scrolls = False
+            self.scrollsLabel_2.setEnabled(False)
+            self.labelDirectionScroll_2.setEnabled(False)
+            self.comboBoxScrolls_2.setEnabled(False)
+            self.spinBoxScrolls_2.setEnabled(False)
             
         self.parent.update()
             
@@ -9756,6 +10229,12 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
             self.labelClickDelay_2.setEnabled(False)
             self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(True)
+            
+            self.parent._sub_texts_finder[self.sub_text_index].enable_scrolls = False
+            self.scrollsLabel_2.setEnabled(False)
+            self.labelDirectionScroll_2.setEnabled(False)
+            self.comboBoxScrolls_2.setEnabled(False)
+            self.spinBoxScrolls_2.setEnabled(False)
             
             combo_index = self.holdreleaseComboBox_2.currentIndex()
             
@@ -9785,6 +10264,13 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
     def clickdelay_spinbox_change_event_2 (self, event):
         self.parent._sub_texts_finder[self.sub_text_index].click_delay = self.clickdelay_spinbox_2.value()
         self.parent.build_code_array()
+        
+    def combobox_scrolls_event_2(self, event):
+
+        self.parent._sub_texts_finder[self.sub_text_index].scrolls_direction = event
+        
+    def spinbox_scrolls_event_2(self, event):
+        self.parent._sub_texts_finder[self.sub_text_index].scrolls_value = self.spinBoxScrolls_2.value()
         
     def clicknumber_spinbox_change_event_2 (self, event):
         self.parent._sub_texts_finder[self.sub_text_index].number_of_clicks = self.clicknumber_spinbox_2.value()

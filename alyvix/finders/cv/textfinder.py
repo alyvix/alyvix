@@ -333,6 +333,7 @@ class TextFinder(BaseFinder):
             self.api.Init(get_python_lib() + os.sep + "alyvix" + os.sep + "extra" + os.sep +
                           "Tesseract-OCR" + os.sep, main_text.lang, tesseract.OEM_DEFAULT)
             self.api.SetPageSegMode(tesseract.PSM_AUTO)
+            #.setPageSegMode(TessBaseAPI.pageSegMode.PSM_SINGLE_CHAR);
             self.api.SetVariable("tessedit_char_whitelist", main_text.whitelist)
 
             phrase = ""

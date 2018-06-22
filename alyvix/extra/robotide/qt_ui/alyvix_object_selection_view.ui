@@ -166,14 +166,14 @@
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="9" column="0" colspan="2">
+     <item row="10" column="0" colspan="2">
       <widget class="QPushButton" name="pushButtonCancel">
        <property name="text">
         <string>Cancel</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="0" colspan="2">
+     <item row="4" column="0" colspan="2">
       <widget class="QPushButton" name="pushButtonTF">
        <property name="enabled">
         <bool>true</bool>
@@ -183,21 +183,28 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="0" colspan="2">
+     <item row="9" column="0" colspan="2">
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0" colspan="2">
       <widget class="QPushButton" name="pushButtonEdit">
        <property name="text">
         <string>Edit</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="0" colspan="2">
+     <item row="8" column="0" colspan="2">
       <widget class="QPushButton" name="pushButtonRemove">
        <property name="text">
         <string>Remove</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="0" colspan="2">
+     <item row="5" column="0" colspan="2">
       <widget class="QPushButton" name="pushButtonOF">
        <property name="enabled">
         <bool>true</bool>
@@ -207,15 +214,8 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0" colspan="2">
-      <widget class="QPushButton" name="pushButtonIF">
-       <property name="text">
-        <string>Image Finder</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0" colspan="2">
-      <widget class="Line" name="line">
+     <item row="6" column="0" colspan="2">
+      <widget class="Line" name="line_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -231,6 +231,13 @@
        </property>
       </widget>
      </item>
+     <item row="2" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonRF">
+       <property name="text">
+        <string>Rect Finder</string>
+       </property>
+      </widget>
+     </item>
      <item row="0" column="1">
       <widget class="QSpinBox" name="spinBoxDelay">
        <property name="maximum">
@@ -239,16 +246,9 @@
       </widget>
      </item>
      <item row="1" column="0" colspan="2">
-      <widget class="QPushButton" name="pushButtonRF">
+      <widget class="QPushButton" name="pushButtonIF">
        <property name="text">
-        <string>Rect Finder</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0" colspan="2">
-      <widget class="Line" name="line_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+        <string>Image Finder</string>
        </property>
       </widget>
      </item>

@@ -50,14 +50,19 @@ from stat import S_ISREG, ST_CTIME, ST_MODE, ST_MTIME
 import shutil
 from distutils.sysconfig import get_python_lib
 
+main_menu_last_pos = None
+
 
 class AlyvixMainMenuController(QDialog, Ui_Form):
 
     def __init__(self):
         QDialog.__init__(self)
         
+        global main_menu_last_pos
+        
         self._deleted_obj_name = None
         self._deleted_file_name = None
+        
 
 
         info_manager = InfoManager()
@@ -103,6 +108,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                                        int(37*self.scaling_factor), int(20*self.scaling_factor)))
          
         """         
+        
+        if main_menu_last_pos is not None:
+            self.move(main_menu_last_pos[0],main_menu_last_pos[1])
 
 
         #self.setWindowTitle('Application Object Properties')
@@ -160,8 +168,18 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         header = self.tableWidget.horizontalHeader();
         header.setDefaultAlignment(Qt.AlignLeft)
         
+    
+    def showEvent(self, event):
+        global main_menu_last_pos
+        if main_menu_last_pos is not None:
+            self.move(main_menu_last_pos[0],main_menu_last_pos[1])
         
         
+    def moveEvent(self, event):
+        global main_menu_last_pos
+        main_menu_last_pos = (self.frameGeometry().x(), self.frameGeometry().y())
+        print main_menu_last_pos
+    
     def resizeEvent(self, event):
     
         self.resize_all()
@@ -309,6 +327,178 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print "path", self.path
     
     def remove_item(self):
+        self.action = "remove"
+        
+        row_number_to_remove = []
+        
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        
+        if len(indexes) > 0:
+                
+            answer = QMessageBox.No
+
+            answer = QMessageBox.warning(self, "Warning", "Are you sure you want to delete selected item(s)?", QMessageBox.Yes, QMessageBox.No)
+              
+            if answer == QMessageBox.No:
+                return
+        
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            row_number = index.row()
+            row_number_to_remove.append(row_number)
+                
+            #print "type", self.tableWidget.item(last_index, 0).data(Qt.EditRole).toString()
+            #print "name", self.tableWidget.item(last_index, 2).data(Qt.EditRole).toString()
+            #print "filename", self.tableWidget.item(last_index, 0).data(Qt.UserRole).toString()
+            
+            self.xml_name = str(self.tableWidget.item(row_number, 1).data(Qt.UserRole).toString())
+            #self.xml_name = selected_text + ".xml"
+            if self.xml_name.endswith("_RectFinder.xml"):
+                self.alyvix_finder_controller = AlyvixRectFinderView(self)
+            elif self.xml_name.endswith("_ImageFinder.xml"):
+                self.alyvix_finder_controller = AlyvixImageFinderView(self)
+            elif self.xml_name.endswith("_TextFinder.xml"):
+                self.alyvix_finder_controller = AlyvixTextFinderView(self)
+            elif self.xml_name.endswith("_ObjectFinder.xml"):
+                self.alyvix_finder_controller = AlyvixObjectFinderView(self)
+            elif self.xml_name.endswith("_CustomCode.xml"):
+                self.alyvix_finder_controller = AlyvixCustomCodeView(self)
+            
+            self.alyvix_finder_controller.remove_code_from_py_file()
+            
+            
+            if self.xml_name.endswith("_ObjectFinder.xml"):
+                ori_xml_name = self.xml_name
+                main_obj = self.alyvix_finder_controller._main_object_finder
+                
+                self.xml_name = main_obj.xml_path.split(os.sep)[-1]
+                
+                if main_obj.xml_path.endswith("_RectFinder.xml"):
+                    controller = AlyvixRectFinderView(self)
+                elif main_obj.xml_path.endswith("_ImageFinder.xml"):
+                    controller = AlyvixImageFinderView(self)
+                elif main_obj.xml_path.endswith("_TextFinder.xml"):
+                    controller = AlyvixTextFinderView(self)
+                    
+                controller.remove_code_from_py_file()
+                
+                os.remove(self.path + os.sep + str(self.xml_name).replace("xml","png"))
+                os.remove(self.path + os.sep + str(self.xml_name))
+                
+                #print "item removed", self.path + os.sep + str(self.xml_name)
+
+                template_path = self.path + os.sep + str(self.xml_name).replace("_ImageFinder.xml","")
+                
+                print "template path", template_path
+                
+                if os.path.exists(template_path):
+                    shutil.rmtree(template_path)
+                
+                extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
+                scraper_path = extra_path + os.sep + str(self.xml_name).replace("_TextFinder.xml","")
+                
+                print "scraper path", scraper_path
+                
+                if os.path.exists(scraper_path):
+                    shutil.rmtree(scraper_path)
+                
+                sub_objects = self.alyvix_finder_controller._sub_objects_finder
+                
+                for sub_obj in sub_objects:
+                
+                    self.xml_name = self.xml_name = sub_obj.xml_path.split(os.sep)[-1]
+
+                    if sub_obj.xml_path.endswith("_RectFinder.xml"):
+                        controller = AlyvixRectFinderView(self)
+                    elif sub_obj.xml_path.endswith("_ImageFinder.xml"):
+                        controller = AlyvixImageFinderView(self)
+                    elif sub_obj.xml_path.endswith("_TextFinder.xml"):
+                        controller = AlyvixTextFinderView(self)
+                        
+                    controller.remove_code_from_py_file()
+                    
+                    os.remove(self.path + os.sep + str(self.xml_name).replace("xml","png"))
+                    os.remove(self.path + os.sep + str(self.xml_name))
+                    
+                    template_path = self.path + os.sep + str(self.xml_name).replace("_ImageFinder.xml","")
+                
+                    print "template path", template_path
+                    
+                    if os.path.exists(template_path):
+                        shutil.rmtree(template_path)
+                    
+                    extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
+                    scraper_path = extra_path + os.sep + str(self.xml_name).replace("_TextFinder.xml","")
+                    
+                    print "scraper path", scraper_path
+                    
+                    if os.path.exists(scraper_path):
+                        shutil.rmtree(scraper_path)
+                        
+                self.xml_name = ori_xml_name
+                        
+                self._deleted_obj_name = self.alyvix_finder_controller.delete_lock_list()
+                
+                os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_old_code.txt"))
+                
+                if (os.path.exists(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))):
+                    os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))
+                    
+                        
+            else:
+                os.remove(self.path + os.sep + str(self.xml_name).replace("xml","png"))
+                
+            """
+            if not self.xml_name.endswith("_ObjectFinder.xml"):
+                os.remove(self.path + os.sep + str(self.xml_name).replace("xml","png"))
+            else:
+                self.alyvix_finder_controller.delete_lock_list()
+                os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_old_code.txt"))
+            """
+
+            os.remove(self.path + os.sep + str(self.xml_name))
+            
+            #print "item removed", self.path + os.sep + str(self.xml_name)
+
+            template_path = self.path + os.sep + str(self.xml_name).replace("_ImageFinder.xml","")
+            
+            ##tttttttttt
+            
+            if os.path.exists(template_path):
+                shutil.rmtree(template_path)
+            #self.update_list()
+            
+            extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
+            scraper_path = extra_path + os.sep + str(self.xml_name).replace("_TextFinder.xml","")
+            
+            if os.path.exists(scraper_path):
+                shutil.rmtree(scraper_path)
+            
+            #self.tableWidget.removeRow(row_number)
+            
+
+            #self.listWidgetAlyObj.setFocus();
+            #print index_main_obj
+            
+        #for row_number in row_number_to_remove:
+        #    self.tableWidget.removeRow(row_number)
+            
+        #index_main_obj = self.update_list()
+        
+        index_to_select = self.update_list()
+        
+        
+        
+        """        
+        if index_main_obj == -1:
+            index_main_obj = row_number
+        """
+        #self.tableWidget.selectRow(0)
+        
+        
+        
+        
+    def remove_item_backup(self):
         self.action = "remove"
         
         indexes = self.tableWidget.selectionModel().selectedRows()

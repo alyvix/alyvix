@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'alyvix_object_finder_properties_view.ui'
 #
-# Created: Mon May 14 15:22:31 2018
+# Created: Fri Jun 22 11:12:21 2018
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
