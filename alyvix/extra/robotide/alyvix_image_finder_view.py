@@ -177,7 +177,8 @@ class AlyvixImageFinderView(QWidget):
         
         #self.update_path_and_name(path)
         
-        self.build_objects()
+        if self.parent.build_objects is True:
+            self.build_objects()
         self.old_mouse_or_key_is_set = self.mouse_or_key_is_set
         self.__old_code = self.get_old_code()
         self.__old_code_v220 = self.get_old_code_v220()
@@ -265,7 +266,24 @@ class AlyvixImageFinderView(QWidget):
                             hw_factor = self.parent.parent._sub_objects_finder[sel_index-1].height
                         else:
                             hw_factor = self.parent.parent._sub_objects_finder[sel_index-1].width
+                            
+                        roi_height = int(0.95 * hw_factor) + self.parent.parent._sub_objects_finder[sel_index-1].height
 
+                        roi_width = int(0.95 * hw_factor) + self.parent.parent._sub_objects_finder[sel_index-1].width
+
+
+                        roi_width_half = int((roi_width - self.parent.parent._sub_objects_finder[sel_index-1].width)/2)
+
+                        roi_height_half = int((roi_height - self.parent.parent._sub_objects_finder[sel_index-1].height)/2)
+
+
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_x =  (self.parent.parent._sub_objects_finder[sel_index-1].x - self.parent.parent._main_object_finder.x) - roi_width_half
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_y =  (self.parent.parent._sub_objects_finder[sel_index-1].y - self.parent.parent._main_object_finder.y) - roi_height_half
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_height = self.parent.parent._sub_objects_finder[sel_index-1].height + (roi_height_half*2)
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_width = self.parent.parent._sub_objects_finder[sel_index-1].width + (roi_width_half*2)
+
+
+                        """
                         roi_height = int(0.30*hw_factor*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].height #int(10*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].height
 
                         roi_width = int(0.30*hw_factor*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].width #int(10*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].width
@@ -277,6 +295,8 @@ class AlyvixImageFinderView(QWidget):
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_y =  (self.parent.parent._sub_objects_finder[sel_index-1].y - self.parent.parent._main_object_finder.y) - roi_height_half
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_height = roi_height
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_width = roi_width
+                        """
+                        
                         
                         """
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_x = 0
@@ -795,7 +815,22 @@ class AlyvixImageFinderView(QWidget):
                         hw_factor = self._sub_templates_finder[index].width
                     
                     
+                    roi_height = int(0.95 * hw_factor) + self._sub_templates_finder[index].height
+
+                    roi_width = int(0.95 * hw_factor) + self._sub_templates_finder[index].width
+
+
+                    roi_width_half = int((roi_width - self._sub_templates_finder[index].width)/2)
+
+                    roi_height_half = int((roi_height - self._sub_templates_finder[index].height)/2)
+
+
+                    self._sub_templates_finder[index].roi_x =  (self._sub_templates_finder[index].x - self._main_template.x) - roi_width_half
+                    self._sub_templates_finder[index].roi_y =  (self._sub_templates_finder[index].y - self._main_template.y) - roi_height_half
+                    self._sub_templates_finder[index].roi_height = self._sub_templates_finder[index].height + (roi_height_half*2)
+                    self._sub_templates_finder[index].roi_width = self._sub_templates_finder[index].width + (roi_width_half*2)
                     
+                    """
                     roi_height = int(0.30*hw_factor*self.scaling_factor) + self._sub_templates_finder[index].height
 
                     roi_width = int(0.30*hw_factor*self.scaling_factor) + self._sub_templates_finder[index].width
@@ -807,7 +842,7 @@ class AlyvixImageFinderView(QWidget):
                     self._sub_templates_finder[index].roi_y =  (self._sub_templates_finder[index].y - self._main_template.y) - roi_height_half
                     self._sub_templates_finder[index].roi_height = roi_height
                     self._sub_templates_finder[index].roi_width = roi_width
-                    
+                    """
                     
                     if self._main_template.y + self._sub_templates_finder[index].roi_y < 0:
                     
@@ -973,7 +1008,7 @@ class AlyvixImageFinderView(QWidget):
                     if self.__flag_mouse_is_on_bottom_border_roi is True:
                         self._sub_templates_finder[index].roi_unlimited_down = True
                         
-                elif rect is not None:
+                elif rect is not None and self.__flag_capturing_sub_template is False:
                     self.add_rect_from_boundings_rects(rect)
         
      
@@ -2323,6 +2358,7 @@ class AlyvixImageFinderView(QWidget):
             font.setPixelSize(11 * self.scaling_factor);
             
             qp.setFont(font)
+            
             qp.drawText( QPoint(self._main_template.x -1,self._main_template.y -(4*self.scaling_factor)), "M" )
             
             qp.fillRect(self._main_template.x,
@@ -2407,11 +2443,12 @@ class AlyvixImageFinderView(QWidget):
                     image_finder.height)
                 """
                 
+                
                 font = qp.font()
-                font.setPixelSize(11 * self.scaling_factor);
+                font.setPixelSize(11 * self.scaling_factor)
 
                 qp.setFont(font)
-                qp.drawText( QPoint(image_finder.x -1, image_finder.y -(4*self.scaling_factor)), str(cnt) )
+                qp.drawText( QPoint(image_finder.x -1, image_finder.y -(6*self.scaling_factor)), str(cnt) )
 
 
 
@@ -2788,17 +2825,20 @@ class AlyvixImageFinderView(QWidget):
             
             
             
-            roi_height = int(0.30*hw_factor*self.scaling_factor) + image_finder.height
+            roi_height = int(0.95 * hw_factor) + image_finder.height
 
-            roi_width = int(0.30*hw_factor*self.scaling_factor) + image_finder.width
+            roi_width = int(0.95 * hw_factor) + image_finder.width
+            
 
             roi_width_half = int((roi_width - image_finder.width)/2)
+
             roi_height_half = int((roi_height - image_finder.height)/2)
+            
 
             image_finder.roi_x =  (image_finder.x - self._main_template.x) - roi_width_half
             image_finder.roi_y =  (image_finder.y - self._main_template.y) - roi_height_half
-            image_finder.roi_height = roi_height
-            image_finder.roi_width = roi_width
+            image_finder.roi_height = image_finder.height + (roi_height_half*2)
+            image_finder.roi_width = image_finder.width + (roi_width_half*2)
             
                                 
             if self._main_template.y + image_finder.roi_y < 0:

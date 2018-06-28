@@ -52,6 +52,8 @@ from distutils.sysconfig import get_python_lib
 
 main_menu_last_pos = None
 
+last_selected_index = -1
+
 
 class AlyvixMainMenuController(QDialog, Ui_Form):
 
@@ -59,6 +61,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         QDialog.__init__(self)
         
         global main_menu_last_pos
+        global last_selected_index
         
         self._deleted_obj_name = None
         self._deleted_file_name = None
@@ -114,7 +117,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
 
 
         #self.setWindowTitle('Application Object Properties')
-        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.Window)
         
         #self.connect(self.pushButtonNew, SIGNAL("clicked()"), self.add_item)
         self.connect(self.pushButtonEdit, SIGNAL("clicked()"), self.edit_item)
@@ -141,6 +144,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.robot_file_name = None
         self.action = ""
         self.xml_name = ""
+        self.build_objects = True
         
         if len(sys.argv) > 1:
             self.full_file_name = sys.argv[1]
@@ -171,8 +175,22 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     
     def showEvent(self, event):
         global main_menu_last_pos
+        global last_selected_index
+        
+        print last_selected_index
+        
         if main_menu_last_pos is not None:
             self.move(main_menu_last_pos[0],main_menu_last_pos[1])
+        
+        if self.tableWidget.rowCount() == 0:
+            self.tableWidget.selectRow(0)        
+        elif self.tableWidget.rowCount() > 0 and last_selected_index == -1:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(0)
+            last_selected_index = 0
+        elif last_selected_index != -1 and self.tableWidget.rowCount() > 0:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(last_selected_index)
         
         
     def moveEvent(self, event):
@@ -327,11 +345,16 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print "path", self.path
     
     def remove_item(self):
+        global last_selected_index
         self.action = "remove"
         
         row_number_to_remove = []
         
         indexes = self.tableWidget.selectionModel().selectedRows()
+        
+        sorted_indexes = sorted(indexes)
+        first_index_to_delete = sorted_indexes[0].row()
+        print first_index_to_delete
         
         if len(indexes) > 0:
                 
@@ -341,8 +364,9 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
               
             if answer == QMessageBox.No:
                 return
+                
         
-        for index in sorted(indexes):
+        for index in sorted_indexes:
             #print('Row %d is selected' % index.row())
             row_number = index.row()
             row_number_to_remove.append(row_number)
@@ -487,7 +511,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
         index_to_select = self.update_list()
         
-        
+        if first_index_to_delete - 1 >= 0 :
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(first_index_to_delete - 1)
+            last_selected_index = first_index_to_delete - 1
+                
         
         """        
         if index_main_obj == -1:
@@ -723,7 +751,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             
         print self.listWidgetAlyObj.count() 
         """
-            
+        self.tableWidget.resizeRowsToContents()
         return deleted_index
         
     def keyPressEvent(self, event):
@@ -755,8 +783,10 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
                     
     def edit_item(self):
-        self.action = "edit"
+        global last_selected_index
     
+        self.action = "edit"
+        
         if self.tableWidget.currentRow() < 0:
             return
             
@@ -770,6 +800,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             #print('Row %d is selected' % index.row())
             last_index = index.row()
             
+        last_selected_index = last_index
+    
         #print "type", self.tableWidget.item(last_index, 0).data(Qt.EditRole).toString()
         #print "name", self.tableWidget.item(last_index, 2).data(Qt.EditRole).toString()
         #print "filename", self.tableWidget.item(last_index, 0).data(Qt.UserRole).toString()

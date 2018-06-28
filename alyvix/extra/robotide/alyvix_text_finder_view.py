@@ -190,7 +190,8 @@ class AlyvixTextFinderView(QWidget):
         
         #self.update_path_and_name(path)
         
-        self.build_objects()
+        if self.parent.build_objects is True:
+            self.build_objects()
         self.old_mouse_or_key_is_set = self.mouse_or_key_is_set
         self.__old_code_v220 = self.get_old_code_v220()
         self.__old_code_v230 = self.get_old_code_v230()
@@ -504,13 +505,21 @@ class AlyvixTextFinderView(QWidget):
                     self.parent.parent._main_object_finder.roi_width != self._main_text.roi_width or \
                     self.parent.parent._main_object_finder.roi_height != self._main_text.roi_height or \
                     self.parent.parent._main_object_finder.roi_x != self._main_text.roi_x + self._main_object_finder.x or \
-                    self.parent.parent._main_object_finder.roi_y != self._main_text.roi_y + self._main_object_finder.y:
+                    self.parent.parent._main_object_finder.roi_y != self._main_text.roi_y + self._main_object_finder.y or \
+                    self.parent.parent._main_object_finder.roi_unlimited_up != self._main_text.roi_unlimited_up or \
+                    self.parent.parent._main_object_finder.roi_unlimited_down != self._main_text.roi_unlimited_down or \
+                    self.parent.parent._main_object_finder.roi_unlimited_left != self._main_text.roi_unlimited_left or \
+                    self.parent.parent._main_object_finder.roi_unlimited_right != self._main_text.roi_unlimited_right:
                         obj_main_redraw = True
                         old_main_pos = (self.parent.parent._main_object_finder.x, self.parent.parent._main_object_finder.y)
                         self.parent.parent._main_object_finder.x = self._main_text.x
                         self.parent.parent._main_object_finder.y = self._main_text.y
                         self.parent.parent._main_object_finder.height = self._main_text.height
                         self.parent.parent._main_object_finder.width = self._main_text.width
+                        self.parent.parent._main_object_finder.roi_unlimited_up = self._main_text.roi_unlimited_up
+                        self.parent.parent._main_object_finder.roi_unlimited_down = self._main_text.roi_unlimited_down 
+                        self.parent.parent._main_object_finder.roi_unlimited_left = self._main_text.roi_unlimited_left
+                        self.parent.parent._main_object_finder.roi_unlimited_right = self._main_text.roi_unlimited_right
                 else:
                 
                     #print self.parent.parent._sub_objects_finder[sel_index-1].x, self.parent.parent._sub_objects_finder[sel_index-1].y, self.parent.parent._sub_objects_finder[sel_index-1].height, self.parent.parent._sub_objects_finder[sel_index-1].width 
@@ -524,7 +533,11 @@ class AlyvixTextFinderView(QWidget):
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_width != self._main_text.roi_width or \
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_height != self._main_text.roi_height or \
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_x != self._main_text.roi_x + self._main_object_finder.x or \
-                        self.parent.parent._sub_objects_finder[sel_index-1].roi_y != self._main_text.roi_y + self._main_object_finder.y:
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_y != self._main_text.roi_y + self._main_object_finder.y or \
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_up != self._main_text.roi_unlimited_up or \
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_down != self._main_text.roi_unlimited_down or \
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_left != self._main_text.roi_unlimited_left or \
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_right != self._main_text.roi_unlimited_right:
                         
                         #print "different"
                         
@@ -540,6 +553,11 @@ class AlyvixTextFinderView(QWidget):
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_y = self._main_text.roi_y - self.parent.parent._main_object_finder.y
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_height = self._main_text.roi_height
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_width = self._main_text.roi_width
+                        
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_up = self._main_text.roi_unlimited_up
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_down = self._main_text.roi_unlimited_down 
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_left = self._main_text.roi_unlimited_left
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_right = self._main_text.roi_unlimited_right
                         
                         """
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_x =  (self.parent.parent._sub_objects_finder[sel_index-1].x - self.parent.parent._main_object_finder.x) - roi_width_half
@@ -886,7 +904,23 @@ class AlyvixTextFinderView(QWidget):
                         hw_factor = self._main_text.height
                     else:
                         hw_factor = self._main_text.width
+                        
+                    roi_height = int(0.95 * hw_factor) + self._main_text.height
+
+                    roi_width = int(0.95 * hw_factor) + self._main_text.width
+
+
+                    roi_width_half = int((roi_width - self._main_text.width)/2)
+
+                    roi_height_half = int((roi_height - self._main_text.height)/2)
+
+
+                    self._main_text.roi_x =  self._main_text.x - roi_width_half
+                    self._main_text.roi_y =  self._main_text.y - roi_height_half
+                    self._main_text.roi_height = roi_height
+                    self._main_text.roi_width = roi_width
                     
+                    """
                     roi_height = int(0.30*hw_factor*self.scaling_factor) + self._main_text.height #int(10*self.scaling_factor) + self._main_text.height
 
                     roi_width = int(0.30*hw_factor*self.scaling_factor) + self._main_text.width #int(10*self.scaling_factor) + self._main_text.width
@@ -899,7 +933,7 @@ class AlyvixTextFinderView(QWidget):
                     self._main_text.roi_y =  self._main_text.y - roi_height_half
                     self._main_text.roi_height = roi_height
                     self._main_text.roi_width = roi_width
-                    
+                    """
                     
                     if self._main_text.roi_y < 0:
                     
@@ -975,6 +1009,22 @@ class AlyvixTextFinderView(QWidget):
                     else:
                         hw_factor = self._sub_texts_finder[index].width
                     
+                    roi_height = int(0.95 * hw_factor) + self._sub_texts_finder[index].height
+
+                    roi_width = int(0.95 * hw_factor) + self._sub_texts_finder[index].width
+
+
+                    roi_width_half = int((roi_width - self._sub_texts_finder[index].width)/2)
+
+                    roi_height_half = int((roi_height - self._sub_texts_finder[index].height)/2)
+
+
+                    self._sub_texts_finder[index].roi_x =  (self._sub_texts_finder[index].x - self._main_text.x) - roi_width_half
+                    self._sub_texts_finder[index].roi_y =  (self._sub_texts_finder[index].y - self._main_text.y) - roi_height_half
+                    self._sub_texts_finder[index].roi_height = self._sub_texts_finder[index].height + (roi_height_half*2)
+                    self._sub_texts_finder[index].roi_width = self._sub_texts_finder[index].width + (roi_width_half*2)
+                    
+                    """
                     roi_height = int(0.30*hw_factor*self.scaling_factor) + self._sub_texts_finder[index].height #int(10*self.scaling_factor) + self._sub_texts_finder[index].height
 
                     roi_width = int(0.30*hw_factor*self.scaling_factor) + self._sub_texts_finder[index].width #int(10*self.scaling_factor) + self._sub_texts_finder[index].width
@@ -986,6 +1036,7 @@ class AlyvixTextFinderView(QWidget):
                     self._sub_texts_finder[index].roi_y =  (self._sub_texts_finder[index].y - self._main_text.y) - roi_height_half
                     self._sub_texts_finder[index].roi_height = roi_height
                     self._sub_texts_finder[index].roi_width = roi_width
+                    """
                     
                     #self._sub_texts_finder[index].roi_x =  (self._sub_texts_finder[index].x - self._main_text.x) - roi_width_half
                     #self._sub_texts_finder[index].roi_y =  (self._sub_texts_finder[index].y - self._main_text.y) - roi_height_half
@@ -1189,7 +1240,7 @@ class AlyvixTextFinderView(QWidget):
                     if self.__flag_mouse_is_on_bottom_border_roi is True:
                         self._sub_texts_finder[index].roi_unlimited_down = True
 
-                elif rect is not None:
+                elif rect is not None and self.__flag_capturing_sub_text is False and self.__flag_capturing_main_text_rect is False:
                     self.add_rect_from_boundings_rects(rect)
                     
             self.update()
@@ -3053,7 +3104,7 @@ class AlyvixTextFinderView(QWidget):
                 font.setPixelSize(11 * self.scaling_factor);
                 
                 qp.setFont(font)
-                qp.drawText( QPoint(self._main_text.x -1,self._main_text.y -(4*self.scaling_factor)), "M" )
+                qp.drawText( QPoint(self._main_text.x -1,self._main_text.y -(6*self.scaling_factor)), "M" )
             
                 InnerPath_roi = QPainterPath()
                 
@@ -3200,7 +3251,7 @@ class AlyvixTextFinderView(QWidget):
                 font.setPixelSize(11 * self.scaling_factor);
 
                 qp.setFont(font)
-                qp.drawText( QPoint(text_finder.x -1, text_finder.y -(4*self.scaling_factor)), str(cnt) )
+                qp.drawText( QPoint(text_finder.x -1, text_finder.y -(6*self.scaling_factor)), str(cnt) )
 
                 InnerPath_roi.addRect(text_finder.x,
                     text_finder.y,
@@ -3464,7 +3515,23 @@ class AlyvixTextFinderView(QWidget):
                 hw_factor = text_finder.height
             else:
                 hw_factor = text_finder.width
+                
+            roi_height = int(0.95 * hw_factor) + text_finder.height
+
+            roi_width = int(0.95 * hw_factor) + text_finder.width
+
+
+            roi_width_half = int((roi_width - text_finder.width)/2)
+
+            roi_height_half = int((roi_height - text_finder.height)/2)
+
+
+            text_finder.roi_x =  text_finder.x - roi_width_half
+            text_finder.roi_y =  text_finder.y - roi_height_half
+            text_finder.roi_height = roi_height
+            text_finder.roi_width = roi_width
             
+            """
             roi_height = int(0.30*hw_factor*self.scaling_factor) + text_finder.height #int(10*self.scaling_factor) + text_finder.height
 
             roi_width = int(0.30*hw_factor*self.scaling_factor) + text_finder.width #int(10*self.scaling_factor) + text_finder.width
@@ -3477,6 +3544,7 @@ class AlyvixTextFinderView(QWidget):
             text_finder.roi_y =  text_finder.y - roi_height_half
             text_finder.roi_height = roi_height
             text_finder.roi_width = roi_width
+            """
             
             
             if text_finder.roi_y < 0:
@@ -3533,6 +3601,23 @@ class AlyvixTextFinderView(QWidget):
             else:
                 hw_factor = text_finder.width
                 
+
+            roi_height = int(0.95 * hw_factor) + text_finder.height
+
+            roi_width = int(0.95 * hw_factor) + text_finder.width
+
+
+            roi_width_half = int((roi_width - text_finder.width)/2)
+
+            roi_height_half = int((roi_height - text_finder.height)/2)
+
+
+            text_finder.roi_x =  (text_finder.x - self._main_text.x) - roi_width_half
+            text_finder.roi_y =  (text_finder.y - self._main_text.y) - roi_height_half
+            text_finder.roi_height = text_finder.height + (roi_height_half*2)
+            text_finder.roi_width = text_finder.width + (roi_width_half*2)
+
+            """
             roi_height = int(0.30*hw_factor*self.scaling_factor) + text_finder.height #int(10*self.scaling_factor) + text_finder.height
 
             roi_width = int(0.30*hw_factor*self.scaling_factor) + text_finder.width #int(10*self.scaling_factor) + text_finder.width
@@ -3544,6 +3629,7 @@ class AlyvixTextFinderView(QWidget):
             text_finder.roi_y =  (text_finder.y - self._main_text.y) - roi_height_half
             text_finder.roi_height = roi_height
             text_finder.roi_width = roi_width
+            """
             
             if self._main_text.y + text_finder.roi_y < 0:
                     
@@ -4032,6 +4118,7 @@ class AlyvixTextFinderView(QWidget):
             return "".encode('utf-8')
         
         self.build_code_array()
+            
         return self.build_code_string()
     
     def build_code_string(self):

@@ -150,7 +150,7 @@ class AlyvixRidePlugin(Plugin):
         win32gui.EnumWindows(self.__window_enumeration_handler, windows_found)
         self._win_found = None
         for hwnd_found, title_found in windows_found:
-            if re.match(".*" + window_title + ".*", title_found, re.DOTALL | re.IGNORECASE) is not None and \
+            if re.match(window_title, title_found, re.DOTALL) is not None and \
                     (win32gui.IsWindowVisible(hwnd_found) != 0 or win32gui.GetWindowTextLength(hwnd_found) > 0):
                 hwnd_list.append(hwnd_found)
 
@@ -175,13 +175,12 @@ class AlyvixRidePlugin(Plugin):
 
         hwnd_found_list = self._get_hwnd(window_title)
         for hwnd_found in hwnd_found_list:
-            if win32gui.IsIconic(hwnd_found) != 0: #restore first
-                win32gui.ShowWindow(hwnd_found, win32con.SW_RESTORE)
-
 
             win32gui.SetWindowPos(hwnd_found,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
             win32gui.SetWindowPos(hwnd_found,win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
             win32gui.SetWindowPos(hwnd_found,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_SHOWWINDOW + win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
 
-
+            if win32gui.IsIconic(hwnd_found) != 0: #restore first
+                win32gui.ShowWindow(hwnd_found, win32con.SW_RESTORE)
+                
             win32gui.SetForegroundWindow(hwnd_found)

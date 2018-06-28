@@ -184,7 +184,8 @@ class AlyvixRectFinderView(QWidget):
         
         #self.update_path_and_name(path)
         
-        self.build_objects()
+        if self.parent.build_objects is True:
+            self.build_objects()
         self.old_mouse_or_key_is_set = self.mouse_or_key_is_set
         self.__old_code_v220 = self.get_old_code_v220()
         self.__old_code_v230 = self.get_old_code_v230()
@@ -506,7 +507,25 @@ class AlyvixRectFinderView(QWidget):
                             hw_factor = self.parent.parent._sub_objects_finder[sel_index-1].height
                         else:
                             hw_factor = self.parent.parent._sub_objects_finder[sel_index-1].width
+                            
+                            
+                        roi_height = int(0.95 * hw_factor) + self.parent.parent._sub_objects_finder[sel_index-1].height
 
+                        roi_width = int(0.95 * hw_factor) + self.parent.parent._sub_objects_finder[sel_index-1].width
+
+
+                        roi_width_half = int((roi_width - self.parent.parent._sub_objects_finder[sel_index-1].width)/2)
+
+                        roi_height_half = int((roi_height - self.parent.parent._sub_objects_finder[sel_index-1].height)/2)
+
+
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_x =  (self.parent.parent._sub_objects_finder[sel_index-1].x - self.parent.parent._main_object_finder.x) - roi_width_half
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_y =  (self.parent.parent._sub_objects_finder[sel_index-1].y - self.parent.parent._main_object_finder.y) - roi_height_half
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_height = self.parent.parent._sub_objects_finder[sel_index-1].height + (roi_height_half*2)
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_width = self.parent.parent._sub_objects_finder[sel_index-1].width + (roi_width_half*2)
+
+
+                        """
                         roi_height = int(0.30*hw_factor*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].height #int(10*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].height
 
                         roi_width = int(0.30*hw_factor*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].width #int(10*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].width
@@ -519,7 +538,7 @@ class AlyvixRectFinderView(QWidget):
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_y =  (self.parent.parent._sub_objects_finder[sel_index-1].y - self.parent.parent._main_object_finder.y) - roi_height_half
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_height = roi_height
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_width = roi_width
-                        
+                        """
                        
                         """
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_x = 0
@@ -771,7 +790,23 @@ class AlyvixRectFinderView(QWidget):
                         hw_factor = self._sub_rects_finder[index].width
                     
                     
+                    roi_height = int(0.95 * hw_factor) + self._sub_rects_finder[index].height
+
+                    roi_width = int(0.95 * hw_factor) + self._sub_rects_finder[index].width
+
+
+                    roi_width_half = int((roi_width - self._sub_rects_finder[index].width)/2)
+
+                    roi_height_half = int((roi_height - self._sub_rects_finder[index].height)/2)
+
+
+                    self._sub_rects_finder[index].roi_x =  (self._sub_rects_finder[index].x - self._main_rect_finder.x) - roi_width_half
+                    self._sub_rects_finder[index].roi_y =  (self._sub_rects_finder[index].y - self._main_rect_finder.y) - roi_height_half
+                    self._sub_rects_finder[index].roi_height = self._sub_rects_finder[index].height + (roi_height_half*2)
+                    self._sub_rects_finder[index].roi_width = self._sub_rects_finder[index].width + (roi_width_half*2)
                     
+                    
+                    """
                     roi_height = int(0.30*hw_factor*self.scaling_factor) + self._sub_rects_finder[index].height
 
                     roi_width = int(0.30*hw_factor*self.scaling_factor) + self._sub_rects_finder[index].width
@@ -783,6 +818,7 @@ class AlyvixRectFinderView(QWidget):
                     self._sub_rects_finder[index].roi_y =  (self._sub_rects_finder[index].y - self._main_rect_finder.y) - roi_height_half
                     self._sub_rects_finder[index].roi_height = roi_height
                     self._sub_rects_finder[index].roi_width = roi_width
+                    """
                     
                     
                     if self._main_rect_finder.y + self._sub_rects_finder[index].roi_y < 0:
@@ -946,7 +982,7 @@ class AlyvixRectFinderView(QWidget):
                     if self.__flag_mouse_is_on_bottom_border_roi is True:
                         self._sub_rects_finder[index].roi_unlimited_down = True
                                 
-                elif rect is not None:
+                elif rect is not None and self.__flag_capturing_sub_rect is False:
                     self.add_rect_from_boundings_rects(rect)
                     
             self.update()
@@ -2540,7 +2576,7 @@ class AlyvixRectFinderView(QWidget):
                     font.setPixelSize(11 * self.scaling_factor);
 
                     qp.setFont(font)
-                    qp.drawText( QPoint(rect_finder.x -1, rect_finder.y -(4*self.scaling_factor)), str(cnt) )
+                    qp.drawText( QPoint(rect_finder.x -1, rect_finder.y -(6*self.scaling_factor)), str(cnt) )
 
 
 
@@ -3034,6 +3070,22 @@ class AlyvixRectFinderView(QWidget):
             
             
             
+            roi_height = int(0.95 * hw_factor) + rect_finder.height
+
+            roi_width = int(0.95 * hw_factor) + rect_finder.width
+            
+
+            roi_width_half = int((roi_width - rect_finder.width)/2)
+
+            roi_height_half = int((roi_height - rect_finder.height)/2)
+            
+
+            rect_finder.roi_x =  (rect_finder.x - self._main_rect_finder.x) - roi_width_half
+            rect_finder.roi_y =  (rect_finder.y - self._main_rect_finder.y) - roi_height_half
+            rect_finder.roi_height = rect_finder.height + (roi_height_half*2)
+            rect_finder.roi_width = rect_finder.width + (roi_width_half*2)
+            
+            """
             roi_height = int(0.30*hw_factor*self.scaling_factor) + rect_finder.height
 
             roi_width = int(0.30*hw_factor*self.scaling_factor) + rect_finder.width
@@ -3046,6 +3098,7 @@ class AlyvixRectFinderView(QWidget):
             rect_finder.roi_y =  (rect_finder.y - self._main_rect_finder.y) - roi_height_half
             rect_finder.roi_height = roi_height
             rect_finder.roi_width = roi_width
+            """
             
             if self._main_rect_finder.y + rect_finder.roi_y < 0:
                     
