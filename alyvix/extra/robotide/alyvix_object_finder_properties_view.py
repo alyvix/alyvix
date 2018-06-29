@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'alyvix_object_finder_properties_view.ui'
 #
-# Created: Fri Jun 22 11:12:21 2018
+# Created: Fri Jun 29 12:13:33 2018
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(560, 260)
+        Form.resize(560, 262)
         self.pushButtonOk = QtGui.QPushButton(Form)
         self.pushButtonOk.setGeometry(QtCore.QRect(393, 230, 75, 23))
         self.pushButtonOk.setObjectName(_fromUtf8("pushButtonOk"))
@@ -59,21 +59,9 @@ class Ui_Form(object):
         self.widget_2 = QtGui.QWidget(Form)
         self.widget_2.setGeometry(QtCore.QRect(177, 9000, 378, 82))
         self.widget_2.setObjectName(_fromUtf8("widget_2"))
-        self.gridLayoutWidget_2 = QtGui.QWidget(self.widget_2)
-        self.gridLayoutWidget_2.setGeometry(QtCore.QRect(0, 0, 376, 67))
-        self.gridLayoutWidget_2.setObjectName(_fromUtf8("gridLayoutWidget_2"))
-        self.gridLayout_2 = QtGui.QGridLayout(self.gridLayoutWidget_2)
-        self.gridLayout_2.setMargin(0)
-        self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
-        self.pushButtonRoiRedraw = QtGui.QPushButton(self.gridLayoutWidget_2)
-        self.pushButtonRoiRedraw.setObjectName(_fromUtf8("pushButtonRoiRedraw"))
-        self.gridLayout_2.addWidget(self.pushButtonRoiRedraw, 0, 1, 1, 1)
-        self.pushButtonEditObj_2 = QtGui.QPushButton(self.gridLayoutWidget_2)
+        self.pushButtonEditObj_2 = QtGui.QPushButton(self.widget_2)
+        self.pushButtonEditObj_2.setGeometry(QtCore.QRect(2, 3, 121, 23))
         self.pushButtonEditObj_2.setObjectName(_fromUtf8("pushButtonEditObj_2"))
-        self.gridLayout_2.addWidget(self.pushButtonEditObj_2, 0, 0, 1, 1)
-        self.pushButtonRemoveObj_2 = QtGui.QPushButton(self.gridLayoutWidget_2)
-        self.pushButtonRemoveObj_2.setObjectName(_fromUtf8("pushButtonRemoveObj_2"))
-        self.gridLayout_2.addWidget(self.pushButtonRemoveObj_2, 0, 2, 1, 1)
         self.listWidget = QtGui.QListWidget(Form)
         self.listWidget.setGeometry(QtCore.QRect(9, 9, 157, 182))
         self.listWidget.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
@@ -228,6 +216,18 @@ class Ui_Form(object):
         self.pushButtonDelete = QtGui.QPushButton(self.gridLayoutWidget_3)
         self.pushButtonDelete.setObjectName(_fromUtf8("pushButtonDelete"))
         self.gridLayout_3.addWidget(self.pushButtonDelete, 1, 0, 1, 2)
+        self.gridLayoutWidget_2 = QtGui.QWidget(Form)
+        self.gridLayoutWidget_2.setGeometry(QtCore.QRect(57, 709, 376, 67))
+        self.gridLayoutWidget_2.setObjectName(_fromUtf8("gridLayoutWidget_2"))
+        self.gridLayout_2 = QtGui.QGridLayout(self.gridLayoutWidget_2)
+        self.gridLayout_2.setMargin(0)
+        self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
+        self.pushButtonRemoveObj_2 = QtGui.QPushButton(self.gridLayoutWidget_2)
+        self.pushButtonRemoveObj_2.setObjectName(_fromUtf8("pushButtonRemoveObj_2"))
+        self.gridLayout_2.addWidget(self.pushButtonRemoveObj_2, 0, 1, 1, 1)
+        self.pushButtonRoiRedraw = QtGui.QPushButton(self.gridLayoutWidget_2)
+        self.pushButtonRoiRedraw.setObjectName(_fromUtf8("pushButtonRoiRedraw"))
+        self.gridLayout_2.addWidget(self.pushButtonRoiRedraw, 0, 0, 1, 1)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -239,9 +239,7 @@ class Ui_Form(object):
         self.label_line.setText(_translate("Form", "Begin Line", None))
         self.pushButtonAddBlock.setText(_translate("Form", "Add Block", None))
         self.pushButtonRemoveBlock.setText(_translate("Form", "Remove Block", None))
-        self.pushButtonRoiRedraw.setText(_translate("Form", "Roi Redraw", None))
         self.pushButtonEditObj_2.setText(_translate("Form", "Edit", None))
-        self.pushButtonRemoveObj_2.setText(_translate("Form", "Remove", None))
         self.labelWarning.setText(_translate("Form", "Warning", None))
         self.pushButtonAddSubObj.setText(_translate("Form", "Add Sub", None))
         self.pushButtonSetMainObj.setText(_translate("Form", "Set Main", None))
@@ -264,4 +262,6 @@ class Ui_Form(object):
         self.pushButtonSelAll.setText(_translate("Form", "Select All", None))
         self.pushButtonDesAll.setText(_translate("Form", "Deselect All", None))
         self.pushButtonDelete.setText(_translate("Form", "Remove", None))
+        self.pushButtonRemoveObj_2.setText(_translate("Form", "Remove", None))
+        self.pushButtonRoiRedraw.setText(_translate("Form", "Roi Redraw", None))
 

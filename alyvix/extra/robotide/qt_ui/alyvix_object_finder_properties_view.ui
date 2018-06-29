@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>560</width>
-    <height>260</height>
+    <height>262</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -132,38 +132,18 @@
      <height>82</height>
     </rect>
    </property>
-   <widget class="QWidget" name="gridLayoutWidget_2">
+   <widget class="QPushButton" name="pushButtonEditObj_2">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>376</width>
-      <height>67</height>
+      <x>2</x>
+      <y>3</y>
+      <width>121</width>
+      <height>23</height>
      </rect>
     </property>
-    <layout class="QGridLayout" name="gridLayout_2">
-     <item row="0" column="1">
-      <widget class="QPushButton" name="pushButtonRoiRedraw">
-       <property name="text">
-        <string>Roi Redraw</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QPushButton" name="pushButtonEditObj_2">
-       <property name="text">
-        <string>Edit</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="2">
-      <widget class="QPushButton" name="pushButtonRemoveObj_2">
-       <property name="text">
-        <string>Remove</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <property name="text">
+     <string>Edit</string>
+    </property>
    </widget>
   </widget>
   <widget class="QListWidget" name="listWidget">
@@ -573,6 +553,32 @@
      <widget class="QPushButton" name="pushButtonDelete">
       <property name="text">
        <string>Remove</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>57</x>
+     <y>709</y>
+     <width>376</width>
+     <height>67</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="1">
+     <widget class="QPushButton" name="pushButtonRemoveObj_2">
+      <property name="text">
+       <string>Remove</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QPushButton" name="pushButtonRoiRedraw">
+      <property name="text">
+       <string>Roi Redraw</string>
       </property>
      </widget>
     </item>

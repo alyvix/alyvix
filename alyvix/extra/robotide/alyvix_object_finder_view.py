@@ -25,7 +25,7 @@ import cv2
 import copy
 from ast import parse
 
-from PyQt4.QtGui import QApplication, QWidget, QCursor, QImage, QPainter, QPainter, QPen, QColor, QPixmap, QBrush, QPainterPath, QDialog, QListWidgetItem , QTextEdit, QHBoxLayout, QTextCharFormat, QMessageBox, QFont, QFontMetrics, QTextCursor
+from PyQt4.QtGui import QApplication, QWidget, QCursor, QImage, QPainter, QPainter, QPen, QColor, QPixmap, QBrush, QPainterPath, QDialog, QListWidgetItem , QTextEdit, QHBoxLayout, QTextCharFormat, QMessageBox, QFont, QFontMetrics, QTextCursor,QGridLayout, QPushButton
 from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QPoint, QRect, QModelIndex, SLOT, pyqtSlot, QString, QChar
 from PyQt4.Qt import QFrame
 
@@ -111,6 +111,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self.scaling_factor = self.parent.scaling_factor
         
+        self.pushButtonRoiRedraw.setEnabled(False)
+        self.pushButtonRoiRedraw.hide()
+        
+        self.pushButtonRemoveObj_2.setEnabled(False)
+        self.pushButtonRemoveObj_2.hide()
+        
+        
         #self.setFixedSize(self.size())
         self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor), int(self.frameGeometry().height() * self.scaling_factor))
         
@@ -140,6 +147,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                                           int(self.gridLayoutWidget_3.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_3.geometry().height() * self.scaling_factor)))
                         
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
+        
         
         if last_pos is not None:
             self.move(last_pos[0],last_pos[1])
@@ -2591,11 +2599,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         
         if is_main_scraper is False:
-            
-            scraper_file_name = self._path + os.sep + self._main_object_finder.name + "_ObjectFinder.alyscraper"
 
-            if os.path.exists(scraper_file_name):
-                self._main_object_finder.is_scraper = False
+            self._main_object_finder.is_scraper = False
                 
         if delete_main is True and len(self._sub_objects_finder) == 0:
             self.listWidget.clear()
@@ -3560,6 +3565,8 @@ class PaintingView(QWidget):
         
         self.scaling_factor = self.parent.scaling_factor
         
+        self.ignore_release = False
+        
         self._bg_pixmap = QPixmap()
         self.__capturing = False
         
@@ -3627,6 +3634,9 @@ class PaintingView(QWidget):
         
     def keyPressEvent(self, event):
         global last_pos
+        if event.modifiers() == Qt.ControlModifier:
+            self.ignore_release = True
+        
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
             pass #self.delete_sub_roi()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
@@ -3636,6 +3646,7 @@ class PaintingView(QWidget):
             if (event.key() == Qt.Key_O and self.parent._last_sub_object != None and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_height != 0 and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_width != 0):
                 self.parent._last_sub_object = None    
                 self.parent.saveUpdatedTextRoi()
+                self.ignore_release = False
                 self.update()
                 self.parent.show()
                 self.parent.activateWindow()
@@ -3649,6 +3660,7 @@ class PaintingView(QWidget):
                 self.parent._sub_objects_finder[self.parent.sub_object_index] = copy.deepcopy(self.parent._last_sub_object)
                 self.parent._last_sub_object = None    
                 self.parent.saveUpdatedTextRoi()
+                self.ignore_release = False
                 self.update()
                 self.parent.show()
                 self.parent.activateWindow()
@@ -3657,7 +3669,8 @@ class PaintingView(QWidget):
                 self.parent._redraw_index = None
                 self.parent._can_set_roi_unlim = False
             elif (event.key() == Qt.Key_Escape and self.parent._last_sub_object != None and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_height != 0 and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_width != 0):
-                self.parent._last_sub_object = None    
+                self.parent._last_sub_object = None  
+                self.ignore_release = False                
                 self.parent.saveUpdatedTextRoi()
                 self.update()
                 self.parent.show()
@@ -3671,6 +3684,7 @@ class PaintingView(QWidget):
             elif (len(self.parent._sub_objects_finder) >0 and self.parent._sub_objects_finder[-1].roi_height != 0 and self.parent._sub_objects_finder[-1].roi_width != 0 and self.parent._main_deleted is False):
                 #self.parent.raise_()
                 self.parent.saveUpdatedTextRoi()
+                self.ignore_release = False
                 self.parent.show()
                 self.parent.activateWindow()
                 if last_pos is not None:
@@ -3683,6 +3697,7 @@ class PaintingView(QWidget):
                 self.parent.listWidget.removeItemWidget(item)
                 del self.parent._sub_objects_finder[-1]
                 self.parent.saveUpdatedTextRoi()
+                self.ignore_release = False
                 self.parent.show()
                 self.parent.activateWindow()
                 if last_pos is not None:
@@ -3691,6 +3706,7 @@ class PaintingView(QWidget):
 
             elif len(self.parent._sub_objects_finder) == 0:
                 self.parent.saveUpdatedTextRoi()
+                self.ignore_release = False
                 self.parent.show()
                 self.parent.activateWindow()
                 if last_pos is not None:
@@ -3734,6 +3750,11 @@ class PaintingView(QWidget):
                     if self.__capturing == False:
                         self.parent._sub_objects_finder[_index_roi].roi_unlimited_right = True
                         self.update()
+                        
+    def keyReleaseEvent(self, event):
+        if event.key() == Qt.Key_Control:
+            self.ignore_release = False
+            print "self.ignore_release", self.ignore_release
         
     def set_bg_pixmap(self, image):
         self._bg_pixmap = QPixmap.fromImage(image)
@@ -3941,11 +3962,21 @@ class PaintingView(QWidget):
                             self.open_select_obj_window()
                         else:
                         """
+
+                        
                         item = self.parent.listWidget.takeItem(index + 1)
-                        item_path = self.parent.parent.path + os.sep + item.data(Qt.UserRole).toString()
-                        if os.path.exists(item_path.replace(".xml",".alyscraper")):
+                        
+                        filename = self.parent._sub_objects_finder[index].xml_path
+                        filename = filename.split(os.sep)[-1]
+                        
+
+                        extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.parent._path.split(os.sep)[-1] + "_extra"
+                        scraper_path = extra_path + os.sep + filename.replace("_TextFinder.xml","")
+                        scraper_file = scraper_path + os.sep + "scraper.txt"
+                        print scraper_file
+                        if os.path.exists(scraper_file):
                             self.parent._main_object_finder.is_scraper = False
-                            #print "scraper is false"
+
                         
                         #print selected_index
                         self.parent.listWidget.removeItemWidget(item)
@@ -4008,6 +4039,11 @@ class PaintingView(QWidget):
             self.update()
             
     def mouseReleaseEvent(self, event):
+        if self.ignore_release is True:
+            event.ignore()
+            self.update()
+            #print "event ignore"
+            return
         if event.button() == Qt.LeftButton:
             self.__capturing = False
 
@@ -4026,6 +4062,7 @@ class PaintingView(QWidget):
                 self.__flag_mouse_is_on_border = None
                 self.__border_index = None
             else:
+                print "add sub rect roi"
                 self.add_sub_rect_roi()
             
         self.update()
@@ -4425,7 +4462,7 @@ class PaintingView(QWidget):
                 self.draw_cross_lines(qp)
             else:    
                 self.draw_capturing_roi_lines(qp)
-        elif self.__flag_mouse_is_inside_rect is not None:
+        elif self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_on_border is None:
             self.setCursor(QCursor(Qt.ArrowCursor))
         elif len(self.parent._sub_objects_finder) == 0:
             self.setCursor(QCursor(Qt.ArrowCursor))

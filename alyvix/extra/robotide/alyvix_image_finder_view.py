@@ -44,6 +44,8 @@ from alyvix_image_finder_properties_view import Ui_Form
 #from alyvix_image_finder_properties_view_2 import Ui_Form
 #from alyvix_image_finder_properties_view_3 import Ui_Form as Ui_Form_2
 
+from contouring import Contouring
+
 import xml.dom.minidom as minidom
 import xml.etree.ElementTree as ET
 
@@ -356,7 +358,7 @@ class AlyvixImageFinderView(QWidget):
     def set_bg_pixmap(self, image):
         self._bg_pixmap = QPixmap.fromImage(image)
 
-        scaling_factor = self.scaling_factor
+
 
         #original = cv2.imread(self.parent.path + os.sep + self.parent.xml_name.replace("xml", "png"))
         
@@ -366,225 +368,51 @@ class AlyvixImageFinderView(QWidget):
         image_name = self._path + os.sep + time.strftime("image_finder_%d_%m_%y_%H_%M_%S_temp_img.png")
         self._bg_pixmap.save(image_name,"PNG", -1)
         time.sleep(0.05)
-        original = cv2.imread(image_name)
+        #original = cv2.imread(image_name)
         #print cv_image
         #time.sleep(0.1)
+
+        #print scaling_factor
+        
+        contouring_manager = Contouring(
+            canny_threshold1=250*0.2,
+            canny_threshold2=250*0.3,
+            canny_apertureSize=3,
+            hough_threshold=10,
+            hough_minLineLength=30,
+            hough_maxLineGap=1,
+            line_angle_tolerance=0,
+            ellipse_width=2,
+            ellipse_height=2,
+            text_roi_emptiness=0.45,
+            text_roi_proportion=1.3,
+            image_roi_emptiness=0.1,
+            vline_hw_proportion=2,
+            vline_w_maxsize=10,
+            hline_wh_proportion=2,
+            hline_h_maxsize=10,
+            rect_w_minsize=5,
+            rect_h_minsize=5,
+            rect_w_maxsize_01=800,
+            rect_h_maxsize_01=100,
+            rect_w_maxsize_02=100,
+            rect_h_maxsize_02=800,
+            rect_hw_proportion=2,
+            rect_hw_w_maxsize=10,
+            rect_wh_proportion=2,
+            rect_wh_h_maxsize=10,
+            hrect_proximity=10,
+            vrect_proximity=10,
+            vrect_others_proximity=40,
+            hrect_others_proximity=80)
+        # numpy_matrix = contouring.auto_contouring('lena.png')
+        numpy_matrix = contouring_manager.auto_contouring(image_name, scaling_factor=self.scaling_factor)
         os.remove(image_name)
-
-        print scaling_factor
         
-        original = cv2.resize(original, (0,0), fx=1/scaling_factor, fy=1/scaling_factor)
-        #cv2.imwrite("C:\\alylog\\original.png", original)
-
-        print original.shape
-        t0 = time.time()
-
-        img = original.copy()
-
-
-        #edges = cv2.Canny(original.copy(), 50, 200, apertureSize=3, L2gradient=True)
-        median = np.median(original)
-        edges = cv2.Canny(original.copy(), median * 0.2, median * 0.3, apertureSize=3, L2gradient=True)
-        edges_ori = edges.copy()
-        bw = edges.copy()
-
-
-        lines = cv2.HoughLinesP(edges.copy(), rho=1, theta=np.pi / 180, threshold=10, minLineLength=30, maxLineGap=1)
-        for x in range(0, len(lines)):
-            for x1, y1, x2, y2 in lines[x]:
-                angle = np.arctan2(y2 - y1, x2 - x1) * 180. / np.pi
-                if angle == 0 or abs(angle) == 90:
-                    cv2.line(bw, (x1, y1), (x2, y2), (0, 0, 0), 3)
-
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
-        bw = cv2.morphologyEx(bw, cv2.MORPH_GRADIENT, kernel)
-        #bw = cv2.dilate(bw, kernel, iterations=1)
-
-        contours, hierarchy = cv2.findContours(bw.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-
-        boundingBoxes = [cv2.boundingRect(c) for c in contours]
-
-        boundingBoxes = sorted(boundingBoxes, key=lambda element: (element[1], element[0]))
-
-
-        bw_copy = bw.copy()
-
-        ori_shape = original.shape
-        blank_image = np.zeros((ori_shape[0], ori_shape[1]), np.uint8)
-
-        self._textBoxes = []
-
-        for i, box in enumerate(boundingBoxes):
-
-            x, y, w, h = box
-
-            area = w * h
-
-            roi_img = bw[y:y + h, x:x + w]
-
-            hist = cv2.calcHist([roi_img], [0], None, [256], [0, 256])
-
-            # cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
-
-
-            if hist[255] > area * 0.45 and (w > 4 and h > 4):
-                # and (w > h * 1.3)
-
-                if (w > h * 1.3):
-                    font = cv2.FONT_HERSHEY_PLAIN
-                    # cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
-                    cv2.rectangle(bw_copy, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
-                    cv2.rectangle(edges, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
-                    
-                    x *= self.scaling_factor
-                    y *= self.scaling_factor
-                    w *= self.scaling_factor
-                    h *= self.scaling_factor
-                    
-            
-                    self._textBoxes.append((int(x), int(y), int(w), int(h)))
-
-                    # cv2.putText(original, str(i), (x - 2, y - 2), font, 1, (0, 255, 0), 1, cv2.CV_AA)
-
-        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 2))
-        #blank_image = cv2.dilate(blank_image,kernel,iterations = 1)
-
-
-        contours, hierarchy = cv2.findContours(bw_copy.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-
-        boundingBoxes = [cv2.boundingRect(c) for c in contours]
-
-        boundingBoxes = sorted(boundingBoxes, key=lambda element: (element[1], element[0]))
-
-        self._imageBoxes = []
-
-        for i, box in enumerate(boundingBoxes):
-            x, y, w, h = box
-
-            area = w * h
-
-            roi_img = bw_copy[y:y + h, x:x + w]
-
-            hist = cv2.calcHist([roi_img], [0], None, [256], [0, 256])
-
-            # cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
-
-
-            if hist[255] > area * 0.15 and (w > 4 and h > 4):
-                # and (w > h * 1.3)
-
-                if ( h > w*1.2) and h < 10 and w < 5:
-                    continue
-
-                font = cv2.FONT_HERSHEY_PLAIN
-                # cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
-                cv2.rectangle(bw_copy, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
-                cv2.rectangle(edges, (x, y), (x + w - 1, y + h - 1), (0, 0, 0), -1)
+        self._rectBoxes = contouring_manager.getRectBoxes(scaling_factor=self.scaling_factor)
+        self._imageBoxes = contouring_manager.getImageBoxes(scaling_factor=self.scaling_factor)
+        self._textBoxes = contouring_manager.getTextBoxes(scaling_factor=self.scaling_factor)
                 
-                x *= self.scaling_factor
-                y *= self.scaling_factor
-                w *= self.scaling_factor
-                h *= self.scaling_factor
-                    
-                self._imageBoxes.append((int(x), int(y), int(w), int(h)))
-
-        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
-        #edges = cv2.dilate(edges,kernel,iterations = 1)
-
-        
-        
-        contours, hierarchy = cv2.findContours(edges_ori.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-        #contours, hierarchy = cv2.findContours(edges_ori.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-
-
-        boundingBoxes = [cv2.boundingRect(c) for c in contours]
-
-        self._rectBoxes = []
-
-        analyzed_points = []
-
-
-        other_objects_found = copy.deepcopy(self._imageBoxes)
-        other_objects_found.extend(self._textBoxes)
-
-
-        for i, box in enumerate(boundingBoxes):
-            x, y, w, h = box
-            
-            if (w < 5 or h < 5):
-                continue
-                
-            if (w >= 800 and h >= 100):
-                continue
-                
-            if (w >= 100 and h >= 800):
-                continue
-
-            if ( h > w*2) and (w <= 10):
-                continue
-                
-            if ( w > h*2) and (h <= 10):
-                continue
-                
-            #rectBoxes.append((x, y, w, h))
-
-            is_already_found = False
-
-            for point_already_analyzed in analyzed_points:
-
-                tolerance_region_w = 10
-                tolerance_region_h = 10
-
-                #tolerance_region = 20 * self._scaling_factor
-
-                if (x >= point_already_analyzed[0] - tolerance_region_w and
-                            x <= point_already_analyzed[0] + tolerance_region_w) and\
-                        (y >= point_already_analyzed[1] - tolerance_region_h and
-                            y <= point_already_analyzed[1] + tolerance_region_h):
-
-                    is_already_found = True
-                    break
-
-            if is_already_found == False:
-            
-                is_already_found_on_other = False
-                
-                for other_object in other_objects_found:
-                    other_x, other_y, other_w, other_h = other_object
-                    
-                    if x >= other_x and y >= other_y and w <= other_w and h <= other_h and other_h < 40 and other_w < 80:
-                        is_already_found_on_other = True
-                        break
-            
-            
-                if is_already_found_on_other is False:
-                    analyzed_points.append((x, y, w, h))
-                    x *= self.scaling_factor
-                    y *= self.scaling_factor
-                    w *= self.scaling_factor
-                    h *= self.scaling_factor
-
-                    self._rectBoxes.append((int(x), int(y), int(w), int(h)))
-
-
-
-
-
-
-
-        for i, box in enumerate(self._imageBoxes):
-            x, y, w, h = box
-            cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 255, 0), 1)
-
-        for i, box in enumerate(self._textBoxes):
-            x, y, w, h = box
-            cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (0, 0, 255), 1)
-
-        for i, box in enumerate(self._rectBoxes):
-            x, y, w, h = box
-            cv2.rectangle(original, (x, y), (x + w - 1, y + h - 1), (255, 0,0), 1)  
-           
-           
         self._boundingRects.extend(self._textBoxes)
         self._boundingRects.extend(self._imageBoxes)
         self._boundingRects.extend(self._rectBoxes)
@@ -656,7 +484,6 @@ class AlyvixImageFinderView(QWidget):
                 self.image_view_properties.show()
             """    
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
-        
             if len(self._sub_templates_finder) == 0 and self._main_template is None:
                 try:
                     self.image_view_properties.close()
@@ -679,6 +506,7 @@ class AlyvixImageFinderView(QWidget):
                         self.__flag_capturing_sub_template = False
         
                 self.set_xy_offset = None
+                self._ctrl_is_pressed = False
                 self.image_view_properties = AlyvixImageFinderPropertiesView(self)
                 self.image_view_properties.show()
             """
@@ -726,7 +554,7 @@ class AlyvixImageFinderView(QWidget):
                 self.update()
                 
     def keyReleaseEvent(self, event):
-        if event.modifiers() == Qt.ControlModifier:
+        if event.key() == Qt.Key_Control:
             self._ctrl_is_pressed = False
         if event.key() == Qt.Key_Space: 
             self._show_boundingrects = False
@@ -1016,6 +844,12 @@ class AlyvixImageFinderView(QWidget):
             self.update()
             
     def mouseReleaseEvent(self, event):
+        if self._ctrl_is_pressed is True:
+            event.ignore()
+            self.ignore_release = False
+            self.update()
+            return
+            
         if self.ignore_release is True:
             self.ignore_release = False
             event.ignore()
@@ -1192,7 +1026,7 @@ class AlyvixImageFinderView(QWidget):
 
                 if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and sub_image_finder.show is True:
                                             
-                    if self.is_mouse_inside_rect(sub_image_finder):
+                    if self.is_mouse_inside_rect(sub_image_finder) and self.__flag_mouse_is_on_border is None:
                         self.__flag_mouse_is_inside_rect = cnt_sub
                         self.setCursor(QCursor(Qt.SizeAllCursor))
                         
