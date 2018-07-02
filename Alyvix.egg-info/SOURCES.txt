@@ -1186,6 +1186,7 @@ alyvix/extra/robotide/alyvix_rect_finder_view.py
 alyvix/extra/robotide/alyvix_text_check.py
 alyvix/extra/robotide/alyvix_text_finder_properties_view.py
 alyvix/extra/robotide/alyvix_text_finder_view.py
+alyvix/extra/robotide/contouring.py
 alyvix/extra/robotide/images/logo.png
 alyvix/extra/robotide/qt_ui/alyvix_code_properties_view.ui
 alyvix/extra/robotide/qt_ui/alyvix_image_finder_properties_view.ui

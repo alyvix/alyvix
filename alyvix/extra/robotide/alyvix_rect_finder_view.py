@@ -62,6 +62,8 @@ class AlyvixRectFinderView(QWidget):
         
         self._ctrl_is_pressed = False
         
+        self._dont_build_rect = False
+        
         self.ignore_release = False
         self.not_add_rect = False
         
@@ -429,10 +431,12 @@ class AlyvixRectFinderView(QWidget):
     
         if event.modifiers() == Qt.ControlModifier:
             self._ctrl_is_pressed = True
+            self._dont_build_rect = True
     
         if event.key() == Qt.Key_Space and self.__flag_capturing_sub_rect is False: 
             self._show_boundingrects = True
             self.ignore_release = True
+            self._dont_build_rect = True
             self.update()
             
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
@@ -560,8 +564,10 @@ class AlyvixRectFinderView(QWidget):
     def keyReleaseEvent(self, event):
         if event.key() == Qt.Key_Control:
             self._ctrl_is_pressed = False
+            self.ignore_release = False
         if event.key() == Qt.Key_Space: 
             self._show_boundingrects = False
+            self.ignore_release = False
             #self.ignore_release = False
         self.update()        
             
@@ -572,9 +578,10 @@ class AlyvixRectFinderView(QWidget):
         self.update()
         
     def mouseDoubleClickEvent(self, event):
-        if False is True:
-            #self.BringWindowToFront()
+        if self._ctrl_is_pressed is True or self._show_boundingrects is True:
+            event.ignore()
             return
+            
         if self.is_mouse_inside_rect(self._main_rect_finder) and self.set_xy_offset is None:
             if len(self._sub_rects_finder) > 0:
 
@@ -3060,6 +3067,10 @@ class AlyvixRectFinderView(QWidget):
     def convert_mouse_position_into_rect(self):
             
         #self.__click_position
+        
+        if self._dont_build_rect is True:
+            self._dont_build_rect = False
+            return
         
         mouse_position = QPoint(QCursor.pos())
         

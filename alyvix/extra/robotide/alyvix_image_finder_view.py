@@ -66,6 +66,8 @@ class AlyvixImageFinderView(QWidget):
         
         self._ctrl_is_pressed = False
         
+        self._dont_build_rect = False
+        
         self._imageBoxes = []
         self._textBoxes = []
         self._rectBoxes = []
@@ -421,10 +423,12 @@ class AlyvixImageFinderView(QWidget):
     
         if event.modifiers() == Qt.ControlModifier:
             self._ctrl_is_pressed = True
+            self._dont_build_rect = True
     
         if event.key() == Qt.Key_Space and self.__flag_capturing_sub_template is False: 
             self._show_boundingrects = True
             self.ignore_release = True
+            self._dont_build_rect = True
             self.update()
     
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
@@ -556,8 +560,10 @@ class AlyvixImageFinderView(QWidget):
     def keyReleaseEvent(self, event):
         if event.key() == Qt.Key_Control:
             self._ctrl_is_pressed = False
+            self.ignore_release = False
         if event.key() == Qt.Key_Space: 
             self._show_boundingrects = False
+            self.ignore_release = False
             #self.ignore_release = False
         self.update()
     
@@ -595,9 +601,10 @@ class AlyvixImageFinderView(QWidget):
         self.update()
         
     def mouseDoubleClickEvent(self, event):
-        if False is True:
-            #self.BringWindowToFront()
+        if self._ctrl_is_pressed is True or self._show_boundingrects is True:
+            event.ignore()
             return
+            
         if self.is_mouse_inside_rect(self._main_template) and self.set_xy_offset is None:
         
             if len(self._sub_templates_finder) > 0:
@@ -619,6 +626,7 @@ class AlyvixImageFinderView(QWidget):
         if event.buttons() == Qt.LeftButton:
         
             if event.modifiers() == Qt.ControlModifier:
+            
             
                 self.ignore_release = True
             
@@ -709,7 +717,7 @@ class AlyvixImageFinderView(QWidget):
                     self._sub_templates_finder[index].roi_unlimited_down = False
                 
             elif self.ignore_release is False:
-            
+
                 self.__click_position = QPoint(QCursor.pos())
                             
                 if self.set_xy_offset is not None:
@@ -2786,6 +2794,10 @@ class AlyvixImageFinderView(QWidget):
     def convert_mouse_position_into_rect(self):
             
         #self.__click_position
+        
+        if self._dont_build_rect is True:
+            self._dont_build_rect = False
+            return
         
         mouse_position = QPoint(QCursor.pos())
         
@@ -6118,7 +6130,13 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         if self.parent.last_view_index != 0:
             
             self.listWidget.setCurrentRow(self.parent.last_view_index)
-        
+            
+    """
+    def showEvent(self, event):
+        self.parent._ctrl_is_pressed = False
+        self.parent._show_boundingrects = False
+    """
+       
     def moveEvent(self, event):
         self.parent._last_pos = (self.frameGeometry().x(), self.frameGeometry().y())
     
