@@ -67,6 +67,8 @@ class AlyvixRectFinderView(QWidget):
         self.ignore_release = False
         self.not_add_rect = False
         
+        self._space_toggle = False
+        
         self._imageBoxes = []
         self._textBoxes = []
         self._rectBoxes = []
@@ -433,10 +435,18 @@ class AlyvixRectFinderView(QWidget):
             self._ctrl_is_pressed = True
             self._dont_build_rect = True
     
-        if event.key() == Qt.Key_Space and self.__flag_capturing_sub_rect is False: 
+        if event.key() == Qt.Key_Space and self.__flag_capturing_sub_rect is False and self._space_toggle is False:
             self._show_boundingrects = True
             self.ignore_release = True
             self._dont_build_rect = True
+            self._space_toggle = True
+            self.update()
+        elif event.key() == Qt.Key_Space and self.__flag_capturing_sub_rect is False and self._space_toggle is True: 
+            self._show_boundingrects = False
+            self.ignore_release = False
+            self._dont_build_rect = False
+            #self.ignore_release = False
+            self._space_toggle = False
             self.update()
             
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
@@ -468,6 +478,15 @@ class AlyvixRectFinderView(QWidget):
                         self.__flag_capturing_sub_rect_roi = True
                         self.__flag_capturing_sub_rect = False
                 self.set_xy_offset = None
+                self._ctrl_is_pressed = False
+                
+                self._show_boundingrects = False
+                self.ignore_release = False
+                self._dont_build_rect = False
+                #self.ignore_release = False
+                self._space_toggle = False
+                self.update()
+                
                 self.rect_view_properties = AlyvixRectFinderPropertiesView(self)
                 self.rect_view_properties.show()
             """
@@ -516,6 +535,14 @@ class AlyvixRectFinderView(QWidget):
                         self.__flag_capturing_sub_rect = False
                 self.set_xy_offset = None
                 self._ctrl_is_pressed = False
+                
+                self._show_boundingrects = False
+                self.ignore_release = False
+                self._dont_build_rect = False
+                #self.ignore_release = False
+                self._space_toggle = False
+                self.update()
+                
                 self.rect_view_properties = AlyvixRectFinderPropertiesView(self)
                 self.rect_view_properties.show()
                 
@@ -566,11 +593,13 @@ class AlyvixRectFinderView(QWidget):
             self._ctrl_is_pressed = False
             self.ignore_release = False
             self._dont_build_rect = False
+        """
         if event.key() == Qt.Key_Space: 
             self._show_boundingrects = False
             self.ignore_release = False
             self._dont_build_rect = False
             #self.ignore_release = False
+        """
         self.update()        
             
     def closeEvent(self, event):

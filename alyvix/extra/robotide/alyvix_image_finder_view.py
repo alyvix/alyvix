@@ -106,6 +106,8 @@ class AlyvixImageFinderView(QWidget):
         
         self.last_view_index = 0
         
+        self._space_toggle = False
+        
         #flags
         #self.__flag_mouse_left_button_is_pressed = False
         self.__flag_mouse_is_inside_rect = None
@@ -425,10 +427,19 @@ class AlyvixImageFinderView(QWidget):
             self._ctrl_is_pressed = True
             self._dont_build_rect = True
     
-        if event.key() == Qt.Key_Space and self.__flag_capturing_sub_template is False: 
+        if event.key() == Qt.Key_Space and self.__flag_capturing_sub_template is False and self._space_toggle is False: 
             self._show_boundingrects = True
             self.ignore_release = True
             self._dont_build_rect = True
+            self._space_toggle = True
+            self.update()
+            
+        elif event.key() == Qt.Key_Space and self.__flag_capturing_sub_template is False and self._space_toggle is True: 
+            self._show_boundingrects = False
+            self.ignore_release = False
+            self._dont_build_rect = False
+            #self.ignore_release = False
+            self._space_toggle = False
             self.update()
     
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
@@ -462,6 +473,15 @@ class AlyvixImageFinderView(QWidget):
                         self.__flag_capturing_sub_template = False
         
                 self.set_xy_offset = None
+                self._ctrl_is_pressed = False
+                
+                self._show_boundingrects = False
+                self.ignore_release = False
+                self._dont_build_rect = False
+                #self.ignore_release = False
+                self._space_toggle = False
+                self.update()
+                
                 self.image_view_properties = AlyvixImageFinderPropertiesView(self)
                 self.image_view_properties.show()
             """
@@ -511,6 +531,14 @@ class AlyvixImageFinderView(QWidget):
         
                 self.set_xy_offset = None
                 self._ctrl_is_pressed = False
+                
+                self._show_boundingrects = False
+                self.ignore_release = False
+                self._dont_build_rect = False
+                #self.ignore_release = False
+                self._space_toggle = False
+                self.update()
+                
                 self.image_view_properties = AlyvixImageFinderPropertiesView(self)
                 self.image_view_properties.show()
             """
@@ -562,11 +590,13 @@ class AlyvixImageFinderView(QWidget):
             self._ctrl_is_pressed = False
             self.ignore_release = False
             self._dont_build_rect = False
+        """
         if event.key() == Qt.Key_Space: 
             self._show_boundingrects = False
             self.ignore_release = False
             self._dont_build_rect = False
             #self.ignore_release = False
+        """
         self.update()
     
     def save_template_images(self, image_name):
