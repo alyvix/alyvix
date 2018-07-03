@@ -461,7 +461,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                
                 
                 object.save_all()
-                print "save_all"
+                #print "save_all"
                 self.is_object_finder_menu = True
             cnt += 1
             
@@ -544,7 +544,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         
     def cancel_all(self):
-        print "cancel"
+        #print "cancel"
         self._main_object_finder = copy.deepcopy(self._old_main_object)
         self._sub_objects_finder = copy.deepcopy(self._old_sub_objects)      
             
@@ -621,7 +621,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         """
         if self._old_object_finder_config is not None:
             filename = self._old_object_finder_config[0]
-            print "FILENAME", filename
+            #print "FILENAME", filename
             old_controller_config = self._old_object_finder_config[1]
             current_controller_config = open(filename, "r").read()
 
@@ -1029,7 +1029,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         #filename = open(self._path + os.sep + self._xml_name,"r")
         #print filename
-        print "build_object"
+        #print "build_object"
         try:
             filehandler = open(self._path + os.sep + self._xml_name,"r")
         except:
@@ -1068,7 +1068,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             main_obj.build_objects()
             main_obj = main_obj._main_text
             
-        print "objjjjj", xml_name
+        #print "objjjjj", xml_name
         self._main_object_finder = MainObjectForGui()
         self._main_object_finder.xml_path = self._path + os.sep + os.path.basename(xml_name) #xml_name
         #print "xml path:", self._main_object_finder.xml_path
@@ -1916,7 +1916,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     
         cnt_sub = 1
         for sub_obj in self._sub_objects_finder:
-            print "cnt_sub", cnt_sub
+            #print "cnt_sub", cnt_sub
             cnt_sub += 1
             
             if sub_obj.roi_height == 0 or sub_obj.roi_width == 0:
@@ -1927,7 +1927,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             #self.parent._deleted_sub_objects.append(copy.deepcopy(sub_obj))
             
             if sub_obj.is_textfinder is True:
-                print sub_obj.is_textfinder
+                #print sub_obj.is_textfinder
                 
                 offset_main_x = old_pos[0] - self._main_object_finder.x
                 offset_main_y = old_pos[1] - self._main_object_finder.y
@@ -1935,7 +1935,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 sub_obj.roi_x +=  offset_main_x
                 sub_obj.roi_y += offset_main_y
                 
-                print "exit"
+                #print "exit"
             else:
             
             
@@ -1985,7 +1985,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self._old_main_object = copy.deepcopy(self._main_object_finder)
         self._old_sub_objects = copy.deepcopy(self._sub_objects_finder)
         
-        print "update"
+        #print "update"
     
     def delete_all_sub_roi(self):
     
@@ -2507,7 +2507,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     
     def sel_all_event(self):
   
-        print "count",self.listWidget.count()
+        #print "count",self.listWidget.count()
         for row_index in range(self.listWidget.count()):
         
             self.listWidget.item(row_index).setCheckState(Qt.Checked)
@@ -2522,13 +2522,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     def delete_event(self):
     
         index_to_remove = []
-        print self._sub_objects_finder
+        #print self._sub_objects_finder
         delete_main = False
         for row_index in range(self.listWidget.count()):
                 if row_index == 0 and self.listWidget.item(row_index).checkState() == 2: 
                     delete_main = True
                 if row_index != 0 and self.listWidget.item(row_index).checkState() == 2:
-                    print row_index - 1
+                    #print row_index - 1
                     #del self._sub_objects_finder[row_index-1]
                     index_to_remove.append(row_index-1)
                     
@@ -3754,7 +3754,7 @@ class PaintingView(QWidget):
     def keyReleaseEvent(self, event):
         if event.key() == Qt.Key_Control:
             self.ignore_release = False
-            print "self.ignore_release", self.ignore_release
+            #print "self.ignore_release", self.ignore_release
         
     def set_bg_pixmap(self, image):
         self._bg_pixmap = QPixmap.fromImage(image)
@@ -3781,7 +3781,7 @@ class PaintingView(QWidget):
                 if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect != 0:
                     index = self.__flag_mouse_is_inside_rect -1
                     
-                    print self.__flag_mouse_is_inside_rect
+                    #print self.__flag_mouse_is_inside_rect
                     
                     """
                     
@@ -3973,7 +3973,7 @@ class PaintingView(QWidget):
                         extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.parent._path.split(os.sep)[-1] + "_extra"
                         scraper_path = extra_path + os.sep + filename.replace("_TextFinder.xml","")
                         scraper_file = scraper_path + os.sep + "scraper.txt"
-                        print scraper_file
+                        #print scraper_file
                         if os.path.exists(scraper_file):
                             self.parent._main_object_finder.is_scraper = False
 
@@ -4062,7 +4062,7 @@ class PaintingView(QWidget):
                 self.__flag_mouse_is_on_border = None
                 self.__border_index = None
             else:
-                print "add sub rect roi"
+                #print "add sub rect roi"
                 self.add_sub_rect_roi()
             
         self.update()

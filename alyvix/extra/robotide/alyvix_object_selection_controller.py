@@ -177,7 +177,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         global main_menu_last_pos
         global last_selected_index
         
-        print last_selected_index
+        #print last_selected_index
         
         if main_menu_last_pos is not None:
             self.move(main_menu_last_pos[0],main_menu_last_pos[1])
@@ -196,7 +196,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     def moveEvent(self, event):
         global main_menu_last_pos
         main_menu_last_pos = (self.frameGeometry().x(), self.frameGeometry().y())
-        print main_menu_last_pos
+        #print main_menu_last_pos
     
     def resizeEvent(self, event):
     
@@ -354,7 +354,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
         sorted_indexes = sorted(indexes)
         first_index_to_delete = sorted_indexes[0].row()
-        print first_index_to_delete
+        #print first_index_to_delete
         
         if len(indexes) > 0:
                 
@@ -413,7 +413,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
 
                 template_path = self.path + os.sep + str(self.xml_name).replace("_ImageFinder.xml","")
                 
-                print "template path", template_path
+                #print "template path", template_path
                 
                 if os.path.exists(template_path):
                     shutil.rmtree(template_path)
@@ -421,7 +421,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
                 scraper_path = extra_path + os.sep + str(self.xml_name).replace("_TextFinder.xml","")
                 
-                print "scraper path", scraper_path
+                #print "scraper path", scraper_path
                 
                 if os.path.exists(scraper_path):
                     shutil.rmtree(scraper_path)
@@ -446,7 +446,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                     
                     template_path = self.path + os.sep + str(self.xml_name).replace("_ImageFinder.xml","")
                 
-                    print "template path", template_path
+                    #print "template path", template_path
                     
                     if os.path.exists(template_path):
                         shutil.rmtree(template_path)
@@ -454,7 +454,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                     extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
                     scraper_path = extra_path + os.sep + str(self.xml_name).replace("_TextFinder.xml","")
                     
-                    print "scraper path", scraper_path
+                    #print "scraper path", scraper_path
                     
                     if os.path.exists(scraper_path):
                         shutil.rmtree(scraper_path)

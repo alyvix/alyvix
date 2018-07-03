@@ -668,9 +668,11 @@ class AlyvixTextFinderView(QWidget):
         if event.key() == Qt.Key_Control:
             self._ctrl_is_pressed = False
             self.ignore_release = False
+            self._dont_build_rect = False
         if event.key() == Qt.Key_Space: 
             self._show_boundingrects = False
             self.ignore_release = False
+            self._dont_build_rect = False
             #self.ignore_release = False
         self.update()
     
@@ -1014,17 +1016,25 @@ class AlyvixTextFinderView(QWidget):
                         self._sub_texts_finder[index].y = 0
                         self._sub_texts_finder[index].width = 0
                         self._sub_texts_finder[index].height = 0
+                        
+                        self.__flag_need_to_delete_roi = True
+                        self.__flag_need_to_restore_roi = False
+                        self.__flag_capturing_sub_text_rect_roi = False
+                        self.__flag_capturing_sub_text = True
 
-                    
                         self.__deleted_texts.append(self._sub_texts_finder[index])
                         del self._sub_texts_finder[index]
-                        
                         
                         self.__flag_need_to_delete_roi = False
                         self.__flag_need_to_restore_roi = True
                         self.__flag_capturing_sub_text_rect_roi = True
                         self.__flag_capturing_sub_text = False
+
+
                 elif delete_main is True:
+
+                    #self._sub_texts_finder = []
+                    #self.__deleted_texts = []
                 
                     self._main_text.deleted_x = self._main_text.x
                     self._main_text.deleted_y = self._main_text.y
@@ -1039,12 +1049,20 @@ class AlyvixTextFinderView(QWidget):
                             
                     self.__deleted_texts.append(self._main_text)
                     self._main_text = None
-                    
+
+                    self.__flag_need_to_delete_main_roi = True
+                    self.__flag_need_to_restore_main_roi = False
+                    self.__flag_capturing_main_text_rect_roi = False
+                    self.__flag_capturing_main_text_rect = True
+                    self.__flag_need_to_restore_main_text_rect = True
+
                     
                     self.__flag_need_to_delete_main_roi = False
                     self.__flag_need_to_restore_main_roi = True
                     self.__flag_capturing_main_text_rect_roi = True
-                    self.__flag_capturing_sub_text_rect_roi = False
+                    self.__flag_capturing_main_text_rect = False
+                    self.__flag_capturing_sub_text_rect_roi = True
+                    
             else:
 
                 rect = self.is_mouse_inside_bounding_rects()
@@ -1599,6 +1617,24 @@ class AlyvixTextFinderView(QWidget):
         
         if self.__move_index == 0:
             rect = self._main_text
+            
+            self.__flag_need_to_delete_main_roi = False
+            self.__flag_need_to_restore_main_roi = False
+            self.__flag_need_to_restore_main_text_rect = False
+            self.__flag_need_to_delete_roi = False
+            self.__flag_need_to_restore_roi = False
+            
+            self.__flag_capturing_main_text_rect_roi = False
+            self.__flag_capturing_main_text_rect = True
+            self.__flag_need_to_delete_main_roi = True     
+
+            self.__flag_capturing_main_text_rect = False
+            self.__flag_capturing_sub_text_rect_roi = True
+            self.__flag_need_to_delete_main_roi = False
+
+            #self._sub_texts_finder = []
+            self.__deleted_texts = []
+            
         else:
             rect = self._sub_texts_finder[self.__move_index - 1]
             
@@ -1732,6 +1768,24 @@ class AlyvixTextFinderView(QWidget):
         
         if self.__border_index == 0:
             rect = self._main_text
+            
+            self.__flag_need_to_delete_main_roi = False
+            self.__flag_need_to_restore_main_roi = False
+            self.__flag_need_to_restore_main_text_rect = False
+            self.__flag_need_to_delete_roi = False
+            self.__flag_need_to_restore_roi = False
+            
+            self.__flag_capturing_main_text_rect_roi = False
+            self.__flag_capturing_main_text_rect = True
+            self.__flag_need_to_delete_main_roi = True     
+
+            self.__flag_capturing_main_text_rect = False
+            self.__flag_capturing_sub_text_rect_roi = True
+            self.__flag_need_to_delete_main_roi = False
+
+            #self._sub_texts_finder = []
+            self.__deleted_texts = []
+            
         else:
             rect = self._sub_texts_finder[self.__border_index - 1]
             
@@ -3306,16 +3360,44 @@ class AlyvixTextFinderView(QWidget):
         if self._main_text is None or (self._main_text.x == 0 and self._main_text.y == 0 and self._main_text.width == 0 and self._main_text.height == 0):
         
 
-        
+            self.last_xy_offset_index = None
             text_finder = MainTextForGui()
+            
+            """
             self.__flag_capturing_main_text_rect = False
-
             self.__flag_capturing_main_text_rect_roi = False
-
             self.__flag_capturing_sub_text_rect_roi = True
+            """
+            
+            self.__flag_need_to_delete_main_roi = False
+            self.__flag_need_to_restore_main_roi = False
+            self.__flag_need_to_restore_main_text_rect = False
+            self.__flag_need_to_delete_roi = False
+            self.__flag_need_to_restore_roi = False
+            
+            self.__flag_capturing_main_text_rect_roi = False
+            self.__flag_capturing_main_text_rect = True
+            self.__flag_need_to_delete_main_roi = True     
+
+            self.__flag_capturing_main_text_rect = False
+            self.__flag_capturing_sub_text_rect_roi = True
+            self.__flag_need_to_delete_main_roi = False
+
+            self._sub_texts_finder = []
+            self.__deleted_texts = []
             
         else:
             text_finder = SubTextForGui()   
+            self.__flag_capturing_sub_text_rect_roi = False
+            self.__flag_capturing_sub_text = True
+            self.__flag_need_to_delete_roi = True
+
+            self.__flag_capturing_sub_text = False
+            self.__flag_capturing_sub_text_rect_roi = True
+            self.__flag_need_to_delete_roi = False
+            
+            if len(self.__deleted_texts) > 0:
+                del self.__deleted_texts[-1]
         
         text_finder.x = x
         text_finder.y = y
@@ -3556,6 +3638,9 @@ class AlyvixTextFinderView(QWidget):
             self._main_text.height = height
             self._main_text.width = width
             
+            self._sub_texts_finder = []
+            self.__deleted_texts = []
+            
         else:
             self.__flag_capturing_main_text_rect = True
             self.__flag_capturing_sub_text_rect_roi = False
@@ -3774,13 +3859,17 @@ class AlyvixTextFinderView(QWidget):
                
         elif self._main_text is not None: #self.__flag_need_to_delete_roi:
         
+            #self._sub_texts_finder = []
+            #self.__deleted_texts = []
             self.__deleted_texts.append(self._main_text)
             self._main_text = None
             #print "deleted main"
             self.__flag_need_to_delete_main_roi = False
             self.__flag_need_to_restore_main_roi = True
             self.__flag_capturing_main_text_rect_roi = True
+            self.__flag_capturing_main_text_rect = False
             self.__flag_capturing_sub_text_rect_roi = False
+            
             #self.__flag_need_to_restore_main_text_rect = False
             """
             self.__deleted_texts.append(self._sub_texts_finder[-1])
@@ -7039,7 +7128,7 @@ class AlyvixTextFinderView(QWidget):
         
         try:
             #print self._path + "\\text_finder.xml"
-            print "tx path", self._path + os.sep + self._xml_name
+            #print "tx path", self._path + os.sep + self._xml_name
             filehandler = open(self._path + os.sep + self._xml_name,"r")
         except:
             return
@@ -8628,7 +8717,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
                 self.labelCritical.setEnabled(False)
     
     def red_channel_event(self, event):
-        print event
+        #print event
         if self.checkBoxRedChannel.isChecked() is True:
             self.parent._main_text.red_channel = True
         elif self.checkBoxGreenChannel.isChecked() is False and self.checkBoxBlueChannel.isChecked() is False:
@@ -9784,7 +9873,7 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
 ############
 
     def red_channel_event_2(self, event):
-        print event
+        #print event
         if self.checkBoxRedChannel_2.isChecked() is True:
             self.parent._sub_texts_finder[self.sub_text_index].red_channel = True
         elif self.checkBoxGreenChannel_2.isChecked() is False and self.checkBoxBlueChannel_2.isChecked() is False:

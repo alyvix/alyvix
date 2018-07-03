@@ -561,9 +561,11 @@ class AlyvixImageFinderView(QWidget):
         if event.key() == Qt.Key_Control:
             self._ctrl_is_pressed = False
             self.ignore_release = False
+            self._dont_build_rect = False
         if event.key() == Qt.Key_Space: 
             self._show_boundingrects = False
             self.ignore_release = False
+            self._dont_build_rect = False
             #self.ignore_release = False
         self.update()
     
@@ -807,16 +809,22 @@ class AlyvixImageFinderView(QWidget):
                         self._sub_templates_finder[index].width = 0
                         self._sub_templates_finder[index].height = 0
 
+                        self.__flag_need_to_delete_roi = True
+                        self.__flag_need_to_restore_roi = False
+                        self.__flag_capturing_sub_image_rect_roi = False
+                        self.__flag_capturing_sub_template = True
+                        
                         self.__deleted_rects.append(self._sub_templates_finder[index])
                         del self._sub_templates_finder[index]
                         
-
                         self.__flag_need_to_delete_roi = False
                         self.__flag_need_to_restore_roi = True
                         self.__flag_capturing_sub_image_rect_roi = True
                         self.__flag_capturing_sub_template = False
                         
                 elif delete_main is True:
+                    #self._sub_templates_finder = []
+                    #self.__deleted_rects = []
                     self.__deleted_rects.append(self._main_template)
                     self._main_template = None
                     self.__flag_capturing_main_image_rect = True
@@ -1258,6 +1266,13 @@ class AlyvixImageFinderView(QWidget):
         
         if self.__move_index == 0:
             rect = self._main_template
+            
+            self.__flag_capturing_main_image_rect = False
+            self.__flag_capturing_sub_image_rect_roi = True
+
+            #self._sub_templates_finder = []
+            self.__deleted_rects = []
+            
         else:
             rect = self._sub_templates_finder[self.__move_index - 1]
     
@@ -1361,6 +1376,11 @@ class AlyvixImageFinderView(QWidget):
         
         if self.__border_index == 0:
             rect = self._main_template
+            self.__flag_capturing_main_image_rect = False
+            self.__flag_capturing_sub_image_rect_roi = True
+
+            #self._sub_templates_finder = []
+            self.__deleted_rects = []
         else:
             rect = self._sub_templates_finder[self.__border_index - 1]
             
@@ -2257,7 +2277,7 @@ class AlyvixImageFinderView(QWidget):
                 else:
                     roi_height = self._bg_pixmap.height() - (image_finder.roi_y + self._main_template.y + 1)
                     
-                    print self._bg_pixmap.width(), (image_finder.roi_x + self._main_template.x)
+                    #print self._bg_pixmap.width(), (image_finder.roi_x + self._main_template.x)
 
             if image_finder.roi_unlimited_left is True:
                 roi_x = 0
@@ -2597,6 +2617,9 @@ class AlyvixImageFinderView(QWidget):
         
         if rect_attributes is not None:
         
+            self._sub_templates_finder = []
+            self.__deleted_rects = []
+        
             x, y, width, height = rect_attributes
         
             image_finder = MainTemplateForGui()
@@ -2619,6 +2642,8 @@ class AlyvixImageFinderView(QWidget):
     def add_rect_from_boundings_rects(self, rect):
         x, y, width, height = rect
         
+        self.last_xy_offset_index = None
+        
         if self._main_template is None or (self._main_template.x == 0 and self._main_template.y == 0 and self._main_template.width == 0 and self._main_template.height == 0):
         
 
@@ -2635,10 +2660,23 @@ class AlyvixImageFinderView(QWidget):
             
             self._main_template = image_finder
             
-            self.__flag_capturing_sub_image_rect_roi = True
             self.__flag_capturing_main_image_rect = False
+            self.__flag_capturing_sub_image_rect_roi = True
+
+            self._sub_templates_finder = []
+            self.__deleted_rects = []
+
             
         else:
+
+            self.__flag_capturing_sub_image_rect_roi = False
+            self.__flag_capturing_sub_template = True
+            self.__flag_need_to_delete_roi = True
+
+            self.__flag_capturing_sub_template = False
+            self.__flag_capturing_sub_image_rect_roi = True
+            self.__flag_need_to_delete_roi = False
+            
             image_finder = SubTemplateForGui()       
             image_finder.x = x
             image_finder.y = y
@@ -2648,6 +2686,9 @@ class AlyvixImageFinderView(QWidget):
             image_finder.max_height = height*2
             image_finder.min_width = width/2
             image_finder.max_width = width*2
+            
+            if len(self.__deleted_rects) > 0:
+                del self.__deleted_rects[-1]
 
             #percentage_screen_w = int(0.1 * self._bg_pixmap.width())
             #percentage_screen_h = int(0.1 * self._bg_pixmap.height())
@@ -2761,7 +2802,7 @@ class AlyvixImageFinderView(QWidget):
                 else:
                     roi_height = self._bg_pixmap.height() - (image_finder.roi_y + self._main_template.y + 1)
                     
-                    print self._bg_pixmap.width(), (image_finder.roi_x + self._main_template.x)
+                    #print self._bg_pixmap.width(), (image_finder.roi_x + self._main_template.x)
 
             if image_finder.roi_unlimited_left is True:
                 roi_x = 0
@@ -2888,6 +2929,8 @@ class AlyvixImageFinderView(QWidget):
                 self.__flag_capturing_sub_template = False
             
         elif self._main_template is not None:
+            #self._sub_templates_finder = []
+            #self.__deleted_rects = []
             self.__deleted_rects.append(self._main_template)
             self._main_template = None
             self.__flag_capturing_main_image_rect = True
@@ -5051,7 +5094,7 @@ class AlyvixImageFinderView(QWidget):
         
         #print self._path + "\\image_finder.xml"
         try:
-            print "im path", self._path + os.sep + self._xml_name
+            #print "im path", self._path + os.sep + self._xml_name
             filehandler = open(self._path + os.sep + self._xml_name,"r")
         except:
             return
@@ -6344,7 +6387,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.parent.update()
    
     def red_channel_event(self, event):
-        print event
+        #print event
         if self.checkBoxRedChannel.isChecked() is True:
             self.parent._main_template.red_channel = True
         elif self.checkBoxGreenChannel.isChecked() is False and self.checkBoxBlueChannel.isChecked() is False:
@@ -6434,7 +6477,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         selected_index = self.listWidget.currentRow()
         
         self.parent.last_view_index = selected_index
-        print "selected_index:", self.parent.last_view_index
+        #print "selected_index:", self.parent.last_view_index
         
         if selected_index == 0:
             self.widget_2.hide()
@@ -6474,10 +6517,10 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
 
     
         index_to_remove = []
-        print self.parent._sub_templates_finder
+        #print self.parent._sub_templates_finder
         for row_index in range(self.listWidget.count()):
                 if row_index != 0 and self.listWidget.item(row_index).checkState() == 2:
-                    print row_index - 1
+                    #print row_index - 1
                     #del self.parent._sub_templates_finder[row_index-1]
                     index_to_remove.append(row_index-1)
                     
@@ -7280,7 +7323,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
 
 
     def red_channel_event_2(self, event):
-        print event
+        #print event
         if self.checkBoxRedChannel_2.isChecked() is True:
             self.parent._sub_templates_finder[self.sub_template_index].red_channel = True
         elif self.checkBoxGreenChannel_2.isChecked() is False and self.checkBoxBlueChannel_2.isChecked() is False:
