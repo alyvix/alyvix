@@ -6,163 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>235</width>
-    <height>272</height>
+    <width>647</width>
+    <height>330</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Alyvix - Select Finder</string>
   </property>
-  <widget class="QListWidget" name="listWidgetAlyObj">
-   <property name="geometry">
-    <rect>
-     <x>8</x>
-     <y>28</y>
-     <width>218</width>
-     <height>191</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButtonNew">
-   <property name="geometry">
-    <rect>
-     <x>8</x>
-     <y>235</y>
-     <width>60</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>New</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButtonEdit">
-   <property name="geometry">
-    <rect>
-     <x>80</x>
-     <y>235</y>
-     <width>60</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Edit</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButtonRemove">
-   <property name="geometry">
-    <rect>
-     <x>151</x>
-     <y>235</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Remove</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>8</x>
-     <y>7</y>
-     <width>211</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Alyvix Objects:</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="gridLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>8</x>
-     <y>362</y>
-     <width>218</width>
-     <height>177</height>
-    </rect>
-   </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QPushButton" name="pushButtonRF">
-      <property name="text">
-       <string>Rect Finder</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QPushButton" name="pushButtonTF">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="text">
-       <string>Text Finder</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QPushButton" name="pushButtonOF">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="text">
-       <string>Object Finder</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QPushButton" name="pushButtonIF">
-      <property name="text">
-       <string>Image Finder</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QPushButton" name="pushButtonCancel">
-   <property name="geometry">
-    <rect>
-     <x>62</x>
-     <y>547</y>
-     <width>111</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Cancel</string>
-   </property>
-  </widget>
-  <widget class="QSpinBox" name="spinBoxDelay">
-   <property name="geometry">
-    <rect>
-     <x>184</x>
-     <y>332</y>
-     <width>42</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="maximum">
-    <number>60</number>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>135</x>
-     <y>333</y>
-     <width>37</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Delay:</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-   </property>
-  </widget>
   <widget class="QPushButton" name="pushButtonCC">
    <property name="enabled">
     <bool>true</bool>
@@ -170,7 +20,7 @@
    <property name="geometry">
     <rect>
      <x>9</x>
-     <y>632</y>
+     <y>9000</y>
      <width>216</width>
      <height>23</height>
     </rect>
@@ -178,6 +28,232 @@
    <property name="text">
     <string>Custom Code</string>
    </property>
+  </widget>
+  <widget class="QWidget" name="widget_2" native="true">
+   <property name="geometry">
+    <rect>
+     <x>106</x>
+     <y>387</y>
+     <width>229</width>
+     <height>240</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QWidget" name="widget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>10</y>
+     <width>647</width>
+     <height>321</height>
+    </rect>
+   </property>
+   <widget class="QWidget" name="gridLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>6</x>
+      <y>6</y>
+      <width>446</width>
+      <height>306</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="0" colspan="3">
+      <widget class="QLineEdit" name="lineEditSearch">
+       <property name="text">
+        <string>search...</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="3">
+      <widget class="QTableWidget" name="tableWidget">
+       <property name="alternatingRowColors">
+        <bool>false</bool>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectRows</enum>
+       </property>
+       <property name="showGrid">
+        <bool>false</bool>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="cornerButtonEnabled">
+        <bool>true</bool>
+       </property>
+       <attribute name="horizontalHeaderCascadingSectionResizes">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="horizontalHeaderHighlightSections">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="verticalHeaderStretchLastSection">
+        <bool>false</bool>
+       </attribute>
+       <row>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>2</string>
+        </property>
+       </row>
+       <column>
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Type</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Date Modified</string>
+        </property>
+       </column>
+       <item row="0" column="0">
+        <property name="text">
+         <string>ewfdsfdsfsdfdsfdsfsdfs</string>
+        </property>
+       </item>
+       <item row="0" column="1">
+        <property name="text">
+         <string>RF</string>
+        </property>
+       </item>
+       <item row="0" column="2">
+        <property name="text">
+         <string>15-02-1940</string>
+        </property>
+       </item>
+       <item row="1" column="0">
+        <property name="text">
+         <string>citrix_login_to_xamarin_with_a</string>
+        </property>
+       </item>
+       <item row="1" column="1">
+        <property name="text">
+         <string>IF</string>
+        </property>
+       </item>
+       <item row="1" column="2">
+        <property name="text">
+         <string>15-02-1929</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>459</x>
+      <y>2</y>
+      <width>180</width>
+      <height>276</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="10" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonCancel">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonTF">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Text Finder</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0" colspan="2">
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonEdit">
+       <property name="text">
+        <string>Edit</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonRemove">
+       <property name="text">
+        <string>Remove</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonOF">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Object Finder</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0" colspan="2">
+      <widget class="Line" name="line_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Delay[s]:</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonRF">
+       <property name="text">
+        <string>Rect Finder</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QSpinBox" name="spinBoxDelay">
+       <property name="maximum">
+        <number>60</number>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="QPushButton" name="pushButtonIF">
+       <property name="text">
+        <string>Image Finder</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
  </widget>
  <resources/>

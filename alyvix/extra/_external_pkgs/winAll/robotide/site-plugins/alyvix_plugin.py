@@ -2,6 +2,13 @@ import wx
 import os
 import sys
 import site
+
+
+import win32gui
+import re
+
+import win32con
+import win32com.client
         
 from distutils.sysconfig import get_python_lib
 
@@ -126,6 +133,8 @@ class AlyvixRidePlugin(Plugin):
             a = subprocess.Popen("python c:\\alan\\startqt4.py")
             started = True
             """
+        else:
+            self._show_window("Alyvix - Select Finder")
         #worker = Thread(target=self.notepad)
         #worker.setDaemon(True)
         #worker.start()
@@ -134,3 +143,44 @@ class AlyvixRidePlugin(Plugin):
         print "close"
         #os.killpg(self.p.pid, signal.SIGTERM)  # Send the signal to all the process groups
         self.p.kill()
+        
+    def _get_hwnd(self, window_title):
+        windows_found = []
+        hwnd_list = []
+        win32gui.EnumWindows(self.__window_enumeration_handler, windows_found)
+        self._win_found = None
+        for hwnd_found, title_found in windows_found:
+            if re.match(window_title, title_found, re.DOTALL) is not None and \
+                    (win32gui.IsWindowVisible(hwnd_found) != 0 or win32gui.GetWindowTextLength(hwnd_found) > 0):
+                hwnd_list.append(hwnd_found)
+
+                try:
+                    rect = win32gui.GetWindowRect(hwnd_found)
+                    x = rect[0]
+                    y = rect[1]
+                    w = rect[2] - x
+                    h = rect[3] - y
+
+
+                    self._win_found = title_found + ", is visible: x=" + str(x) + ", y=" + str(y) + ", width=" + str(w) + ", height=" + str(h)
+                except:
+                    self._win_found = "nothing to show, window doesn't exist anymore"
+
+        return hwnd_list
+
+    def __window_enumeration_handler(self, hwnd, windows):
+        windows.append((hwnd, win32gui.GetWindowText(hwnd)))
+        
+    def _show_window(self, window_title):
+
+        hwnd_found_list = self._get_hwnd(window_title)
+        for hwnd_found in hwnd_found_list:
+
+            win32gui.SetWindowPos(hwnd_found,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+            win32gui.SetWindowPos(hwnd_found,win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+            win32gui.SetWindowPos(hwnd_found,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_SHOWWINDOW + win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+
+            if win32gui.IsIconic(hwnd_found) != 0: #restore first
+                win32gui.ShowWindow(hwnd_found, win32con.SW_RESTORE)
+                
+            win32gui.SetForegroundWindow(hwnd_found)

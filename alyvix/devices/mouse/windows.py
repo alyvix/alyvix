@@ -103,6 +103,10 @@ class MouseManager(MouseManagerBase):
                 self.ahk.ahkExec("Click WheelDown".decode("utf-8"))
             elif direction == self.wheel_up:
                 self.ahk.ahkExec("Click WheelUp".decode("utf-8"))
+            elif direction == self.wheel_left:
+                self.ahk.ahkExec("Click WheelLeft".decode("utf-8"))
+            elif direction == self.wheel_right:
+                self.ahk.ahkExec("Click WheelRight".decode("utf-8"))
 
     def hold(self, x, y):
 

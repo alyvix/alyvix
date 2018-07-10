@@ -11,7 +11,7 @@ Alyvix is a **synthetic monitoring system based on computer vision**. Alyvix syn
 
 Alyvix provides **certifications on user perceived quality of IT services**. Alyvix certifies that users are able to successfully complete a certain application task.
 
-[Get started with Alyvix!](http://www.alyvix.com/getting-started-3/)
+[Get started with Alyvix!](http://alyvix.com/doc/getting_started/install.html)
 
 ## Use case examples
 

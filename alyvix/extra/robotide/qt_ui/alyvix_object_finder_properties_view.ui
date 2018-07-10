@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>560</width>
-    <height>267</height>
+    <height>262</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>393</x>
-     <y>226</y>
+     <y>230</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -30,7 +30,7 @@
    <property name="geometry">
     <rect>
      <x>476</x>
-     <y>226</y>
+     <y>230</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -132,38 +132,18 @@
      <height>82</height>
     </rect>
    </property>
-   <widget class="QWidget" name="gridLayoutWidget_2">
+   <widget class="QPushButton" name="pushButtonEditObj_2">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>376</width>
-      <height>67</height>
+      <x>2</x>
+      <y>3</y>
+      <width>121</width>
+      <height>23</height>
      </rect>
     </property>
-    <layout class="QGridLayout" name="gridLayout_2">
-     <item row="0" column="1">
-      <widget class="QPushButton" name="pushButtonRoiRedraw">
-       <property name="text">
-        <string>Roi Redraw</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QPushButton" name="pushButtonEditObj_2">
-       <property name="text">
-        <string>Edit</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="2">
-      <widget class="QPushButton" name="pushButtonRemoveObj_2">
-       <property name="text">
-        <string>Remove</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <property name="text">
+     <string>Edit</string>
+    </property>
    </widget>
   </widget>
   <widget class="QListWidget" name="listWidget">
@@ -172,7 +152,7 @@
      <x>9</x>
      <y>9</y>
      <width>157</width>
-     <height>203</height>
+     <height>182</height>
     </rect>
    </property>
    <property name="selectionMode">
@@ -544,6 +524,65 @@
    <attribute name="buttonGroup">
     <string notr="true">buttonGroup_5</string>
    </attribute>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>196</y>
+     <width>158</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_3">
+    <item row="0" column="0">
+     <widget class="QPushButton" name="pushButtonSelAll">
+      <property name="text">
+       <string>Select All</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QPushButton" name="pushButtonDesAll">
+      <property name="text">
+       <string>Deselect All</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="2">
+     <widget class="QPushButton" name="pushButtonDelete">
+      <property name="text">
+       <string>Remove</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>57</x>
+     <y>709</y>
+     <width>376</width>
+     <height>67</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="1">
+     <widget class="QPushButton" name="pushButtonRemoveObj_2">
+      <property name="text">
+       <string>Remove</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QPushButton" name="pushButtonRoiRedraw">
+      <property name="text">
+       <string>Roi Redraw</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

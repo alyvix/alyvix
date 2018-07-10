@@ -21,10 +21,12 @@
 import sys
 import os
 import time
+import datetime
 import cv2
+import locale
 
-from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox, QKeySequence, QShortcut
-from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect, QEvent
+from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox, QKeySequence, QShortcut, QTableWidgetItem, QDateTimeEdit,QHeaderView, QAbstractItemView
+from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect, QEvent, QDate,QDateTime, pyqtSlot, SLOT
 
 from PyQt4.QtWebKit import QWebSettings
 
@@ -48,15 +50,35 @@ from stat import S_ISREG, ST_CTIME, ST_MODE, ST_MTIME
 import shutil
 from distutils.sysconfig import get_python_lib
 
+main_menu_last_pos = None
+
+last_selected_index = -1
+last_selected_name = None
+
+old_order = Qt.DescendingOrder
+old_section = 3
+
 
 class AlyvixMainMenuController(QDialog, Ui_Form):
 
     def __init__(self):
         QDialog.__init__(self)
         
+        global main_menu_last_pos
+        global last_selected_index
+        
+        global old_order
+        global old_section
+        
+        last_selected_index = -1
+        
         self._deleted_obj_name = None
         self._deleted_file_name = None
-
+        
+        self.is_AlyvixMainMenuController = True        
+        
+        old_order = Qt.DescendingOrder
+        old_section = 3
 
         info_manager = InfoManager()
         self.scaling_factor = info_manager.get_info("SCALING FACTOR FLOAT")
@@ -67,12 +89,27 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 
         #self.listWidgetAlyObj = listWidgetAlyObj2()
 
-        self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor),
-                          int(self.frameGeometry().height() * self.scaling_factor))
+        #self.resize(int(self.frameGeometry().width() * self.scaling_factor),
+        #                  int(self.frameGeometry().height() * self.scaling_factor))
+        
+        self.resize(int(780 * self.scaling_factor),
+                          int(400 * self.scaling_factor))
 
-        self.label.setGeometry(QRect(int(8*self.scaling_factor), int(7*self.scaling_factor),
-                                     int(211*self.scaling_factor), int(16*self.scaling_factor)))
-
+        self.widget.setGeometry(int(self.widget.x() * self.scaling_factor), int(self.widget.y()*self.scaling_factor),
+                                            int(self.widget.width()*self.scaling_factor), int(self.widget.height()*self.scaling_factor))
+                                            
+        
+        self.widget_2.setGeometry(QRect(int(self.widget_2.x()*self.scaling_factor), int(self.widget_2.y()*self.scaling_factor),
+                                      int(self.widget_2.width()*self.scaling_factor), int(self.widget_2.height()*self.scaling_factor)))
+                                      
+        self.gridLayoutWidget.setGeometry(QRect(int(self.gridLayoutWidget.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget.geometry().y() * self.scaling_factor),
+                                          int(self.gridLayoutWidget.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget.geometry().height() * self.scaling_factor)))
+                               
+        self.gridLayoutWidget_2.setGeometry(QRect(int(self.gridLayoutWidget_2.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().y() * self.scaling_factor),
+                                          int(self.gridLayoutWidget_2.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().height() * self.scaling_factor)))
+                                          
+        
+        """
         self.pushButtonNew.setGeometry(QRect(int(8*self.scaling_factor), int(235*self.scaling_factor)
                                              , int(60*self.scaling_factor), int(23*self.scaling_factor)))
         self.pushButtonEdit.setGeometry(QRect(int(80*self.scaling_factor), int(235*self.scaling_factor),
@@ -83,15 +120,21 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.listWidgetAlyObj.setGeometry(QRect(int(8*self.scaling_factor), int(28*self.scaling_factor),
                                                 int(218*self.scaling_factor), int(191*self.scaling_factor)))
 
-        self.spinBoxDelay.setGeometry(QRect(int(184*self.scaling_factor), int(332*self.scaling_factor),
+        self.spinBoxDelay.setGeometry(QRect(int(184*self.scaling_factor), int(9000*self.scaling_factor),
                                             int(42*self.scaling_factor), int(22*self.scaling_factor)))
-        self.label_2.setGeometry(QRect(int(135*self.scaling_factor), int(333*self.scaling_factor),
+        self.label_2.setGeometry(QRect(int(135*self.scaling_factor), int(9000*self.scaling_factor),
                                        int(37*self.scaling_factor), int(20*self.scaling_factor)))
+         
+        """         
+        
+        if main_menu_last_pos is not None:
+            self.move(main_menu_last_pos[0],main_menu_last_pos[1])
+
 
         #self.setWindowTitle('Application Object Properties')
-        self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.Window)
         
-        self.connect(self.pushButtonNew, SIGNAL("clicked()"), self.add_item)
+        #self.connect(self.pushButtonNew, SIGNAL("clicked()"), self.add_item)
         self.connect(self.pushButtonEdit, SIGNAL("clicked()"), self.edit_item)
         self.connect(self.pushButtonRemove, SIGNAL("clicked()"), self.remove_item)
         self.connect(self.pushButtonCancel, SIGNAL("clicked()"), self.cancel_action)
@@ -100,11 +143,15 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.connect(self.pushButtonIF, SIGNAL("clicked()"), self.open_imagefinder_view)
         self.connect(self.pushButtonTF, SIGNAL("clicked()"), self.open_textfinder_view)
         self.connect(self.pushButtonOF, SIGNAL("clicked()"), self.open_objectfinder_controller)
+        
+        self.connect(self.lineEditSearch, SIGNAL("textChanged(QString)"), self, SLOT("search_event(QString)"))
+        self.lineEditSearch.installEventFilter(self)
+        
         #self.connect(self.pushButtonCC, SIGNAL("clicked()"), self.open_customcode_controller)
         
         #self.listWidgetAlyObj.installEventFilter(self)
-        self.listWidgetAlyObj.keyPressEvent = lambda event: event.ignore()
-        self.listWidgetAlyObj.installEventFilter(self)
+        self.tableWidget.keyPressEvent = lambda event: event.ignore()
+        self.tableWidget.installEventFilter(self)
         
         self.window = None
         self.full_file_name = None
@@ -112,6 +159,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.robot_file_name = None
         self.action = ""
         self.xml_name = ""
+        self.build_objects = True
         
         if len(sys.argv) > 1:
             self.full_file_name = sys.argv[1]
@@ -120,36 +168,165 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.update_path()
         self.update_list()
         
-        self.gridLayoutWidget.hide()
-        self.pushButtonCancel.hide()
+        self.widget_2.hide()
         
         QShortcut(QKeySequence("Ctrl+D"), self, self.doSomething)
         QShortcut(QKeySequence("down"), self, self.goDown)
         QShortcut(QKeySequence("up"), self, self.goUp)
         QShortcut(QKeySequence("return"), self, self.edit_item)
         
+        self.old_window_w = None
+        self.old_window_h = None 
+        self.resizeTimer = QTimer()
+        self.connect(self.resizeTimer, SIGNAL("timeout()"), self.resize_done)
+        
+        self.setMinimumWidth(int(340 * self.scaling_factor))
+        self.setMinimumHeight(int(290 * self.scaling_factor))
+        
+        
+        header = self.tableWidget.horizontalHeader()
+        header.setDefaultAlignment(Qt.AlignLeft)
+        
+        header.setDefaultSectionSize(int(340*self.scaling_factor))
+        
+        
+        header.setResizeMode(0, QHeaderView.Interactive)
+        header.setResizeMode(1, QHeaderView.ResizeToContents)
+        
+        self.tableWidget.resizeRowsToContents()
+        
+    
+    def showEvent(self, event):
+        global main_menu_last_pos
+        global last_selected_index
+        global last_selected_name
+        
+        #print last_selected_index
+        
+        if main_menu_last_pos is not None:
+            self.move(main_menu_last_pos[0],main_menu_last_pos[1])
+        
+        if last_selected_name is not None:
+            allRows = self.tableWidget.rowCount()
+            row_selected = False
+            for row_index in xrange(0,allRows):              
+                
+                name = self.tableWidget.item(row_index, 0).data(Qt.EditRole).toString()
+                
+                if last_selected_name == name:
+                    self.tableWidget.setFocus()
+                    self.tableWidget.selectRow(row_index)
+                    row_selected = True
+                    
+            if row_selected is False:
+                self.tableWidget.setFocus()
+                self.tableWidget.selectRow(0)
+        elif last_selected_index == -2:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(self.tableWidget.rowCount()-1)
+        elif self.tableWidget.rowCount() == 0:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(0)        
+        elif self.tableWidget.rowCount() > 0 and last_selected_index == -1:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(0)
+            last_selected_index = 0
+        elif last_selected_index != -1 and self.tableWidget.rowCount() > 0:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(last_selected_index)
+        
+        
+    def moveEvent(self, event):
+        global main_menu_last_pos
+        main_menu_last_pos = (self.frameGeometry().x(), self.frameGeometry().y())
+        #print main_menu_last_pos
+    
+    def resizeEvent(self, event):
+    
+        self.resize_all()
+        
+    def resize_done(self):
+        self.old_window_w = self.frameGeometry().width()
+        self.old_window_h = self.frameGeometry().height()
+    
+    def resize_all(self):
+
+        #340 310
+        
+        #if resize_factor_h >= 1 and resize_factor_w >= 1:
+        self.widget.setGeometry(QRect(self.widget.x(), self.widget.y(),
+                                            int(self.frameGeometry().width()), int(self.frameGeometry().height())))
+                                            
+        self.gridLayoutWidget_2.setGeometry(QRect(self.gridLayoutWidget_2.x(), self.gridLayoutWidget_2.y(),
+                                            int(self.frameGeometry().width() - (220*self.scaling_factor)), int(self.frameGeometry().height() - (60*self.scaling_factor))))
+                                            
+        self.gridLayoutWidget.setGeometry(QRect(self.gridLayoutWidget_2.x() + self.gridLayoutWidget_2.width() + (10*self.scaling_factor), self.gridLayoutWidget.y(),
+                                            int(self.gridLayoutWidget.width()), int(self.gridLayoutWidget.height())))
+                                                
+        #self.resizeTimer.start(500)
+        self.widget_2.setGeometry(QRect(int((self.width()/2) - (self.widget_2.width()/2)), int(10*self.scaling_factor),
+                               int(self.widget_2.width()), int(self.widget_2.height())))
+
+    
+        """
+        window_w = self.frameGeometry().width()
+        window_h = self.frameGeometry().height() 
+        
+
+        self.listWidgetAlyObj.setGeometry(QRect(int(8*self.scaling_factor), int(28*self.scaling_factor),
+                                                int(window_w - (28*self.scaling_factor)), int(window_h - (112*self.scaling_factor))))
+                
+        list_w = self.listWidgetAlyObj.width() 
+        list_h = self.listWidgetAlyObj.height() 
+        
+        
+        self.pushButtonNew.setGeometry(QRect(int(8*self.scaling_factor), int(self.listWidgetAlyObj.y() + self.listWidgetAlyObj.height() + (12 * self.scaling_factor))
+                                             , int(60*self.scaling_factor), int(23*self.scaling_factor)))
+        self.pushButtonEdit.setGeometry(QRect(int(80*self.scaling_factor), int(self.listWidgetAlyObj.y() + self.listWidgetAlyObj.height() + (12 * self.scaling_factor)),
+                                              int(60*self.scaling_factor), int(23*self.scaling_factor)))
+        self.pushButtonRemove.setGeometry(QRect(int(151*self.scaling_factor), int(self.listWidgetAlyObj.y() + self.listWidgetAlyObj.height() + (12 * self.scaling_factor)),
+                                                int(75*self.scaling_factor), int(23*self.scaling_factor)))
+
+        self.old_window_h = window_h
+        """
+        
     def doSomething(self):
         self.remove_item()
         
     def goUp(self):
-        selected_index = self.listWidgetAlyObj.currentRow()
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        selected_index = -1
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            selected_index = index.row()
         
         new_index = selected_index - 1
         if new_index < 0:
-            new_index = self.listWidgetAlyObj.count()-1
+            new_index = self.tableWidget.rowCount()-1
         
-        self.listWidgetAlyObj.setCurrentRow(new_index)
+        self.tableWidget.selectRow(new_index)
     
     def goDown(self):
-        selected_index = self.listWidgetAlyObj.currentRow()
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        selected_index = -1
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            selected_index = index.row()
         
         new_index = selected_index + 1
-        if new_index >  self.listWidgetAlyObj.count()-1:
+        if new_index >  self.tableWidget.rowCount()-1:
             new_index = 0
         
-        self.listWidgetAlyObj.setCurrentRow(new_index)
+        self.tableWidget.selectRow(new_index)
         
-        
+    @pyqtSlot(QString)
+    def search_event(self, text):
+        if text == "search...":
+            self.update_list_for_search()
+        elif text == "":
+            self.update_list_for_search()
+        else:
+            self.update_list_for_search(str(text.toUtf8()))
         
     def eventFilter(self, object, event):
         #print event
@@ -157,9 +334,27 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
 
         
         try:
+            if event.type() == event.MouseButtonPress:
+            
+                if self.lineEditSearch.text() == "search..." and object.objectName() == "lineEditSearch":
+                    self.lineEditSearch.setText("")
+                    return True
+                    
+            if event.type()== event.FocusOut:
+                if self.lineEditSearch.text() == "" and object.objectName() == "lineEditSearch":
+                    self.lineEditSearch.setText("search...")
+                    return True
+                
             if event.matches(QKeySequence.Copy):
             #if Qt.ControlModifier == QApplication.keyboardModifiers() and event.key() == Qt.Key_C: 
-                text = self.listWidgetAlyObj.currentItem().text()[:-5]
+                indexes = self.tableWidget.selectionModel().selectedRows()
+                last_index = -1
+                for index in sorted(indexes):
+                    #print('Row %d is selected' % index.row())
+                    last_index = index.row()
+                    
+                text = str(self.tableWidget.item(last_index, 0).data(Qt.EditRole).toString())
+                #print selected_item_data
 
                 clipboard = QApplication.clipboard()
                 clip_text = clipboard.text()
@@ -171,6 +366,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             pass
         return super(AlyvixMainMenuController, self).eventFilter(object, event)
         
+            
     def update_path(self):
         lines = self.full_file_name.split(os.sep)
         self.path = ""
@@ -192,13 +388,201 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print "path", self.path
     
     def remove_item(self):
+        global last_selected_index
         self.action = "remove"
         
-        selected_index = self.listWidgetAlyObj.currentRow()
-        print "selected_index", selected_index
-        #selected_text = self.listWidgetAlyObj.currentItem().text()
-        selected_item_data = self.listWidgetAlyObj.currentItem().data(Qt.UserRole).toString()
-        self.xml_name = str(selected_item_data)
+        row_number_to_remove = []
+        
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        
+        sorted_indexes = sorted(indexes)
+        first_index_to_delete = sorted_indexes[0].row()
+        #print first_index_to_delete
+        
+        if len(indexes) > 0:
+                
+            answer = QMessageBox.No
+
+            answer = QMessageBox.warning(self, "Warning", "Are you sure you want to delete selected item(s)?", QMessageBox.Yes, QMessageBox.No)
+              
+            if answer == QMessageBox.No:
+                return
+                
+        
+        for index in sorted_indexes:
+            #print('Row %d is selected' % index.row())
+            row_number = index.row()
+            row_number_to_remove.append(row_number)
+                
+            #print "type", self.tableWidget.item(last_index, 0).data(Qt.EditRole).toString()
+            #print "name", self.tableWidget.item(last_index, 2).data(Qt.EditRole).toString()
+            #print "filename", self.tableWidget.item(last_index, 0).data(Qt.UserRole).toString()
+            
+            self.xml_name = str(self.tableWidget.item(row_number, 1).data(Qt.UserRole).toString())
+            #self.xml_name = selected_text + ".xml"
+            if self.xml_name.endswith("_RectFinder.xml"):
+                self.alyvix_finder_controller = AlyvixRectFinderView(self)
+            elif self.xml_name.endswith("_ImageFinder.xml"):
+                self.alyvix_finder_controller = AlyvixImageFinderView(self)
+            elif self.xml_name.endswith("_TextFinder.xml"):
+                self.alyvix_finder_controller = AlyvixTextFinderView(self)
+            elif self.xml_name.endswith("_ObjectFinder.xml"):
+                self.alyvix_finder_controller = AlyvixObjectFinderView(self)
+            elif self.xml_name.endswith("_CustomCode.xml"):
+                self.alyvix_finder_controller = AlyvixCustomCodeView(self)
+            
+            self.alyvix_finder_controller.remove_code_from_py_file()
+            
+            
+            if self.xml_name.endswith("_ObjectFinder.xml"):
+                ori_xml_name = self.xml_name
+                main_obj = self.alyvix_finder_controller._main_object_finder
+                
+                self.xml_name = main_obj.xml_path.split(os.sep)[-1]
+                
+                if main_obj.xml_path.endswith("_RectFinder.xml"):
+                    controller = AlyvixRectFinderView(self)
+                elif main_obj.xml_path.endswith("_ImageFinder.xml"):
+                    controller = AlyvixImageFinderView(self)
+                elif main_obj.xml_path.endswith("_TextFinder.xml"):
+                    controller = AlyvixTextFinderView(self)
+                    
+                controller.remove_code_from_py_file()
+                
+                os.remove(self.path + os.sep + str(self.xml_name).replace("xml","png"))
+                os.remove(self.path + os.sep + str(self.xml_name))
+                
+                #print "item removed", self.path + os.sep + str(self.xml_name)
+
+                template_path = self.path + os.sep + str(self.xml_name).replace("_ImageFinder.xml","")
+                
+                #print "template path", template_path
+                
+                if os.path.exists(template_path):
+                    shutil.rmtree(template_path)
+                
+                extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
+                scraper_path = extra_path + os.sep + str(self.xml_name).replace("_TextFinder.xml","")
+                
+                #print "scraper path", scraper_path
+                
+                if os.path.exists(scraper_path):
+                    shutil.rmtree(scraper_path)
+                
+                sub_objects = self.alyvix_finder_controller._sub_objects_finder
+                
+                for sub_obj in sub_objects:
+                
+                    self.xml_name = self.xml_name = sub_obj.xml_path.split(os.sep)[-1]
+
+                    if sub_obj.xml_path.endswith("_RectFinder.xml"):
+                        controller = AlyvixRectFinderView(self)
+                    elif sub_obj.xml_path.endswith("_ImageFinder.xml"):
+                        controller = AlyvixImageFinderView(self)
+                    elif sub_obj.xml_path.endswith("_TextFinder.xml"):
+                        controller = AlyvixTextFinderView(self)
+                        
+                    controller.remove_code_from_py_file()
+                    
+                    os.remove(self.path + os.sep + str(self.xml_name).replace("xml","png"))
+                    os.remove(self.path + os.sep + str(self.xml_name))
+                    
+                    template_path = self.path + os.sep + str(self.xml_name).replace("_ImageFinder.xml","")
+                
+                    #print "template path", template_path
+                    
+                    if os.path.exists(template_path):
+                        shutil.rmtree(template_path)
+                    
+                    extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
+                    scraper_path = extra_path + os.sep + str(self.xml_name).replace("_TextFinder.xml","")
+                    
+                    #print "scraper path", scraper_path
+                    
+                    if os.path.exists(scraper_path):
+                        shutil.rmtree(scraper_path)
+                        
+                self.xml_name = ori_xml_name
+                        
+                self._deleted_obj_name = self.alyvix_finder_controller.delete_lock_list()
+                
+                os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_old_code.txt"))
+                
+                if (os.path.exists(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))):
+                    os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))
+                    
+                        
+            else:
+                os.remove(self.path + os.sep + str(self.xml_name).replace("xml","png"))
+                
+            """
+            if not self.xml_name.endswith("_ObjectFinder.xml"):
+                os.remove(self.path + os.sep + str(self.xml_name).replace("xml","png"))
+            else:
+                self.alyvix_finder_controller.delete_lock_list()
+                os.remove(self.path + os.sep + str(self.xml_name).replace("_ObjectFinder.xml","_old_code.txt"))
+            """
+
+            os.remove(self.path + os.sep + str(self.xml_name))
+            
+            #print "item removed", self.path + os.sep + str(self.xml_name)
+
+            template_path = self.path + os.sep + str(self.xml_name).replace("_ImageFinder.xml","")
+            
+            ##tttttttttt
+            
+            if os.path.exists(template_path):
+                shutil.rmtree(template_path)
+            #self.update_list()
+            
+            extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
+            scraper_path = extra_path + os.sep + str(self.xml_name).replace("_TextFinder.xml","")
+            
+            if os.path.exists(scraper_path):
+                shutil.rmtree(scraper_path)
+            
+            #self.tableWidget.removeRow(row_number)
+            
+
+            #self.listWidgetAlyObj.setFocus();
+            #print index_main_obj
+            
+        #for row_number in row_number_to_remove:
+        #    self.tableWidget.removeRow(row_number)
+            
+        #index_main_obj = self.update_list()
+        
+        index_to_select = self.update_list()
+        
+        if first_index_to_delete - 1 >= 0 :
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(first_index_to_delete - 1)
+            last_selected_index = first_index_to_delete - 1
+                
+        
+        """        
+        if index_main_obj == -1:
+            index_main_obj = row_number
+        """
+        #self.tableWidget.selectRow(0)
+        
+        
+        
+        
+    def remove_item_backup(self):
+        self.action = "remove"
+        
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        last_index = -1
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            last_index = index.row()
+            
+        #print "type", self.tableWidget.item(last_index, 0).data(Qt.EditRole).toString()
+        #print "name", self.tableWidget.item(last_index, 2).data(Qt.EditRole).toString()
+        #print "filename", self.tableWidget.item(last_index, 0).data(Qt.UserRole).toString()
+        
+        self.xml_name = str(self.tableWidget.item(last_index, 1).data(Qt.UserRole).toString())
         #self.xml_name = selected_text + ".xml"
         if self.xml_name.endswith("_RectFinder.xml"):
             self.alyvix_finder_controller = AlyvixRectFinderView(self)
@@ -252,24 +636,61 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         if os.path.exists(scraper_path):
             shutil.rmtree(scraper_path)
         
-        item = self.listWidgetAlyObj.takeItem(selected_index)
-        self.listWidgetAlyObj.removeItemWidget(item)
+        self.tableWidget.removeRow(last_index)
         
         index_main_obj = self.update_list()
         
         if index_main_obj == -1:
-            index_main_obj = selected_index
+            index_main_obj = last_index
         
-        self.listWidgetAlyObj.setCurrentRow(index_main_obj)
+        self.tableWidget.selectRow(index_main_obj)
         #self.listWidgetAlyObj.setFocus();
-        print index_main_obj
+        #print index_main_obj
+        
+    def update_list_for_search(self, text_to_search=None):
+        allRows = self.tableWidget.rowCount()
+        for row_index in xrange(0,allRows):              
+            
+            name = self.tableWidget.item(row_index, 0).data(Qt.EditRole).toString()
+            
+            if text_to_search is not None and text_to_search not in name:
+                self.tableWidget.setRowHidden(row_index, True)
+            else:
+                self.tableWidget.setRowHidden(row_index, False)
+            #print name
+            #type = self.tableWidget.item(row_index, 1).data(Qt.EditRole).toString()
+            #date = self.tableWidget.item(row_index, 2).data(Qt.EditRole).toString()
     
-    def update_list(self):
+    def update_list(self): #, text_to_search=None):
+        global old_order
+        global old_section
+
+        global last_selected_index
+        global last_selected_name
+        
+    
+        header = self.tableWidget.horizontalHeader()
+
+        if header.sortIndicatorOrder() == Qt.AscendingOrder:
+            old_order = Qt.AscendingOrder
+            #print "AscendingOrder"
+        else:
+            old_order = Qt.DescendingOrder
+            #print "DescendingOrder"
+            
+        old_section = header.sortIndicatorSection()
+        #print "sortIndicatorSection", header.sortIndicatorSection()
+        
+        #clear sorting filter
+        header.setSortIndicator(3, Qt.DescendingOrder)
+    
     
         cnt = 0
         deleted_index = -1
     
-        self.listWidgetAlyObj.clear()
+        #self.listWidgetAlyObj.clear()
+        self.tableWidget.setRowCount(0)
+
     
         #dirs = os.listdir(self.full_file_name)
         #dirs = [d for d in os.listdir(self.path) if os.path.isdir(os.path.join(self.path, d))]
@@ -299,6 +720,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
 
         for cdate, path in sorted(entries):
             filename = os.path.basename(path)
+            #print cdate
             
             extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
             
@@ -309,35 +731,158 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                     continue
             #print "fname", filename
             if filename.endswith('.xml') and not filename.endswith('list.xml') and not filename.endswith('data.xml'):
-                item = QListWidgetItem()
+                item_type = QTableWidgetItem()
+                item_date = QTableWidgetItem()
+                item_name = QTableWidgetItem()
                 if filename.endswith('_RectFinder.xml'):
-                    item.setText(filename[:-15] + " [RF]")
+                    item_name.setData(Qt.EditRole, filename[:-15]);#item.setText(filename[:-15] + " [RF]")
+                    item_type.setData(Qt.EditRole, "RF")
                 elif filename.endswith('_ImageFinder.xml'):
-                    item.setText(filename[:-16] + " [IF]")
+                    item_name.setData(Qt.EditRole, filename[:-16]);#item.setText(filename[:-15] + " [RF]")
+                    item_type.setData(Qt.EditRole, "IF")
                 elif filename.endswith("_TextFinder.xml"):
                     if os.path.exists(extra_path + os.sep + filename.replace("_TextFinder.xml","") + os.sep + "scraper.txt"):
-                        item.setText(filename[:-15] + " [TS]")
+                        #item.setText(filename[:-15] + " [TS]")
+                        item_name.setData(Qt.EditRole, filename[:-15]);#item.setText(filename[:-15] + " [RF]")
+                        item_type.setData(Qt.EditRole, "TS")
                     else:
-                        item.setText(filename[:-15] + " [TF]")
+                        item_name.setData(Qt.EditRole, filename[:-15]);#item.setText(filename[:-15] + " [RF]")
+                        item_type.setData(Qt.EditRole, "TF")
                 elif filename.endswith('_ObjectFinder.xml'):
                     if os.path.exists(path.replace("_ObjectFinder.xml","_ObjectFinder.alyscraper")):
-                        item.setText(filename[:-17] + " [OS]")
+                        item_name.setData(Qt.EditRole, filename[:-17]);#item.setText(filename[:-15] + " [RF]")
+                        item_type.setData(Qt.EditRole, "OS")
                     else:
-                        item.setText(filename[:-17] + " [OF]")
-                elif filename.endswith('_CustomCode.xml'):
-                    item.setText(filename[:-15] + " [CC]")
+                        item_name.setData(Qt.EditRole, filename[:-17]);#item.setText(filename[:-15] + " [RF]")
+                        item_type.setData(Qt.EditRole, "OF")
+                        
                     
+
                 if self._deleted_obj_name is not None and (filename[:-15] == self._deleted_obj_name or filename[:-16] == self._deleted_obj_name or filename[:-17] == self._deleted_obj_name):
                     deleted_index = cnt
                     self._deleted_obj_name = None
+                date = datetime.datetime.fromtimestamp(cdate)
+                #print date.strftime("%Y-%m-%d %H:%M:%S")
 
+                some_date =  QDateTime.fromString (date.strftime("%Y-%m-%d %H:%M:%S"), "yyyy-MM-dd HH:mm:ss")
+                #print some_date.toString("yyyy-MM-dd HH:mm:ss")
+                #myDTE = QDateTimeEdit()
+                #myDTE.setDateTime(some_date)
+                item_date.setData(Qt.EditRole, some_date)
                     
-                item.setData(Qt.UserRole, filename)
-                self.listWidgetAlyObj.addItem(item)
+                item_type.setData(Qt.UserRole, filename)
+                
+            
+                self.tableWidget.insertRow ( self.tableWidget.rowCount() );
+                self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                         0, 
+                         item_name);
+                         
+                self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                         1, 
+                         item_type)
+                self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                         2, 
+                         item_date);
+                #print item_date.data(Qt.EditRole).toString()
+                
+                """
+                if text_to_search is None:
+
+
+                    self.tableWidget.insertRow ( self.tableWidget.rowCount() );
+                    self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                             0, 
+                             item_name);
+                             
+                    self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                             1, 
+                             item_type)
+                    self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                             2, 
+                             item_date);
+                    #print item_date.data(Qt.EditRole).toString()
+
+                else:
+
+                    name = str(item_name.data(Qt.EditRole).toString()) + " " + date.strftime("%Y-%m-%d %H:%M:%S")
+                    
+                    if text_to_search in name:
+                        self.tableWidget.insertRow ( self.tableWidget.rowCount() );
+                        self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                                 0, 
+                                 item_name);
+                                 
+                        self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                                 1, 
+                                 item_type)
+                        self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                                 2, 
+                                 item_date);
+                """
+
+                        
+
+ 
+                #item.setData(Qt.UserRole, filename)
+                #self.listWidgetAlyObj.addItem(item)
                 
                 
                 #print time.ctime(cdate), os.path.basename(path)
                 cnt += 1
+        
+        self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        
+        if self.lineEditSearch.text() != "" and self.lineEditSearch.text() != "search...":
+            self.update_list_for_search(self.lineEditSearch.text())
+            
+        #print "last index", last_selected_index
+            
+        
+        header.setSortIndicator(old_section, old_order)
+        
+        if last_selected_name is not None:
+            allRows = self.tableWidget.rowCount()
+            row_selected = False
+            for row_index in xrange(0,allRows):              
+                
+                name = self.tableWidget.item(row_index, 0).data(Qt.EditRole).toString()
+                
+                if last_selected_name == name:
+                    self.tableWidget.setFocus()
+                    self.tableWidget.selectRow(row_index)
+                    row_selected = True
+                    
+            if row_selected is False:
+                self.tableWidget.setFocus()
+                self.tableWidget.selectRow(0)
+
+        elif last_selected_index == -2:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(self.tableWidget.rowCount()-1)
+        elif self.tableWidget.rowCount() == 0:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(0)        
+        elif self.tableWidget.rowCount() > 0 and last_selected_index == -1:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(0)
+            last_selected_index = 0
+        elif last_selected_index != -1 and self.tableWidget.rowCount() > 0:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(last_selected_index)
+                
+            
+                
+        #header.setDefaultSectionSize(int(300*self.scaling_factor))
+        
+        
+        #header.setResizeMode(0, QHeaderView.ResizeToContents)
+        
+        
+        #size = header.sectionSize(0)
+
+        
+        #header.setResizeMode(0, QHeaderView.Interactive)
     
         """
         files = []
@@ -351,7 +896,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             
         print self.listWidgetAlyObj.count() 
         """
-            
+
         return deleted_index
         
     def keyPressEvent(self, event):
@@ -364,68 +909,53 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             self.window.close()
     
     def cancel_action(self):
-        self.restore_view()
+        self.close()
         
     def restore_view(self):
-        self.gridLayoutWidget.hide()
-        self.pushButtonCancel.hide()
-        self.spinBoxDelay.hide()
-        self.label_2.hide()
-        
-        self.listWidgetAlyObj.setGeometry(QRect(int(8*self.scaling_factor), int(28*self.scaling_factor),
-                                                int(218*self.scaling_factor), int(181*self.scaling_factor)))
-        self.pushButtonEdit.show()
-        self.pushButtonNew.show()
-        self.pushButtonRemove.show()
-        self.listWidgetAlyObj.show()
-        self.label.show()
-
-        #self.spinBoxDelay.setGeometry(QRect(62, 500, 111, 23))
-        
-        self.label_2.setGeometry(QRect(int(135*self.scaling_factor), int(333*self.scaling_factor),
-                                       int(37*self.scaling_factor), int(20*self.scaling_factor)))
-        self.spinBoxDelay.setGeometry(QRect(184, 332, 42, 22))
-        
-        self.gridLayoutWidget.setGeometry(QRect(int(8*self.scaling_factor), int(330*self.scaling_factor),
-                                                int(218*self.scaling_factor), int(177*self.scaling_factor)))
-
-        self.pushButtonCancel.setGeometry(QRect(int(62*self.scaling_factor), int(500*self.scaling_factor),
-                                                int(111*self.scaling_factor), int(23*self.scaling_factor)))
+        self.widget.show()
+        self.widget_2.hide()
+        self.resize_all()
     
     def add_item(self):
     
         self.action = "new"
-        self.pushButtonEdit.hide()
-        self.pushButtonNew.hide()
-        self.pushButtonRemove.hide()
-        self.listWidgetAlyObj.hide()
-        self.label.hide()
-        self.gridLayoutWidget.show()
-        self.pushButtonCancel.show()
-        self.spinBoxDelay.show()
-        self.label_2.show()
+        #self.lineEditSearch.setText("search...")
+        self.widget.hide()
+        self.widget_2.show()
         
-        self.label_2.setGeometry(QRect(int(135*self.scaling_factor), int(12*self.scaling_factor),
-                                       int(37*self.scaling_factor), int(20*self.scaling_factor)))
-        self.spinBoxDelay.setGeometry(QRect(int(182*self.scaling_factor), int(10*self.scaling_factor),
-                                            int(42*self.scaling_factor), int(22*self.scaling_factor)))
-        
-        self.gridLayoutWidget.setGeometry(QRect(int(8*self.scaling_factor), int(38*self.scaling_factor),
-                                                int(218*self.scaling_factor), int(197*self.scaling_factor)))
-        self.pushButtonCancel.setGeometry(QRect(int(62*self.scaling_factor), int(235*self.scaling_factor),
-                                                int(111*self.scaling_factor), int(23*self.scaling_factor)))
+                               
+        self.resize_all()
         
                     
     def edit_item(self):
-        self.action = "edit"
+        global last_selected_index
+        global last_selected_name
+        global last_selected_name
     
-        if self.listWidgetAlyObj.currentRow() < 0:
+        self.action = "edit"
+        
+        if self.tableWidget.currentRow() < 0:
             return
             
         #print self.listWidgetAlyObj.currentRow()
         
-        selected_item_data = self.listWidgetAlyObj.currentItem().data(Qt.UserRole).toString()
-        self.xml_name = str(selected_item_data)
+        #selected_row = self.listWidgetAlyObj.currentRow()
+        #print "row", selected_row
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        last_index = -1
+        last_selected_name = None
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            last_index = index.row()
+            
+        last_selected_index = last_index
+        last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
+    
+        #print "type", self.tableWidget.item(last_index, 0).data(Qt.EditRole).toString()
+        #print "name", self.tableWidget.item(last_index, 2).data(Qt.EditRole).toString()
+        #print "filename", self.tableWidget.item(last_index, 0).data(Qt.UserRole).toString()
+        
+        self.xml_name = str(self.tableWidget.item(last_index, 1).data(Qt.UserRole).toString())
         #print selected_item_data
         
         if self.xml_name.endswith("_ObjectFinder.xml"):
@@ -534,51 +1064,74 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print extra_path + os.sep + filename
         
         #print filename
-        item = QListWidgetItem()
+        item_type = QTableWidgetItem()
+        item_date = QTableWidgetItem()
+        item_name = QTableWidgetItem()
         
         #print filename
 
         if filename.endswith('_RectFinder.xml'):
-            item.setText(filename[:-15] + " [RF]")
+            item_name.setData(Qt.EditRole, filename[:-15])#item.setText(filename[:-15] + " [RF]")
+            item_type.setData(Qt.EditRole, "RF")
         elif filename.endswith('_ImageFinder.xml'):
-            item.setText(filename[:-16] + " [IF]")
+            item_name.setData(Qt.EditRole, filename[:-16])
+            item_type.setData(Qt.EditRole, "IF")
         elif filename.endswith("_TextFinder.xml"):
             if os.path.exists(extra_path + os.sep + filename.replace("_TextFinder.xml","") + os.sep + "scraper.txt"):
-                item.setText(filename[:-15] + " [TS]")
+                item_name.setData(Qt.EditRole, filename[:-15])
+                item_type.setData(Qt.EditRole, "TS")
             else:
-                item.setText(filename[:-15] + " [TF]")
+                item_name.setData(Qt.EditRole, filename[:-15])
+                item_type.setData(Qt.EditRole, "TF")
         elif filename.endswith("_ObjectFinder.xml"):
             if os.path.exists(path.replace("_ObjectFinder.xml","_ObjectFinder.alyscraper")):
-                item.setText(filename[:-17] + " [OS]")
+                item_name.setData(Qt.EditRole, filename[:-17])
+                item_type.setData(Qt.EditRole, "OS")
             else:
-                item.setText(filename[:-17] + " [OF]")
-        elif filename.endswith("_CustomCode.xml"):
-            item.setText(filename[:-15] + " [CC]")
-        """
-        elif filename.endswith('_old_code.txt'):
-        
-            cdate, path = list_sorted[-2]
+                item_name.setData(Qt.EditRole, filename[:-17])
+                item_type.setData(Qt.EditRole, "OF")
 
-            penultimate_name = os.path.basename(path)
-        
-            if penultimate_name.endswith('_ObjectFinder.xml'):
-                item.setText(penultimate_name[:-17] + " [OF]")
-                penultimate_name = penultimate_name.replace("_old_code.txt", "_ObjectFinder.xml")
-                
-            else:
-                item.setText(penultimate_name[:-15] + " [CC]")
-                penultimate_name = penultimate_name.replace("_old_code.txt", "_CustomCode.xml")
+        date = datetime.datetime.fromtimestamp(cdate)
+        #print date.strftime("%Y-%m-%d %H:%M:%S")
 
-            item.setData(Qt.UserRole, penultimate_name)
-            self.listWidgetAlyObj.addItem(item)
-            return
-        """
+        some_date =  QDateTime.fromString (date.strftime("%Y-%m-%d %H:%M:%S"), "yyyy-MM-dd HH:mm:ss")
         
-        item.setData(Qt.UserRole, filename)
-        self.listWidgetAlyObj.addItem(item)
+        item_date.setData(Qt.EditRole, some_date)
+        
+        item_type.setData(Qt.UserRole, filename)
+        
+        self.tableWidget.insertRow ( self.tableWidget.rowCount() );
+        self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                 0, 
+                 item_name);
+        self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                 1, 
+                 item_type)
+        self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                 2, 
+                 item_date);
+
         #self.update()
         
     def open_rectfinder_view(self):
+   
+        global last_selected_index
+        global last_selected_name
+        
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        last_index = -1
+        last_selected_name = None
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            last_index = index.row()
+            
+        #last_selected_index = last_index
+        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
+        last_selected_index = self.tableWidget.rowCount()
+    
+        self.action = "new"
+        #self.lineEditSearch.setText("search...")
+    
         self.xml_name = None
         self.restore_view()
         screen_manager = ScreenManager()
@@ -594,6 +1147,22 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
           
         
     def open_imagefinder_view(self):
+        global last_selected_index
+        global last_selected_name
+        
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        last_index = -1
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            last_index = index.row()
+            
+        #last_selected_index = last_index
+        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
+        last_selected_index = self.tableWidget.rowCount()
+        
+        self.action = "new"
+        #self.lineEditSearch.setText("search...")
+    
         self.xml_name = None
         self.restore_view()
         screen_manager = ScreenManager()
@@ -608,6 +1177,22 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_image_finder_controller.showFullScreen()
         
     def open_textfinder_view(self):
+        global last_selected_index
+        global last_selected_name
+        
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        last_index = -1
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            last_index = index.row()
+            
+        #last_selected_index = last_index
+        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
+        last_selected_index = self.tableWidget.rowCount()
+        
+        self.action = "new"
+        #self.lineEditSearch.setText("search...")
+    
         self.xml_name = None
         self.restore_view()
         screen_manager = ScreenManager()
@@ -622,6 +1207,24 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_text_finder_controller.showFullScreen()
         
     def open_objectfinder_controller(self):
+        global last_selected_index
+        global last_selected_name
+        
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        last_index = -1
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            last_index = index.row()
+            
+        #last_selected_index = last_index
+        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
+        last_selected_index = -2
+        
+        print last_selected_name
+        
+        self.action = "new"
+        #self.lineEditSearch.setText("search...")
+    
         self.xml_name = None
         self.restore_view()
         self.hide()

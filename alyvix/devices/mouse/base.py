@@ -30,6 +30,8 @@ class MouseManagerBase(object):
         self.middle_button = 3
         self.wheel_up = 4
         self.wheel_down = 5
+        self.wheel_left = 6
+        self.wheel_right = 7
         self._info_manager = InfoManager()
         self._log_manager = LogManager()
         self._scaling_factor = self._info_manager.get_info("SCALING FACTOR FLOAT")

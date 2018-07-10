@@ -25,7 +25,7 @@ import cv2
 import copy
 from ast import parse
 
-from PyQt4.QtGui import QApplication, QWidget, QCursor, QImage, QPainter, QPainter, QPen, QColor, QPixmap, QBrush, QPainterPath, QDialog, QListWidgetItem , QTextEdit, QHBoxLayout, QTextCharFormat, QMessageBox, QFont, QFontMetrics, QTextCursor
+from PyQt4.QtGui import QApplication, QWidget, QCursor, QImage, QPainter, QPainter, QPen, QColor, QPixmap, QBrush, QPainterPath, QDialog, QListWidgetItem , QTextEdit, QHBoxLayout, QTextCharFormat, QMessageBox, QFont, QFontMetrics, QTextCursor,QGridLayout, QPushButton
 from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QPoint, QRect, QModelIndex, SLOT, pyqtSlot, QString, QChar
 from PyQt4.Qt import QFrame
 
@@ -55,6 +55,9 @@ import codecs
 
 from distutils.sysconfig import get_python_lib
 
+last_pos = None
+last_row_selected = -1
+
 
 class dummy():
     def __init__(self):
@@ -67,6 +70,7 @@ class dummy():
         self.parent = None
         self.objectfinder_view = None
         self.scaling_factor = None
+        self.build_objects = True
         
     def set_parent(self, parent):
         self.parent = parent
@@ -85,12 +89,17 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     def __init__(self, parent):
         QDialog.__init__(self)
         
+        global last_pos
+        global last_row_selected
+        last_row_selected = -1
+        
         self.setMouseTracking(True)
 		
         self._main_deleted = False
         self._roi_restored_after_deleted_main = 0
         
         self._old_sub_roi = []
+        self.text_finder_roi_modified = []
 
         # Set up the user interface from Designer.
         self.setupUi(self)
@@ -103,6 +112,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.last_selected_index = 0
         
         self.scaling_factor = self.parent.scaling_factor
+        
+        self.pushButtonRoiRedraw.setEnabled(False)
+        self.pushButtonRoiRedraw.hide()
+        
+        self.pushButtonRemoveObj_2.setEnabled(False)
+        self.pushButtonRemoveObj_2.hide()
+        
         
         #self.setFixedSize(self.size())
         self.setFixedSize(int(self.frameGeometry().width() * self.scaling_factor), int(self.frameGeometry().height() * self.scaling_factor))
@@ -125,13 +141,23 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self.widget_2.setGeometry(QRect(int(self.widget_2.geometry().x() * self.scaling_factor), int(self.widget_2.geometry().y() * self.scaling_factor),
                                         int(self.widget_2.geometry().width() * self.scaling_factor), int(self.widget_2.geometry().height() * self.scaling_factor)))
-                                
+        
+        
+        self.pushButtonEditObj_2.setGeometry(QRect(int(self.pushButtonEditObj_2.geometry().x() * self.scaling_factor), int(self.pushButtonEditObj_2.geometry().y() * self.scaling_factor),
+                                        int(self.pushButtonEditObj_2.geometry().width() * self.scaling_factor), int(self.pushButtonEditObj_2.geometry().height() * self.scaling_factor)))
+              
+              
         self.gridLayoutWidget_2.setGeometry(QRect(int(self.gridLayoutWidget_2.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().y() * self.scaling_factor),
                                           int(self.gridLayoutWidget_2.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().height() * self.scaling_factor)))
 
-        
+        self.gridLayoutWidget_3.setGeometry(QRect(int(self.gridLayoutWidget_3.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget_3.geometry().y() * self.scaling_factor),
+                                          int(self.gridLayoutWidget_3.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_3.geometry().height() * self.scaling_factor)))
+                        
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         
+        
+        if last_pos is not None:
+            self.move(last_pos[0],last_pos[1])
 
         self._path = self.parent.path
         self.action = self.parent.action
@@ -167,7 +193,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.textEdit.setGeometry(QRect(8, 9, 520, 172))
         self.textEdit.setText(self.build_code_string())
         
+        self._old_object_finder_config = None
+        
+        self._added_objects = []
+        
         self.build_objects()
+        #print self._old_object_finder_config
+        #print self._added_objects
         #print self._main_object_finder.xml_path
         self._old_main_object = copy.deepcopy(self._main_object_finder)
         self._old_sub_objects = copy.deepcopy(self._sub_objects_finder)
@@ -245,6 +277,11 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 scraper = True
                         
             item = QListWidgetItem()
+            
+            if sub_object.show is True:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
                 
             if filename.endswith('_RectFinder.xml'):
                 item.setText(filename[:-15] + " [RF]")
@@ -265,7 +302,15 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         #self.listWidget.item(0).setSelected(True)
         self.timeout_spinbox.setValue(self._main_object_finder.timeout)      
         
-        self.listWidget.setCurrentRow(0)
+        #self.listWidget.setCurrentRow(0)
+        
+        try:
+            if self._main_object_finder.show is True:
+                self.listWidget.item(0).setCheckState(Qt.Checked)
+            else:
+                self.listWidget.item(0).setCheckState(Qt.Unchecked)
+        except:
+            pass
         
         if self._main_object_finder.timeout_exception is False:
             self.timeout_exception.setChecked(False)
@@ -308,7 +353,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.namelineedit.setText("")  
         
         self.connect(self.listWidget, SIGNAL('itemSelectionChanged()'), self.listWidget_selection_changed)
-        #self.connect(self.listWidget, SIGNAL('itemChanged(QListWidgetItem*)'), self, SLOT('listWidget_state_changed(QListWidgetItem*)'))
+        
+        self.connect(self.pushButtonSelAll, SIGNAL('clicked()'), self.sel_all_event)
+        self.connect(self.pushButtonDesAll, SIGNAL('clicked()'), self.des_all_event)
+        self.connect(self.pushButtonDelete, SIGNAL('clicked()'), self.delete_event)
+        
+        
+        self.connect(self.listWidget, SIGNAL('itemChanged(QListWidgetItem*)'), self, SLOT('listWidget_state_changed(QListWidgetItem*)'))
         
         self.connect(self.wait_radio, SIGNAL('toggled(bool)'), self.wait_radio_event)
         self.connect(self.wait_disapp_radio, SIGNAL('toggled(bool)'), self.wait_disapp_radio_event)
@@ -381,7 +432,77 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.listWidget.setCurrentRow(self.parent.last_view_index)
         """
         
+        
+    def saveUpdatedTextRoi(self):
+        
+        cnt = 0        
+        for sub_obj in self._sub_objects_finder:
+            if sub_obj.is_textfinder is True and cnt in self.text_finder_roi_modified:
+                self.is_object_finder_menu = False
+                s_controller = dummy()
+                s_controller.set_parent(self)
+                s_controller.action = "edit"
+                s_controller.path = self.parent.path
+                s_controller.robot_file_name =  self._robot_file_name
+                s_controller.scaling_factor = self.parent.scaling_factor
+                s_controller.xml_name = sub_obj.xml_path.split(os.sep)[-1]
+                s_controller.objectfinder_view = self
+                
+                image = QImage(s_controller.path + os.sep + s_controller.xml_name.replace("xml", "png"))
+                
+                object = AlyvixTextFinderView(s_controller)
+                    
+                object.parent_is_objfinder = True
+                
+                object.set_bg_pixmap(image)
+                
+                object._main_text.roi_x = sub_obj.roi_x + self._main_object_finder.x
+                object._main_text.roi_y = sub_obj.roi_y + self._main_object_finder.y
+                object._main_text.roi_width = sub_obj.roi_width
+                object._main_text.roi_height = sub_obj.roi_height
+                
+                object._main_text.roi_unlimited_up = sub_obj.roi_unlimited_up
+                object._main_text.roi_unlimited_down = sub_obj.roi_unlimited_down
+                object._main_text.roi_unlimited_left = sub_obj.roi_unlimited_left
+                object._main_text.roi_unlimited_right = sub_obj.roi_unlimited_right
+               
+                
+                object.save_all()
+                #print "save_all"
+                self.is_object_finder_menu = True
+            cnt += 1
+            
+        self.text_finder_roi_modified = []
+        self._old_main_object = copy.deepcopy(self._main_object_finder)
+        self._old_sub_objects = copy.deepcopy(self._sub_objects_finder)
+        
+    def showEvent(self, event):
+        global last_pos
+        global last_row_selected
+        if last_pos is not None:
+            self.move(last_pos[0],last_pos[1])
+            
+        if self.listWidget.count() == 0:
+            self.listWidget.setCurrentRow(0) 
+            last_row_selected = 0             
+        elif self.listWidget.count() > 0 and last_row_selected == -1:
+            self.listWidget.setCurrentRow(0)  
+            last_row_selected = 0
+        elif last_row_selected != -1 and self.listWidget.count() > 0:
+            self.listWidget.setCurrentRow(last_row_selected)
+
+            
+                
+        
+        
+    def moveEvent(self, event):
+        global last_pos
+        last_pos = (self.frameGeometry().x(), self.frameGeometry().y())
+        
     def save_all(self):
+        #print self._old_object_finder_config
+        #print self._added_objects
+    
         if self._main_object_finder != None and self.ok_pressed is False:
             self.ok_pressed = True
             
@@ -412,6 +533,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             #time.sleep(0.4)
             if self.action == "new":
                 self.parent.add_new_item_on_list()
+                
+        try:
+            if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.update_list()
+        except:
+            pass
             
         self.parent.show()
         self.pv.close()
@@ -430,16 +557,109 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         
     def cancel_all(self):
+        #print "cancel"
         self._main_object_finder = copy.deepcopy(self._old_main_object)
-        self._sub_objects_finder = copy.deepcopy(self._old_sub_objects)
+        self._sub_objects_finder = copy.deepcopy(self._old_sub_objects)      
+            
+        self.is_object_finder_menu = False
+         
+        """
+        if self._old_object_finder_config is not None:
+            filename = self._old_object_finder_config[0]
+            print "FILENAME", filename
+            old_controller_config = self._old_object_finder_config[1]
+            current_controller_config = open(filename, "r").read()
+
+            
+            if old_controller_config != current_controller_config:
+                with open(filename, "w") as text_file:
+                    text_file.write(old_controller_config)
+        """
         
+        for idx, added_obj in enumerate(self._added_objects):
+            old_obj_config = added_obj[1]
+            filename = added_obj[0]
+            current_obj_config = open(filename, "r").read()
+            
+            if old_obj_config != current_obj_config:
+            
+                """
+                with open(filename.replace(".xml", "_old.xml"), "w") as text_file:
+                    text_file.write(old_obj_config)
+                with open(filename.replace(".xml", "_curr.xml"), "w") as text_file:
+                    text_file.write(current_obj_config)
+                """                    
+            
+                m_controller = dummy()
+                m_controller.set_parent(self)
+                m_controller.action = "edit"
+                m_controller.path = self.parent.path
+                m_controller.robot_file_name =  self._robot_file_name
+                m_controller.scaling_factor = self.parent.scaling_factor
+                m_controller.xml_name = filename.split(os.sep)[-1]
+                m_controller.objectfinder_view = self
+                #m_controller.build_objects = False
+                
+                image = QImage(m_controller.path + os.sep + m_controller.xml_name.replace("xml", "png"))
+                
+                if filename.endswith('_RectFinder.xml'):
+                    object = AlyvixRectFinderView(m_controller)
+                    object._main_rect_finder = None
+                    object._sub_rects_finder = []
+                elif filename.endswith('_ImageFinder.xml'):
+                    object = AlyvixImageFinderView(m_controller)
+                    object._main_template = None
+                    object._sub_templates_finder = []
+                elif filename.endswith('_TextFinder.xml'):
+                    object = AlyvixTextFinderView(m_controller)
+                    object._main_text = None
+                    object._sub_texts_finder = []
+                    
+                with open(filename, "w") as text_file:
+                    text_file.write(old_obj_config)
+                    
+                object.build_objects()
+                
+                object.set_bg_pixmap(image)
+                
+                object.save_all()
+                
+        """
         if self.action == "edit":
             self.build_code_array()
             self.update_lock_list()
             self.parent.update_list()
             self.build_xml()
-            self.save_python_file()
+            self.save_python_file()   
+        """
+        if self._old_object_finder_config is not None:
+            filename = self._old_object_finder_config[0]
+            #print "FILENAME", filename
+            old_controller_config = self._old_object_finder_config[1]
+            current_controller_config = open(filename, "r").read()
+
+            
+            if old_controller_config != current_controller_config:
+                with open(filename, "w") as text_file:
+                    text_file.write(old_controller_config)
+                    
+            self._main_object_finder = MainObjectForGui()
+            self._sub_objects_finder = []
+            self.build_objects()
+            self.update_lock_list()
+            self.parent.update_list()
+                    
+            self.save_python_file() 
+                    
+        #print self._added_objects
+        
                 
+        try:
+            if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.update_list()
+        except:
+            pass
+            
         self.parent.show()
         try:
             self.pv.close()
@@ -448,7 +668,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.close()
         
     def pushButtonCancel_event(self):
-        self.close()
+        #self.close()
         self.cancel_all()
         
     def is_valid_variable_name(self, name):
@@ -459,6 +679,29 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             return False
 
     def pushButtonOk_event(self):
+    
+        if self._main_deleted is True:
+        
+            self.remove_code_from_py_file()
+            
+            deleted_obj_name = self.delete_lock_list()
+
+            os.remove(self._path + os.sep + str(self._xml_name).replace("_ObjectFinder.xml","_old_code.txt"))
+            
+
+            if (os.path.exists(self._path + os.sep + str(self._xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))):
+                os.remove(self._path + os.sep + str(self._xml_name).replace("_ObjectFinder.xml","_ObjectFinder.alyscraper"))
+                
+            os.remove(self._path + os.sep + str(self._xml_name))
+            
+            #print "obj xml name", self._path + os.sep + str(self._xml_name)
+                
+            self.parent.update_list()
+            self.parent.show()
+            self.close()
+
+            return
+    
         answer = QMessageBox.Yes
         
         #print "name button", self._main_object_finder.name
@@ -706,6 +949,10 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self._sub_objects_finder[cnt].y = main_obj.y
             self._sub_objects_finder[cnt].height = main_obj.height
             self._sub_objects_finder[cnt].width = main_obj.width
+            if filename.endswith('_TextFinder.xml'):
+                self._sub_objects_finder[cnt].is_textfinder = True
+            else:
+                self._sub_objects_finder[cnt].is_textfinder = False
             self._sub_objects_finder[cnt].mouse_or_key_is_set = main_obj.mouse_or_key_is_set
         
     
@@ -783,11 +1030,16 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 main_obj = AlyvixTextFinderView(m_controller)
                 main_obj.build_objects()
                 main_obj = main_obj._main_text
+                main_obj.is_textfinder = True
             
             self._sub_objects_finder[cnt].x = main_obj.x
             self._sub_objects_finder[cnt].y = main_obj.y
             self._sub_objects_finder[cnt].height = main_obj.height
             self._sub_objects_finder[cnt].width = main_obj.width
+            if filename.endswith('_TextFinder.xml'):
+                self._sub_objects_finder[cnt].is_textfinder = True
+            else:
+                self._sub_objects_finder[cnt].is_textfinder = False
             self._sub_objects_finder[cnt].mouse_or_key_is_set = main_obj.mouse_or_key_is_set
         
     
@@ -796,11 +1048,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         #filename = open(self._path + os.sep + self._xml_name,"r")
         #print filename
-        
+        #print "build_object"
         try:
             filehandler = open(self._path + os.sep + self._xml_name,"r")
         except:
             return
+            
+        self._old_object_finder_config = (self._path + os.sep + self._xml_name, open(self._path + os.sep + self._xml_name, "r").read())
 
         doc = minidom.parse(filehandler)
         
@@ -810,6 +1064,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         main_obj_node = doc.getElementsByTagName("main_object")[0]
 
         xml_name = main_obj_node.getElementsByTagName("xml_path")[0].firstChild.nodeValue
+        xml_name = self._path + os.sep + xml_name.split(os.sep)[-1]
+        
+        self._added_objects.append(((xml_name), open(xml_name).read()))
         
         main_obj = None           
         m_controller = dummy()
@@ -832,6 +1089,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             main_obj.build_objects()
             main_obj = main_obj._main_text
             
+        #print "objjjjj", xml_name
         self._main_object_finder = MainObjectForGui()
         self._main_object_finder.xml_path = self._path + os.sep + os.path.basename(xml_name) #xml_name
         #print "xml path:", self._main_object_finder.xml_path
@@ -896,6 +1154,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         for sub_object_node in sub_object_nodes:
             filename = sub_object_node.getElementsByTagName("xml_path")[0].firstChild.nodeValue
+            filename = self._path + os.sep + filename.split(os.sep)[-1]
+            
+            self._added_objects.append(((filename), open(filename).read()))
                         
             item = QListWidgetItem()
             
@@ -922,6 +1183,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             
             sub_object = SubObjectForGui()
             sub_object.xml_path = self._path + os.sep + os.path.basename(filename)
+                
+            if filename.endswith('_TextFinder.xml'):
+                sub_object.is_textfinder = True
                 
             sub_object.x = main_obj.x
             sub_object.y = main_obj.y
@@ -1668,6 +1932,83 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     
         self._sub_objects_finder = copy.deepcopy(self._old_sub_roi)
         
+    def reset_all_sub_roi(self, old_pos):
+    
+        #self._old_sub_roi = copy.deepcopy(self._sub_objects_finder)
+    
+    
+        cnt_sub = 1
+        for sub_obj in self._sub_objects_finder:
+            #print "cnt_sub", cnt_sub
+            cnt_sub += 1
+            
+            if sub_obj.roi_height == 0 or sub_obj.roi_width == 0:
+                return
+            
+            #print sub_obj.roi_x, sub_obj.roi_y, sub_obj.roi_height,sub_obj.roi_width
+            
+            #self.parent._deleted_sub_objects.append(copy.deepcopy(sub_obj))
+            
+            if sub_obj.is_textfinder is True:
+                #print sub_obj.is_textfinder
+                
+                offset_main_x = old_pos[0] - self._main_object_finder.x
+                offset_main_y = old_pos[1] - self._main_object_finder.y
+                
+                sub_obj.roi_x +=  offset_main_x
+                sub_obj.roi_y += offset_main_y
+                
+                #print "exit"
+            else:
+            
+            
+                hw_factor = 0
+                
+                if sub_obj.height < sub_obj.width:
+                    hw_factor = sub_obj.height
+                else:
+                    hw_factor = sub_obj.width
+                
+                roi_height = int(0.95 * hw_factor) + sub_obj.height
+
+                roi_width = int(0.95 * hw_factor) + sub_obj.width
+
+
+                roi_width_half = int((roi_width - sub_obj.width)/2)
+
+                roi_height_half = int((roi_height - sub_obj.height)/2)
+
+
+                sub_obj.roi_x =  (sub_obj.x - self._main_object_finder.x) - roi_width_half
+                sub_obj.roi_y =  (sub_obj.y - self._main_object_finder.y) - roi_height_half
+                sub_obj.roi_height = sub_obj.height + (roi_height_half*2)
+                sub_obj.roi_width = sub_obj.width + (roi_width_half*2)
+                
+                
+                """
+                roi_height = int(0.30*hw_factor*self.scaling_factor) + sub_obj.height
+
+                roi_width = int(0.30*hw_factor*self.scaling_factor) + sub_obj.width
+                
+
+                roi_width_half = int((roi_width - sub_obj.width)/2)
+                roi_height_half = int((roi_height - sub_obj.height)/2)
+
+                sub_obj.roi_x =  (sub_obj.x - self._main_object_finder.x) - roi_width_half
+                sub_obj.roi_y =  (sub_obj.y - self._main_object_finder.y) - roi_height_half
+                sub_obj.roi_height = roi_height
+                sub_obj.roi_width = roi_width
+                """
+             
+            sub_obj.roi_unlimited_up = False
+            sub_obj.roi_unlimited_down = False
+            sub_obj.roi_unlimited_left = False
+            sub_obj.roi_unlimited_right = False
+
+        self._old_main_object = copy.deepcopy(self._main_object_finder)
+        self._old_sub_objects = copy.deepcopy(self._sub_objects_finder)
+        
+        #print "update"
     
     def delete_all_sub_roi(self):
     
@@ -1747,6 +2088,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         filename = xml_name
         filename = filename.split(os.sep)[-1]
         
+        self._added_objects.append(((xml_name), open(xml_name).read()))
+        
         extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.parent.path.split(os.sep)[-1] + "_extra"
         scraper_path = extra_path + os.sep + filename.replace("_TextFinder.xml","")
         scraper_file = scraper_path + os.sep + "scraper.txt"
@@ -1821,6 +2164,14 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         #self.listWidget.addItem(item)
         #self.build_main_object()
         
+        try:
+            if self._main_object_finder.show is True:
+                self.listWidget.item(0).setCheckState(Qt.Checked)
+            else:
+                self.listWidget.item(0).setCheckState(Qt.Unchecked)
+        except:
+            pass
+        
         
         self.pv = PaintingView(self)
         image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
@@ -1832,6 +2183,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
     
         filename = xml_name
         filename = filename.split(os.sep)[-1]
+        
+        self._added_objects.append(((xml_name), open(xml_name).read()))
         
         scraper = False
         extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.parent.path.split(os.sep)[-1] + "_extra"
@@ -1877,6 +2230,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             main_obj = main_obj._main_text
 
         item.setData(Qt.UserRole, filename)
+        item.setCheckState(Qt.Checked)
         self.listWidget.addItem(item)
         
         sub_object = SubObjectForGui()
@@ -1886,15 +2240,62 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         sub_object.y = main_obj.y
         sub_object.height = main_obj.height
         sub_object.width = main_obj.width
+        
+        if filename.endswith('_TextFinder.xml'):
+            sub_object.roi_x = main_obj.roi_x - self._main_object_finder.x
+            sub_object.roi_y = main_obj.roi_y - self._main_object_finder.y
+            sub_object.roi_height = main_obj.roi_height
+            sub_object.roi_width = main_obj.roi_width
+            sub_object.is_textfinder = True
+            
+        else:
+            hw_factor = 0
+
+            if sub_object.height < sub_object.width:
+                hw_factor = sub_object.height
+            else:
+                hw_factor = sub_object.width
+                
+            roi_height = int(0.95 * hw_factor) + sub_object.height
+
+            roi_width = int(0.95 * hw_factor) + sub_object.width
+
+
+            roi_width_half = int((roi_width - sub_object.width)/2)
+
+            roi_height_half = int((roi_height - sub_object.height)/2)
+
+
+            sub_object.roi_x =  (sub_object.x - self._main_object_finder.x) - roi_width_half
+            sub_object.roi_y =  (sub_object.y - self._main_object_finder.y) - roi_height_half
+            sub_object.roi_height = sub_object.height + (roi_height_half*2)
+            sub_object.roi_width = sub_object.width + (roi_width_half*2)
+
+            """
+            roi_height = int(0.30*hw_factor*self.scaling_factor) + sub_object.height #int(10*self.scaling_factor) + sub_object.height
+
+            roi_width = int(0.30*hw_factor*self.scaling_factor) + sub_object.width #int(10*self.scaling_factor) + sub_object.width
+
+
+            roi_width_half = int((roi_width - sub_object.width)/2)
+            roi_height_half = int((roi_height - sub_object.height)/2)
+
+            sub_object.roi_x =  (sub_object.x - self._main_object_finder.x) - roi_width_half
+            sub_object.roi_y =  (sub_object.y - self._main_object_finder.y) - roi_height_half
+            sub_object.roi_height = roi_height
+            sub_object.roi_width = roi_width
+            """
+        
         sub_object.mouse_or_key_is_set = main_obj.mouse_or_key_is_set
         sub_object.scraper = scraper
         self._sub_objects_finder.append(sub_object)
         #self.build_sub_object(sub_object)
         
         self.pv = PaintingView(self)
-        image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
-        self.pv.set_bg_pixmap(image)
-        self.pv.showFullScreen()
+        #image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
+        #self.pv.set_bg_pixmap(image)
+        #self.pv.showFullScreen()
+        #self.show()
         self._can_set_roi_unlim = True
         
         return True
@@ -2126,10 +2527,151 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self._main_object_finder.timeout_exception = True
         else:
             self._main_object_finder.timeout_exception = False
+    
+    def sel_all_event(self):
+  
+        #print "count",self.listWidget.count()
+        for row_index in range(self.listWidget.count()):
+        
+            self.listWidget.item(row_index).setCheckState(Qt.Checked)
+            
+       
+    def des_all_event(self):
+
+        for row_index in range(self.listWidget.count()):
+        
+            self.listWidget.item(row_index).setCheckState(Qt.Unchecked)
+        
+    def delete_event(self):
+    
+        index_to_remove = []
+        #print self._sub_objects_finder
+        delete_main = False
+        for row_index in range(self.listWidget.count()):
+                if row_index == 0 and self.listWidget.item(row_index).checkState() == 2: 
+                    delete_main = True
+                if row_index != 0 and self.listWidget.item(row_index).checkState() == 2:
+                    #print row_index - 1
+                    #del self._sub_objects_finder[row_index-1]
+                    index_to_remove.append(row_index-1)
+                    
+        if len(index_to_remove):
+            answer = QMessageBox.No
+        
+            answer = QMessageBox.warning(self, "Warning", "Are you sure you want to delete selected items?", QMessageBox.Yes, QMessageBox.No)
+              
+            if answer == QMessageBox.No:
+                return
+        
+        self._sub_objects_finder = [i for j, i in enumerate(self._sub_objects_finder) if j not in index_to_remove]
+        
+        item0_text =  self.listWidget.item(0).text()
+        item0_data =  self.listWidget.item(0).data(Qt.UserRole).toString()
+        self.listWidget.clear()
+        
+        item = QListWidgetItem()
+        item.setText(item0_text)
+        item.setData(Qt.UserRole, item0_data)
+        self.listWidget.addItem(item)
+        
+        is_main_scraper = False
+        
+        cnt = 1
+        for sub_object in self._sub_objects_finder:
+        
+            #item = QListWidgetItem()
+            
+            filename = sub_object.xml_path
+            filename = filename.split(os.sep)[-1]
+            
+            scraper = False
+            extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self._path.split(os.sep)[-1] + "_extra"
+            scraper_path = extra_path + os.sep + filename.replace("_TextFinder.xml","")
+            scraper_file = scraper_path + os.sep + "scraper.txt"
+            if os.path.exists(scraper_file):
+                scraper = True
+                is_main_scraper = True
+                        
+            item = QListWidgetItem()
+            
+            if sub_object.show is True:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
+                
+            if filename.endswith('_RectFinder.xml'):
+                item.setText(filename[:-15] + " [RF]")
+            elif filename.endswith('_ImageFinder.xml'):
+                item.setText(filename[:-16] + " [IF]")
+            elif filename.endswith('_TextFinder.xml'):
+                if scraper is True:
+                    item.setText(filename[:-15] + " [TS]")
+                else:
+                    item.setText(filename[:-15] + " [TF]")
+                
+            item.setData(Qt.UserRole, filename)
+            
+            self.listWidget.addItem(item)
+            cnt = cnt + 1
+            
+        if self._main_object_finder.show is True:
+            self.listWidget.item(0).setCheckState(Qt.Checked)
+        else:
+            self.listWidget.item(0).setCheckState(Qt.Unchecked)
+        self.listWidget.item(0).setSelected(True)  
+        
+        
+        if is_main_scraper is False:
+
+            self._main_object_finder.is_scraper = False
+                
+        if delete_main is True and len(self._sub_objects_finder) == 0:
+            self.listWidget.clear()
+            
+            self._main_deleted = True
+
+            self.update_list()
+            
+            self.pv.close()
+            
+        self.widget_2.hide()
+        self.widget.show()
+        #self.widget.setGeometry(QRect(168, 9, 413, 433))
+        self.widget.setGeometry(QRect(self.widget.geometry().x(), self.widget.geometry().y(),
+                                self.widget.geometry().width(), self.widget.geometry().height()))
+             
+                                    
+        self.pv.update()
+        
+    @pyqtSlot(QListWidgetItem)
+    def listWidget_state_changed(self, item):
+        #selected_index = self.listWidget.currentRow()
+        #print "asasascdferfgref"
+        #print self.listWidget.findItems(item.text(), Qt.MatchExactly)
+        
+        show = True
+        
+        if item.checkState() == 0:
+            show = False
+        elif item.checkState() == 2:
+            show = True
+        else:
+            show = False
+        
+        for row_index in range(self.listWidget.count()):
+            if item == self.listWidget.item(row_index):
+                if row_index == 0:
+                    self._main_object_finder.show = show
+                else:
+                    self._sub_objects_finder[row_index-1].show = show
+                    
+        self.pv.update()
         
     def listWidget_selection_changed(self):
-    
+        global last_row_selected
         selected_index = self.listWidget.currentRow()
+        
+        last_row_selected = selected_index   
         
         if selected_index == 0:
             self.widget_2.hide()
@@ -2452,6 +2994,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
     def remove_obj_2(self):
     
+        #print "rrrrr"
+    
         selected_index = self.listWidget.currentRow()
     
         if selected_index == -1:
@@ -2466,9 +3010,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.button_selected = "set_main_object"
             self.open_select_obj_window()
         else:
+        
             item = self.listWidget.takeItem(selected_index)
-            item_path = self.parent.path + os.sep + item.data(Qt.UserRole).toString()
-            if os.path.exists(item_path.replace(".xml",".alyscraper")):
+            #item_path = self.parent.path + os.sep + item.data(Qt.UserRole).toString()
+            
+            scraper_file_name = self._path + os.sep + self._main_object_finder.name + "_ObjectFinder.alyscraper"
+
+            if os.path.exists(scraper_file_name):
                 self._main_object_finder.is_scraper = False
                 #print "scraper is false"
             
@@ -2674,6 +3222,7 @@ class MainObjectForGui:
         self.component_args = ""
         self.timeout = 20
         self.is_scraper = False
+        self.is_textfinder = False
         self.timeout_exception = True
         self.sendkeys = ""
         self.enable_performance = True
@@ -2706,6 +3255,7 @@ class SubObjectForGui:
         self.component_args = ""
         self.mouse_or_key_is_set = False
         self.scraper = False
+        self.is_textfinder = False
         self.x_offset = None
         self.y_offset = None
         
@@ -2748,14 +3298,16 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         self.connect(self.pushButtonCancel, SIGNAL('clicked()'), self.push_button_cancel_event)   
         
     def keyPressEvent(self, event):
-        #print self.parent._main_object_finder
+
+        self.close()
+        
+    def closeEvent(self, event):
         if self.parent._main_object_finder.xml_path != "":
             self.parent.pv = PaintingView(self.parent)
             image = QImage(self.parent._main_object_finder.xml_path.replace("xml", "png"))   
             self.parent.pv.set_bg_pixmap(image)
             self.parent.pv.showFullScreen()
         self.parent.show()
-        self.close()
         
     def update_list(self):
         #dirs = os.listdir(self.full_file_name)
@@ -2833,6 +3385,9 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
                 self.listWidgetAlyObj.addItem(item)
                 
     def push_button_select_event(self):
+        if self.listWidgetAlyObj.count() == 0:
+            return
+            
         if self.parent.button_selected == "set_main_object":
             #print "set_main_object"
             if len(self.parent._sub_objects_finder) != 0:
@@ -2842,7 +3397,7 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
                 self._old_main_list_item = self.parent.listWidget.takeItem(0)
                 self.parent.listWidget.insertItem(0, item)
                 
-                self.parent.delete_all_sub_roi()
+                #self.parent.delete_all_sub_roi()
                 
                 self.parent._main_deleted = True
 
@@ -2851,14 +3406,7 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
             self.add_sub_object()
             
     def push_button_cancel_event(self):
-           
-        #print self.parent._main_object_finder
-        if self.parent._main_object_finder.xml_path != "":
-            self.parent.pv = PaintingView(self.parent)
-            image = QImage(self.parent._main_object_finder.xml_path.replace("xml", "png"))   
-            self.parent.pv.set_bg_pixmap(image)
-            self.parent.pv.showFullScreen()
-        self.parent.show()
+
         self.close()
                 
     def set_main_object(self):
@@ -2872,15 +3420,18 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         
         #self.parent._main_object_finder.xml_path = xml_name
         
+        old_main_pos = (self.parent._main_object_finder.x, self.parent._main_object_finder.y)
+        
         if self.parent.set_main_object(xml_name) is False:
             if self._old_main_list_item is not None:
                 self.parent.listWidget.takeItem(0)
                 self.parent.listWidget.insertItem(0,self._old_main_list_item)
                 self._old_main_list_item = None
-            self.parent.show()
+            #self.parent.show()
             self.close()
             return
         
+        """
         if self.parent._main_deleted is True and len(self.parent._sub_objects_finder) > 0:
             self.parent.pv = PaintingView(self.parent)
             image = QImage(self.parent._main_object_finder.xml_path.replace("xml", "png"))   
@@ -2891,7 +3442,11 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
             self.parent.show()
         else:
             self.parent.show()
+        """
         
+        self.parent._main_deleted = False
+        self.parent.reset_all_sub_roi(old_main_pos)
+        #self.parent.show()
         self.close()
         
     def add_sub_object(self):
@@ -2905,7 +3460,7 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         
         if self.parent.add_sub_object(xml_name) is False:
         
-            self.parent.show()
+            pass #self.parent.show()
         
         self.close()
         
@@ -3033,6 +3588,8 @@ class PaintingView(QWidget):
         
         self.scaling_factor = self.parent.scaling_factor
         
+        self.ignore_release = False
+        
         self._bg_pixmap = QPixmap()
         self.__capturing = False
         
@@ -3099,17 +3656,25 @@ class PaintingView(QWidget):
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
         
     def keyPressEvent(self, event):
+        global last_pos
+        if event.modifiers() == Qt.ControlModifier:
+            self.ignore_release = True
+        
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
-            self.delete_sub_roi()
+            pass #self.delete_sub_roi()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
-            self.restore_sub_roi()    
+            pass #self.restore_sub_roi()    
         if (event.key() == Qt.Key_Escape) or (event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O):
             
             if (event.key() == Qt.Key_O and self.parent._last_sub_object != None and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_height != 0 and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_width != 0):
                 self.parent._last_sub_object = None    
+                self.parent.saveUpdatedTextRoi()
+                self.ignore_release = False
                 self.update()
                 self.parent.show()
                 self.parent.activateWindow()
+                if last_pos is not None:
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._redraw_index = None
                 self.parent._can_set_roi_unlim = False
             elif (event.key() == Qt.Key_O and self.parent._last_sub_object != None and self.parent._last_sub_object.roi_x == 0 and self.parent._last_sub_object.roi_y == 0 and self.parent._last_sub_object.roi_width == 0 and self.parent._last_sub_object.roi_width == 0):
@@ -3117,24 +3682,36 @@ class PaintingView(QWidget):
             elif (event.key() == Qt.Key_Escape and self.parent._last_sub_object != None and self.parent._last_sub_object.roi_width != 0 and self.parent._last_sub_object.roi_width != 0):
                 self.parent._sub_objects_finder[self.parent.sub_object_index] = copy.deepcopy(self.parent._last_sub_object)
                 self.parent._last_sub_object = None    
+                self.parent.saveUpdatedTextRoi()
+                self.ignore_release = False
                 self.update()
                 self.parent.show()
                 self.parent.activateWindow()
+                if last_pos is not None:
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._redraw_index = None
                 self.parent._can_set_roi_unlim = False
             elif (event.key() == Qt.Key_Escape and self.parent._last_sub_object != None and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_height != 0 and self.parent._sub_objects_finder[self.parent.sub_object_index].roi_width != 0):
-                self.parent._last_sub_object = None    
+                self.parent._last_sub_object = None  
+                self.ignore_release = False                
+                self.parent.saveUpdatedTextRoi()
                 self.update()
                 self.parent.show()
                 self.parent.activateWindow()
+                if last_pos is not None:
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._redraw_index = None
                 self.parent._can_set_roi_unlim = False
             elif (event.key() == Qt.Key_Escape and self.parent._last_sub_object != None and self.parent._last_sub_object.roi_x == 0 and self.parent._last_sub_object.roi_y == 0 and self.parent._last_sub_object.roi_width == 0 and self.parent._last_sub_object.roi_width == 0):
                 event.ignore()
             elif (len(self.parent._sub_objects_finder) >0 and self.parent._sub_objects_finder[-1].roi_height != 0 and self.parent._sub_objects_finder[-1].roi_width != 0 and self.parent._main_deleted is False):
                 #self.parent.raise_()
+                self.parent.saveUpdatedTextRoi()
+                self.ignore_release = False
                 self.parent.show()
                 self.parent.activateWindow()
+                if last_pos is not None:
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._redraw_index = None
                 self.parent._can_set_roi_unlim = False
                 #self.close()
@@ -3142,13 +3719,21 @@ class PaintingView(QWidget):
                 item = self.parent.listWidget.takeItem(0 + len(self.parent._sub_objects_finder))
                 self.parent.listWidget.removeItemWidget(item)
                 del self.parent._sub_objects_finder[-1]
+                self.parent.saveUpdatedTextRoi()
+                self.ignore_release = False
                 self.parent.show()
                 self.parent.activateWindow()
+                if last_pos is not None:
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._can_set_roi_unlim = False
 
             elif len(self.parent._sub_objects_finder) == 0:
+                self.parent.saveUpdatedTextRoi()
+                self.ignore_release = False
                 self.parent.show()
                 self.parent.activateWindow()
+                if last_pos is not None:
+                    self.parent.move(last_pos[0],last_pos[1])
                 self.parent._can_set_roi_unlim = False
             #self.parent._can_set_roi_unlim == True
         
@@ -3188,6 +3773,11 @@ class PaintingView(QWidget):
                     if self.__capturing == False:
                         self.parent._sub_objects_finder[_index_roi].roi_unlimited_right = True
                         self.update()
+                        
+    def keyReleaseEvent(self, event):
+        if event.key() == Qt.Key_Control:
+            self.ignore_release = False
+            #print "self.ignore_release", self.ignore_release
         
     def set_bg_pixmap(self, image):
         self._bg_pixmap = QPixmap.fromImage(image)
@@ -3209,44 +3799,274 @@ class PaintingView(QWidget):
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
         
-            self.__click_position = QPoint(QCursor.pos())
-            #self.__capturing = True
+            if event.modifiers() == Qt.ControlModifier:
             
-            if self.__flag_mouse_is_on_border is not None:
-                self.__border_index = self.__flag_mouse_is_on_border
-                self.__drag_border = True
-                if self.__border_index == 0:
-                    self._old_height_rect = self.parent._main_object_finder.height
-                    self._old_width_rect = self.parent._main_object_finder.width
-                    self._old_x_rect = self.parent._main_object_finder.x
-                    self._old_y_rect = self.parent._main_object_finder.y
-                else:
-                    self._old_height_rect = self.parent._sub_objects_finder[self.__border_index-1].height
-                    self._old_width_rect = self.parent._sub_objects_finder[self.__border_index-1].width
-                    self._old_x_rect = self.parent._sub_objects_finder[self.__border_index-1].x
-                    self._old_y_rect = self.parent._sub_objects_finder[self.__border_index-1].y
+                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect != 0:
+                    index = self.__flag_mouse_is_inside_rect -1
                     
-                    self._old_roi_height_rect = self.parent._sub_objects_finder[self.__border_index-1].roi_height
-                    self._old_roi_width_rect = self.parent._sub_objects_finder[self.__border_index-1].roi_width
-                    self._old_roi_x_rect = self.parent._sub_objects_finder[self.__border_index-1].roi_x
-                    self._old_roi_y_rect = self.parent._sub_objects_finder[self.__border_index-1].roi_y
+                    #print self.__flag_mouse_is_inside_rect
                     
-            elif self.__flag_mouse_is_inside_rect is not None:
-                self.__move_index = self.__flag_mouse_is_inside_rect
-                
-        
-                if self.__move_index == 0:
-                    rect = self.parent._main_object_finder
-                else:
-                    rect = self.parent._sub_objects_finder[self.__move_index - 1]
-                
-                self.__position_offset_x = self.__click_position.x() - rect.x
-                self.__position_offset_y =  self.__click_position.y() - rect.y
+                    """
+                    
+                    percentage_screen_w = int(0.1 * self._bg_pixmap.width())
+                    percentage_screen_h = int(0.1 * self._bg_pixmap.height())
+                    percentage_object_w = int(0.5 * self.parent._sub_objects_finder[index].width)
+                    percentage_object_h = int(0.5 * self.parent._sub_objects_finder[index].height)
+                    
+                    roi_height = percentage_screen_h + percentage_object_h + self.parent._sub_objects_finder[index].height
+                    
+                    roi_width = percentage_screen_w + percentage_object_w + self.parent._sub_objects_finder[index].width
+                    
+                    roi_width_half = int((roi_width - self.parent._sub_objects_finder[index].width)/2)
+                    roi_height_half = int((roi_height - self.parent._sub_objects_finder[index].height)/2)
+                    
+                    self.parent._sub_objects_finder[index].roi_x =  (self.parent._sub_objects_finder[index].x - self.parent._main_object_finder.x) - roi_width_half
+                    self.parent._sub_objects_finder[index].roi_y =  (self.parent._sub_objects_finder[index].y - self.parent._main_object_finder.y) - roi_height_half
+                    self.parent._sub_objects_finder[index].roi_height = roi_height
+                    self.parent._sub_objects_finder[index].roi_width = roi_width
+                    """
+                    
 
-            elif self.__drag_border is False:  #and self.__move_rect is False:
-                self.__capturing = True
+                    hw_factor = 0
+
+                    if self.parent._sub_objects_finder[index].height < self.parent._sub_objects_finder[index].width:
+                        hw_factor = self.parent._sub_objects_finder[index].height
+                    else:
+                        hw_factor = self.parent._sub_objects_finder[index].width
+
+                    roi_height = int(0.95 * hw_factor) + self.parent._sub_objects_finder[index].height
+
+                    roi_width = int(0.95 * hw_factor) + self.parent._sub_objects_finder[index].width
+
+
+                    roi_width_half = int((roi_width - self.parent._sub_objects_finder[index].width)/2)
+
+                    roi_height_half = int((roi_height - self.parent._sub_objects_finder[index].height)/2)
+
+
+                    self.parent._sub_objects_finder[index].roi_x =  (self.parent._sub_objects_finder[index].x - self.parent._main_object_finder.x) - roi_width_half
+                    self.parent._sub_objects_finder[index].roi_y =  (self.parent._sub_objects_finder[index].y - self.parent._main_object_finder.y) - roi_height_half
+                    self.parent._sub_objects_finder[index].roi_height = self.parent._sub_objects_finder[index].height + (roi_height_half*2)
+                    self.parent._sub_objects_finder[index].roi_width = self.parent._sub_objects_finder[index].width + (roi_width_half*2)
+                    
+                    """
+                    roi_height = int(0.30*hw_factor*self.scaling_factor) + self.parent._sub_objects_finder[index].height #int(10*self.scaling_factor) + self.parent._sub_objects_finder[index].height
+
+                    roi_width = int(0.30*hw_factor*self.scaling_factor) + self.parent._sub_objects_finder[index].width #int(10*self.scaling_factor) + self.parent._sub_objects_finder[index].width
+
+
+                    roi_width_half = int((roi_width - self.parent._sub_objects_finder[index].width)/2)
+                    roi_height_half = int((roi_height - self.parent._sub_objects_finder[index].height)/2)
+
+                    self.parent._sub_objects_finder[index].roi_x =  (self.parent._sub_objects_finder[index].x - self.parent._main_object_finder.x) - roi_width_half
+                    self.parent._sub_objects_finder[index].roi_y =  (self.parent._sub_objects_finder[index].y - self.parent._main_object_finder.y) - roi_height_half
+                    self.parent._sub_objects_finder[index].roi_height = roi_height
+                    self.parent._sub_objects_finder[index].roi_width = roi_width
+                    """
+                    
+                    
+                    if self.parent._main_object_finder.y + self.parent._sub_objects_finder[index].roi_y < 0:
+                    
+                        under_zero = abs(self.parent._main_object_finder.y + self.parent._sub_objects_finder[index].roi_y)
+                        self.parent._sub_objects_finder[index].roi_y = self.parent._sub_objects_finder[index].roi_y + under_zero
+                        self.parent._sub_objects_finder[index].roi_height = self.parent._sub_objects_finder[index].roi_height - under_zero
+                        
+                    
+                    if self.parent._main_object_finder.y + self.parent._sub_objects_finder[index].roi_y + self.parent._sub_objects_finder[index].roi_height > self._bg_pixmap.height():
+                    
+                        diff = (self.parent._main_object_finder.y + self.parent._sub_objects_finder[index].roi_y + self.parent._sub_objects_finder[index].roi_height) - self._bg_pixmap.height()
+
+                        self.parent._sub_objects_finder[index].roi_height = self.parent._sub_objects_finder[index].roi_height - diff - 1
+                        
+                    if self.parent._main_object_finder.x + self.parent._sub_objects_finder[index].roi_x < 0:
+                    
+                        under_zero = abs(self.parent._main_object_finder.x + self.parent._sub_objects_finder[index].roi_x)
+                        self.parent._sub_objects_finder[index].roi_x = self.parent._sub_objects_finder[index].roi_x + under_zero
+                        self.parent._sub_objects_finder[index].roi_width = self.parent._sub_objects_finder[index].roi_width - under_zero
+                        
+                    
+                    if self.parent._main_object_finder.x + self.parent._sub_objects_finder[index].roi_x + self.parent._sub_objects_finder[index].roi_width > self._bg_pixmap.width():
+                    
+                        diff = (self.parent._main_object_finder.x + self.parent._sub_objects_finder[index].roi_x + self.parent._sub_objects_finder[index].roi_width) - self._bg_pixmap.width()
+
+                        self.parent._sub_objects_finder[index].roi_width = self.parent._sub_objects_finder[index].roi_width - diff - 1
+                    
+                    
+                    
+                    self.parent._sub_objects_finder[index].roi_unlimited_left = False
+                    
+                    self.parent._sub_objects_finder[index].roi_unlimited_right = False
+                    
+                    self.parent._sub_objects_finder[index].roi_unlimited_up = False
+                    
+                    self.parent._sub_objects_finder[index].roi_unlimited_down = False
+                    
+                    if self.parent._sub_objects_finder[index].is_textfinder:
+                        self.parent.text_finder_roi_modified.append(index)                   
+            
+            else:
+        
+                self.__click_position = QPoint(QCursor.pos())
+                #self.__capturing = True
+                
+                if self.__flag_mouse_is_on_border is not None:
+                    self.__border_index = self.__flag_mouse_is_on_border
+                    self.__drag_border = True
+                    if self.__border_index == 0:
+                        self._old_height_rect = self.parent._main_object_finder.height
+                        self._old_width_rect = self.parent._main_object_finder.width
+                        self._old_x_rect = self.parent._main_object_finder.x
+                        self._old_y_rect = self.parent._main_object_finder.y
+                    else:
+                        self._old_height_rect = self.parent._sub_objects_finder[self.__border_index-1].height
+                        self._old_width_rect = self.parent._sub_objects_finder[self.__border_index-1].width
+                        self._old_x_rect = self.parent._sub_objects_finder[self.__border_index-1].x
+                        self._old_y_rect = self.parent._sub_objects_finder[self.__border_index-1].y
+                        
+                        self._old_roi_height_rect = self.parent._sub_objects_finder[self.__border_index-1].roi_height
+                        self._old_roi_width_rect = self.parent._sub_objects_finder[self.__border_index-1].roi_width
+                        self._old_roi_x_rect = self.parent._sub_objects_finder[self.__border_index-1].roi_x
+                        self._old_roi_y_rect = self.parent._sub_objects_finder[self.__border_index-1].roi_y
+                        
+                        if not self.__border_index in self.parent.text_finder_roi_modified:
+                            self.parent.text_finder_roi_modified.append(self.__border_index-1)
+                        
+                elif self.__flag_mouse_is_inside_rect is not None:
+                    self.__move_index = self.__flag_mouse_is_inside_rect
+                    
+            
+                    if self.__move_index == 0:
+                        rect = self.parent._main_object_finder
+                    else:
+                        rect = self.parent._sub_objects_finder[self.__move_index - 1]
+                    
+                    self.__position_offset_x = self.__click_position.x() - rect.x
+                    self.__position_offset_y =  self.__click_position.y() - rect.y
+
+                elif self.__drag_border is False:  #and self.__move_rect is False:
+                    self.__capturing = True
+                
+        elif event.buttons() == Qt.RightButton:
+        
+            if event.modifiers() == Qt.ControlModifier:
+                index = 0
+                delete_sub = False
+                delete_main = False
+                
+                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect == 0 and len(self.parent._sub_objects_finder) == 0:
+                    index = 0
+                    delete_main = True
+                
+                if self.__flag_mouse_is_on_border == 0 and self.__flag_mouse_is_on_border is not None and len(self.parent._sub_objects_finder) == 0:
+                    index = 0
+                    delete_main = True
+                
+                
+                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect != 0 and len(self.parent._sub_objects_finder) > 0 and self.parent._main_deleted is False:
+                    index = self.__flag_mouse_is_inside_rect -1
+                    delete_sub = True
+                
+                if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None and len(self.parent._sub_objects_finder) > 0 and self.parent._main_deleted is False:
+                    index = self.__flag_mouse_is_on_border -1
+                    delete_sub = True
+                    
+                if delete_sub is True:
+                    if self.parent._sub_objects_finder[-1].x != 0 and self.parent._sub_objects_finder[-1].y != 0 \
+                    and self.parent._sub_objects_finder[-1].width != 0 and self.parent._sub_objects_finder[-1].height != 0:
+
+                        """
+                        if selected_index == 0:
+                            item = QListWidgetItem()
+                            item.setText("")
+                            self.listWidget.takeItem(0)
+                            self.listWidget.insertItem(0, item)
+                        
+                            self.button_selected = "set_main_object"
+                            self.open_select_obj_window()
+                        else:
+                        """
+
+                        
+                        item = self.parent.listWidget.takeItem(index + 1)
+                        
+                        filename = self.parent._sub_objects_finder[index].xml_path
+                        filename = filename.split(os.sep)[-1]
+                        
+
+                        extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.parent._path.split(os.sep)[-1] + "_extra"
+                        scraper_path = extra_path + os.sep + filename.replace("_TextFinder.xml","")
+                        scraper_file = scraper_path + os.sep + "scraper.txt"
+                        #print scraper_file
+                        if os.path.exists(scraper_file):
+                            self.parent._main_object_finder.is_scraper = False
+
+                        
+                        #print selected_index
+                        self.parent.listWidget.removeItemWidget(item)
+                        #print "rrrrr"
+                        del self.parent._sub_objects_finder[index]
+
+
+                elif delete_main is True:
+                    try:
+                        self.parent.pv.close()
+                    except:
+                        pass
+
+                    #item = QListWidgetItem()
+                    #item.setText("")
+                    self.parent.listWidget.clear()
+                    #self.parent.listWidget.insertItem(0, item)
+                
+                    #self.parent.button_selected = "set_main_object"
+                    
+                    #self.parent.delete_all_sub_roi()
+                    
+                    self.parent._main_deleted = True
+
+                    self.parent.update_list()
+                    self.parent.widget.show()
+                    self.parent.widget_2.hide()
+                    self.parent.show()
+                    #self.parent.button_selected = "set_main_object"
+                    #self.parent.open_select_obj_window()
+                    
+                                            
+                try:
+                    self.parent.pv.update()
+                except:
+                    pass
+            else:
+
+        
+                if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None:
+
+                    index = self.__flag_mouse_is_on_border-1
+                    
+                    
+                    if self.__flag_mouse_is_on_left_border_roi is True:
+                        self.parent._sub_objects_finder[index].roi_unlimited_left = True
+                        
+                    if self.__flag_mouse_is_on_right_border_roi is True:
+                        self.parent._sub_objects_finder[index].roi_unlimited_right = True
+                        
+                    if self.__flag_mouse_is_on_top_border_roi is True:
+                        self.parent._sub_objects_finder[index].roi_unlimited_up = True
+                        
+                    if self.__flag_mouse_is_on_bottom_border_roi is True:
+                        self.parent._sub_objects_finder[index].roi_unlimited_down = True
+
+                    if self.parent._sub_objects_finder[index].is_textfinder is True:
+                        self.parent.text_finder_roi_modified.append(index)
+                
+            self.update()
             
     def mouseReleaseEvent(self, event):
+        if self.ignore_release is True:
+            event.ignore()
+            self.update()
+            #print "event ignore"
+            return
         if event.button() == Qt.LeftButton:
             self.__capturing = False
 
@@ -3265,6 +4085,7 @@ class PaintingView(QWidget):
                 self.__flag_mouse_is_on_border = None
                 self.__border_index = None
             else:
+                #print "add sub rect roi"
                 self.add_sub_rect_roi()
             
         self.update()
@@ -3323,53 +4144,29 @@ class PaintingView(QWidget):
                     
             x, y, width, height = rect_attributes
             
-            if self.parent._main_deleted is False:
 
-                if self.parent._redraw_index != None:
-                    sub_obj = self.parent._sub_objects_finder[self.parent._redraw_index]
+        
+            for idx, sub_obj in enumerate(self.parent._sub_objects_finder):
+            
+                if x < sub_obj.x and y < sub_obj.y and x + width > sub_obj.x + sub_obj.width and y + height > sub_obj.y + sub_obj.height:    
 
-                else:
-                    sub_obj = self.parent._sub_objects_finder[-1]
-                    
-                    
-                #print x, y, width, height
-                #print sub_obj.x, sub_obj.y, sub_obj.width, sub_obj.height
-                    
-                    
-                if x < sub_obj.x and y < sub_obj.y and x + width > sub_obj.x + sub_obj.width and y + height > sub_obj.y + sub_obj.height:
+                
                     sub_obj.roi_x = x - self.parent._main_object_finder.x
                     sub_obj.roi_y = y - self.parent._main_object_finder.y
                     sub_obj.roi_height = height
                     sub_obj.roi_width = width
                     
-                    if self.parent.redraw_index_from_finder != None:
-                        #print "ind_from_find", self.parent.redraw_index_from_finder
-                        #print "red_index", self.parent._redraw_index
-                        #print self.parent._old_sub_objects[self.parent.redraw_index_from_finder].x,self.parent._old_sub_objects[self.parent.redraw_index_from_finder].y
-                        self.parent._old_sub_objects[self.parent.redraw_index_from_finder] = sub_obj
-                        #print self.parent._old_sub_objects[self.parent.redraw_index_from_finder].x,self.parent._old_sub_objects[self.parent.redraw_index_from_finder].y
-                        self.parent.redraw_index_from_finder = None
+                    self.parent._roi_restored_after_deleted_main = self.parent._roi_restored_after_deleted_main + 1
                     
-                else:
-                    self.parent._sub_objects_finder[-1] = copy.deepcopy(ori_sub)
-                
-            else:
-            
-                for sub_obj in self.parent._sub_objects_finder:
-                
-                    if x < sub_obj.x and y < sub_obj.y and x + width > sub_obj.x + sub_obj.width and y + height > sub_obj.y + sub_obj.height:       
-                        sub_obj.roi_x = x - self.parent._main_object_finder.x
-                        sub_obj.roi_y = y - self.parent._main_object_finder.y
-                        sub_obj.roi_height = height
-                        sub_obj.roi_width = width
+                    if self.parent._roi_restored_after_deleted_main == len(self.parent._sub_objects_finder):
+                        self.parent._roi_restored_after_deleted_main = 0
+                        self.parent._main_deleted = False
                         
-                        self.parent._roi_restored_after_deleted_main = self.parent._roi_restored_after_deleted_main + 1
-                        
-                        if self.parent._roi_restored_after_deleted_main == len(self.parent._sub_objects_finder):
-                            self.parent._roi_restored_after_deleted_main = 0
-                            self.parent._main_deleted = False
-                        
-                        break
+                    
+                    if sub_obj.is_textfinder is True:
+                        self.parent.text_finder_roi_modified.append(idx)
+                    
+                    break
                 
     def convert_mouse_position_into_rect(self):
             
@@ -3463,58 +4260,58 @@ class PaintingView(QWidget):
         if self.parent._main_object_finder is not None:
         
             if self.__drag_border is False and self.__move_index is None and self.__capturing is False and self.parent._main_object_finder.show is True:
-                pass
-                #if self.is_mouse_inside_rect(self.parent._main_object_finder):
-                #    self.__flag_mouse_is_inside_rect = 0
-                #    self.setCursor(QCursor(Qt.SizeAllCursor))
+                if self.is_mouse_inside_rect(self.parent._main_object_finder):
+                    self.__flag_mouse_is_inside_rect = 0
+                    #self.setCursor(QCursor(Qt.SizeAllCursor))
+
                 """
-                if self.is_mouse_on_left_border(self.parent._main_object_finder) and self.is_mouse_on_top_border(self.parent._main_object_finder):
+                elif self.is_mouse_on_left_border(self.parent._main_object_finder) and self.is_mouse_on_top_border(self.parent._main_object_finder):
                     self.__flag_mouse_is_on_left_up_corner = True
                     self.__flag_mouse_is_on_border = 0
                     mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                    #self.setCursor(QCursor(Qt.SizeFDiagCursor))
                     #self.setCursor(Qt.SizeFDiagCursor)
                     
                 elif self.is_mouse_on_right_border(self.parent._main_object_finder) and self.is_mouse_on_top_border(self.parent._main_object_finder):
                     self.__flag_mouse_is_on_right_up_corner = True
                     self.__flag_mouse_is_on_border = 0
                     mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                    #self.setCursor(QCursor(Qt.SizeBDiagCursor))
                     #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
                     
                 elif self.is_mouse_on_right_border(self.parent._main_object_finder) and self.is_mouse_on_bottom_border(self.parent._main_object_finder):
                     self.__flag_mouse_is_on_right_bottom_corner = True
                     self.__flag_mouse_is_on_border = 0
                     mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                    #self.setCursor(QCursor(Qt.SizeFDiagCursor))
                     #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
                     
                 elif self.is_mouse_on_left_border(self.parent._main_object_finder) and self.is_mouse_on_bottom_border(self.parent._main_object_finder):
                     self.__flag_mouse_is_on_left_bottom_corner = True
                     self.__flag_mouse_is_on_border = 0
                     mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                    #self.setCursor(QCursor(Qt.SizeBDiagCursor))
                     #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
                     
                 elif self.is_mouse_on_left_border(self.parent._main_object_finder):
                     self.__flag_mouse_is_on_left_border = True
                     self.__flag_mouse_is_on_border = 0
                     mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
+                    #self.setCursor(QCursor(Qt.SizeHorCursor))
                     #QApplication.setOverrideCursor(Qt.SizeHorCursor)
                                         
                 elif self.is_mouse_on_top_border(self.parent._main_object_finder):
                     self.__flag_mouse_is_on_top_border = True
                     self.__flag_mouse_is_on_border = 0
                     mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
+                    #self.setCursor(QCursor(Qt.SizeVerCursor))
                     #QApplication.setOverrideCursor(Qt.SizeVerCursor)
                     
                 elif self.is_mouse_on_right_border(self.parent._main_object_finder):
                     self.__flag_mouse_is_on_right_border = True
                     self.__flag_mouse_is_on_border = 0
                     mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
+                    #self.setCursor(QCursor(Qt.SizeHorCursor))
                     #QApplication.setOverrideCursor(Qt.SizeHorCursor)
 
                     
@@ -3522,11 +4319,13 @@ class PaintingView(QWidget):
                     self.__flag_mouse_is_on_bottom_border = True
                     self.__flag_mouse_is_on_border = 0
                     mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
+                    #self.setCursor(QCursor(Qt.SizeVerCursor))
                     #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                    
                 """
+
             elif self.__drag_border is True:
-                self.update_border()
+                pass #self.update_border()
             #elif self.__move_index is not None:
             #    self.update_position()
             
@@ -3541,14 +4340,19 @@ class PaintingView(QWidget):
         cnt_sub_text = 1
         for sub_object_finder in self.parent._sub_objects_finder:
         
+            #print "__drag_border", self.__drag_border 
+            #print "__move_index", self.__move_index
+            #print "__capturing", self.__capturing
+            #print "sub_object_finder show", sub_object_finder.show
+        
             if self.__drag_border is False and self.__move_index is None and self.__capturing is False and sub_object_finder.show is True:
                                         
-                #if self.is_mouse_inside_rect(sub_object_finder):
-                #    self.__flag_mouse_is_inside_rect = cnt_sub
-                #    self.setCursor(QCursor(Qt.SizeAllCursor))
+                if self.is_mouse_inside_rect(sub_object_finder):
+                    self.__flag_mouse_is_inside_rect = cnt_sub
+                    #self.setCursor(QCursor(Qt.SizeAllCursor))
                     
         
-                if self.is_mouse_on_left_border_roi(sub_object_finder) and self.is_mouse_on_top_border_roi(sub_object_finder):
+                elif self.is_mouse_on_left_border_roi(sub_object_finder) and self.is_mouse_on_top_border_roi(sub_object_finder):
                     self.__flag_mouse_is_on_left_up_corner_roi = True
                     self.__flag_mouse_is_on_border = cnt_sub
                     mouse_on_border = True
@@ -3675,23 +4479,29 @@ class PaintingView(QWidget):
         if mouse_on_border is False:
             self.__flag_mouse_is_on_border = None
  
-        if self.__flag_mouse_is_on_border is None and self.__flag_mouse_is_inside_rect is None:
+        if self.__flag_mouse_is_on_border is None and self.__flag_mouse_is_inside_rect is None and len(self.parent._sub_objects_finder) > 0:
             if self.__capturing is False:
                 
                 self.draw_cross_lines(qp)
             else:    
                 self.draw_capturing_roi_lines(qp)
+        elif self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_on_border is None:
+            self.setCursor(QCursor(Qt.ArrowCursor))
+        elif len(self.parent._sub_objects_finder) == 0:
+            self.setCursor(QCursor(Qt.ArrowCursor))
         qp.end()   
         
         
     def calc_threshold_inside(self, rect):
-        if rect.roi_height > 16 * self.scaling_factor and rect.roi_width > 16 * self.scaling_factor:
+    
+
+        if rect.height > 16 * self.scaling_factor and rect.width > 16 * self.scaling_factor:
             return int((6 *self.scaling_factor))
-        elif rect.roi_height > 12 * self.scaling_factor and rect.roi_width > 12 * self.scaling_factor:
+        elif rect.height > 12 * self.scaling_factor and rect.width > 12 * self.scaling_factor:
             return int((4 *self.scaling_factor))
-        elif rect.roi_height > 8 * self.scaling_factor and rect.roi_width > 8 * self.scaling_factor:
+        elif rect.height > 8 * self.scaling_factor and rect.width > 8 * self.scaling_factor:
             return int((2 *self.scaling_factor))
-        elif rect.roi_height > 4 * self.scaling_factor and rect.roi_width > 4 * self.scaling_factor:
+        elif rect.height > 4 * self.scaling_factor and rect.width > 4 * self.scaling_factor:
             return int((1 *self.scaling_factor))
         else:
             return 0
@@ -3701,7 +4511,16 @@ class PaintingView(QWidget):
         mouse_position = QPoint(QCursor.pos())
         
         threshold = self.calc_threshold_inside(rect)
+
+        if (mouse_position.x() > rect.x and
+                mouse_position.x() < rect.width + rect.x and
+                mouse_position.y() > rect.y and
+                mouse_position.y() < rect.height + rect.y):
+            return True
+        else:
+            return False
         
+        """
         if (mouse_position.x() > rect.x + threshold and
                 mouse_position.x() < rect.width + rect.x - threshold and
                 mouse_position.y() > rect.y + threshold and
@@ -3709,7 +4528,8 @@ class PaintingView(QWidget):
             return True
         else:
             return False
-            
+        """
+        
     def update_position(self):
     
         rect = None
@@ -4628,7 +5448,7 @@ class PaintingView(QWidget):
             font.setPixelSize(11 * self.scaling_factor);
 
             qp.setFont(font)
-            qp.drawText( QPoint(self.parent._main_object_finder.x -1, self.parent._main_object_finder.y -(4*self.scaling_factor)), "M" )
+            qp.drawText( QPoint(self.parent._main_object_finder.x -1, self.parent._main_object_finder.y -(6*self.scaling_factor)), "M" )
 
             
             qp.fillRect(self.parent._main_object_finder.x,
@@ -4695,7 +5515,7 @@ class PaintingView(QWidget):
                 font.setPixelSize(11 * self.scaling_factor);
 
                 qp.setFont(font)
-                qp.drawText( QPoint(image_finder.x -1, image_finder.y -(4*self.scaling_factor)), str(cnt) )
+                qp.drawText( QPoint(image_finder.x -1, image_finder.y -(6*self.scaling_factor)), str(cnt) )
 
 
             

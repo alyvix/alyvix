@@ -28,6 +28,8 @@ import codecs
 import shutil
 import re
 
+import numpy as np
+
 import time
 
 from PyQt4.QtGui import QApplication, QWidget, QCursor, QImage, QPainter, QPainter, QPen, QColor, QPixmap, QBrush, QPainterPath, QDialog, QListWidgetItem , QTextEdit, QHBoxLayout, QTextCharFormat, QMessageBox, QFont, QFontMetrics, QTextCursor
@@ -36,11 +38,13 @@ from PyQt4.Qt import QFrame
 
 from PyQt4.QtWebKit import QWebSettings
 
-#from alyvix.tools.screen import ScreenCapture
+from alyvix.tools.screen import ScreenManager
 #from alyvix.finders.rectfinder import RectFinder
 from alyvix_image_finder_properties_view import Ui_Form
 #from alyvix_image_finder_properties_view_2 import Ui_Form
 #from alyvix_image_finder_properties_view_3 import Ui_Form as Ui_Form_2
+
+from contouring import Contouring
 
 import xml.dom.minidom as minidom
 import xml.etree.ElementTree as ET
@@ -55,6 +59,20 @@ class AlyvixImageFinderView(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self)
         #self.setupUi(self)
+        
+        self._last_pos = None
+        
+        self.ignore_release = False
+        
+        self._ctrl_is_pressed = False
+        
+        self._dont_build_rect = False
+        
+        self._imageBoxes = []
+        self._textBoxes = []
+        self._rectBoxes = []
+        self._boundingRects = []
+        self._show_boundingrects = False
         
         self.object_name = ""
         self.wait = True
@@ -87,6 +105,8 @@ class AlyvixImageFinderView(QWidget):
         self.__deleted_rects = []
         
         self.last_view_index = 0
+        
+        self._space_toggle = False
         
         #flags
         #self.__flag_mouse_left_button_is_pressed = False
@@ -163,7 +183,8 @@ class AlyvixImageFinderView(QWidget):
         
         #self.update_path_and_name(path)
         
-        self.build_objects()
+        if self.parent.build_objects is True:
+            self.build_objects()
         self.old_mouse_or_key_is_set = self.mouse_or_key_is_set
         self.__old_code = self.get_old_code()
         self.__old_code_v220 = self.get_old_code_v220()
@@ -191,6 +212,8 @@ class AlyvixImageFinderView(QWidget):
         #worker = Thread(target=self.constant_update)
         #worker.setDaemon(True)
         #worker.start()
+
+        
         
     def constant_update(self):
         while True: 
@@ -224,9 +247,12 @@ class AlyvixImageFinderView(QWidget):
                 obj_main_redraw = False
                 obj_sub_redraw = False
                 
+                old_main_pos = None
+                
                 if sel_index == 0:
                     if self.parent.parent._main_object_finder.x != self._main_template.x or self.parent.parent._main_object_finder.y != self._main_template.y or self.parent.parent._main_object_finder.height != self._main_template.height or self.parent.parent._main_object_finder.width != self._main_template.width:
                         obj_main_redraw = True
+                        old_main_pos = (self.parent.parent._main_object_finder.x, self.parent.parent._main_object_finder.y)
                         self.parent.parent._main_object_finder.x = self._main_template.x
                         self.parent.parent._main_object_finder.y = self._main_template.y
                         self.parent.parent._main_object_finder.height = self._main_template.height
@@ -234,34 +260,83 @@ class AlyvixImageFinderView(QWidget):
                 else:
                     if self.parent.parent._sub_objects_finder[sel_index-1].x != self._main_template.x or self.parent.parent._sub_objects_finder[sel_index-1].y != self._main_template.y or self.parent.parent._sub_objects_finder[sel_index-1].height != self._main_template.height or self.parent.parent._sub_objects_finder[sel_index-1].width != self._main_template.width:
                         obj_sub_redraw = True
+                        
                         self.parent.parent._sub_objects_finder[sel_index-1].x = self._main_template.x
                         self.parent.parent._sub_objects_finder[sel_index-1].y = self._main_template.y
                         self.parent.parent._sub_objects_finder[sel_index-1].height = self._main_template.height
                         self.parent.parent._sub_objects_finder[sel_index-1].width = self._main_template.width
                         
+                        hw_factor = 0
+
+                        if self.parent.parent._sub_objects_finder[sel_index-1].height < self.parent.parent._sub_objects_finder[sel_index-1].width:
+                            hw_factor = self.parent.parent._sub_objects_finder[sel_index-1].height
+                        else:
+                            hw_factor = self.parent.parent._sub_objects_finder[sel_index-1].width
+                            
+                        roi_height = int(0.95 * hw_factor) + self.parent.parent._sub_objects_finder[sel_index-1].height
+
+                        roi_width = int(0.95 * hw_factor) + self.parent.parent._sub_objects_finder[sel_index-1].width
+
+
+                        roi_width_half = int((roi_width - self.parent.parent._sub_objects_finder[sel_index-1].width)/2)
+
+                        roi_height_half = int((roi_height - self.parent.parent._sub_objects_finder[sel_index-1].height)/2)
+
+
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_x =  (self.parent.parent._sub_objects_finder[sel_index-1].x - self.parent.parent._main_object_finder.x) - roi_width_half
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_y =  (self.parent.parent._sub_objects_finder[sel_index-1].y - self.parent.parent._main_object_finder.y) - roi_height_half
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_height = self.parent.parent._sub_objects_finder[sel_index-1].height + (roi_height_half*2)
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_width = self.parent.parent._sub_objects_finder[sel_index-1].width + (roi_width_half*2)
+
+
+                        """
+                        roi_height = int(0.30*hw_factor*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].height #int(10*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].height
+
+                        roi_width = int(0.30*hw_factor*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].width #int(10*self.scaling_factor) + self.parent.parent._sub_objects_finder[sel_index-1].width
+
+                        roi_width_half = int((roi_width - self.parent.parent._sub_objects_finder[sel_index-1].width)/2)
+                        roi_height_half = int((roi_height - self.parent.parent._sub_objects_finder[sel_index-1].height)/2)
+
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_x =  (self.parent.parent._sub_objects_finder[sel_index-1].x - self.parent.parent._main_object_finder.x) - roi_width_half
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_y =  (self.parent.parent._sub_objects_finder[sel_index-1].y - self.parent.parent._main_object_finder.y) - roi_height_half
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_height = roi_height
+                        self.parent.parent._sub_objects_finder[sel_index-1].roi_width = roi_width
+                        """
+                        
+                        
+                        """
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_x = 0
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_y = 0
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_height = 0
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_width = 0
+                        """
+                        
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_up = False
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_down = False
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_left = False
                         self.parent.parent._sub_objects_finder[sel_index-1].roi_unlimited_right = False
                         
-                        self.parent.parent.redraw_index_from_finder = sel_index-1
+                        #self.parent.parent.redraw_index_from_finder = sel_index-1
                 
                 try:
                     #self.parent.parent.pv.showFullScreen()
                     if obj_main_redraw is True:
-                        self.parent.parent.delete_all_sub_roi()
+                        self.parent.parent.reset_all_sub_roi(old_main_pos)
                         #self.parent.parent.pv = PaintingView(self.parent.parent)
                         #image = QImage(self.parent.parent._main_object_finder.xml_path.replace("xml", "png"))   
                         #self.parent.parent.pv.set_bg_pixmap(image)
-                        self.parent.parent._main_deleted = True
-                        self.parent.parent.pv.showFullScreen()
+                        #self.parent.parent._main_deleted = True
+                        #self.parent.parent.pv.showFullScreen()
+                        self.parent.parent.pv.update()
                     elif obj_sub_redraw is True:
                         self.parent.parent.sub_object_index = sel_index-1
-                        self.parent.parent.redraw_roi_event()
+                        #self.parent.parent.redraw_roi_event()
+                        try:
+                            self.parent.parent._old_main_object = copy.deepcopy(self.parent.parent._main_object_finder)
+                            self.parent.parent._old_sub_objects = copy.deepcopy(self.parent.parent._sub_objects_finder)
+                        except:
+                            pass
+                        self.parent.parent.pv.update()
                     else:
                         self.parent.parent.pv.update()
                     sel_index = None
@@ -272,6 +347,13 @@ class AlyvixImageFinderView(QWidget):
                     
                     self.parent.parent._main_object_finder.mouse_or_key_is_set = True
                     #print "build_objjjjjjjjjjjjjjjjjjjjj"
+                    
+        except:
+            pass
+            
+        try:
+            if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.update_list()
         except:
             pass
                 
@@ -281,20 +363,105 @@ class AlyvixImageFinderView(QWidget):
     def cancel_all(self):
         self._main_template = copy.deepcopy(self._old_main_template)
         self._sub_templates_finder = copy.deepcopy(self._old_sub_template)
+        try:
+            if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.update_list()
+        except:
+            pass
         self.parent.show()
         self.close()
         
     def set_bg_pixmap(self, image):
         self._bg_pixmap = QPixmap.fromImage(image)
+
+
+
+        #original = cv2.imread(self.parent.path + os.sep + self.parent.xml_name.replace("xml", "png"))
         
+        if not os.path.exists(self._path):
+            os.makedirs(self._path)
+            
+        image_name = self._path + os.sep + time.strftime("image_finder_%d_%m_%y_%H_%M_%S_temp_img.png")
+        self._bg_pixmap.save(image_name,"PNG", -1)
+        time.sleep(0.05)
+        #original = cv2.imread(image_name)
+        #print cv_image
+        #time.sleep(0.1)
+
+        #print scaling_factor
+        
+        contouring_manager = Contouring(
+            canny_threshold1=250*0.2,
+            canny_threshold2=250*0.3,
+            canny_apertureSize=3,
+            hough_threshold=10,
+            hough_minLineLength=30,
+            hough_maxLineGap=1,
+            line_angle_tolerance=0,
+            ellipse_width=2,
+            ellipse_height=2,
+            text_roi_emptiness=0.45,
+            text_roi_proportion=1.3,
+            image_roi_emptiness=0.1,
+            vline_hw_proportion=2,
+            vline_w_maxsize=10,
+            hline_wh_proportion=2,
+            hline_h_maxsize=10,
+            rect_w_minsize=5,
+            rect_h_minsize=5,
+            rect_w_maxsize_01=800,
+            rect_h_maxsize_01=100,
+            rect_w_maxsize_02=100,
+            rect_h_maxsize_02=800,
+            rect_hw_proportion=2,
+            rect_hw_w_maxsize=10,
+            rect_wh_proportion=2,
+            rect_wh_h_maxsize=10,
+            hrect_proximity=10,
+            vrect_proximity=10,
+            vrect_others_proximity=40,
+            hrect_others_proximity=80)
+        # numpy_matrix = contouring.auto_contouring('lena.png')
+        numpy_matrix = contouring_manager.auto_contouring(image_name, scaling_factor=self.scaling_factor)
+        os.remove(image_name)
+        
+        self._rectBoxes = contouring_manager.getRectBoxes(scaling_factor=self.scaling_factor)
+        self._imageBoxes = contouring_manager.getImageBoxes(scaling_factor=self.scaling_factor)
+        self._textBoxes = contouring_manager.getTextBoxes(scaling_factor=self.scaling_factor)
+                
+        self._boundingRects.extend(self._textBoxes)
+        self._boundingRects.extend(self._imageBoxes)
+        self._boundingRects.extend(self._rectBoxes)
+    
     def keyPressEvent(self, event):
+    
+        if event.modifiers() == Qt.ControlModifier:
+            self._ctrl_is_pressed = True
+            self._dont_build_rect = True
+    
+        if event.key() == Qt.Key_Space and self.__flag_capturing_sub_template is False and self.set_xy_offset is None and self._space_toggle is False: 
+            self._show_boundingrects = True
+            self.ignore_release = True
+            self._dont_build_rect = True
+            self._space_toggle = True
+            self.update()
+            
+        elif event.key() == Qt.Key_Space and self.__flag_capturing_sub_template is False and self.set_xy_offset is None and self._space_toggle is True: 
+            self._show_boundingrects = False
+            self.ignore_release = False
+            self._dont_build_rect = False
+            #self.ignore_release = False
+            self._space_toggle = False
+            self.update()
+    
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
             
-            if self.set_xy_offset is None:
+            if self.set_xy_offset is None and self._show_boundingrects is False:
                 self.delete_rect()
                 
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
-            self.restore_rect()
+            if self.set_xy_offset is None and self._show_boundingrects is False:
+                self.restore_rect()
         if event.key() == Qt.Key_Escape:
             
             if len(self._sub_templates_finder) == 0 and self._main_template is None:
@@ -319,6 +486,15 @@ class AlyvixImageFinderView(QWidget):
                         self.__flag_capturing_sub_template = False
         
                 self.set_xy_offset = None
+                self._ctrl_is_pressed = False
+                
+                self._show_boundingrects = False
+                self.ignore_release = False
+                self._dont_build_rect = False
+                #self.ignore_release = False
+                self._space_toggle = False
+                self.update()
+                
                 self.image_view_properties = AlyvixImageFinderPropertiesView(self)
                 self.image_view_properties.show()
             """
@@ -345,7 +521,6 @@ class AlyvixImageFinderView(QWidget):
                 self.image_view_properties.show()
             """    
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_O: #and self.set_xy_offset is None:
-        
             if len(self._sub_templates_finder) == 0 and self._main_template is None:
                 try:
                     self.image_view_properties.close()
@@ -368,6 +543,15 @@ class AlyvixImageFinderView(QWidget):
                         self.__flag_capturing_sub_template = False
         
                 self.set_xy_offset = None
+                self._ctrl_is_pressed = False
+                
+                self._show_boundingrects = False
+                self.ignore_release = False
+                self._dont_build_rect = False
+                #self.ignore_release = False
+                self._space_toggle = False
+                self.update()
+                
                 self.image_view_properties = AlyvixImageFinderPropertiesView(self)
                 self.image_view_properties.show()
             """
@@ -413,6 +597,20 @@ class AlyvixImageFinderView(QWidget):
             if self.__flag_capturing_sub_template == True:
                 self._sub_templates_finder[-1].roi_unlimited_right = True
                 self.update()
+                
+    def keyReleaseEvent(self, event):
+        if event.key() == Qt.Key_Control:
+            self._ctrl_is_pressed = False
+            self.ignore_release = False
+            self._dont_build_rect = False
+        """
+        if event.key() == Qt.Key_Space: 
+            self._show_boundingrects = False
+            self.ignore_release = False
+            self._dont_build_rect = False
+            #self.ignore_release = False
+        """
+        self.update()
     
     def save_template_images(self, image_name):
     
@@ -448,9 +646,10 @@ class AlyvixImageFinderView(QWidget):
         self.update()
         
     def mouseDoubleClickEvent(self, event):
-        if False is True:
-            #self.BringWindowToFront()
+        if self._ctrl_is_pressed is True or self._show_boundingrects is True:
+            event.ignore()
             return
+            
         if self.is_mouse_inside_rect(self._main_template) and self.set_xy_offset is None:
         
             if len(self._sub_templates_finder) > 0:
@@ -471,53 +670,250 @@ class AlyvixImageFinderView(QWidget):
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
         
-            self.__click_position = QPoint(QCursor.pos())
-                        
-            if self.set_xy_offset is not None:
+            if event.modifiers() == Qt.ControlModifier and self._show_boundingrects is False and self.set_xy_offset is None:
             
-                if self.set_xy_offset == -1:
-                    self._main_template.x_offset = self.__click_position.x() - self._main_template.x
-                    self._main_template.y_offset = self.__click_position.y() - self._main_template.y
-                else:
-                    #print "indexxxxxx", self.set_xy_offset
-                    self._sub_templates_finder[self.set_xy_offset].x_offset = self.__click_position.x() - self._sub_templates_finder[self.set_xy_offset].x
-                    self._sub_templates_finder[self.set_xy_offset].y_offset = self.__click_position.y() - self._sub_templates_finder[self.set_xy_offset].y
-            elif self.__flag_mouse_is_on_border is not None:
-                self.__border_index = self.__flag_mouse_is_on_border
-                self.__drag_border = True
-                if self.__border_index == 0:
-                    self._old_height_rect = self._main_template.height
-                    self._old_width_rect = self._main_template.width
-                    self._old_x_rect = self._main_template.x
-                    self._old_y_rect = self._main_template.y
-                else:
-                    self._old_height_rect = self._sub_templates_finder[self.__border_index-1].height
-                    self._old_width_rect = self._sub_templates_finder[self.__border_index-1].width
-                    self._old_x_rect = self._sub_templates_finder[self.__border_index-1].x
-                    self._old_y_rect = self._sub_templates_finder[self.__border_index-1].y
+            
+                self.ignore_release = True
+            
+                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect != 0:
+                    index = self.__flag_mouse_is_inside_rect -1
+                                       
+                    """
+                    percentage_screen_w = int(0.1 * self._bg_pixmap.width())
+                    percentage_screen_h = int(0.1 * self._bg_pixmap.height())
+                    percentage_object_w = int(0.5 * self._sub_templates_finder[index].width)
+                    percentage_object_h = int(0.5 * self._sub_templates_finder[index].height)
                     
-                    self._old_roi_height_rect = self._sub_templates_finder[self.__border_index-1].roi_height
-                    self._old_roi_width_rect = self._sub_templates_finder[self.__border_index-1].roi_width
-                    self._old_roi_x_rect = self._sub_templates_finder[self.__border_index-1].roi_x
-                    self._old_roi_y_rect = self._sub_templates_finder[self.__border_index-1].roi_y
+                    roi_height = percentage_screen_h + percentage_object_h + self._sub_templates_finder[index].height
                     
-            elif self.__flag_mouse_is_inside_rect is not None:
-                self.__move_index = self.__flag_mouse_is_inside_rect
-                
-        
-                if self.__move_index == 0:
-                    rect = self._main_template
-                else:
-                    rect = self._sub_templates_finder[self.__move_index - 1]
-                
-                self.__position_offset_x = self.__click_position.x() - rect.x
-                self.__position_offset_y =  self.__click_position.y() - rect.y
+                    roi_width = percentage_screen_w + percentage_object_w + self._sub_templates_finder[index].width
+                    """
+                    hw_factor = 0
+                    
+                    if self._sub_templates_finder[index].height < self._sub_templates_finder[index].width:
+                        hw_factor = self._sub_templates_finder[index].height
+                    else:
+                        hw_factor = self._sub_templates_finder[index].width
+                    
+                    
+                    roi_height = int(0.95 * hw_factor) + self._sub_templates_finder[index].height
 
-            elif self.__drag_border is False:  #and self.__move_rect is False:
-                self.__capturing = True
+                    roi_width = int(0.95 * hw_factor) + self._sub_templates_finder[index].width
+
+
+                    roi_width_half = int((roi_width - self._sub_templates_finder[index].width)/2)
+
+                    roi_height_half = int((roi_height - self._sub_templates_finder[index].height)/2)
+
+
+                    self._sub_templates_finder[index].roi_x =  (self._sub_templates_finder[index].x - self._main_template.x) - roi_width_half
+                    self._sub_templates_finder[index].roi_y =  (self._sub_templates_finder[index].y - self._main_template.y) - roi_height_half
+                    self._sub_templates_finder[index].roi_height = self._sub_templates_finder[index].height + (roi_height_half*2)
+                    self._sub_templates_finder[index].roi_width = self._sub_templates_finder[index].width + (roi_width_half*2)
+                    
+                    """
+                    roi_height = int(0.30*hw_factor*self.scaling_factor) + self._sub_templates_finder[index].height
+
+                    roi_width = int(0.30*hw_factor*self.scaling_factor) + self._sub_templates_finder[index].width
+                    
+                    roi_width_half = int((roi_width - self._sub_templates_finder[index].width)/2)
+                    roi_height_half = int((roi_height - self._sub_templates_finder[index].height)/2)
+                    
+                    self._sub_templates_finder[index].roi_x =  (self._sub_templates_finder[index].x - self._main_template.x) - roi_width_half
+                    self._sub_templates_finder[index].roi_y =  (self._sub_templates_finder[index].y - self._main_template.y) - roi_height_half
+                    self._sub_templates_finder[index].roi_height = roi_height
+                    self._sub_templates_finder[index].roi_width = roi_width
+                    """
+                    
+                    if self._main_template.y + self._sub_templates_finder[index].roi_y < 0:
+                    
+                        under_zero = abs(self._main_template.y + self._sub_templates_finder[index].roi_y)
+                        self._sub_templates_finder[index].roi_y = self._sub_templates_finder[index].roi_y + under_zero
+                        self._sub_templates_finder[index].roi_height = self._sub_templates_finder[index].roi_height - under_zero
+                        
+                    
+                    if self._main_template.y + self._sub_templates_finder[index].roi_y + self._sub_templates_finder[index].roi_height > self._bg_pixmap.height():
+                    
+                        diff = (self._main_template.y + self._sub_templates_finder[index].roi_y + self._sub_templates_finder[index].roi_height) - self._bg_pixmap.height()
+                        
+                        self._sub_templates_finder[index].roi_height = self._sub_templates_finder[index].roi_height - diff - 1
+                    
+                    
+                    if self._main_template.x + self._sub_templates_finder[index].roi_x < 0:
+                    
+                        under_zero = abs(self._main_template.x + self._sub_templates_finder[index].roi_x)
+                        self._sub_templates_finder[index].roi_x = self._sub_templates_finder[index].roi_x + under_zero
+                        self._sub_templates_finder[index].roi_width = self._sub_templates_finder[index].roi_width - under_zero
+                        
+                    
+                    if self._main_template.x + self._sub_templates_finder[index].roi_x + self._sub_templates_finder[index].roi_width > self._bg_pixmap.width():
+                    
+                        diff = (self._main_template.x + self._sub_templates_finder[index].roi_x + self._sub_templates_finder[index].roi_width) - self._bg_pixmap.width()
+                        
+                        self._sub_templates_finder[index].roi_width = self._sub_templates_finder[index].roi_width - diff - 1
+                        
+
+                    self._sub_templates_finder[index].roi_unlimited_left = False
+                    
+                    self._sub_templates_finder[index].roi_unlimited_right = False
+                    
+                    self._sub_templates_finder[index].roi_unlimited_up = False
+                    
+                    self._sub_templates_finder[index].roi_unlimited_down = False
+                
+            elif self.ignore_release is False and self._show_boundingrects is False:
+
+                self.__click_position = QPoint(QCursor.pos())
+                            
+                if self.set_xy_offset is not None:
+                
+                    if self.set_xy_offset == -1:
+                        self._main_template.x_offset = self.__click_position.x() - self._main_template.x
+                        self._main_template.y_offset = self.__click_position.y() - self._main_template.y
+                    else:
+                        #print "indexxxxxx", self.set_xy_offset
+                        self._sub_templates_finder[self.set_xy_offset].x_offset = self.__click_position.x() - self._sub_templates_finder[self.set_xy_offset].x
+                        self._sub_templates_finder[self.set_xy_offset].y_offset = self.__click_position.y() - self._sub_templates_finder[self.set_xy_offset].y
+                elif self.__flag_mouse_is_on_border is not None:
+                    self.__border_index = self.__flag_mouse_is_on_border
+                    self.__drag_border = True
+                    if self.__border_index == 0:
+                        self._old_height_rect = self._main_template.height
+                        self._old_width_rect = self._main_template.width
+                        self._old_x_rect = self._main_template.x
+                        self._old_y_rect = self._main_template.y
+                    else:
+                        self._old_height_rect = self._sub_templates_finder[self.__border_index-1].height
+                        self._old_width_rect = self._sub_templates_finder[self.__border_index-1].width
+                        self._old_x_rect = self._sub_templates_finder[self.__border_index-1].x
+                        self._old_y_rect = self._sub_templates_finder[self.__border_index-1].y
+                        
+                        self._old_roi_height_rect = self._sub_templates_finder[self.__border_index-1].roi_height
+                        self._old_roi_width_rect = self._sub_templates_finder[self.__border_index-1].roi_width
+                        self._old_roi_x_rect = self._sub_templates_finder[self.__border_index-1].roi_x
+                        self._old_roi_y_rect = self._sub_templates_finder[self.__border_index-1].roi_y
+                        
+                elif self.__flag_mouse_is_inside_rect is not None:
+                    self.__move_index = self.__flag_mouse_is_inside_rect
+                    
+            
+                    if self.__move_index == 0:
+                        rect = self._main_template
+                    else:
+                        rect = self._sub_templates_finder[self.__move_index - 1]
+                    
+                    self.__position_offset_x = self.__click_position.x() - rect.x
+                    self.__position_offset_y =  self.__click_position.y() - rect.y
+
+                elif self.__drag_border is False:  #and self.__move_rect is False:
+                    self.__capturing = True
+                                   
+                        
+                
+                    
+            
+        elif event.buttons() == Qt.RightButton and self.set_xy_offset is None:
+        
+            print event.modifiers()
+
+            if event.modifiers() == Qt.ControlModifier and self._show_boundingrects is False:
+                index = 0
+                delete_sub = False
+                delete_main = False
+                
+                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect == 0 and len(self._sub_templates_finder) == 0:
+                    index = 0
+                    delete_main = True
+                
+                if self.__flag_mouse_is_on_border == 0 and self.__flag_mouse_is_on_border is not None and len(self._sub_templates_finder) == 0:
+                    index = 0
+                    delete_main = True
+                
+                
+                if self.__flag_mouse_is_inside_rect is not None and self.__flag_mouse_is_inside_rect != 0 and len(self._sub_templates_finder) > 0:
+                    index = self.__flag_mouse_is_inside_rect -1
+                    delete_sub = True
+                
+                if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None and len(self._sub_templates_finder) > 0:
+                    index = self.__flag_mouse_is_on_border -1
+                    delete_sub = True
+                    
+                if delete_sub is True:
+                    if self._sub_templates_finder[-1].x != 0 and self._sub_templates_finder[-1].y != 0 \
+                    and self._sub_templates_finder[-1].width != 0 and self._sub_templates_finder[-1].height != 0:
+
+                        self._sub_templates_finder[index].deleted_x = self._sub_templates_finder[index].x
+                        self._sub_templates_finder[index].deleted_y = self._sub_templates_finder[index].y
+                        self._sub_templates_finder[index].deleted_width = self._sub_templates_finder[index].width
+                        self._sub_templates_finder[index].deleted_height = self._sub_templates_finder[index].height
+
+                        self._sub_templates_finder[index].x = 0
+                        self._sub_templates_finder[index].y = 0
+                        self._sub_templates_finder[index].width = 0
+                        self._sub_templates_finder[index].height = 0
+
+                        self.__flag_need_to_delete_roi = True
+                        self.__flag_need_to_restore_roi = False
+                        self.__flag_capturing_sub_image_rect_roi = False
+                        self.__flag_capturing_sub_template = True
+                        
+                        self.__deleted_rects.append(self._sub_templates_finder[index])
+                        del self._sub_templates_finder[index]
+                        
+                        self.__flag_need_to_delete_roi = False
+                        self.__flag_need_to_restore_roi = True
+                        self.__flag_capturing_sub_image_rect_roi = True
+                        self.__flag_capturing_sub_template = False
+                        
+                elif delete_main is True:
+                    #self._sub_templates_finder = []
+                    #self.__deleted_rects = []
+                    self.__deleted_rects.append(self._main_template)
+                    self._main_template = None
+                    self.__flag_capturing_main_image_rect = True
+                    self.__flag_capturing_sub_image_rect_roi = False
+                
+            else:
+
+            
+                rect = self.is_mouse_inside_bounding_rects()
+
+                if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None and self._show_boundingrects is False:
+
+                    index = self.__flag_mouse_is_on_border-1
+                    
+                    
+                    if self.__flag_mouse_is_on_left_border_roi is True:
+                        self._sub_templates_finder[index].roi_unlimited_left = True
+                        
+                    if self.__flag_mouse_is_on_right_border_roi is True:
+                        self._sub_templates_finder[index].roi_unlimited_right = True
+                        
+                    if self.__flag_mouse_is_on_top_border_roi is True:
+                        self._sub_templates_finder[index].roi_unlimited_up = True
+                        
+                    if self.__flag_mouse_is_on_bottom_border_roi is True:
+                        self._sub_templates_finder[index].roi_unlimited_down = True
+                        
+                elif rect is not None and self.__flag_capturing_sub_template is False:
+                    self.add_rect_from_boundings_rects(rect)
+        
+     
+                        
+            self.update()
             
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if self._ctrl_is_pressed is True:
+            event.ignore()
+            self.ignore_release = False
+            self.update()
+            return
+            
+        if self.ignore_release is True:
+            self.ignore_release = False
+            event.ignore()
+
+        elif event.button() == Qt.LeftButton:
             self.__capturing = False
             
             if self.set_xy_offset is not None:
@@ -569,266 +965,764 @@ class AlyvixImageFinderView(QWidget):
         qp.drawPixmap(0, 0, self._bg_pixmap)
         
         
-        self.__flag_mouse_is_inside_rect = None
-        self.__index_of_rectangle_with_mouse_inside = -2
+        if self._show_boundingrects is True:
+            self.setCursor(QCursor(Qt.ArrowCursor))
+            self.draw_bounding_rects(qp)
         
-        if self.__drag_border is False:
-            self.__flag_mouse_is_on_left_border = False
-            self.__flag_mouse_is_on_right_border = False
-            self.__flag_mouse_is_on_top_border = False
-            self.__flag_mouse_is_on_bottom_border = False
-            
-            self.__flag_mouse_is_on_left_up_corner = False
-            self.__flag_mouse_is_on_right_up_corner = False
-            self.__flag_mouse_is_on_right_bottom_corner = False
-            self.__flag_mouse_is_on_left_bottom_corner = False
-            
-            self.__flag_mouse_is_on_left_border_roi = False
-            self.__flag_mouse_is_on_right_border_roi = False
-            self.__flag_mouse_is_on_top_border_roi = False
-            self.__flag_mouse_is_on_bottom_border_roi = False
-            
-            self.__flag_mouse_is_on_left_up_corner_roi = False
-            self.__flag_mouse_is_on_right_up_corner_roi = False
-            self.__flag_mouse_is_on_right_bottom_corner_roi = False
-            self.__flag_mouse_is_on_left_bottom_corner_roi = False
-            
-        #if self.__flag_mouse_is_on_border is None:
-        #    self.setCursor(QCursor(Qt.CrossCursor))
-
+        else:
         
-        if self._main_template is not None:
         
+            self.__flag_mouse_is_inside_rect = None
+            self.__index_of_rectangle_with_mouse_inside = -2
+            
+            if self.__drag_border is False:
+                self.__flag_mouse_is_on_left_border = False
+                self.__flag_mouse_is_on_right_border = False
+                self.__flag_mouse_is_on_top_border = False
+                self.__flag_mouse_is_on_bottom_border = False
                 
+                self.__flag_mouse_is_on_left_up_corner = False
+                self.__flag_mouse_is_on_right_up_corner = False
+                self.__flag_mouse_is_on_right_bottom_corner = False
+                self.__flag_mouse_is_on_left_bottom_corner = False
+                
+                self.__flag_mouse_is_on_left_border_roi = False
+                self.__flag_mouse_is_on_right_border_roi = False
+                self.__flag_mouse_is_on_top_border_roi = False
+                self.__flag_mouse_is_on_bottom_border_roi = False
+                
+                self.__flag_mouse_is_on_left_up_corner_roi = False
+                self.__flag_mouse_is_on_right_up_corner_roi = False
+                self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                
+            #if self.__flag_mouse_is_on_border is None:
+            #    self.setCursor(QCursor(Qt.CrossCursor))
 
-            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and self._main_template.show is True:
             
-                if self.is_mouse_inside_rect(self._main_template):
-                    self.__flag_mouse_is_inside_rect = 0
-                    self.setCursor(QCursor(Qt.SizeAllCursor))
+            if self._main_template is not None:
+            
                     
-                elif self.is_mouse_on_left_border(self._main_template) and self.is_mouse_on_top_border(self._main_template):
-                    self.__flag_mouse_is_on_left_up_corner = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #self.setCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_right_border(self._main_template) and self.is_mouse_on_top_border(self._main_template):
-                    self.__flag_mouse_is_on_right_up_corner = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_right_border(self._main_template) and self.is_mouse_on_bottom_border(self._main_template):
-                    self.__flag_mouse_is_on_right_bottom_corner = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_left_border(self._main_template) and self.is_mouse_on_bottom_border(self._main_template):
-                    self.__flag_mouse_is_on_left_bottom_corner = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_left_border(self._main_template):
-                    self.__flag_mouse_is_on_left_border = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
-                                        
-                elif self.is_mouse_on_top_border(self._main_template):
-                    self.__flag_mouse_is_on_top_border = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
-                    
-                elif self.is_mouse_on_right_border(self._main_template):
-                    self.__flag_mouse_is_on_right_border = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
 
-                    
-                elif self.is_mouse_on_bottom_border(self._main_template):
-                    self.__flag_mouse_is_on_bottom_border = True
-                    self.__flag_mouse_is_on_border = 0
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and self._main_template.show is True:
+                
+                    if self.is_mouse_inside_rect(self._main_template):
+                        self.__flag_mouse_is_inside_rect = 0
+                        self.setCursor(QCursor(Qt.SizeAllCursor))
+                        
+                    elif self.is_mouse_on_left_border(self._main_template) and self.is_mouse_on_top_border(self._main_template):
+                        self.__flag_mouse_is_on_left_up_corner = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
 
-            elif self.__drag_border is True and self.set_xy_offset is None:
-                self.update_border()
-            elif self.__move_index is not None and self.set_xy_offset is None:
-                self.update_position()
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                        
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #self.setCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border(self._main_template) and self.is_mouse_on_top_border(self._main_template):
+                        self.__flag_mouse_is_on_right_up_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border(self._main_template) and self.is_mouse_on_bottom_border(self._main_template):
+                        self.__flag_mouse_is_on_right_bottom_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border(self._main_template) and self.is_mouse_on_bottom_border(self._main_template):
+                        self.__flag_mouse_is_on_left_bottom_corner = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border(self._main_template):
+                        self.__flag_mouse_is_on_left_border = True
+                        
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+                                            
+                    elif self.is_mouse_on_top_border(self._main_template):
+                        self.__flag_mouse_is_on_top_border = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                        
+                    elif self.is_mouse_on_right_border(self._main_template):
+                        self.__flag_mouse_is_on_right_border = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+
+                        
+                    elif self.is_mouse_on_bottom_border(self._main_template):
+                        self.__flag_mouse_is_on_bottom_border = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
+                        self.__flag_mouse_is_on_border = 0
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+
+                elif self.__drag_border is True and self.set_xy_offset is None and self._main_template.show is True:
+                    self.update_border()
+                elif self.__move_index is not None and self.set_xy_offset is None and self._main_template.show is True:
+                    self.update_position()
+                    
+                            
+                self.draw_main_template_rect(qp)
+                    
+            rect_index = 0
+            #self.__sub_template_color_index = 0
+
+            cnt_sub = 1
+            cnt_sub_text = 1
+            for sub_image_finder in self._sub_templates_finder:
+
+
+                if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and sub_image_finder.show is True:
+                                            
+                    if self.is_mouse_inside_rect(sub_image_finder) and self.__flag_mouse_is_on_border is None:
+                        self.__flag_mouse_is_inside_rect = cnt_sub
+                        self.setCursor(QCursor(Qt.SizeAllCursor))
+                        
+            
+                    elif self.is_mouse_on_left_border_roi(sub_image_finder) and self.is_mouse_on_top_border_roi(sub_image_finder):
+                        self.__flag_mouse_is_on_left_up_corner_roi = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #self.setCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(sub_image_finder) and self.is_mouse_on_top_border_roi(sub_image_finder):
+                        self.__flag_mouse_is_on_right_up_corner_roi = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(sub_image_finder) and self.is_mouse_on_bottom_border_roi(sub_image_finder):
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border_roi(sub_image_finder) and self.is_mouse_on_bottom_border_roi(sub_image_finder):
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+
+                        
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border_roi(sub_image_finder):
+                        self.__flag_mouse_is_on_left_border_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+                                            
+                    elif self.is_mouse_on_top_border_roi(sub_image_finder):
+                        self.__flag_mouse_is_on_top_border_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                        
+                    elif self.is_mouse_on_right_border_roi(sub_image_finder):
+                        self.__flag_mouse_is_on_right_border_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+
+                        
+                    elif self.is_mouse_on_bottom_border_roi(sub_image_finder):
+                        self.__flag_mouse_is_on_bottom_border_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+
+                    elif self.is_mouse_on_left_border(sub_image_finder) and self.is_mouse_on_top_border(sub_image_finder):
+                        self.__flag_mouse_is_on_left_up_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #self.setCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border(sub_image_finder) and self.is_mouse_on_top_border(sub_image_finder):
+                        self.__flag_mouse_is_on_right_up_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_right_border(sub_image_finder) and self.is_mouse_on_bottom_border(sub_image_finder):
+                        self.__flag_mouse_is_on_right_bottom_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeFDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border(sub_image_finder) and self.is_mouse_on_bottom_border(sub_image_finder):
+                        self.__flag_mouse_is_on_left_bottom_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeBDiagCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
+                        
+                    elif self.is_mouse_on_left_border(sub_image_finder):
+                        self.__flag_mouse_is_on_left_border = True
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+                                            
+                    elif self.is_mouse_on_top_border(sub_image_finder):
+                        self.__flag_mouse_is_on_top_border = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                        
+                    elif self.is_mouse_on_right_border(sub_image_finder):
+                        self.__flag_mouse_is_on_right_border = True
+                        self.__flag_mouse_is_on_left_border = False
+
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeHorCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeHorCursor)
+
+                        
+                    elif self.is_mouse_on_bottom_border(sub_image_finder):
+                        self.__flag_mouse_is_on_bottom_border = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        self.__flag_mouse_is_on_border = cnt_sub
+                        mouse_on_border = True
+                        self.setCursor(QCursor(Qt.SizeVerCursor))
+                        #QApplication.setOverrideCursor(Qt.SizeVerCursor)
+                        
+                    cnt_sub = cnt_sub + 1
+
+                elif self.__drag_border is True and self.set_xy_offset is None and sub_image_finder.show is True:
+                    self.update_border()
+                elif self.__move_index is not None and self.set_xy_offset is None and sub_image_finder.show is True:
+                    self.update_position()
+                elif sub_image_finder.show is False:
+                    cnt_sub = cnt_sub + 1
+            
+                self.draw_sub_templateangle(qp, sub_image_finder, cnt_sub_text)
+                cnt_sub_text += 1
+                
+            if mouse_on_border is False:
+                self.__flag_mouse_is_on_border = None
                 
                         
-            self.draw_main_template_rect(qp)
-                
-        rect_index = 0
-        #self.__sub_template_color_index = 0
-
-        cnt_sub = 1
-        cnt_sub_text = 1
-        for sub_image_finder in self._sub_templates_finder:
+            #if self.__flag_mouse_is_on_border is None:
+            #    self.setCursor(QCursor(Qt.CrossCursor))
 
 
-            if self.__drag_border is False and self.set_xy_offset is None and self.__move_index is None and self.__capturing is False and sub_image_finder.show is True:
-                                        
-                if self.is_mouse_inside_rect(sub_image_finder):
-                    self.__flag_mouse_is_inside_rect = cnt_sub
-                    self.setCursor(QCursor(Qt.SizeAllCursor))
-                    
-        
-                elif self.is_mouse_on_left_border_roi(sub_image_finder) and self.is_mouse_on_top_border_roi(sub_image_finder):
-                    self.__flag_mouse_is_on_left_up_corner_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #self.setCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_right_border_roi(sub_image_finder) and self.is_mouse_on_top_border_roi(sub_image_finder):
-                    self.__flag_mouse_is_on_right_up_corner_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_right_border_roi(sub_image_finder) and self.is_mouse_on_bottom_border_roi(sub_image_finder):
-                    self.__flag_mouse_is_on_right_bottom_corner_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_left_border_roi(sub_image_finder) and self.is_mouse_on_bottom_border_roi(sub_image_finder):
-                    self.__flag_mouse_is_on_left_bottom_corner_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_left_border_roi(sub_image_finder):
-                    self.__flag_mouse_is_on_left_border_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
-                                        
-                elif self.is_mouse_on_top_border_roi(sub_image_finder):
-                    self.__flag_mouse_is_on_top_border_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
-                    
-                elif self.is_mouse_on_right_border_roi(sub_image_finder):
-                    self.__flag_mouse_is_on_right_border_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
-
-                    
-                elif self.is_mouse_on_bottom_border_roi(sub_image_finder):
-                    self.__flag_mouse_is_on_bottom_border_roi = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-
-                elif self.is_mouse_on_left_border(sub_image_finder) and self.is_mouse_on_top_border(sub_image_finder):
-                    self.__flag_mouse_is_on_left_up_corner = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #self.setCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_right_border(sub_image_finder) and self.is_mouse_on_top_border(sub_image_finder):
-                    self.__flag_mouse_is_on_right_up_corner = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_right_border(sub_image_finder) and self.is_mouse_on_bottom_border(sub_image_finder):
-                    self.__flag_mouse_is_on_right_bottom_corner = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeFDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeFDiagCursor)
-                    
-                elif self.is_mouse_on_left_border(sub_image_finder) and self.is_mouse_on_bottom_border(sub_image_finder):
-                    self.__flag_mouse_is_on_left_bottom_corner = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeBDiagCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeBDiagCursor)
-                    
-                elif self.is_mouse_on_left_border(sub_image_finder):
-                    self.__flag_mouse_is_on_left_border = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
-                                        
-                elif self.is_mouse_on_top_border(sub_image_finder):
-                    self.__flag_mouse_is_on_top_border = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
-                    
-                elif self.is_mouse_on_right_border(sub_image_finder):
-                    self.__flag_mouse_is_on_right_border = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeHorCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeHorCursor)
-
-                    
-                elif self.is_mouse_on_bottom_border(sub_image_finder):
-                    self.__flag_mouse_is_on_bottom_border = True
-                    self.__flag_mouse_is_on_border = cnt_sub
-                    mouse_on_border = True
-                    self.setCursor(QCursor(Qt.SizeVerCursor))
-                    #QApplication.setOverrideCursor(Qt.SizeVerCursor)
-                    
-                cnt_sub = cnt_sub + 1
-
-            elif self.__drag_border is True and self.set_xy_offset is None:
-                self.update_border()
-            elif self.__move_index is not None and self.set_xy_offset is None:
-                self.update_position()
-        
-            self.draw_sub_templateangle(qp, sub_image_finder, cnt_sub_text)
-            cnt_sub_text += 1
+            if self.set_xy_offset is None and self.__flag_mouse_is_on_border is None and self.__flag_mouse_is_inside_rect is None:
             
-        if mouse_on_border is False:
-            self.__flag_mouse_is_on_border = None
-            
+                if self.__capturing is False:
+                    self.draw_cross_lines(qp)
                     
-        #if self.__flag_mouse_is_on_border is None:
-        #    self.setCursor(QCursor(Qt.CrossCursor))
-
-
-        if self.set_xy_offset is None and self.__flag_mouse_is_on_border is None and self.__flag_mouse_is_inside_rect is None:
-        
-            if self.__capturing is False:
+                elif self.__flag_capturing_main_image_rect is True:
+                    self.draw_capturing_rectangle_lines(qp)
+                elif self.__flag_capturing_sub_image_rect_roi is True:
+                    self.draw_capturing_roi_lines(qp)
+                elif self.__flag_capturing_sub_template is True:
+                    self.draw_capturing_rectangle_lines(qp)
+                    
+            elif self.set_xy_offset is not None:
                 self.draw_cross_lines(qp)
-                
-            elif self.__flag_capturing_main_image_rect is True:
-                self.draw_capturing_rectangle_lines(qp)
-            elif self.__flag_capturing_sub_image_rect_roi is True:
-                self.draw_capturing_roi_lines(qp)
-            elif self.__flag_capturing_sub_template is True:
-                self.draw_capturing_rectangle_lines(qp)
             
         qp.end()
         
@@ -859,6 +1753,30 @@ class AlyvixImageFinderView(QWidget):
             else:
                 return 0
         
+    
+    def is_mouse_inside_bounding_rects(self):
+        mouse_position = QPoint(QCursor.pos())
+        
+        mouse_in_rects = []
+        
+        for box in self._boundingRects:
+            
+            x, y, w, h = box
+            
+            if (mouse_position.x() > x and
+                    mouse_position.x() < w + x and
+                    mouse_position.y() > y and
+                    mouse_position.y() < h + y):
+                    
+                mouse_in_rects.append(box)
+                
+        if len(mouse_in_rects) > 0:
+            mouse_in_rects = sorted(mouse_in_rects, key=lambda element: (element[2], element[3]))
+            return mouse_in_rects[0]
+        else:
+            return None
+
+    
     def is_mouse_inside_rect(self, rect):
     
         mouse_position = QPoint(QCursor.pos())
@@ -882,6 +1800,13 @@ class AlyvixImageFinderView(QWidget):
         
         if self.__move_index == 0:
             rect = self._main_template
+            
+            self.__flag_capturing_main_image_rect = False
+            self.__flag_capturing_sub_image_rect_roi = True
+
+            #self._sub_templates_finder = []
+            self.__deleted_rects = []
+            
         else:
             rect = self._sub_templates_finder[self.__move_index - 1]
     
@@ -985,6 +1910,11 @@ class AlyvixImageFinderView(QWidget):
         
         if self.__border_index == 0:
             rect = self._main_template
+            self.__flag_capturing_main_image_rect = False
+            self.__flag_capturing_sub_image_rect_roi = True
+
+            #self._sub_templates_finder = []
+            self.__deleted_rects = []
         else:
             rect = self._sub_templates_finder[self.__border_index - 1]
             
@@ -1824,6 +2754,7 @@ class AlyvixImageFinderView(QWidget):
             font.setPixelSize(11 * self.scaling_factor);
             
             qp.setFont(font)
+            
             qp.drawText( QPoint(self._main_template.x -1,self._main_template.y -(4*self.scaling_factor)), "M" )
             
             qp.fillRect(self._main_template.x,
@@ -1848,7 +2779,7 @@ class AlyvixImageFinderView(QWidget):
                     
                 qp.setBrush(QColor(255, 0, 255, 130))
                 qp.drawLine(self._main_template.x + (self._main_template.width/2), self._main_template.y + (self._main_template.height/2), click_pos.x(), click_pos.y())
-                qp.drawEllipse(click_pos, 10, 10)
+                qp.drawEllipse(click_pos, 5*self.scaling_factor, 5*self.scaling_factor)
                 qp.setBrush(old_brush)
      
     def draw_sub_templateangle(self, qp, image_finder, cnt):
@@ -1880,7 +2811,7 @@ class AlyvixImageFinderView(QWidget):
                 else:
                     roi_height = self._bg_pixmap.height() - (image_finder.roi_y + self._main_template.y + 1)
                     
-                    print self._bg_pixmap.width(), (image_finder.roi_x + self._main_template.x)
+                    #print self._bg_pixmap.width(), (image_finder.roi_x + self._main_template.x)
 
             if image_finder.roi_unlimited_left is True:
                 roi_x = 0
@@ -1908,11 +2839,12 @@ class AlyvixImageFinderView(QWidget):
                     image_finder.height)
                 """
                 
+                
                 font = qp.font()
-                font.setPixelSize(11 * self.scaling_factor);
+                font.setPixelSize(11 * self.scaling_factor)
 
                 qp.setFont(font)
-                qp.drawText( QPoint(image_finder.x -1, image_finder.y -(4*self.scaling_factor)), str(cnt) )
+                qp.drawText( QPoint(image_finder.x -1, image_finder.y -(6*self.scaling_factor)), str(cnt) )
 
 
 
@@ -1953,7 +2885,7 @@ class AlyvixImageFinderView(QWidget):
                         
                     qp.setBrush(QColor(172, 96, 246, 130))
                     qp.drawLine(image_finder.x + (image_finder.width/2), image_finder.y + (image_finder.height/2), click_pos.x(), click_pos.y())
-                    qp.drawEllipse(click_pos, 10, 10)
+                    qp.drawEllipse(click_pos, 5*self.scaling_factor, 5*self.scaling_factor)
                     qp.setBrush(old_brush)
             
             else:
@@ -2042,12 +2974,185 @@ class AlyvixImageFinderView(QWidget):
             mouse_position.x() - self.__click_position.x(), mouse_position.y() - self.__click_position.y())
             
         qp.drawRect(rect)
+        
+    def draw_bounding_rects(self, qp):
+            
+        mouse_position = QPoint(QCursor.pos())
+        
+        pen = QPen()
+        pen.setWidth(1)
+        pen.setStyle(Qt.SolidLine)
+        
+        m_x = None
+        m_y = None
+        m_w = None
+        m_h = None
+        
+        if self._main_template is not None:
+            m_x = self._main_template.x
+            m_y = self._main_template.y
+            m_w = self._main_template.width
+            m_h = self._main_template.height
+        
+                    
+        for box in self._textBoxes:
+
+        
+            x, y, w, h = box
+            
+            is_in_objects = False
+            
+                        
+            if x == m_x and y == m_y and w == m_w and h == m_h:
+                is_in_objects = True
+            
+            for sub_box in self._sub_templates_finder:
+            
+                if is_in_objects is True:
+                    break
+                    
+                s_x = sub_box.x
+                s_y = sub_box.y
+                s_w = sub_box.width
+                s_h = sub_box.height
+                
+                if x == s_x and y == s_y and w == s_w and h == s_h:
+                    is_in_objects = True
+                    break
+
+            if is_in_objects is True:
+                pen.setBrush(QBrush(QColor(255, 0, 0, 255)))
+                qp.setPen(pen)
+                
+                qp.fillRect(x + 1,
+                    y + 1,
+                    w - 1,
+                    h - 1,
+                    QBrush(QColor(255, 0, 255, 130)))
+                    
+            else:
+            
+                pen.setBrush(QBrush(QColor(0, 255, 0, 255)))
+
+                qp.setPen(pen)
+                
+                qp.fillRect(x + 1,
+                    y + 1,
+                    w - 1,
+                    h - 1,
+                    QBrush(QColor(32, 178, 170, 100)))
+                    
+            rect = QRect(x, y,
+                w, h)
+            
+            qp.drawRect(rect)
+        
+        for box in self._imageBoxes:
+        
+            x, y, w, h = box
+            
+            is_in_objects = False
+            
+                        
+            if x == m_x and y == m_y and w == m_w and h == m_h:
+                is_in_objects = True
+            
+            for sub_box in self._sub_templates_finder:
+            
+                if is_in_objects is True:
+                    break
+                    
+                s_x = sub_box.x
+                s_y = sub_box.y
+                s_w = sub_box.width
+                s_h = sub_box.height
+                
+                if x == s_x and y == s_y and w == s_w and h == s_h:
+                    is_in_objects = True
+                    break
+
+            if is_in_objects is True:
+                pen.setBrush(QBrush(QColor(255, 0, 0, 255)))
+                qp.setPen(pen)
+                
+                qp.fillRect(x + 1,
+                    y + 1,
+                    w - 1,
+                    h - 1,
+                    QBrush(QColor(255, 0, 255, 130)))
+                    
+            else:
+            
+                pen.setBrush(QBrush(QColor(0, 255, 0, 255)))
+
+                qp.setPen(pen)
+                
+                qp.fillRect(x + 1,
+                    y + 1,
+                    w - 1,
+                    h - 1,
+                    QBrush(QColor(32, 178, 170, 100)))
+            
+            qp.drawRect(rect)
+
+            
+        for box in self._rectBoxes:
+        
+            x, y, w, h = box            
+        
+            is_in_objects = False
+            
+                        
+            if x == m_x and y == m_y and w == m_w and h == m_h:
+                is_in_objects = True
+            
+            for sub_box in self._sub_templates_finder:
+            
+                if is_in_objects is True:
+                    break
+                    
+                s_x = sub_box.x
+                s_y = sub_box.y
+                s_w = sub_box.width
+                s_h = sub_box.height
+                
+                if x == s_x and y == s_y and w == s_w and h == s_h:
+                    is_in_objects = True
+                    break
+
+            if is_in_objects is True:
+                pen.setBrush(QBrush(QColor(255, 0, 0, 255)))
+                qp.setPen(pen)
+                
+                qp.fillRect(x + 1,
+                    y + 1,
+                    w - 1,
+                    h - 1,
+                    QBrush(QColor(255, 0, 255, 130)))
+                    
+            else:
+            
+                pen.setBrush(QBrush(QColor(0, 255, 0, 255)))
+
+                qp.setPen(pen)
+                
+                qp.fillRect(x + 1,
+                    y + 1,
+                    w - 1,
+                    h - 1,
+                    QBrush(QColor(32, 178, 170, 100)))
+            
+            qp.drawRect(rect)
+    
     
     def add_main_rect(self):
     
         rect_attributes = self.convert_mouse_position_into_rect()
         
         if rect_attributes is not None:
+        
+            self._sub_templates_finder = []
+            self.__deleted_rects = []
         
             x, y, width, height = rect_attributes
         
@@ -2066,6 +3171,124 @@ class AlyvixImageFinderView(QWidget):
         else:
             self.__flag_capturing_main_image_rect = True
             self.__flag_capturing_sub_image_rect_roi = False
+            
+        
+    def add_rect_from_boundings_rects(self, rect):
+        x, y, width, height = rect
+        
+        self.last_xy_offset_index = None
+        
+        if self._main_template is None or (self._main_template.x == 0 and self._main_template.y == 0 and self._main_template.width == 0 and self._main_template.height == 0):
+        
+
+        
+            image_finder = MainTemplateForGui()
+            image_finder.x = x
+            image_finder.y = y
+            image_finder.height = height
+            image_finder.width = width
+            image_finder.min_height = height/2
+            image_finder.max_height = height*2
+            image_finder.min_width = width/2
+            image_finder.max_width = width*2
+            
+            self._main_template = image_finder
+            
+            self.__flag_capturing_main_image_rect = False
+            self.__flag_capturing_sub_image_rect_roi = True
+
+            self._sub_templates_finder = []
+            self.__deleted_rects = []
+
+            
+        else:
+
+            self.__flag_capturing_sub_image_rect_roi = False
+            self.__flag_capturing_sub_template = True
+            self.__flag_need_to_delete_roi = True
+
+            self.__flag_capturing_sub_template = False
+            self.__flag_capturing_sub_image_rect_roi = True
+            self.__flag_need_to_delete_roi = False
+            
+            image_finder = SubTemplateForGui()       
+            image_finder.x = x
+            image_finder.y = y
+            image_finder.height = height
+            image_finder.width = width
+            image_finder.min_height = height/2
+            image_finder.max_height = height*2
+            image_finder.min_width = width/2
+            image_finder.max_width = width*2
+            
+            if len(self.__deleted_rects) > 0:
+                del self.__deleted_rects[-1]
+
+            #percentage_screen_w = int(0.1 * self._bg_pixmap.width())
+            #percentage_screen_h = int(0.1 * self._bg_pixmap.height())
+            #percentage_object_w = int(0.5 * image_finder.width)
+            #percentage_object_h = int(0.5 * image_finder.height)
+
+            #roi_height = percentage_screen_h + percentage_object_h + image_finder.height
+
+            #roi_width = percentage_screen_w + percentage_object_w + image_finder.width
+            
+            hw_factor = 0
+            
+            if image_finder.height < image_finder.width:
+                hw_factor = image_finder.height
+            else:
+                hw_factor = image_finder.width
+            
+            
+            
+            roi_height = int(0.95 * hw_factor) + image_finder.height
+
+            roi_width = int(0.95 * hw_factor) + image_finder.width
+            
+
+            roi_width_half = int((roi_width - image_finder.width)/2)
+
+            roi_height_half = int((roi_height - image_finder.height)/2)
+            
+
+            image_finder.roi_x =  (image_finder.x - self._main_template.x) - roi_width_half
+            image_finder.roi_y =  (image_finder.y - self._main_template.y) - roi_height_half
+            image_finder.roi_height = image_finder.height + (roi_height_half*2)
+            image_finder.roi_width = image_finder.width + (roi_width_half*2)
+            
+                                
+            if self._main_template.y + image_finder.roi_y < 0:
+            
+                under_zero = abs(self._main_template.y + image_finder.roi_y)
+                image_finder.roi_y = image_finder.roi_y + under_zero
+                image_finder.roi_height = image_finder.roi_height - under_zero
+                
+            
+            if self._main_template.y + image_finder.roi_y + image_finder.roi_height > self._bg_pixmap.height():
+            
+                diff = (self._main_template.y + image_finder.roi_y + image_finder.roi_height) - self._bg_pixmap.height()
+                
+                image_finder.roi_height = image_finder.roi_height - diff - 1
+            
+            
+            if self._main_template.x + image_finder.roi_x < 0:
+            
+                under_zero = abs(self._main_template.x + image_finder.roi_x)
+                image_finder.roi_x = image_finder.roi_x + under_zero
+                image_finder.roi_width = image_finder.roi_width - under_zero
+                
+            
+            if self._main_template.x + image_finder.roi_x + image_finder.roi_width > self._bg_pixmap.width():
+            
+                diff = (self._main_template.x + image_finder.roi_x + image_finder.roi_width) - self._bg_pixmap.width()
+                
+                image_finder.roi_width = image_finder.roi_width - diff - 1
+               
+
+            self._sub_templates_finder.append(image_finder)
+            
+        
             
     def add_sub_template_roi(self):
     
@@ -2113,7 +3336,7 @@ class AlyvixImageFinderView(QWidget):
                 else:
                     roi_height = self._bg_pixmap.height() - (image_finder.roi_y + self._main_template.y + 1)
                     
-                    print self._bg_pixmap.width(), (image_finder.roi_x + self._main_template.x)
+                    #print self._bg_pixmap.width(), (image_finder.roi_x + self._main_template.x)
 
             if image_finder.roi_unlimited_left is True:
                 roi_x = 0
@@ -2146,6 +3369,10 @@ class AlyvixImageFinderView(QWidget):
     def convert_mouse_position_into_rect(self):
             
         #self.__click_position
+        
+        if self._dont_build_rect is True:
+            self._dont_build_rect = False
+            return
         
         mouse_position = QPoint(QCursor.pos())
         
@@ -2236,6 +3463,8 @@ class AlyvixImageFinderView(QWidget):
                 self.__flag_capturing_sub_template = False
             
         elif self._main_template is not None:
+            #self._sub_templates_finder = []
+            #self.__deleted_rects = []
             self.__deleted_rects.append(self._main_template)
             self._main_template = None
             self.__flag_capturing_main_image_rect = True
@@ -2369,7 +3598,20 @@ class AlyvixImageFinderView(QWidget):
             file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), current_code_string)
             
             """
-            text_file = open("c:\\alylog\\new_code.txt", "w")
+            text_file = open("c:\\alylog\\old_code_250.txt", "w")
+
+            text_file.write(self.__old_code_v250)
+
+            text_file.close()
+            
+                        
+            text_file = open("c:\\alylog\\old_code.txt", "w")
+
+            text_file.write(self.__old_code)
+
+            text_file.close()
+            
+            text_file = open("c:\\alylog\\curr_code.txt", "w")
 
             text_file.write(current_code_string)
 
@@ -3820,6 +5062,23 @@ class AlyvixImageFinderView(QWidget):
             else:
                 self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_template.text_encrypted) + ", delay=" + str(self._main_template.sendkeys_delay) + ", duration=" + str(self._main_template.sendkeys_duration) + ")")
                 
+        
+        if self._main_template.enable_scrolls is True and self._main_template.scrolls_value != 0:
+                self._code_lines.append("    time.sleep(sleep_factor)")
+                
+                direction = "m.wheel_up"
+                
+                if self._main_template.scrolls_direction == 0:
+                    direction = "m.wheel_up"
+                elif self._main_template.scrolls_direction == 1:
+                    direction = "m.wheel_down"
+                elif self._main_template.scrolls_direction == 2:
+                    direction = "m.wheel_left"
+                elif self._main_template.scrolls_direction == 3:
+                    direction = "m.wheel_right"
+                
+                self._code_lines.append("    m.scroll(" + str(self._main_template.scrolls_value) + ", " + direction + ")")
+                
         cnt = 0
         for sub_template in self._sub_templates_finder:
         
@@ -3909,6 +5168,23 @@ class AlyvixImageFinderView(QWidget):
                     else:
                         self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_template.text_encrypted) + ", delay=" + str(sub_template.sendkeys_delay) + ", duration=" + str(sub_template.sendkeys_duration) + ")")
                                     
+                
+                if sub_template.enable_scrolls is True and sub_template.scrolls_value != 0:
+                    self._code_lines.append("    time.sleep(sleep_factor)")
+                    
+                    direction = "m.wheel_up"
+                    
+                    if sub_template.scrolls_direction == 0:
+                        direction = "m.wheel_up"
+                    elif sub_template.scrolls_direction == 1:
+                        direction = "m.wheel_down"
+                    elif sub_template.scrolls_direction == 2:
+                        direction = "m.wheel_left"
+                    elif sub_template.scrolls_direction == 3:
+                        direction = "m.wheel_right"
+                    
+                    self._code_lines.append("    m.scroll(" + str(sub_template.scrolls_value) + ", " + direction + ")")     
+                
                 cnt = cnt + 1
         
         self._code_lines.append("")
@@ -4137,6 +5413,15 @@ class AlyvixImageFinderView(QWidget):
         
         release_pixel_node = ET.SubElement(main_template_node, "release_pixel")
         release_pixel_node.text = str(self._main_template.release_pixel)
+        
+        scrolls_enabled_node = ET.SubElement(main_template_node, "enable_scrolls")
+        scrolls_enabled_node.text = str(self._main_template.enable_scrolls)
+        
+        scrolls_value_node = ET.SubElement(main_template_node, "scrolls_value")
+        scrolls_value_node.text = str(self._main_template.scrolls_value)
+        
+        scrolls_direction_node = ET.SubElement(main_template_node, "scrolls_direction")
+        scrolls_direction_node.text = str(self._main_template.scrolls_direction)
 
         sendkeys_node = ET.SubElement(main_template_node, "sendkeys")
         sendkeys_node.set("encrypted", str(self._main_template.text_encrypted))
@@ -4255,6 +5540,15 @@ class AlyvixImageFinderView(QWidget):
 
                 release_pixel_node = ET.SubElement(sub_template_node, "release_pixel")
                 release_pixel_node.text = str(sub_template.release_pixel)
+                
+                scrolls_enabled_node = ET.SubElement(sub_template_node, "enable_scrolls")
+                scrolls_enabled_node.text = str(sub_template.enable_scrolls)
+
+                scrolls_value_node = ET.SubElement(sub_template_node, "scrolls_value")
+                scrolls_value_node.text = str(sub_template.scrolls_value)
+
+                scrolls_direction_node = ET.SubElement(sub_template_node, "scrolls_direction")
+                scrolls_direction_node.text = str(sub_template.scrolls_direction)
 
                 sendkeys_node = ET.SubElement(sub_template_node, "sendkeys")
                 sendkeys_node.set("encrypted", str(sub_template.text_encrypted))
@@ -4346,8 +5640,8 @@ class AlyvixImageFinderView(QWidget):
     def build_objects(self):
         
         #print self._path + "\\image_finder.xml"
-        
         try:
+            #print "im path", self._path + os.sep + self._xml_name
             filehandler = open(self._path + os.sep + self._xml_name,"r")
         except:
             return
@@ -4436,10 +5730,20 @@ class AlyvixImageFinderView(QWidget):
         except:
             self.wait_disapp = False
             
+                    
+        try:    
+            if "True" in main_template_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
+                self._main_template.enable_scrolls = True
+            else:
+                self._main_template.enable_scrolls = False
+        except:
+            pass
+            
         if "True" in main_template_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_template.click = True
             self.mouse_or_key_is_set = True
             self._main_template.mouse_or_key_is_set = True
+            self._main_template.enable_scrolls = True
         else:
             self._main_template.click = False
             
@@ -4460,6 +5764,7 @@ class AlyvixImageFinderView(QWidget):
                 self._main_template.click_delay = 10
                 self.mouse_or_key_is_set = True
                 self._main_template.mouse_or_key_is_set = True
+                self._main_template.enable_scrolls = True
         except:
             pass
             
@@ -4467,6 +5772,7 @@ class AlyvixImageFinderView(QWidget):
             self._main_template.rightclick = True
             self.mouse_or_key_is_set = True
             self._main_template.mouse_or_key_is_set = True
+            self._main_template.enable_scrolls = True
         else:
             self._main_template.rightclick = False
             
@@ -4474,6 +5780,7 @@ class AlyvixImageFinderView(QWidget):
             self._main_template.mousemove = True
             self.mouse_or_key_is_set = True
             self._main_template.mouse_or_key_is_set = True
+            self._main_template.enable_scrolls = True
         else:
             self._main_template.mousemove = False
             
@@ -4506,6 +5813,16 @@ class AlyvixImageFinderView(QWidget):
             
         try:    
             self._main_template.release_pixel = int(main_template_node.getElementsByTagName("release_pixel")[0].firstChild.nodeValue)
+        except:
+            pass
+            
+        try:    
+            self._main_template.scrolls_value = int(main_template_node.getElementsByTagName("scrolls_value")[0].firstChild.nodeValue)
+        except:
+            pass
+        
+        try:    
+            self._main_template.scrolls_direction = int(main_template_node.getElementsByTagName("scrolls_direction")[0].firstChild.nodeValue)
         except:
             pass
             
@@ -4645,10 +5962,22 @@ class AlyvixImageFinderView(QWidget):
             except:
                 sub_template_obj.roi_unlimited_right = False
                 
+                            
+                        
+            try:    
+                if "True" in sub_template_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
+                    sub_template_obj.enable_scrolls = True
+                else:
+                    sub_template_obj.enable_scrolls = False
+            except:
+                pass
+                
+                
             if "True" in sub_template_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_template_obj.click = True
                 self.mouse_or_key_is_set = True
                 sub_template_obj.mouse_or_key_is_set = True
+                sub_template_obj.enable_scrolls = True
             else:
                 sub_template_obj.click = False
                 
@@ -4669,6 +5998,7 @@ class AlyvixImageFinderView(QWidget):
                     sub_template_obj.click_delay = 10
                     self.mouse_or_key_is_set = True
                     sub_template_obj.mouse_or_key_is_set = True
+                    sub_template_obj.enable_scrolls = True
             except:
                 pass
             
@@ -4676,6 +6006,7 @@ class AlyvixImageFinderView(QWidget):
                 sub_template_obj.rightclick = True
                 self.mouse_or_key_is_set = True
                 sub_template_obj.mouse_or_key_is_set = True
+                sub_template_obj.enable_scrolls = True
             else:
                 sub_template_obj.rightclick = False
                 
@@ -4683,6 +6014,7 @@ class AlyvixImageFinderView(QWidget):
                 sub_template_obj.mousemove = True
                 self.mouse_or_key_is_set = True
                 sub_template_obj.mouse_or_key_is_set = True
+                sub_template_obj.enable_scrolls = True
             else:
                 sub_template_obj.mousemove = False
                 
@@ -4714,6 +6046,16 @@ class AlyvixImageFinderView(QWidget):
                 
             try:    
                 sub_template_obj.release_pixel = int(sub_template_node.getElementsByTagName("release_pixel")[0].firstChild.nodeValue)
+            except:
+                pass
+
+            try:    
+                sub_template_obj.scrolls_value = int(sub_template_node.getElementsByTagName("scrolls_value")[0].firstChild.nodeValue)
+            except:
+                pass
+            
+            try:    
+                sub_template_obj.scrolls_direction = int(sub_template_node.getElementsByTagName("scrolls_direction")[0].firstChild.nodeValue)
             except:
                 pass
             
@@ -4862,6 +6204,9 @@ class MainTemplateForGui:
         self.x_offset = None
         self.y_offset = None
         self.hold_and_release = None
+        self.scrolls_value = 0
+        self.scrolls_direction = 1
+        self.enable_scrolls = False
         self.release_pixel = 1
         self.number_of_clicks = 1
         self.click_delay = 10
@@ -4916,6 +6261,9 @@ class SubTemplateForGui:
         self.x_offset = None
         self.y_offset = None
         self.hold_and_release = None
+        self.scrolls_value = 0
+        self.scrolls_direction = 1
+        self.enable_scrolls = False
         self.release_pixel = 1
         self.number_of_clicks = 1
         self.click_delay = 10
@@ -4994,10 +6342,16 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.gridLayoutWidget_2.setGeometry(QRect(int(self.gridLayoutWidget_2.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().y() * self.scaling_factor),
                                           int(self.gridLayoutWidget_2.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().height() * self.scaling_factor)))
 
-
+        self.gridLayoutWidget_3.setGeometry(QRect(int(self.gridLayoutWidget_3.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget_3.geometry().y() * self.scaling_factor),
+                                          int(self.gridLayoutWidget_3.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_3.geometry().height() * self.scaling_factor)))
+                
         #self.setWindowTitle('Application Object Properties')
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         
+        
+        if self.parent._last_pos is not None:
+            self.move(self.parent._last_pos[0],self.parent._last_pos[1])
+            
         if self.parent.action == "edit":
             self.namelineedit.setEnabled(False)
             
@@ -5091,15 +6445,19 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             
             if self.parent._main_template.hold_and_release == 0 or self.parent._main_template.hold_and_release == 1:
                 self.holdreleaseSpinBox.setEnabled(False)
+                self.labelPixels.setEnabled(False)
                 self.holdreleaseSpinBox.setValue(self.parent._main_template.release_pixel)
             else: 
                 self.holdreleaseSpinBox.setEnabled(True)
+                self.labelPixels.setEnabled(True)
                 self.holdreleaseSpinBox.setValue(self.parent._main_template.release_pixel)
                 
         else:
+            self.labelPixels.setEnabled(False)
             self.holdreleaseRadio.setChecked(False)
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
             
         if self.parent._main_template.text_encrypted is False:
             self.text_encrypted.setChecked(False)
@@ -5193,6 +6551,22 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.labelWarning.setEnabled(False)
             self.labelCritical.setEnabled(False)
             
+            
+        if self.parent._main_template.enable_scrolls is True:
+            self.scrollsLabel.setEnabled(True)
+            self.labelDirectionScroll.setEnabled(True)
+            self.comboBoxScrolls.setEnabled(True)
+            self.spinBoxScrolls.setEnabled(True)
+        else:
+            self.scrollsLabel.setEnabled(False)
+            self.labelDirectionScroll.setEnabled(False)
+            self.comboBoxScrolls.setEnabled(False)
+            self.spinBoxScrolls.setEnabled(False)
+            
+        self.comboBoxScrolls.setCurrentIndex(self.parent._main_template.scrolls_direction)
+            
+        self.spinBoxScrolls.setValue(self.parent._main_template.scrolls_value)
+            
         """
         if self.parent._main_template.red_channel is True:
             self.checkBoxRedChannel.setChecked(True)
@@ -5217,7 +6591,14 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         
         self.spinBoxSendKeysDelay.setValue(self.parent._main_template.sendkeys_delay)
         self.spinBoxSendKeysDuration.setValue(self.parent._main_template.sendkeys_duration)
+        
+        
 
+        
+        self.connect(self.pushButtonSelAll, SIGNAL('clicked()'), self.sel_all_event)
+        self.connect(self.pushButtonDesAll, SIGNAL('clicked()'), self.des_all_event)
+        self.connect(self.pushButtonDelete, SIGNAL('clicked()'), self.delete_event)
+        
         
         self.connect(self.doubleSpinBoxThreshold, SIGNAL('valueChanged(double)'), self.threshold_spinbox_event)
         
@@ -5245,7 +6626,10 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.connect(self.holdreleaseSpinBox, SIGNAL('valueChanged(int)'), self.holdreleaseSpinBox_event)
         
         self.connect(self.clicknumber_spinbox, SIGNAL('valueChanged(int)'), self.clicknumber_spinbox_change_event)    
-        self.connect(self.clickdelay_spinbox, SIGNAL('valueChanged(int)'), self.clickdelay_spinbox_change_event)         
+        self.connect(self.clickdelay_spinbox, SIGNAL('valueChanged(int)'), self.clickdelay_spinbox_change_event)  
+
+        self.connect(self.spinBoxScrolls, SIGNAL('valueChanged(int)'), self.spinbox_scrolls_event)          
+        self.connect(self.comboBoxScrolls, SIGNAL("currentIndexChanged(int)"), self.combobox_scrolls_event)
         
         self.connect(self.inserttext, SIGNAL("textChanged(QString)"), self, SLOT("inserttext_event(QString)"))
         
@@ -5316,6 +6700,9 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
 
         self.connect(self.holdreleaseSpinBox_2, SIGNAL('valueChanged(int)'), self.holdreleaseSpinBox_event_2)
         
+        self.connect(self.spinBoxScrolls_2, SIGNAL('valueChanged(int)'), self.spinbox_scrolls_event_2)          
+        self.connect(self.comboBoxScrolls_2, SIGNAL("currentIndexChanged(int)"), self.combobox_scrolls_event_2)
+        
         #self.connect(self.holdreleaseComboBox, SIGNAL("currentIndexChanged(const QString&)"), self.holdreleaseComboBox_event)
         
         self.connect(self.clicknumber_spinbox_2, SIGNAL('valueChanged(int)'), self.clicknumber_spinbox_change_event_2)    
@@ -5344,8 +6731,16 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         if self.parent.last_view_index != 0:
             
             self.listWidget.setCurrentRow(self.parent.last_view_index)
-
-        
+            
+    """
+    def showEvent(self, event):
+        self.parent._ctrl_is_pressed = False
+        self.parent._show_boundingrects = False
+    """
+       
+    def moveEvent(self, event):
+        self.parent._last_pos = (self.frameGeometry().x(), self.frameGeometry().y())
+    
     def pushButtonCancel_event(self):
         self.close()
         self.parent.cancel_all()
@@ -5550,7 +6945,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.parent.update()
    
     def red_channel_event(self, event):
-        print event
+        #print event
         if self.checkBoxRedChannel.isChecked() is True:
             self.parent._main_template.red_channel = True
         elif self.checkBoxGreenChannel.isChecked() is False and self.checkBoxBlueChannel.isChecked() is False:
@@ -5640,7 +7035,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         selected_index = self.listWidget.currentRow()
         
         self.parent.last_view_index = selected_index
-        print "selected_index:", self.parent.last_view_index
+        #print "selected_index:", self.parent.last_view_index
         
         if selected_index == 0:
             self.widget_2.hide()
@@ -5661,6 +7056,76 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             
 
         #print self.listWidget.currentItem().text()
+        
+    def sel_all_event(self):
+  
+        print "count",self.listWidget.count()
+        for row_index in range(self.listWidget.count()):
+        
+            self.listWidget.item(row_index).setCheckState(Qt.Checked)
+            
+       
+    def des_all_event(self):
+
+        for row_index in range(self.listWidget.count()):
+        
+            self.listWidget.item(row_index).setCheckState(Qt.Unchecked)
+        
+    def delete_event(self):
+
+    
+        index_to_remove = []
+        #print self.parent._sub_templates_finder
+        for row_index in range(self.listWidget.count()):
+                if row_index != 0 and self.listWidget.item(row_index).checkState() == 2:
+                    #print row_index - 1
+                    #del self.parent._sub_templates_finder[row_index-1]
+                    index_to_remove.append(row_index-1)
+                    
+        if len(index_to_remove) > 0:
+                
+            answer = QMessageBox.No
+
+            answer = QMessageBox.warning(self, "Warning", "Are you sure you want to delete selected items?", QMessageBox.Yes, QMessageBox.No)
+              
+            if answer == QMessageBox.No:
+                return
+        
+        self.parent._sub_templates_finder = [i for j, i in enumerate(self.parent._sub_templates_finder) if j not in index_to_remove]
+        
+        self.listWidget.clear()
+        
+        item = QListWidgetItem()
+        item.setText("main_component")
+        self.listWidget.addItem(item)
+        
+        cnt = 1
+        for sub_template in self.parent._sub_templates_finder:
+        
+            if sub_template.x == 0 and sub_template.y == 0:
+                continue
+            item = QListWidgetItem()
+            if sub_template.show is True:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
+            item.setText("sub_component_" + str(cnt))
+            self.listWidget.addItem(item)
+            cnt = cnt + 1
+            
+        if self.parent._main_template.show is True:
+            self.listWidget.item(0).setCheckState(Qt.Checked)
+        else:
+            self.listWidget.item(0).setCheckState(Qt.Unchecked)
+        self.listWidget.item(0).setSelected(True)  
+        
+        self.widget_2.hide()
+        self.widget.show()
+        #self.widget.setGeometry(QRect(168, 9, 413, 433))
+        self.widget.setGeometry(QRect(self.widget.geometry().x(), self.widget.geometry().y(),
+                                self.widget.geometry().width(), self.widget.geometry().height()))
+                                    
+        self.parent.update()
         
     @pyqtSlot(QListWidgetItem)
     def listWidget_state_changed(self, item):
@@ -5766,6 +7231,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             else:
                 self.labelClickDelay_2.setEnabled(False)
                 self.clickdelay_spinbox_2.setEnabled(False)
+            
         else:
             self.clickRadio_2.setChecked(False)
             self.pushButtonXYoffset_2.setEnabled(False)
@@ -5819,9 +7285,11 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             
             if self.parent._sub_templates_finder[self.sub_template_index].hold_and_release == 0 or self.parent._sub_templates_finder[self.sub_template_index].hold_and_release == 1:
                 self.holdreleaseSpinBox_2.setEnabled(False)
+                self.labelPixels_2.setEnabled(False)
                 self.holdreleaseSpinBox_2.setValue(self.parent._sub_templates_finder[self.sub_template_index].release_pixel)
             else: 
                 self.holdreleaseSpinBox_2.setEnabled(True)
+                self.labelPixels_2.setEnabled(True)
                 self.holdreleaseSpinBox_2.setValue(self.parent._sub_templates_finder[self.sub_template_index].release_pixel)
                 
             #self.connect(self.holdreleaseComboBox_2, SIGNAL("currentIndexChanged(int)"), self.holdreleaseComboBox_event_2)
@@ -5830,6 +7298,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.holdreleaseRadio_2.setChecked(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
             
         """    
         if self.parent._sub_templates_finder[self.sub_template_index].red_channel is True:
@@ -5852,6 +7321,22 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.checkBoxMatchColors_2.setChecked(False)
             
+        if self.parent._sub_templates_finder[self.sub_template_index].enable_scrolls is True:
+            self.scrollsLabel_2.setEnabled(True)
+            self.labelDirectionScroll_2.setEnabled(True)
+            self.comboBoxScrolls_2.setEnabled(True)
+            self.spinBoxScrolls_2.setEnabled(True)
+        else:
+            self.scrollsLabel_2.setEnabled(False)
+            self.labelDirectionScroll_2.setEnabled(False)
+            self.comboBoxScrolls_2.setEnabled(False)
+            self.spinBoxScrolls_2.setEnabled(False)
+            
+                    
+        self.comboBoxScrolls_2.setCurrentIndex(self.parent._sub_templates_finder[self.sub_template_index].scrolls_direction)
+            
+        self.spinBoxScrolls_2.setValue(self.parent._sub_templates_finder[self.sub_template_index].scrolls_value)
+            
     def clickRadio_event(self, event):
         if event is False:
             self.parent._main_template.click = False
@@ -5860,6 +7345,12 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.pushButtonXYoffset.setEnabled(True) 
             self.labelClickNumber.setEnabled(True)
             self.clicknumber_spinbox.setEnabled(True)
+            
+            self.parent._main_template.enable_scrolls = True
+            self.scrollsLabel.setEnabled(True)
+            self.labelDirectionScroll.setEnabled(True)
+            self.comboBoxScrolls.setEnabled(True)
+            self.spinBoxScrolls.setEnabled(True)
 
             if self.clicknumber_spinbox.value() > 1:
                 self.labelClickDelay.setEnabled(True)
@@ -5870,8 +7361,8 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
                 
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
-            
-        self.parent.update()
+            self.labelPixels.setEnabled(False)
+
         
     def doubleclickRadio_event(self, event):
         if event is False:
@@ -5888,12 +7379,20 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.parent._main_template.rightclick = True 
             self.pushButtonXYoffset.setEnabled(True) 
+            
+            self.parent._main_template.enable_scrolls = True
+            self.scrollsLabel.setEnabled(True)
+            self.labelDirectionScroll.setEnabled(True)
+            self.comboBoxScrolls.setEnabled(True)
+            self.spinBoxScrolls.setEnabled(True)
+            
             self.labelClickNumber.setEnabled(False)
             self.clicknumber_spinbox.setEnabled(False)
             self.labelClickDelay.setEnabled(False)
             self.clickdelay_spinbox.setEnabled(False)
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
             
         self.parent.update()
             
@@ -5903,12 +7402,20 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         else:
             self.parent._main_template.mousemove = True 
             self.pushButtonXYoffset.setEnabled(True) 
+            
+            self.parent._main_template.enable_scrolls = True
+            self.scrollsLabel.setEnabled(True)
+            self.labelDirectionScroll.setEnabled(True)
+            self.comboBoxScrolls.setEnabled(True)
+            self.spinBoxScrolls.setEnabled(True)
+            
             self.labelClickNumber.setEnabled(False)
             self.clicknumber_spinbox.setEnabled(False)
             self.labelClickDelay.setEnabled(False)
             self.clickdelay_spinbox.setEnabled(False)
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
             
         self.parent.update()
              
@@ -5926,6 +7433,13 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox.setEnabled(False)
             self.holdreleaseComboBox.setEnabled(False)
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
+            
+            self.parent._main_template.enable_scrolls = False
+            self.scrollsLabel.setEnabled(False)
+            self.labelDirectionScroll.setEnabled(False)
+            self.comboBoxScrolls.setEnabled(False)
+            self.spinBoxScrolls.setEnabled(False)
             
         self.parent.update()
             
@@ -5954,12 +7468,20 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox.setEnabled(False)
             self.holdreleaseComboBox.setEnabled(True)
             
+            self.parent._main_template.enable_scrolls = False
+            self.scrollsLabel.setEnabled(False)
+            self.labelDirectionScroll.setEnabled(False)
+            self.comboBoxScrolls.setEnabled(False)
+            self.spinBoxScrolls.setEnabled(False)
+            
             combo_index = self.holdreleaseComboBox.currentIndex()
             
             if combo_index == 0 or combo_index == 1:
                 self.holdreleaseSpinBox.setEnabled(False)
+                self.labelPixels.setEnabled(False)
             else: 
                 self.holdreleaseSpinBox.setEnabled(True)
+                self.labelPixels.setEnabled(True)
             
             #print "combo indexxxxxxx", combo_index
             self.parent._main_template.hold_and_release = combo_index
@@ -5967,13 +7489,23 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
     def holdreleaseComboBox_event(self, event):
         if event == 0 or event == 1:
             self.holdreleaseSpinBox.setEnabled(False)
+            self.labelPixels.setEnabled(False)
         else: 
             self.holdreleaseSpinBox.setEnabled(True)
+            self.labelPixels.setEnabled(True)
             
         self.parent._main_template.hold_and_release = event
         
     def holdreleaseSpinBox_event(self, event):
         self.parent._main_template.release_pixel = self.holdreleaseSpinBox.value()
+        
+    def combobox_scrolls_event(self, event):
+
+        self.parent._main_template.scrolls_direction = event
+        
+    def spinbox_scrolls_event(self, event):
+        self.parent._main_template.scrolls_value = self.spinBoxScrolls.value()
+        
         
     def clickdelay_spinbox_change_event (self, event):
         self.parent._main_template.click_delay = self.clickdelay_spinbox.value()
@@ -6349,7 +7881,7 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
 
 
     def red_channel_event_2(self, event):
-        print event
+        #print event
         if self.checkBoxRedChannel_2.isChecked() is True:
             self.parent._sub_templates_finder[self.sub_template_index].red_channel = True
         elif self.checkBoxGreenChannel_2.isChecked() is False and self.checkBoxBlueChannel_2.isChecked() is False:
@@ -6550,6 +8082,13 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
                 self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
+            
+            self.parent._sub_templates_finder[self.sub_template_index].enable_scrolls = True
+            self.scrollsLabel_2.setEnabled(True)
+            self.labelDirectionScroll_2.setEnabled(True)
+            self.comboBoxScrolls_2.setEnabled(True)
+            self.spinBoxScrolls_2.setEnabled(True)
         
     def doubleclickRadio_event_2(self, event):
         if event is False:
@@ -6572,6 +8111,13 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
+            
+            self.parent._sub_templates_finder[self.sub_template_index].enable_scrolls = True
+            self.scrollsLabel_2.setEnabled(True)
+            self.labelDirectionScroll_2.setEnabled(True)
+            self.comboBoxScrolls_2.setEnabled(True)
+            self.spinBoxScrolls_2.setEnabled(True)
             
         self.parent.update()
             
@@ -6587,6 +8133,13 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
+            
+            self.parent._sub_templates_finder[self.sub_template_index].enable_scrolls = True
+            self.scrollsLabel_2.setEnabled(True)
+            self.labelDirectionScroll_2.setEnabled(True)
+            self.comboBoxScrolls_2.setEnabled(True)
+            self.spinBoxScrolls_2.setEnabled(True)
             
         self.parent.update()
              
@@ -6603,6 +8156,13 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(False)
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
+            
+            self.parent._sub_templates_finder[self.sub_template_index].enable_scrolls = False
+            self.scrollsLabel_2.setEnabled(False)
+            self.labelDirectionScroll_2.setEnabled(False)
+            self.comboBoxScrolls_2.setEnabled(False)
+            self.spinBoxScrolls_2.setEnabled(False)
             
         self.parent.update()
             
@@ -6631,25 +8191,42 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
             self.clickdelay_spinbox_2.setEnabled(False)
             self.holdreleaseComboBox_2.setEnabled(True)
             
+            self.parent._sub_templates_finder[self.sub_template_index].enable_scrolls = False
+            self.scrollsLabel_2.setEnabled(False)
+            self.labelDirectionScroll_2.setEnabled(False)
+            self.comboBoxScrolls_2.setEnabled(False)
+            self.spinBoxScrolls_2.setEnabled(False)
+            
             combo_index = self.holdreleaseComboBox_2.currentIndex()
             
             if combo_index == 0 or combo_index == 1:
                 self.holdreleaseSpinBox_2.setEnabled(False)
+                self.labelPixels_2.setEnabled(False)
             else: 
                 self.holdreleaseSpinBox_2.setEnabled(True)
+                self.labelPixels_2.setEnabled(True)
             
             self.parent._sub_templates_finder[self.sub_template_index].hold_and_release = combo_index
             
     def holdreleaseComboBox_event_2(self, event):
         if event == 0 or event == 1:
             self.holdreleaseSpinBox_2.setEnabled(False)
+            self.labelPixels_2.setEnabled(False)
         else: 
             self.holdreleaseSpinBox_2.setEnabled(True)
+            self.labelPixels_2.setEnabled(True)
             
         self.parent._sub_templates_finder[self.sub_template_index].hold_and_release = event
         
     def holdreleaseSpinBox_event_2(self, event):
         self.parent._sub_templates_finder[self.sub_template_index].release_pixel = self.holdreleaseSpinBox_2.value()
+        
+    def combobox_scrolls_event_2(self, event):
+
+        self.parent._sub_templates_finder[self.sub_template_index].scrolls_direction = event
+        
+    def spinbox_scrolls_event_2(self, event):
+        self.parent._sub_templates_finder[self.sub_template_index].scrolls_value = self.spinBoxScrolls_2.value()
         
     def clickdelay_spinbox_change_event_2 (self, event):
         self.parent._sub_templates_finder[self.sub_template_index].click_delay = self.clickdelay_spinbox_2.value()

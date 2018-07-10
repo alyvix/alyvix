@@ -19,9 +19,61 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
 import datetime
 import json
 import re
+
+
+class JSONManager:
+
+    def __init__(self, path_file_json='init'):
+        self.path_file_json = path_file_json
+        self.norm_json_path_file()
+        self.maps_json = {}
+        self.store_json_customer_settings()
+        self.load_json_customer_settings()
+
+    def norm_json_path_file(self):
+        file_json = os.path.basename(self.path_file_json)
+        file_ext_json_exists = (file_json.split('.')[-1] == 'json')
+        if not file_ext_json_exists:
+            self.path_file_json += '.json'
+        self.path_file_json = os.path.abspath(self.path_file_json)
+        return self.path_file_json
+
+    def store_json_customer_settings(self, maps_json={}):
+        if not maps_json:
+            maps_json = {'dict_01': {'key_01': 'value_01',
+                                     'key_02': 'value_02'},
+                         'dict_02': {'key_03': 'value_03',
+                                     'key_04': 'value_04'}}
+        file_json_exists = os.path.exists(self.path_file_json)
+        if not file_json_exists:
+            json.dump(maps_json, fp=open(self.path_file_json, 'w'), indent=4)
+        return True
+
+    def load_json_customer_settings(self):
+        try:
+            self.maps_json = json.load(open(self.path_file_json))
+        except IOError:
+            print('{0} does not exist'.format(self.path_file_json))
+            return False
+        return True
+
+    def get_json_value(self, name_dict_json, name_key_json):
+        try:
+            dict_json = self.maps_json[name_dict_json]
+            try:
+                value_json = dict_json[name_key_json]
+            except KeyError:
+                print("'{0}' key does not exists in '{1}' dictionary".format(
+                    name_key_json, name_dict_json))
+                return False
+        except KeyError:
+            print("'{0}' dictionary does not exists".format(name_dict_json))
+            return False
+        return value_json
 
 
 class StringManager:
@@ -32,7 +84,7 @@ class StringManager:
         self.aos_scrap = 'no_aos_scrap'
         self.id_scrap = 'no_id_scrap'
         self.aos_name = 'no_aos_name'
-        self.id_session = 'no_id_session'
+        self.id_session = -1
         self.customer_name = str(customer_name)
         self.path_json = str(path_json)
         self.customer_settings = {}
@@ -123,43 +175,24 @@ class StringManager:
         if self.aos_names:
             for aos_name in self.aos_names:
                 aos_name_proc = ''.join(aos_name.lower().split())
-                aos_root = aos_name_proc.rstrip(''.join(
-                    [str(x) for x in range(10)]))
+                aos_root = aos_name_proc.rstrip(str(range(1, 11)))
                 aos_serial = aos_name_proc.split(aos_root, 1)[1]
                 aos_pattern = '('
                 for aos_char in aos_root:
-                    if aos_char == 'b':
-                        aos_pattern += '[b68]'
-                    elif aos_char == 'b':
-                        aos_pattern += '[b68]'
-                    elif aos_char == 'd':
-                        aos_pattern += '[d6o0]'
-                    elif aos_char == 'e':
+                    if aos_char in {'b', 'h', '6', '8'}:
+                        aos_pattern += '[bh68]'
+                    elif aos_char in {'d', 'o', '0'}:
+                        aos_pattern += '[do0]'
+                    elif aos_char in {'e', '3'}:
                         aos_pattern += '[e3]'
-                    elif aos_char == 'f':
-                        aos_pattern += '[f17]'
-                    elif aos_char == 'h':
-                        aos_pattern += '[hb6]'
-                    elif aos_char == 'i':
-                        aos_pattern += '[i1l]'
-                    elif aos_char == 'l':
-                        aos_pattern += '[li1]'
-                    elif aos_char == 'o':
-                        aos_pattern += '[o0]'
-                    elif aos_char == 't':
-                        aos_pattern += '[tfl1]'
-                    elif aos_char == '0':
-                        aos_pattern += '[0do]'
-                    elif aos_char == '1':
-                        aos_pattern += '[1filt]'
-                    elif aos_char == '3':
-                        aos_pattern += '[3e]'
-                    elif aos_char == '6':
-                        aos_pattern += '[6bdh]'
-                    elif aos_char == '7':
-                        aos_pattern += '[7ft]'
-                    elif aos_char == '8':
-                        aos_pattern += '[8b]'
+                    elif aos_char in {'f', 't', '7'}:
+                        aos_pattern += '[ft7]'
+                    elif aos_char in {'i', 'l', '1'}:
+                        aos_pattern += '[il1]'
+                    elif aos_char in {'s', '5'}:
+                        aos_pattern += '[s5]'
+                    elif aos_char in {'z', '2'}:
+                        aos_pattern += '[z2]'
                     else:
                         aos_pattern += aos_char
                 aos_pattern += ')'
@@ -177,17 +210,32 @@ class StringManager:
                 return True
             else:
                 aos_scrap_name = ''.join(self.aos_scrap.lower().split())
-                aos_scrap_root = self.aos_scrap.rstrip(''.join(
-                    [str(x) for x in range(10)]))
-                aos_scrap_serial = self.aos_scrap.split(aos_scrap_root, 1)[1]
+                # aos_scrap_root = self.aos_scrap.rstrip(str(range(1, 11)))
+                # aos_scrap_serial = self.aos_scrap.split(aos_scrap_root, 1)[1]
                 for aos_pattern in self.aos_patterns.keys():
-                    if re.match(aos_pattern, aos_scrap_name):
-                        try:
-                            self.aos_name = self.aos_patterns[
-                                aos_pattern][aos_scrap_serial]
-                            return True
-                        except KeyError:
-                            return False
+                    aos_match = re.match(aos_pattern, aos_scrap_name)
+                    if aos_match:
+                        aos_match_position = aos_match.regs[1][1]
+                        aos_scrap_serial = aos_scrap_name[aos_match_position:]
+                        aos_scrap_serial = aos_scrap_serial.replace('d', '0')
+                        aos_scrap_serial = aos_scrap_serial.replace('o', '0')
+                        aos_scrap_serial = aos_scrap_serial.replace('i', '1')
+                        aos_scrap_serial = aos_scrap_serial.replace('l', '1')
+                        aos_scrap_serial = aos_scrap_serial.replace('z', '2')
+                        aos_scrap_serial = aos_scrap_serial.replace('e', '3')
+                        aos_scrap_serial = aos_scrap_serial.replace('s', '5')
+                        aos_scrap_serial = aos_scrap_serial.replace('f', '7')
+                        aos_scrap_serial = aos_scrap_serial.replace('t', '7')
+                        aos_scrap_serial = aos_scrap_serial.replace('b', '8')
+                        aos_scrap_serial_length = len(aos_scrap_serial)
+                        aos_serial = aos_scrap_serial
+                        for cut in range(aos_scrap_serial_length):
+                            try:
+                                self.aos_name = self.aos_patterns[
+                                    aos_pattern][aos_serial]
+                                return True
+                            except KeyError:
+                                aos_serial = aos_scrap_serial[:-cut-1]
         return False
 
     def norm_id_session(self):
@@ -227,6 +275,7 @@ class CalendarWatchManager:
         self.date_to_consider_begin = None
         self.date_to_consider_end = None
         self.dhms_time_days = None
+        self.dhms_time_hours = None
         self.hms_time = None
 
     def __repr__(self):
@@ -242,6 +291,8 @@ class CalendarWatchManager:
             self.scraped_string)
         print_message += 'Days from dhms time: {0}\n'.format(
             self.get_dhms_time_days())
+        print_message += 'Hours from dhms time: {0}\n'.format(
+            self.get_dhms_time_hours())
         print_message += 'Time consistency check: {0}\n'.format(
             self.check_dhms_totaltime_days_previous_month())
         print_message += 'Time (hh:mm:ss): {0}\n'.format(
@@ -301,6 +352,22 @@ class CalendarWatchManager:
         else:
             return False
 
+    def get_dhms_time_hours(self):
+        lower_scraped_dhms_time = self.scraped_string.lower()
+        mark_days = 'd'
+        where_mark_days = lower_scraped_dhms_time.find(mark_days)
+        crop_dhms_time_hours = lower_scraped_dhms_time[
+                               (where_mark_days+len(mark_days)):]
+        mark_hours = 'h'
+        where_mark_hours = crop_dhms_time_hours.find(mark_hours)
+        crop_dhms_time_hours = crop_dhms_time_hours[:where_mark_hours]
+        crop_dhms_time_hours = ''.join(crop_dhms_time_hours.split())
+        if crop_dhms_time_hours.isdigit():
+            self.dhms_time_hours = int(crop_dhms_time_hours)
+            return self.dhms_time_hours
+        else:
+            return False
+
     def detect_hms_time(self):
         hms_pattern = '[\s\w]*([0-2]\d:[0-5]\d:[0-5]\d)'
         try:
@@ -316,6 +383,12 @@ class CalendarWatchManager:
         if self.dhms_time_days:
             if self.dhms_time_days == int(self.days_previous_month):
                 return True
+            else:
+                if self.three_letter_previous_month == 'mar':
+                    self.get_dhms_time_hours()
+                    if self.dhms_time_days == int(self.days_previous_month)-1:
+                        if self.dhms_time_hours == 24-1:
+                            return True
         return False
 
     def check_hms_time_proximity(self):
@@ -333,6 +406,46 @@ class CalendarWatchManager:
                 return True
         return False
 
+    def check_date_today(self):
+        lower_scraped_date = self.scraped_string.lower()
+        lower_fixed_scraped_date = lower_scraped_date.replace('|', '/')
+        lower_fixed_scraped_date = lower_fixed_scraped_date.replace('l', '/')
+        lower_compact_scraped_date = ''.join(lower_fixed_scraped_date.split())
+        pattern_ddmm_yyyy_date = '[0-3]?[0-9]\/[0-1]?[0-9](\/20[1-9][0-9])?'
+        ddmm_yyyy_date_search = re.search(pattern_ddmm_yyyy_date,
+                                          lower_compact_scraped_date)
+        if ddmm_yyyy_date_search:
+            ddmm_yyyy_date_searched = ddmm_yyyy_date_search.group()
+            ddmm_yyyy_searched = map(int, ddmm_yyyy_date_searched.split('/'))
+            ddmm_yyyy_today = [self.today.day, self.today.month]
+            if len(ddmm_yyyy_searched) == 3:
+                ddmm_yyyy_today.append(self.today.year)
+            if ddmm_yyyy_searched == ddmm_yyyy_today:
+                return True, ddmm_yyyy_date_searched
+        pattern_mmdd_yyyy_date = '[0-1]?[0-9]\/[0-3]?[0-9](\/20[1-9][0-9])?'
+        mmdd_yyyy_date_search = re.search(pattern_mmdd_yyyy_date,
+                                          lower_compact_scraped_date)
+        if mmdd_yyyy_date_search:
+            mmdd_yyyy_date_searched = mmdd_yyyy_date_search.group()
+            mmdd_yyyy_searched = map(int,
+                                     mmdd_yyyy_date_searched.split('/'))
+            mmdd_yyyy_today = [self.today.month, self.today.day]
+            if len(mmdd_yyyy_searched) == 3:
+                mmdd_yyyy_today.append(self.today.year)
+            if mmdd_yyyy_searched == mmdd_yyyy_today:
+                return True, mmdd_yyyy_date_searched
+        return False, None
+
+
+def get_dictionary_value(path_file_json='init', name_dict_json='dict_01',
+                         name_key_json='key_01', verbose=False):
+    jm = JSONManager(path_file_json=path_file_json)
+    value_json = jm.get_json_value(name_dict_json=name_dict_json,
+                                   name_key_json=name_key_json)
+    if verbose:
+        print(value_json)
+    return value_json
+
 
 def get_aos_id(scraped_string, customer_name='test', path_json='',
                map_norm=True, verbose=False):
@@ -345,6 +458,27 @@ def get_aos_id(scraped_string, customer_name='test', path_json='',
     if map_norm:
         return sm.aos_name, sm.id_session
     return sm.aos_scrap, sm.id_scrap
+
+
+def check_number(scraped_string,
+                 comparison_type='bigger',
+                 comparison_number='0'):
+    splitted_scrap = scraped_string.split()
+    for snippet in splitted_scrap:
+        number_pattern = '[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?'
+        number_search = re.search(number_pattern, snippet)
+        if number_search:
+            number_searched = number_search.group()
+            try:
+                candidate_number = float(number_searched)
+            except ValueError:
+                continue
+            if comparison_type == 'bigger':
+                if candidate_number > float(comparison_number):
+                    return True, candidate_number
+                else:
+                    return False, candidate_number
+    return False, None
 
 
 def get_date_today(date_format='dd/mm/yyyy'):
@@ -368,12 +502,21 @@ def check_hms_time_proximity(scraped_string, proximity_minutes=60):
     return cwm.check_hms_time_proximity()
 
 
-if __name__ == "__main__":
+def check_date_today(scraped_string):
+    cwm = CalendarWatchManager(scraped_string)
+    return cwm.check_date_today()
+
+
+def main():
+    if True:
+        get_dictionary_value(path_file_json='init', name_dict_json='dict_01',
+                             name_key_json='key_01', verbose=True)
+        print('')
 
     if True:
-        scrap_example_us = "Inc. [t3stl a0 s_1: Session ID - 1 2] - [1 -"
-        scrap_example_it = "S.p.A. [t3stl a0 s_1: ID sessione - 1 2] - [1 -"
-        scrap_example_de = "GmbH [t3stl a0 s_1: Session ID - 1 2] - [1 -"
+        scrap_example_us = "Inc. [t3stl a0 5_123: Session ID - 1 2] - [1 -"
+        # scrap_example_it = "S.p.A. [t3stl a0 5_123: ID sessione - 1 2] - [1 -"
+        # scrap_example_de = "GmbH [t3stl a0 5_123: Session ID - 1 2] - [1 -"
         get_aos_id(scraped_string=scrap_example_us,
                    customer_name='test',
                    map_norm=True,
@@ -381,9 +524,9 @@ if __name__ == "__main__":
         print('')
 
     if True:
-        scraped_dhms_time_sample = '28d 7h 7m 46s'
-        scraped_hms_time_sample = '\nbla\nbla10:00:00bla\nbla20:00:00bla\nbla'
-        cwm = CalendarWatchManager(scraped_hms_time_sample)
+        scraped_dhms_time_sample = '30d 23h 0m 00s'
+        # scraped_hms_time_sample = '\nbla\nbla10:00:00bla\nbla20:00:00bla\nbla'
+        cwm = CalendarWatchManager(scraped_dhms_time_sample)
         print(cwm)
         print('')
 
@@ -396,7 +539,7 @@ if __name__ == "__main__":
             date_format, get_date_today(date_format)))
         print('get_three_letter_days_previous_month(): {0}'.format(
             get_three_letter_days_previous_month()))
-        scraped_string = '28d 7h 7m 46s'
+        scraped_string = '30d 23h 0m 00s'
         print('check_dhms_totaltime_days_previous_month({0}): {1}'.format(
             scraped_string,
             check_dhms_totaltime_days_previous_month(scraped_string)))
@@ -404,4 +547,35 @@ if __name__ == "__main__":
         print('check_hms_time_proximity({0}): {1}'.format(
             scraped_string,
             check_hms_time_proximity(scraped_string)))
+        scraped_string = 'Logs of date: 13 / 04 / 2018 (Files: 10)'
+        print('check_date_today({0}): {1}'.format(
+            scraped_string,
+            check_date_today(scraped_string)))
+        scraped_string = 'Logs of date: 13 / 04 (Files: 10)'
+        print('check_date_today({0}): {1}'.format(
+            scraped_string,
+            check_date_today(scraped_string)))
+        scraped_string = 'Logs of date: 04 / 13 / 2018 (Files: 10)'
+        print('check_date_today({0}): {1}'.format(
+            scraped_string,
+            check_date_today(scraped_string)))
+        scraped_string = 'Logs of date: 04 / 13 (Files: 10)'
+        print('check_date_today({0}): {1}'.format(
+            scraped_string,
+            check_date_today(scraped_string)))
+        scraped_string = '04l1312:02:30 N/A Success Audit'
+        print('check_date_today({0}): {1}'.format(
+            scraped_string,
+            check_date_today(scraped_string)))
         print('')
+
+    if True:
+        scraped_string = '!@#bla!@#-236.4/5 142.0/5 3.9/5 J!@#bla!@#'
+        print('check_number({0}): {1}'.format(
+            scraped_string, check_number(scraped_string=scraped_string,
+                                         comparison_type='bigger',
+                                         comparison_number='0')))
+
+
+if __name__ == "__main__":
+    main()

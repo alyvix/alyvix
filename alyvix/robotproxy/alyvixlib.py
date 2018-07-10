@@ -22,6 +22,7 @@
 from alyvixcommon import *
 from robot.api import logger
 from robot.libraries.BuiltIn import BuiltIn
+import re
 
 
 def overwrite_alyvix_screen(overwrite="true"):
@@ -392,6 +393,16 @@ def get_mstsc_hostname(customer_name='test', path_json=''):
         return False
 
 
+def get_dictionary_value(path_file_json='init', name_dict_json='dict_01',
+                         name_key_json='key_01', verbose=False):
+    jm = JSONManager(path_file_json=path_file_json)
+    value_json = jm.get_json_value(name_dict_json=name_dict_json,
+                                   name_key_json=name_key_json)
+    if verbose:
+        print(value_json)
+    return value_json
+
+
 def get_aos_id(scraped_string, customer_name='test', path_json='',
                map_norm=True, verbose=False):
     sm = StringManager(scraped_string=scraped_string,
@@ -403,6 +414,27 @@ def get_aos_id(scraped_string, customer_name='test', path_json='',
     if map_norm:
         return sm.aos_name, sm.id_session
     return sm.aos_scrap, sm.id_scrap
+
+
+def check_number(scraped_string,
+                 comparison_type='bigger',
+                 comparison_number='0'):
+    splitted_scrap = scraped_string.split()
+    for snippet in splitted_scrap:
+        number_pattern = '[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?'
+        number_search = re.search(number_pattern, snippet)
+        if number_search:
+            number_searched = number_search.group()
+            try:
+                candidate_number = float(number_searched)
+            except ValueError:
+                continue
+            if comparison_type == 'bigger':
+                if candidate_number > float(comparison_number):
+                    return True, candidate_number
+                else:
+                    return False, candidate_number
+    return False, None
 
 
 def get_date_today(date_format='dd/mm/yyyy'):
@@ -424,3 +456,8 @@ def check_hms_time_proximity(scraped_string, proximity_minutes=60):
     cwm = CalendarWatchManager(scraped_string=scraped_string,
                                proximity_minutes=proximity_minutes)
     return cwm.check_hms_time_proximity()
+
+
+def check_date_today(scraped_string):
+    cwm = CalendarWatchManager(scraped_string)
+    return cwm.check_date_today()
