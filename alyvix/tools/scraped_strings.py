@@ -19,9 +19,61 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
 import datetime
 import json
 import re
+
+
+class JSONManager:
+
+    def __init__(self, path_file_json='init'):
+        self.path_file_json = path_file_json
+        self.norm_json_path_file()
+        self.maps_json = {}
+        self.store_json_customer_settings()
+        self.load_json_customer_settings()
+
+    def norm_json_path_file(self):
+        file_json = os.path.basename(self.path_file_json)
+        file_ext_json_exists = (file_json.split('.')[-1] == 'json')
+        if not file_ext_json_exists:
+            self.path_file_json += '.json'
+        self.path_file_json = os.path.abspath(self.path_file_json)
+        return self.path_file_json
+
+    def store_json_customer_settings(self, maps_json={}):
+        if not maps_json:
+            maps_json = {'dict_01': {'key_01': 'value_01',
+                                     'key_02': 'value_02'},
+                         'dict_02': {'key_03': 'value_03',
+                                     'key_04': 'value_04'}}
+        file_json_exists = os.path.exists(self.path_file_json)
+        if not file_json_exists:
+            json.dump(maps_json, fp=open(self.path_file_json, 'w'), indent=4)
+        return True
+
+    def load_json_customer_settings(self):
+        try:
+            self.maps_json = json.load(open(self.path_file_json))
+        except IOError:
+            print('{0} does not exist'.format(self.path_file_json))
+            return False
+        return True
+
+    def get_json_value(self, name_dict_json, name_key_json):
+        try:
+            dict_json = self.maps_json[name_dict_json]
+            try:
+                value_json = dict_json[name_key_json]
+            except KeyError:
+                print("'{0}' key does not exists in '{1}' dictionary".format(
+                    name_key_json, name_dict_json))
+                return False
+        except KeyError:
+            print("'{0}' dictionary does not exists".format(name_dict_json))
+            return False
+        return value_json
 
 
 class StringManager:
@@ -32,7 +84,7 @@ class StringManager:
         self.aos_scrap = 'no_aos_scrap'
         self.id_scrap = 'no_id_scrap'
         self.aos_name = 'no_aos_name'
-        self.id_session = 'no_id_session'
+        self.id_session = -1
         self.customer_name = str(customer_name)
         self.path_json = str(path_json)
         self.customer_settings = {}
@@ -163,8 +215,8 @@ class StringManager:
                 for aos_pattern in self.aos_patterns.keys():
                     aos_match = re.match(aos_pattern, aos_scrap_name)
                     if aos_match:
-                        aos_scrap_root = aos_match.group(1)
-                        aos_scrap_serial = aos_scrap_name.strip(aos_scrap_root)
+                        aos_match_position = aos_match.regs[1][1]
+                        aos_scrap_serial = aos_scrap_name[aos_match_position:]
                         aos_scrap_serial = aos_scrap_serial.replace('d', '0')
                         aos_scrap_serial = aos_scrap_serial.replace('o', '0')
                         aos_scrap_serial = aos_scrap_serial.replace('i', '1')
@@ -385,6 +437,16 @@ class CalendarWatchManager:
         return False, None
 
 
+def get_dictionary_value(path_file_json='init', name_dict_json='dict_01',
+                         name_key_json='key_01', verbose=False):
+    jm = JSONManager(path_file_json=path_file_json)
+    value_json = jm.get_json_value(name_dict_json=name_dict_json,
+                                   name_key_json=name_key_json)
+    if verbose:
+        print(value_json)
+    return value_json
+
+
 def get_aos_id(scraped_string, customer_name='test', path_json='',
                map_norm=True, verbose=False):
     sm = StringManager(scraped_string=scraped_string,
@@ -446,6 +508,11 @@ def check_date_today(scraped_string):
 
 
 def main():
+    if True:
+        get_dictionary_value(path_file_json='init', name_dict_json='dict_01',
+                             name_key_json='key_01', verbose=True)
+        print('')
+
     if True:
         scrap_example_us = "Inc. [t3stl a0 5_123: Session ID - 1 2] - [1 -"
         # scrap_example_it = "S.p.A. [t3stl a0 5_123: ID sessione - 1 2] - [1 -"
