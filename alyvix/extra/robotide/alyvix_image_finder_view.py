@@ -347,6 +347,13 @@ class AlyvixImageFinderView(QWidget):
                     
                     self.parent.parent._main_object_finder.mouse_or_key_is_set = True
                     #print "build_objjjjjjjjjjjjjjjjjjjjj"
+                    
+        except:
+            pass
+            
+        try:
+            if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.update_list()
         except:
             pass
                 
@@ -356,6 +363,11 @@ class AlyvixImageFinderView(QWidget):
     def cancel_all(self):
         self._main_template = copy.deepcopy(self._old_main_template)
         self._sub_templates_finder = copy.deepcopy(self._old_sub_template)
+        try:
+            if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.update_list()
+        except:
+            pass
         self.parent.show()
         self.close()
         
@@ -427,14 +439,14 @@ class AlyvixImageFinderView(QWidget):
             self._ctrl_is_pressed = True
             self._dont_build_rect = True
     
-        if event.key() == Qt.Key_Space and self.__flag_capturing_sub_template is False and self._space_toggle is False: 
+        if event.key() == Qt.Key_Space and self.__flag_capturing_sub_template is False and self.set_xy_offset is None and self._space_toggle is False: 
             self._show_boundingrects = True
             self.ignore_release = True
             self._dont_build_rect = True
             self._space_toggle = True
             self.update()
             
-        elif event.key() == Qt.Key_Space and self.__flag_capturing_sub_template is False and self._space_toggle is True: 
+        elif event.key() == Qt.Key_Space and self.__flag_capturing_sub_template is False and self.set_xy_offset is None and self._space_toggle is True: 
             self._show_boundingrects = False
             self.ignore_release = False
             self._dont_build_rect = False
@@ -444,11 +456,12 @@ class AlyvixImageFinderView(QWidget):
     
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
             
-            if self.set_xy_offset is None:
+            if self.set_xy_offset is None and self._show_boundingrects is False:
                 self.delete_rect()
                 
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
-            self.restore_rect()
+            if self.set_xy_offset is None and self._show_boundingrects is False:
+                self.restore_rect()
         if event.key() == Qt.Key_Escape:
             
             if len(self._sub_templates_finder) == 0 and self._main_template is None:
@@ -657,7 +670,7 @@ class AlyvixImageFinderView(QWidget):
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
         
-            if event.modifiers() == Qt.ControlModifier:
+            if event.modifiers() == Qt.ControlModifier and self._show_boundingrects is False and self.set_xy_offset is None:
             
             
                 self.ignore_release = True
@@ -748,7 +761,7 @@ class AlyvixImageFinderView(QWidget):
                     
                     self._sub_templates_finder[index].roi_unlimited_down = False
                 
-            elif self.ignore_release is False:
+            elif self.ignore_release is False and self._show_boundingrects is False:
 
                 self.__click_position = QPoint(QCursor.pos())
                             
@@ -799,11 +812,11 @@ class AlyvixImageFinderView(QWidget):
                 
                     
             
-        elif event.buttons() == Qt.RightButton:
+        elif event.buttons() == Qt.RightButton and self.set_xy_offset is None:
         
             print event.modifiers()
 
-            if event.modifiers() == Qt.ControlModifier:
+            if event.modifiers() == Qt.ControlModifier and self._show_boundingrects is False:
                 index = 0
                 delete_sub = False
                 delete_main = False
@@ -865,7 +878,7 @@ class AlyvixImageFinderView(QWidget):
             
                 rect = self.is_mouse_inside_bounding_rects()
 
-                if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None:
+                if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None and self._show_boundingrects is False:
 
                     index = self.__flag_mouse_is_on_border-1
                     
@@ -999,6 +1012,26 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_left_border(self._main_template) and self.is_mouse_on_top_border(self._main_template):
                         self.__flag_mouse_is_on_left_up_corner = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                        
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -1006,6 +1039,26 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border(self._main_template) and self.is_mouse_on_top_border(self._main_template):
                         self.__flag_mouse_is_on_right_up_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -1013,6 +1066,27 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border(self._main_template) and self.is_mouse_on_bottom_border(self._main_template):
                         self.__flag_mouse_is_on_right_bottom_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -1020,6 +1094,27 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_left_border(self._main_template) and self.is_mouse_on_bottom_border(self._main_template):
                         self.__flag_mouse_is_on_left_bottom_corner = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -1027,6 +1122,27 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_left_border(self._main_template):
                         self.__flag_mouse_is_on_left_border = True
+                        
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1034,6 +1150,28 @@ class AlyvixImageFinderView(QWidget):
                                             
                     elif self.is_mouse_on_top_border(self._main_template):
                         self.__flag_mouse_is_on_top_border = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeVerCursor))
@@ -1041,6 +1179,28 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border(self._main_template):
                         self.__flag_mouse_is_on_right_border = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1049,14 +1209,34 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_bottom_border(self._main_template):
                         self.__flag_mouse_is_on_bottom_border = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeVerCursor))
                         #QApplication.setOverrideCursor(Qt.SizeVerCursor)
 
-                elif self.__drag_border is True and self.set_xy_offset is None:
+                elif self.__drag_border is True and self.set_xy_offset is None and self._main_template.show is True:
                     self.update_border()
-                elif self.__move_index is not None and self.set_xy_offset is None:
+                elif self.__move_index is not None and self.set_xy_offset is None and self._main_template.show is True:
                     self.update_position()
                     
                             
@@ -1079,6 +1259,27 @@ class AlyvixImageFinderView(QWidget):
             
                     elif self.is_mouse_on_left_border_roi(sub_image_finder) and self.is_mouse_on_top_border_roi(sub_image_finder):
                         self.__flag_mouse_is_on_left_up_corner_roi = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -1086,6 +1287,27 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border_roi(sub_image_finder) and self.is_mouse_on_top_border_roi(sub_image_finder):
                         self.__flag_mouse_is_on_right_up_corner_roi = True
+                        
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -1093,6 +1315,27 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border_roi(sub_image_finder) and self.is_mouse_on_bottom_border_roi(sub_image_finder):
                         self.__flag_mouse_is_on_right_bottom_corner_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -1100,6 +1343,26 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_left_border_roi(sub_image_finder) and self.is_mouse_on_bottom_border_roi(sub_image_finder):
                         self.__flag_mouse_is_on_left_bottom_corner_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+
+                        
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -1107,6 +1370,26 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_left_border_roi(sub_image_finder):
                         self.__flag_mouse_is_on_left_border_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1114,6 +1397,27 @@ class AlyvixImageFinderView(QWidget):
                                             
                     elif self.is_mouse_on_top_border_roi(sub_image_finder):
                         self.__flag_mouse_is_on_top_border_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                        
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeVerCursor))
@@ -1121,6 +1425,26 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border_roi(sub_image_finder):
                         self.__flag_mouse_is_on_right_border_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1129,12 +1453,50 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_bottom_border_roi(sub_image_finder):
                         self.__flag_mouse_is_on_bottom_border_roi = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeVerCursor))
 
                     elif self.is_mouse_on_left_border(sub_image_finder) and self.is_mouse_on_top_border(sub_image_finder):
                         self.__flag_mouse_is_on_left_up_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -1142,6 +1504,26 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border(sub_image_finder) and self.is_mouse_on_top_border(sub_image_finder):
                         self.__flag_mouse_is_on_right_up_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -1149,6 +1531,26 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border(sub_image_finder) and self.is_mouse_on_bottom_border(sub_image_finder):
                         self.__flag_mouse_is_on_right_bottom_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -1156,6 +1558,25 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_left_border(sub_image_finder) and self.is_mouse_on_bottom_border(sub_image_finder):
                         self.__flag_mouse_is_on_left_bottom_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -1163,6 +1584,25 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_left_border(sub_image_finder):
                         self.__flag_mouse_is_on_left_border = True
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1170,6 +1610,26 @@ class AlyvixImageFinderView(QWidget):
                                             
                     elif self.is_mouse_on_top_border(sub_image_finder):
                         self.__flag_mouse_is_on_top_border = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeVerCursor))
@@ -1177,6 +1637,26 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border(sub_image_finder):
                         self.__flag_mouse_is_on_right_border = True
+                        self.__flag_mouse_is_on_left_border = False
+
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1185,6 +1665,25 @@ class AlyvixImageFinderView(QWidget):
                         
                     elif self.is_mouse_on_bottom_border(sub_image_finder):
                         self.__flag_mouse_is_on_bottom_border = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
                         self.__flag_mouse_is_on_border = cnt_sub
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeVerCursor))
@@ -1192,10 +1691,12 @@ class AlyvixImageFinderView(QWidget):
                         
                     cnt_sub = cnt_sub + 1
 
-                elif self.__drag_border is True and self.set_xy_offset is None:
+                elif self.__drag_border is True and self.set_xy_offset is None and sub_image_finder.show is True:
                     self.update_border()
-                elif self.__move_index is not None and self.set_xy_offset is None:
+                elif self.__move_index is not None and self.set_xy_offset is None and sub_image_finder.show is True:
                     self.update_position()
+                elif sub_image_finder.show is False:
+                    cnt_sub = cnt_sub + 1
             
                 self.draw_sub_templateangle(qp, sub_image_finder, cnt_sub_text)
                 cnt_sub_text += 1
@@ -1219,6 +1720,9 @@ class AlyvixImageFinderView(QWidget):
                     self.draw_capturing_roi_lines(qp)
                 elif self.__flag_capturing_sub_template is True:
                     self.draw_capturing_rectangle_lines(qp)
+                    
+            elif self.set_xy_offset is not None:
+                self.draw_cross_lines(qp)
             
         qp.end()
         
@@ -2275,7 +2779,7 @@ class AlyvixImageFinderView(QWidget):
                     
                 qp.setBrush(QColor(255, 0, 255, 130))
                 qp.drawLine(self._main_template.x + (self._main_template.width/2), self._main_template.y + (self._main_template.height/2), click_pos.x(), click_pos.y())
-                qp.drawEllipse(click_pos, 10, 10)
+                qp.drawEllipse(click_pos, 5*self.scaling_factor, 5*self.scaling_factor)
                 qp.setBrush(old_brush)
      
     def draw_sub_templateangle(self, qp, image_finder, cnt):
@@ -2381,7 +2885,7 @@ class AlyvixImageFinderView(QWidget):
                         
                     qp.setBrush(QColor(172, 96, 246, 130))
                     qp.drawLine(image_finder.x + (image_finder.width/2), image_finder.y + (image_finder.height/2), click_pos.x(), click_pos.y())
-                    qp.drawEllipse(click_pos, 10, 10)
+                    qp.drawEllipse(click_pos, 5*self.scaling_factor, 5*self.scaling_factor)
                     qp.setBrush(old_brush)
             
             else:
@@ -3094,7 +3598,20 @@ class AlyvixImageFinderView(QWidget):
             file_code_string = file_code_string.replace(unicode(self.__old_code, 'utf-8'), current_code_string)
             
             """
-            text_file = open("c:\\alylog\\new_code.txt", "w")
+            text_file = open("c:\\alylog\\old_code_250.txt", "w")
+
+            text_file.write(self.__old_code_v250)
+
+            text_file.close()
+            
+                        
+            text_file = open("c:\\alylog\\old_code.txt", "w")
+
+            text_file.write(self.__old_code)
+
+            text_file.close()
+            
+            text_file = open("c:\\alylog\\curr_code.txt", "w")
 
             text_file.write(current_code_string)
 
@@ -4546,7 +5063,7 @@ class AlyvixImageFinderView(QWidget):
                 self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_template.text_encrypted) + ", delay=" + str(self._main_template.sendkeys_delay) + ", duration=" + str(self._main_template.sendkeys_duration) + ")")
                 
         
-        if self._main_template.enable_scrolls is True:
+        if self._main_template.enable_scrolls is True and self._main_template.scrolls_value != 0:
                 self._code_lines.append("    time.sleep(sleep_factor)")
                 
                 direction = "m.wheel_up"
@@ -4652,7 +5169,7 @@ class AlyvixImageFinderView(QWidget):
                         self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_template.text_encrypted) + ", delay=" + str(sub_template.sendkeys_delay) + ", duration=" + str(sub_template.sendkeys_duration) + ")")
                                     
                 
-                if sub_template.enable_scrolls is True:
+                if sub_template.enable_scrolls is True and sub_template.scrolls_value != 0:
                     self._code_lines.append("    time.sleep(sleep_factor)")
                     
                     direction = "m.wheel_up"
@@ -5213,10 +5730,20 @@ class AlyvixImageFinderView(QWidget):
         except:
             self.wait_disapp = False
             
+                    
+        try:    
+            if "True" in main_template_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
+                self._main_template.enable_scrolls = True
+            else:
+                self._main_template.enable_scrolls = False
+        except:
+            pass
+            
         if "True" in main_template_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_template.click = True
             self.mouse_or_key_is_set = True
             self._main_template.mouse_or_key_is_set = True
+            self._main_template.enable_scrolls = True
         else:
             self._main_template.click = False
             
@@ -5237,6 +5764,7 @@ class AlyvixImageFinderView(QWidget):
                 self._main_template.click_delay = 10
                 self.mouse_or_key_is_set = True
                 self._main_template.mouse_or_key_is_set = True
+                self._main_template.enable_scrolls = True
         except:
             pass
             
@@ -5244,6 +5772,7 @@ class AlyvixImageFinderView(QWidget):
             self._main_template.rightclick = True
             self.mouse_or_key_is_set = True
             self._main_template.mouse_or_key_is_set = True
+            self._main_template.enable_scrolls = True
         else:
             self._main_template.rightclick = False
             
@@ -5251,6 +5780,7 @@ class AlyvixImageFinderView(QWidget):
             self._main_template.mousemove = True
             self.mouse_or_key_is_set = True
             self._main_template.mouse_or_key_is_set = True
+            self._main_template.enable_scrolls = True
         else:
             self._main_template.mousemove = False
             
@@ -5283,14 +5813,6 @@ class AlyvixImageFinderView(QWidget):
             
         try:    
             self._main_template.release_pixel = int(main_template_node.getElementsByTagName("release_pixel")[0].firstChild.nodeValue)
-        except:
-            pass
-            
-        try:    
-            if "True" in main_template_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
-                self._main_template.enable_scrolls = True
-            else:
-                self._main_template.enable_scrolls = False
         except:
             pass
             
@@ -5440,10 +5962,22 @@ class AlyvixImageFinderView(QWidget):
             except:
                 sub_template_obj.roi_unlimited_right = False
                 
+                            
+                        
+            try:    
+                if "True" in sub_template_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
+                    sub_template_obj.enable_scrolls = True
+                else:
+                    sub_template_obj.enable_scrolls = False
+            except:
+                pass
+                
+                
             if "True" in sub_template_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_template_obj.click = True
                 self.mouse_or_key_is_set = True
                 sub_template_obj.mouse_or_key_is_set = True
+                sub_template_obj.enable_scrolls = True
             else:
                 sub_template_obj.click = False
                 
@@ -5464,6 +5998,7 @@ class AlyvixImageFinderView(QWidget):
                     sub_template_obj.click_delay = 10
                     self.mouse_or_key_is_set = True
                     sub_template_obj.mouse_or_key_is_set = True
+                    sub_template_obj.enable_scrolls = True
             except:
                 pass
             
@@ -5471,6 +6006,7 @@ class AlyvixImageFinderView(QWidget):
                 sub_template_obj.rightclick = True
                 self.mouse_or_key_is_set = True
                 sub_template_obj.mouse_or_key_is_set = True
+                sub_template_obj.enable_scrolls = True
             else:
                 sub_template_obj.rightclick = False
                 
@@ -5478,6 +6014,7 @@ class AlyvixImageFinderView(QWidget):
                 sub_template_obj.mousemove = True
                 self.mouse_or_key_is_set = True
                 sub_template_obj.mouse_or_key_is_set = True
+                sub_template_obj.enable_scrolls = True
             else:
                 sub_template_obj.mousemove = False
                 
@@ -5511,16 +6048,7 @@ class AlyvixImageFinderView(QWidget):
                 sub_template_obj.release_pixel = int(sub_template_node.getElementsByTagName("release_pixel")[0].firstChild.nodeValue)
             except:
                 pass
-                
-                        
-            try:    
-                if "True" in sub_template_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
-                    sub_template_obj.enable_scrolls = True
-                else:
-                    sub_template_obj.enable_scrolls = False
-            except:
-                pass
-                
+
             try:    
                 sub_template_obj.scrolls_value = int(sub_template_node.getElementsByTagName("scrolls_value")[0].firstChild.nodeValue)
             except:

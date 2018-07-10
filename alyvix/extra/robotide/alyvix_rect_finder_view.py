@@ -420,12 +420,25 @@ class AlyvixRectFinderView(QWidget):
         except:
             pass
             
+        try:
+            if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.update_list()
+        except:
+            pass
+            
         self.parent.show()
         self.close()
         
     def cancel_all(self):
         self._main_rect_finder = copy.deepcopy(self._old_main_rect)
         self._sub_rects_finder = copy.deepcopy(self._old_sub_rects)
+        
+        try:
+            if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.update_list()
+        except:
+            pass
+            
         self.parent.show()
         self.close()
         
@@ -435,13 +448,13 @@ class AlyvixRectFinderView(QWidget):
             self._ctrl_is_pressed = True
             self._dont_build_rect = True
     
-        if event.key() == Qt.Key_Space and self.__flag_capturing_sub_rect is False and self._space_toggle is False:
+        if event.key() == Qt.Key_Space and self.__flag_capturing_sub_rect is False and self.set_xy_offset is None and self._space_toggle is False:
             self._show_boundingrects = True
             self.ignore_release = True
             self._dont_build_rect = True
             self._space_toggle = True
             self.update()
-        elif event.key() == Qt.Key_Space and self.__flag_capturing_sub_rect is False and self._space_toggle is True: 
+        elif event.key() == Qt.Key_Space and self.__flag_capturing_sub_rect is False and self.set_xy_offset is None and self._space_toggle is True: 
             self._show_boundingrects = False
             self.ignore_release = False
             self._dont_build_rect = False
@@ -450,11 +463,13 @@ class AlyvixRectFinderView(QWidget):
             self.update()
             
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z: 
-            if self.set_xy_offset is None:
+            if self.set_xy_offset is None and self._show_boundingrects is False:
                 self.delete_rect()
 
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Y:
-            self.restore_rect()
+            if self.set_xy_offset is None and self._show_boundingrects is False:
+                self.restore_rect()
+                
         if event.key() == Qt.Key_Escape:
             #print len(self._sub_rects_finder)
             #print self._main_rect_finder
@@ -631,7 +646,7 @@ class AlyvixRectFinderView(QWidget):
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
         
-            if event.modifiers() == Qt.ControlModifier:
+            if event.modifiers() == Qt.ControlModifier and self.set_xy_offset is None  and self._show_boundingrects is False:
             
                 self.ignore_release = True
                         
@@ -730,7 +745,7 @@ class AlyvixRectFinderView(QWidget):
                     self._sub_rects_finder[index].roi_unlimited_down = False
                     
             
-            elif self.ignore_release is False:
+            elif self.ignore_release is False and self._show_boundingrects is False:
             
         
                 self._mouse_pressed = True
@@ -778,9 +793,9 @@ class AlyvixRectFinderView(QWidget):
                 elif self.__drag_border is False:  #and self.__move_rect is False:
                     self.__capturing = True
                 
-        elif event.buttons() == Qt.RightButton:
+        elif event.buttons() == Qt.RightButton and self.set_xy_offset is None:
 
-            if event.modifiers() == Qt.ControlModifier:
+            if event.modifiers() == Qt.ControlModifier and self._show_boundingrects is False:
                 index = 0
                 delete_sub = False
                 delete_main = False
@@ -840,7 +855,7 @@ class AlyvixRectFinderView(QWidget):
             
                 rect = self.is_mouse_inside_bounding_rects()
         
-                if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None:
+                if self.__flag_mouse_is_on_border != 0 and self.__flag_mouse_is_on_border is not None and self._show_boundingrects is False:
 
                     index = self.__flag_mouse_is_on_border-1
                     
@@ -972,6 +987,26 @@ class AlyvixRectFinderView(QWidget):
                         
                     elif self.is_mouse_on_left_border(self._main_rect_finder) and self.is_mouse_on_top_border(self._main_rect_finder):
                         self.__flag_mouse_is_on_left_up_corner = True
+
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -979,6 +1014,28 @@ class AlyvixRectFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border(self._main_rect_finder) and self.is_mouse_on_top_border(self._main_rect_finder):
                         self.__flag_mouse_is_on_right_up_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
+                        
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -986,6 +1043,27 @@ class AlyvixRectFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border(self._main_rect_finder) and self.is_mouse_on_bottom_border(self._main_rect_finder):
                         self.__flag_mouse_is_on_right_bottom_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -993,6 +1071,27 @@ class AlyvixRectFinderView(QWidget):
                         
                     elif self.is_mouse_on_left_border(self._main_rect_finder) and self.is_mouse_on_bottom_border(self._main_rect_finder):
                         self.__flag_mouse_is_on_left_bottom_corner = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
+                        
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -1000,6 +1099,27 @@ class AlyvixRectFinderView(QWidget):
                         
                     elif self.is_mouse_on_left_border(self._main_rect_finder):
                         self.__flag_mouse_is_on_left_border = True
+
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1007,6 +1127,27 @@ class AlyvixRectFinderView(QWidget):
                                             
                     elif self.is_mouse_on_top_border(self._main_rect_finder):
                         self.__flag_mouse_is_on_top_border = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeVerCursor))
@@ -1014,6 +1155,27 @@ class AlyvixRectFinderView(QWidget):
                         
                     elif self.is_mouse_on_right_border(self._main_rect_finder):
                         self.__flag_mouse_is_on_right_border = True
+                        self.__flag_mouse_is_on_left_border = False
+
+                        self.__flag_mouse_is_on_top_border = False
+                        self.__flag_mouse_is_on_bottom_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1022,14 +1184,35 @@ class AlyvixRectFinderView(QWidget):
                         
                     elif self.is_mouse_on_bottom_border(self._main_rect_finder):
                         self.__flag_mouse_is_on_bottom_border = True
+                        self.__flag_mouse_is_on_left_border = False
+                        self.__flag_mouse_is_on_right_border = False
+                        self.__flag_mouse_is_on_top_border = False
+
+                        self.__flag_mouse_is_on_left_up_corner = False
+                        self.__flag_mouse_is_on_right_up_corner = False
+                        self.__flag_mouse_is_on_right_bottom_corner = False
+                        self.__flag_mouse_is_on_left_bottom_corner = False
+
+                        self.__flag_mouse_is_on_left_border_roi = False
+                        self.__flag_mouse_is_on_right_border_roi = False
+                        self.__flag_mouse_is_on_top_border_roi = False
+                        self.__flag_mouse_is_on_bottom_border_roi = False
+
+                        self.__flag_mouse_is_on_left_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_up_corner_roi = False
+                        self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                        self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
+                        
                         self.__flag_mouse_is_on_border = 0
                         mouse_on_border = True
                         self.setCursor(QCursor(Qt.SizeVerCursor))
                         #QApplication.setOverrideCursor(Qt.SizeVerCursor)
 
-                elif self.__drag_border is True and self.set_xy_offset is None:
+                elif self.__drag_border is True and self.set_xy_offset is None and self._main_rect_finder.show is True:
                     self.update_border()
-                elif self.__move_index is not None and self.set_xy_offset is None:
+                elif self.__move_index is not None and self.set_xy_offset is None and self._main_rect_finder.show is True:
                     self.update_position()
                     
                             
@@ -1054,6 +1237,28 @@ class AlyvixRectFinderView(QWidget):
                 
                         elif self.is_mouse_on_left_border_roi(sub_rect_finder) and self.is_mouse_on_top_border_roi(sub_rect_finder):
                             self.__flag_mouse_is_on_left_up_corner_roi = True
+
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
+
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -1061,6 +1266,28 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_right_border_roi(sub_rect_finder) and self.is_mouse_on_top_border_roi(sub_rect_finder):
                             self.__flag_mouse_is_on_right_up_corner_roi = True
+                            
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -1068,6 +1295,28 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_right_border_roi(sub_rect_finder) and self.is_mouse_on_bottom_border_roi(sub_rect_finder):
                             self.__flag_mouse_is_on_right_bottom_corner_roi = True
+                            
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -1075,6 +1324,26 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_left_border_roi(sub_rect_finder) and self.is_mouse_on_bottom_border_roi(sub_rect_finder):
                             self.__flag_mouse_is_on_left_bottom_corner_roi = True
+                            
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -1082,6 +1351,26 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_left_border_roi(sub_rect_finder):
                             self.__flag_mouse_is_on_left_border_roi = True
+                            
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1089,6 +1378,26 @@ class AlyvixRectFinderView(QWidget):
                                                 
                         elif self.is_mouse_on_top_border_roi(sub_rect_finder):
                             self.__flag_mouse_is_on_top_border_roi = True
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeVerCursor))
@@ -1096,6 +1405,27 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_right_border_roi(sub_rect_finder):
                             self.__flag_mouse_is_on_right_border_roi = True
+                            
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1104,12 +1434,52 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_bottom_border_roi(sub_rect_finder):
                             self.__flag_mouse_is_on_bottom_border_roi = True
+                            
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeVerCursor))
 
                         elif self.is_mouse_on_left_border(sub_rect_finder) and self.is_mouse_on_top_border(sub_rect_finder):
                             self.__flag_mouse_is_on_left_up_corner = True
+                            
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -1117,6 +1487,27 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_right_border(sub_rect_finder) and self.is_mouse_on_top_border(sub_rect_finder):
                             self.__flag_mouse_is_on_right_up_corner = True
+                            
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -1124,6 +1515,25 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_right_border(sub_rect_finder) and self.is_mouse_on_bottom_border(sub_rect_finder):
                             self.__flag_mouse_is_on_right_bottom_corner = True
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeFDiagCursor))
@@ -1131,6 +1541,26 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_left_border(sub_rect_finder) and self.is_mouse_on_bottom_border(sub_rect_finder):
                             self.__flag_mouse_is_on_left_bottom_corner = True
+                            
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeBDiagCursor))
@@ -1138,6 +1568,26 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_left_border(sub_rect_finder):
                             self.__flag_mouse_is_on_left_border = True
+                            
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1145,6 +1595,26 @@ class AlyvixRectFinderView(QWidget):
                                                 
                         elif self.is_mouse_on_top_border(sub_rect_finder):
                             self.__flag_mouse_is_on_top_border = True
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeVerCursor))
@@ -1152,6 +1622,27 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_right_border(sub_rect_finder):
                             self.__flag_mouse_is_on_right_border = True
+                            
+                            self.__flag_mouse_is_on_left_border = False
+
+                            self.__flag_mouse_is_on_top_border = False
+                            self.__flag_mouse_is_on_bottom_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeHorCursor))
@@ -1160,6 +1651,25 @@ class AlyvixRectFinderView(QWidget):
                             
                         elif self.is_mouse_on_bottom_border(sub_rect_finder):
                             self.__flag_mouse_is_on_bottom_border = True
+                            self.__flag_mouse_is_on_left_border = False
+                            self.__flag_mouse_is_on_right_border = False
+                            self.__flag_mouse_is_on_top_border = False
+
+                            self.__flag_mouse_is_on_left_up_corner = False
+                            self.__flag_mouse_is_on_right_up_corner = False
+                            self.__flag_mouse_is_on_right_bottom_corner = False
+                            self.__flag_mouse_is_on_left_bottom_corner = False
+
+                            self.__flag_mouse_is_on_left_border_roi = False
+                            self.__flag_mouse_is_on_right_border_roi = False
+                            self.__flag_mouse_is_on_top_border_roi = False
+                            self.__flag_mouse_is_on_bottom_border_roi = False
+
+                            self.__flag_mouse_is_on_left_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_up_corner_roi = False
+                            self.__flag_mouse_is_on_right_bottom_corner_roi = False
+                            self.__flag_mouse_is_on_left_bottom_corner_roi = False
+                            
                             self.__flag_mouse_is_on_border = cnt_sub
                             mouse_on_border = True
                             self.setCursor(QCursor(Qt.SizeVerCursor))
@@ -1167,10 +1677,12 @@ class AlyvixRectFinderView(QWidget):
                         
                     cnt_sub = cnt_sub + 1
 
-                elif self.__drag_border is True and self.set_xy_offset is None:
+                elif self.__drag_border is True and self.set_xy_offset is None and sub_rect_finder.show is True:
                     self.update_border()
-                elif self.__move_index is not None and self.set_xy_offset is None:
+                elif self.__move_index is not None and self.set_xy_offset is None and sub_rect_finder.show is True:
                     self.update_position()
+                elif sub_rect_finder.show is False:
+                    cnt_sub = cnt_sub + 1
             
                 self.draw_sub_rectangle(qp, sub_rect_finder, cnt_sub_text)
                 cnt_sub_text += 1
@@ -1193,6 +1705,8 @@ class AlyvixRectFinderView(QWidget):
                     self.draw_capturing_roi_lines(qp)
                 elif self.__flag_capturing_sub_rect is True:
                     self.draw_capturing_rectangle_lines(qp)
+            elif self.set_xy_offset is not None:
+                self.draw_cross_lines(qp)
             
         qp.end()
         
@@ -2236,7 +2750,7 @@ class AlyvixRectFinderView(QWidget):
                         
                     qp.setBrush(QColor(255, 0, 255, 130))
                     qp.drawLine(self._main_rect_finder.x + (self._main_rect_finder.width/2), self._main_rect_finder.y + (self._main_rect_finder.height/2), click_pos.x(), click_pos.y())
-                    qp.drawEllipse(click_pos, 10, 10)
+                    qp.drawEllipse(click_pos, 5*self.scaling_factor, 5*self.scaling_factor)
                     qp.setBrush(old_brush)
             
             elif self._main_rect_finder.show_min_max is True:
@@ -2512,7 +3026,7 @@ class AlyvixRectFinderView(QWidget):
                             
                         qp.setBrush(QColor(172, 96, 246, 130))
                         qp.drawLine(rect_finder.x + (rect_finder.width/2), rect_finder.y + (rect_finder.height/2), click_pos.x(), click_pos.y())
-                        qp.drawEllipse(click_pos, 10, 10)
+                        qp.drawEllipse(click_pos, 5*self.scaling_factor, 5*self.scaling_factor)
                         qp.setBrush(old_brush)
                     
                 elif rect_finder.show_min_max is True: 
@@ -4874,7 +5388,7 @@ class AlyvixRectFinderView(QWidget):
                 self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(self._main_rect_finder.text_encrypted) + ", delay=" + str(self._main_rect_finder.sendkeys_delay) + ", duration=" + str(self._main_rect_finder.sendkeys_duration) + ")")
             
         
-        if self._main_rect_finder.enable_scrolls is True:
+        if self._main_rect_finder.enable_scrolls is True and self._main_rect_finder.scrolls_value != 0:
             self._code_lines.append("    time.sleep(sleep_factor)")
             
             direction = "m.wheel_up"
@@ -4979,7 +5493,7 @@ class AlyvixRectFinderView(QWidget):
                         self._code_lines.append("    k.send(" + keys + ", encrypted=" + str(sub_rect.text_encrypted) + ", delay=" + str(sub_rect.sendkeys_delay) + ", duration=" + str(sub_rect.sendkeys_duration) + ")")
                        
                 
-                if sub_rect.enable_scrolls is True:
+                if sub_rect.enable_scrolls is True and sub_rect.scrolls_value != 0:
                     self._code_lines.append("    time.sleep(sleep_factor)")
                     
                     direction = "m.wheel_up"
@@ -5640,11 +6154,20 @@ class AlyvixRectFinderView(QWidget):
                 self.wait_disapp = False
         except:
             self.wait_disapp = False
+                        
+        try:    
+            if "True" in main_rect_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
+                self._main_rect_finder.enable_scrolls = True
+            else:
+                self._main_rect_finder.enable_scrolls = False
+        except:
+            pass
             
         if "True" in main_rect_node.getElementsByTagName("click")[0].firstChild.nodeValue:
             self._main_rect_finder.click = True
             self.mouse_or_key_is_set = True
             self._main_rect_finder.mouse_or_key_is_set = True
+            self._main_rect_finder.enable_scrolls = True
         else:
             self._main_rect_finder.click = False
             
@@ -5667,6 +6190,7 @@ class AlyvixRectFinderView(QWidget):
                 self._main_rect_finder.click_delay = 10
                 self.mouse_or_key_is_set = True
                 self._main_rect_finder.mouse_or_key_is_set = True
+                self._main_rect_finder.enable_scrolls = True
         except:
             pass
             
@@ -5674,6 +6198,7 @@ class AlyvixRectFinderView(QWidget):
             self._main_rect_finder.rightclick = True
             self.mouse_or_key_is_set = True
             self._main_rect_finder.mouse_or_key_is_set = True
+            self._main_rect_finder.enable_scrolls = True
         else:
             self._main_rect_finder.rightclick = False
             
@@ -5681,6 +6206,7 @@ class AlyvixRectFinderView(QWidget):
             self._main_rect_finder.mousemove = True
             self.mouse_or_key_is_set = True
             self._main_rect_finder.mouse_or_key_is_set = True
+            self._main_rect_finder.enable_scrolls = True
         else:
             self._main_rect_finder.mousemove = False
             
@@ -5714,14 +6240,7 @@ class AlyvixRectFinderView(QWidget):
             self._main_rect_finder.release_pixel = int(main_rect_node.getElementsByTagName("release_pixel")[0].firstChild.nodeValue)
         except:
             pass
-            
-        try:    
-            if "True" in main_rect_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
-                self._main_rect_finder.enable_scrolls = True
-            else:
-                self._main_rect_finder.enable_scrolls = False
-        except:
-            pass
+
             
         try:    
             self._main_rect_finder.scrolls_value = int(main_rect_node.getElementsByTagName("scrolls_value")[0].firstChild.nodeValue)
@@ -5877,11 +6396,21 @@ class AlyvixRectFinderView(QWidget):
             except:
                 pass
             """    
+            
+                            
+            try:    
+                if "True" in sub_rect_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
+                    sub_rect_obj.enable_scrolls = True
+                else:
+                    sub_rect_obj.enable_scrolls = False
+            except:
+                pass
                 
             if "True" in sub_rect_node.getElementsByTagName("click")[0].firstChild.nodeValue:
                 sub_rect_obj.click = True
                 self.mouse_or_key_is_set = True
                 sub_rect_obj.mouse_or_key_is_set = True
+                sub_rect_obj.enable_scrolls = True
             else:
                 sub_rect_obj.click = False
                 
@@ -5902,6 +6431,7 @@ class AlyvixRectFinderView(QWidget):
                     sub_rect_obj.click = True
                     self.mouse_or_key_is_set = True
                     sub_rect_obj.mouse_or_key_is_set = True
+                    sub_rect_obj.enable_scrolls = True
 
             except:
                 pass
@@ -5910,6 +6440,7 @@ class AlyvixRectFinderView(QWidget):
                 sub_rect_obj.rightclick = True
                 self.mouse_or_key_is_set = True
                 sub_rect_obj.mouse_or_key_is_set = True
+                sub_rect_obj.enable_scrolls = True
             else:
                 sub_rect_obj.rightclick = False
                 
@@ -5917,6 +6448,7 @@ class AlyvixRectFinderView(QWidget):
                 sub_rect_obj.mousemove = True
                 self.mouse_or_key_is_set = True
                 sub_rect_obj.mouse_or_key_is_set = True
+                sub_rect_obj.enable_scrolls = True
             else:
                 sub_rect_obj.mousemove = False
                 
@@ -5950,14 +6482,7 @@ class AlyvixRectFinderView(QWidget):
                 sub_rect_obj.release_pixel = int(sub_rect_node.getElementsByTagName("release_pixel")[0].firstChild.nodeValue)
             except:
                 pass
-                
-            try:    
-                if "True" in sub_rect_node.getElementsByTagName("enable_scrolls")[0].firstChild.nodeValue:
-                    sub_rect_obj.enable_scrolls = True
-                else:
-                    sub_rect_obj.enable_scrolls = False
-            except:
-                pass
+
                 
             try:    
                 sub_rect_obj.scrolls_value = int(sub_rect_node.getElementsByTagName("scrolls_value")[0].firstChild.nodeValue)

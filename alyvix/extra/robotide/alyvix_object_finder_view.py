@@ -90,6 +90,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         QDialog.__init__(self)
         
         global last_pos
+        global last_row_selected
+        last_row_selected = -1
         
         self.setMouseTracking(True)
 		
@@ -139,7 +141,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self.widget_2.setGeometry(QRect(int(self.widget_2.geometry().x() * self.scaling_factor), int(self.widget_2.geometry().y() * self.scaling_factor),
                                         int(self.widget_2.geometry().width() * self.scaling_factor), int(self.widget_2.geometry().height() * self.scaling_factor)))
-                                
+        
+        
+        self.pushButtonEditObj_2.setGeometry(QRect(int(self.pushButtonEditObj_2.geometry().x() * self.scaling_factor), int(self.pushButtonEditObj_2.geometry().y() * self.scaling_factor),
+                                        int(self.pushButtonEditObj_2.geometry().width() * self.scaling_factor), int(self.pushButtonEditObj_2.geometry().height() * self.scaling_factor)))
+              
+              
         self.gridLayoutWidget_2.setGeometry(QRect(int(self.gridLayoutWidget_2.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().y() * self.scaling_factor),
                                           int(self.gridLayoutWidget_2.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().height() * self.scaling_factor)))
 
@@ -526,6 +533,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             #time.sleep(0.4)
             if self.action == "new":
                 self.parent.add_new_item_on_list()
+                
+        try:
+            if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.update_list()
+        except:
+            pass
             
         self.parent.show()
         self.pv.close()
@@ -641,6 +654,12 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         #print self._added_objects
         
                 
+        try:
+            if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.update_list()
+        except:
+            pass
+            
         self.parent.show()
         try:
             self.pv.close()
@@ -1045,6 +1064,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         main_obj_node = doc.getElementsByTagName("main_object")[0]
 
         xml_name = main_obj_node.getElementsByTagName("xml_path")[0].firstChild.nodeValue
+        xml_name = self._path + os.sep + xml_name.split(os.sep)[-1]
+        
         self._added_objects.append(((xml_name), open(xml_name).read()))
         
         main_obj = None           
@@ -1133,6 +1154,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         for sub_object_node in sub_object_nodes:
             filename = sub_object_node.getElementsByTagName("xml_path")[0].firstChild.nodeValue
+            filename = self._path + os.sep + filename.split(os.sep)[-1]
+            
             self._added_objects.append(((filename), open(filename).read()))
                         
             item = QListWidgetItem()

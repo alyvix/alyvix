@@ -53,6 +53,10 @@ from distutils.sysconfig import get_python_lib
 main_menu_last_pos = None
 
 last_selected_index = -1
+last_selected_name = None
+
+old_order = Qt.DescendingOrder
+old_section = 3
 
 
 class AlyvixMainMenuController(QDialog, Ui_Form):
@@ -63,10 +67,18 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         global main_menu_last_pos
         global last_selected_index
         
+        global old_order
+        global old_section
+        
+        last_selected_index = -1
+        
         self._deleted_obj_name = None
         self._deleted_file_name = None
         
-
+        self.is_AlyvixMainMenuController = True        
+        
+        old_order = Qt.DescendingOrder
+        old_section = 3
 
         info_manager = InfoManager()
         self.scaling_factor = info_manager.get_info("SCALING FACTOR FLOAT")
@@ -77,8 +89,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 
         #self.listWidgetAlyObj = listWidgetAlyObj2()
 
-        self.resize(int(self.frameGeometry().width() * self.scaling_factor),
-                          int(self.frameGeometry().height() * self.scaling_factor))
+        #self.resize(int(self.frameGeometry().width() * self.scaling_factor),
+        #                  int(self.frameGeometry().height() * self.scaling_factor))
+        
+        self.resize(int(780 * self.scaling_factor),
+                          int(400 * self.scaling_factor))
 
         self.widget.setGeometry(int(self.widget.x() * self.scaling_factor), int(self.widget.y()*self.scaling_factor),
                                             int(self.widget.width()*self.scaling_factor), int(self.widget.height()*self.scaling_factor))
@@ -169,20 +184,48 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.setMinimumHeight(int(290 * self.scaling_factor))
         
         
-        header = self.tableWidget.horizontalHeader();
+        header = self.tableWidget.horizontalHeader()
         header.setDefaultAlignment(Qt.AlignLeft)
+        
+        header.setDefaultSectionSize(int(340*self.scaling_factor))
+        
+        
+        header.setResizeMode(0, QHeaderView.Interactive)
+        header.setResizeMode(1, QHeaderView.ResizeToContents)
+        
+        self.tableWidget.resizeRowsToContents()
         
     
     def showEvent(self, event):
         global main_menu_last_pos
         global last_selected_index
+        global last_selected_name
         
         #print last_selected_index
         
         if main_menu_last_pos is not None:
             self.move(main_menu_last_pos[0],main_menu_last_pos[1])
         
-        if self.tableWidget.rowCount() == 0:
+        if last_selected_name is not None:
+            allRows = self.tableWidget.rowCount()
+            row_selected = False
+            for row_index in xrange(0,allRows):              
+                
+                name = self.tableWidget.item(row_index, 0).data(Qt.EditRole).toString()
+                
+                if last_selected_name == name:
+                    self.tableWidget.setFocus()
+                    self.tableWidget.selectRow(row_index)
+                    row_selected = True
+                    
+            if row_selected is False:
+                self.tableWidget.setFocus()
+                self.tableWidget.selectRow(0)
+        elif last_selected_index == -2:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(self.tableWidget.rowCount()-1)
+        elif self.tableWidget.rowCount() == 0:
+            self.tableWidget.setFocus()
             self.tableWidget.selectRow(0)        
         elif self.tableWidget.rowCount() > 0 and last_selected_index == -1:
             self.tableWidget.setFocus()
@@ -279,11 +322,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     @pyqtSlot(QString)
     def search_event(self, text):
         if text == "search...":
-            self.update_list()
+            self.update_list_for_search()
         elif text == "":
-            self.update_list()
+            self.update_list_for_search()
         else:
-            self.update_list(str(text.toUtf8()))
+            self.update_list_for_search(str(text.toUtf8()))
         
     def eventFilter(self, object, event):
         #print event
@@ -603,8 +646,43 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.tableWidget.selectRow(index_main_obj)
         #self.listWidgetAlyObj.setFocus();
         #print index_main_obj
+        
+    def update_list_for_search(self, text_to_search=None):
+        allRows = self.tableWidget.rowCount()
+        for row_index in xrange(0,allRows):              
+            
+            name = self.tableWidget.item(row_index, 0).data(Qt.EditRole).toString()
+            
+            if text_to_search is not None and text_to_search not in name:
+                self.tableWidget.setRowHidden(row_index, True)
+            else:
+                self.tableWidget.setRowHidden(row_index, False)
+            #print name
+            #type = self.tableWidget.item(row_index, 1).data(Qt.EditRole).toString()
+            #date = self.tableWidget.item(row_index, 2).data(Qt.EditRole).toString()
     
-    def update_list(self, text_to_search=None):
+    def update_list(self): #, text_to_search=None):
+        global old_order
+        global old_section
+
+        global last_selected_index
+        global last_selected_name
+        
+    
+        header = self.tableWidget.horizontalHeader()
+
+        if header.sortIndicatorOrder() == Qt.AscendingOrder:
+            old_order = Qt.AscendingOrder
+            #print "AscendingOrder"
+        else:
+            old_order = Qt.DescendingOrder
+            #print "DescendingOrder"
+            
+        old_section = header.sortIndicatorSection()
+        #print "sortIndicatorSection", header.sortIndicatorSection()
+        
+        #clear sorting filter
+        header.setSortIndicator(3, Qt.DescendingOrder)
     
     
         cnt = 0
@@ -612,6 +690,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     
         #self.listWidgetAlyObj.clear()
         self.tableWidget.setRowCount(0)
+
     
         #dirs = os.listdir(self.full_file_name)
         #dirs = [d for d in os.listdir(self.path) if os.path.isdir(os.path.join(self.path, d))]
@@ -692,6 +771,22 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 item_date.setData(Qt.EditRole, some_date)
                     
                 item_type.setData(Qt.UserRole, filename)
+                
+            
+                self.tableWidget.insertRow ( self.tableWidget.rowCount() );
+                self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                         0, 
+                         item_name);
+                         
+                self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                         1, 
+                         item_type)
+                self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
+                         2, 
+                         item_date);
+                #print item_date.data(Qt.EditRole).toString()
+                
+                """
                 if text_to_search is None:
 
 
@@ -706,6 +801,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                     self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
                              2, 
                              item_date);
+                    #print item_date.data(Qt.EditRole).toString()
+
                 else:
 
                     name = str(item_name.data(Qt.EditRole).toString()) + " " + date.strftime("%Y-%m-%d %H:%M:%S")
@@ -722,6 +819,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                         self.tableWidget.setItem   ( self.tableWidget.rowCount()-1, 
                                  2, 
                                  item_date);
+                """
 
                         
 
@@ -732,12 +830,59 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 
                 #print time.ctime(cdate), os.path.basename(path)
                 cnt += 1
-                
-            header = self.tableWidget.horizontalHeader();
-            header.setResizeMode(QHeaderView.ResizeToContents)
+        
+        self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        
+        if self.lineEditSearch.text() != "" and self.lineEditSearch.text() != "search...":
+            self.update_list_for_search(self.lineEditSearch.text())
             
-            self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers);
+        #print "last index", last_selected_index
+            
+        
+        header.setSortIndicator(old_section, old_order)
+        
+        if last_selected_name is not None:
+            allRows = self.tableWidget.rowCount()
+            row_selected = False
+            for row_index in xrange(0,allRows):              
+                
+                name = self.tableWidget.item(row_index, 0).data(Qt.EditRole).toString()
+                
+                if last_selected_name == name:
+                    self.tableWidget.setFocus()
+                    self.tableWidget.selectRow(row_index)
+                    row_selected = True
+                    
+            if row_selected is False:
+                self.tableWidget.setFocus()
+                self.tableWidget.selectRow(0)
 
+        elif last_selected_index == -2:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(self.tableWidget.rowCount()-1)
+        elif self.tableWidget.rowCount() == 0:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(0)        
+        elif self.tableWidget.rowCount() > 0 and last_selected_index == -1:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(0)
+            last_selected_index = 0
+        elif last_selected_index != -1 and self.tableWidget.rowCount() > 0:
+            self.tableWidget.setFocus()
+            self.tableWidget.selectRow(last_selected_index)
+                
+            
+                
+        #header.setDefaultSectionSize(int(300*self.scaling_factor))
+        
+        
+        #header.setResizeMode(0, QHeaderView.ResizeToContents)
+        
+        
+        #size = header.sectionSize(0)
+
+        
+        #header.setResizeMode(0, QHeaderView.Interactive)
     
         """
         files = []
@@ -751,7 +896,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             
         print self.listWidgetAlyObj.count() 
         """
-        self.tableWidget.resizeRowsToContents()
+
         return deleted_index
         
     def keyPressEvent(self, event):
@@ -774,7 +919,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     def add_item(self):
     
         self.action = "new"
-        self.lineEditSearch.setText("search...")
+        #self.lineEditSearch.setText("search...")
         self.widget.hide()
         self.widget_2.show()
         
@@ -784,6 +929,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                     
     def edit_item(self):
         global last_selected_index
+        global last_selected_name
+        global last_selected_name
     
         self.action = "edit"
         
@@ -796,11 +943,13 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #print "row", selected_row
         indexes = self.tableWidget.selectionModel().selectedRows()
         last_index = -1
+        last_selected_name = None
         for index in sorted(indexes):
             #print('Row %d is selected' % index.row())
             last_index = index.row()
             
         last_selected_index = last_index
+        last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
     
         #print "type", self.tableWidget.item(last_index, 0).data(Qt.EditRole).toString()
         #print "name", self.tableWidget.item(last_index, 2).data(Qt.EditRole).toString()
@@ -965,9 +1114,23 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #self.update()
         
     def open_rectfinder_view(self):
+   
+        global last_selected_index
+        global last_selected_name
+        
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        last_index = -1
+        last_selected_name = None
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            last_index = index.row()
+            
+        #last_selected_index = last_index
+        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
+        last_selected_index = self.tableWidget.rowCount()
     
         self.action = "new"
-        self.lineEditSearch.setText("search...")
+        #self.lineEditSearch.setText("search...")
     
         self.xml_name = None
         self.restore_view()
@@ -984,8 +1147,21 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
           
         
     def open_imagefinder_view(self):
+        global last_selected_index
+        global last_selected_name
+        
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        last_index = -1
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            last_index = index.row()
+            
+        #last_selected_index = last_index
+        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
+        last_selected_index = self.tableWidget.rowCount()
+        
         self.action = "new"
-        self.lineEditSearch.setText("search...")
+        #self.lineEditSearch.setText("search...")
     
         self.xml_name = None
         self.restore_view()
@@ -1001,8 +1177,21 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_image_finder_controller.showFullScreen()
         
     def open_textfinder_view(self):
+        global last_selected_index
+        global last_selected_name
+        
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        last_index = -1
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            last_index = index.row()
+            
+        #last_selected_index = last_index
+        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
+        last_selected_index = self.tableWidget.rowCount()
+        
         self.action = "new"
-        self.lineEditSearch.setText("search...")
+        #self.lineEditSearch.setText("search...")
     
         self.xml_name = None
         self.restore_view()
@@ -1018,8 +1207,23 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_text_finder_controller.showFullScreen()
         
     def open_objectfinder_controller(self):
+        global last_selected_index
+        global last_selected_name
+        
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        last_index = -1
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            last_index = index.row()
+            
+        #last_selected_index = last_index
+        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
+        last_selected_index = -2
+        
+        print last_selected_name
+        
         self.action = "new"
-        self.lineEditSearch.setText("search...")
+        #self.lineEditSearch.setText("search...")
     
         self.xml_name = None
         self.restore_view()
