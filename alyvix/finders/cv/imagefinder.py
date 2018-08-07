@@ -510,11 +510,20 @@ class ImageFinder(BaseFinder):
 
             res = self._info_manager.get_info("RESOLUTION")
 
-            y1 = main_template_xy[1] + roi.y
-            y2 = y1 + roi.height
+            tmpl_w, tmpl_h = template.image_data.shape[::-1]
 
-            x1 = main_template_xy[0] + roi.x
-            x2 = x1 + roi.width
+            if tmpl_h >= roi.height:
+                y1 = main_template_xy[1] + roi.y - 4
+                y2 = y1 + roi.height + 8
+            else:
+                y1 = main_template_xy[1] + roi.y
+                y2 = y1 + roi.height
+            if tmpl_w >= roi.width:
+                x1 = main_template_xy[0] + roi.x - 4
+                x2 = x1 + roi.width + 8
+            else:
+                x1 = main_template_xy[0] + roi.x
+                x2 = x1 + roi.width
 
             if roi.unlimited_up is True:
                 y1 = 0
@@ -561,10 +570,9 @@ class ImageFinder(BaseFinder):
                 self._log_manager.save_image(self.__find_log_folder, "sub_template.png", template.image_data)
 
             img_w, img_h = source_image_cropped.shape[::-1]
-            tmpl_w, tmpl_h = template.image_data.shape[::-1]
 
             if tmpl_h >= img_h or tmpl_w >= img_w:
-                return None
+                pass #return None
 
             res = cv2.matchTemplate(source_image_cropped, template.image_data, cv2.TM_CCOEFF_NORMED)
 

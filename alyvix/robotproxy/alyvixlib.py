@@ -153,6 +153,37 @@ def kill_process(process_name):
     
     pm = ProcManager()
     pm.kill_process(process_name)
+
+
+def wait_process_close(process_name, pid=None, timeout="60", exception="True"):
+    exception_value = exception
+
+    try:
+        if exception.lower() == "true":
+            exception_value = True
+        elif exception.lower() == "false":
+            exception_value = False
+    except:
+        pass
+
+    timeout_value = int(timeout)
+
+    pid_value = None
+    if pid is not None:
+        try:
+            pid_value = int(pid)
+        except:
+            pid_value = None
+    else:
+        pid_value = None
+
+    pm = ProcManager()
+    process_time = pm.wait_process_close(process_name, pid=pid_value, timeout=timeout_value)
+
+    if exception_value is True and process_time == -1:
+        raise Exception("Process " + process_name + " has timed out: " + str(timeout) + " s.")
+
+    return process_time
     
 def show_window(window_title, maximize="False"):
 
@@ -391,16 +422,6 @@ def get_mstsc_hostname(customer_name='test', path_json=''):
         return first_known_hostname
     else:
         return False
-
-
-def get_dictionary_value(path_file_json='init', name_dict_json='dict_01',
-                         name_key_json='key_01', verbose=False):
-    jm = JSONManager(path_file_json=path_file_json)
-    value_json = jm.get_json_value(name_dict_json=name_dict_json,
-                                   name_key_json=name_key_json)
-    if verbose:
-        print(value_json)
-    return value_json
 
 
 def get_aos_id(scraped_string, customer_name='test', path_json='',

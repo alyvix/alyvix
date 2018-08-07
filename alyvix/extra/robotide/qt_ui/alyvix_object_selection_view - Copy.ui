@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>783</width>
-    <height>426</height>
+    <width>786</width>
+    <height>428</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <rect>
      <x>1</x>
      <y>5</y>
-     <width>780</width>
+     <width>786</width>
      <height>420</height>
     </rect>
    </property>
@@ -236,7 +236,7 @@
       </widget>
      </item>
      <item row="1" column="0" colspan="3">
-      <widget class="QLabel" name="labelSpaceUnderSelect">
+      <widget class="QLabel" name="label_7">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -261,8 +261,8 @@
      <rect>
       <x>596</x>
       <y>6</y>
-      <width>182</width>
-      <height>409</height>
+      <width>184</width>
+      <height>414</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -272,109 +272,7 @@
      <property name="verticalSpacing">
       <number>6</number>
      </property>
-     <item row="1" column="0" colspan="3">
-      <widget class="QLabel" name="labelSpaceUnderBuild">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>8</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0" colspan="3">
-      <widget class="QLabel" name="labelSpaceUnderObjectFinder">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>15</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="0" colspan="3">
-      <widget class="QLabel" name="labelSpaceUnderRemove">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>15</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1" colspan="2">
-      <widget class="QSpinBox" name="spinBoxDelay">
-       <property name="minimumSize">
-        <size>
-         <width>118</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>102</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="maximum">
-        <number>60</number>
-       </property>
-      </widget>
-     </item>
-     <item row="12" column="0" colspan="3">
-      <widget class="QToolButton" name="toolButtonCancel">
-       <property name="minimumSize">
-        <size>
-         <width>180</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Cancel</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>../images/32x32/window-close-2.png</normaloff>../images/32x32/window-close-2.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="toolButtonStyle">
-        <enum>Qt::ToolButtonTextBesideIcon</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0" colspan="3">
+     <item row="0" column="0" colspan="2">
       <widget class="QLabel" name="label_6">
        <property name="maximumSize">
         <size>
@@ -392,7 +290,60 @@
        </property>
       </widget>
      </item>
-     <item row="9" column="0" colspan="3">
+     <item row="4" column="2">
+      <widget class="QToolButton" name="toolButtonObjectFinder">
+       <property name="minimumSize">
+        <size>
+         <width>76</width>
+         <height>55</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <kerning>true</kerning>
+        </font>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="text">
+        <string>Object Finder</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>../images/32x32/blockdevice-2.png</normaloff>../images/32x32/blockdevice-2.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1" colspan="2">
+      <widget class="QLabel" name="labelArrowDown">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>../images/32x32/arrow32.png</pixmap>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0" colspan="3">
       <widget class="QToolButton" name="toolButtonEdit">
        <property name="minimumSize">
         <size>
@@ -428,7 +379,7 @@
        </property>
       </widget>
      </item>
-     <item row="10" column="0" colspan="3">
+     <item row="8" column="0" colspan="3">
       <widget class="QToolButton" name="toolButtonRemove">
        <property name="minimumSize">
         <size>
@@ -457,112 +408,11 @@
        </property>
       </widget>
      </item>
-     <item row="7" column="0" colspan="3">
-      <widget class="QToolButton" name="toolButtonObjectFinder">
-       <property name="minimumSize">
-        <size>
-         <width>180</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <kerning>true</kerning>
-        </font>
-       </property>
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="styleSheet">
-        <string notr="true"/>
-       </property>
-       <property name="text">
-        <string>Object Finder</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>../images/32x32/blockdevice-2.png</normaloff>../images/32x32/blockdevice-2.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="toolButtonStyle">
-        <enum>Qt::ToolButtonTextBesideIcon</enum>
-       </property>
-       <property name="autoRaise">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0" colspan="3">
-      <widget class="QToolButton" name="toolButtonImageFinder">
-       <property name="minimumSize">
-        <size>
-         <width>180</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Image Finder</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>../images/32x32/user-desktop.png</normaloff>../images/32x32/user-desktop.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="toolButtonStyle">
-        <enum>Qt::ToolButtonTextBesideIcon</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0" colspan="3">
-      <widget class="QToolButton" name="toolButtonRectFinder">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>180</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Rect Finder</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>../images/32x32/preferences-desktop-theme.png</normaloff>../images/32x32/preferences-desktop-theme.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="toolButtonStyle">
-        <enum>Qt::ToolButtonTextBesideIcon</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0" colspan="3">
+     <item row="5" column="0">
       <widget class="QToolButton" name="toolButtonTextFinder">
        <property name="minimumSize">
         <size>
-         <width>180</width>
+         <width>76</width>
          <height>0</height>
         </size>
        </property>
@@ -580,12 +430,176 @@
         </size>
        </property>
        <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QToolButton" name="toolButtonImageFinder">
+       <property name="minimumSize">
+        <size>
+         <width>76</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Image Finder</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>../images/32x32/user-desktop.png</normaloff>../images/32x32/user-desktop.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QToolButton" name="toolButtonRectFinder">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>76</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Rect Finder</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>../images/32x32/preferences-desktop-theme.png</normaloff>../images/32x32/preferences-desktop-theme.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLabel" name="labelArrowRight">
+       <property name="maximumSize">
+        <size>
+         <width>25</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">padding: 0px;</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>../images/32x32/arrow_right32.png</pixmap>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1" colspan="2">
+      <widget class="QLabel" name="labelArrowUp">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>../images/32x32/arrow_up32.png</pixmap>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0" colspan="3">
+      <widget class="QToolButton" name="toolButtonCancel">
+       <property name="minimumSize">
+        <size>
+         <width>180</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>../images/32x32/window-close-2.png</normaloff>../images/32x32/window-close-2.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
         <enum>Qt::ToolButtonTextBesideIcon</enum>
        </property>
       </widget>
      </item>
+     <item row="2" column="1" colspan="2">
+      <widget class="QSpinBox" name="spinBoxDelay">
+       <property name="maximumSize">
+        <size>
+         <width>102</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="maximum">
+        <number>60</number>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="3">
+      <widget class="QLabel" name="label">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>8</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
      <item row="6" column="0" colspan="3">
-      <widget class="QLabel" name="labelSpaceUnderTextFinder">
+      <widget class="QLabel" name="label_3">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>15</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0" colspan="3">
+      <widget class="QLabel" name="label_4">
        <property name="minimumSize">
         <size>
          <width>0</width>

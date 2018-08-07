@@ -46,3 +46,16 @@ class ProcManagerBase(object):
         :param process_name: the name of the process to kill
         """
         raise NotImplementedError
+
+    def wait_process_close(self, process_name, pid=None, timeout=60):
+        """
+        wait process(es) till exists.
+
+        :type process_name: string
+        :param process_name: name of the process
+        :type pid: int
+        :param pid: the process id
+        :type timeout: int
+        :param timeout: timeout (seconds), default value is 60 seconds
+        """
+        raise NotImplementedError

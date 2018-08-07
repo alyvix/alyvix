@@ -25,8 +25,8 @@ import datetime
 import cv2
 import locale
 
-from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox, QKeySequence, QShortcut, QTableWidgetItem, QDateTimeEdit,QHeaderView, QAbstractItemView
-from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect, QEvent, QDate,QDateTime, pyqtSlot, SLOT
+from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox, QKeySequence, QShortcut, QTableWidgetItem, QDateTimeEdit,QHeaderView, QAbstractItemView, QIcon, QSpacerItem, QSizePolicy, QMenu
+from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect, QEvent, QDate,QDateTime, pyqtSlot, SLOT, QSize
 
 from PyQt4.QtWebKit import QWebSettings
 
@@ -55,8 +55,8 @@ main_menu_last_pos = None
 last_selected_index = -1
 last_selected_name = None
 
-old_order = Qt.DescendingOrder
-old_section = 3
+old_order = Qt.AscendingOrder
+old_section = 2
 
 
 class AlyvixMainMenuController(QDialog, Ui_Form):
@@ -77,8 +77,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
         self.is_AlyvixMainMenuController = True        
         
-        old_order = Qt.DescendingOrder
-        old_section = 3
+        old_order = Qt.AscendingOrder
+        old_section = 2
 
         info_manager = InfoManager()
         self.scaling_factor = info_manager.get_info("SCALING FACTOR FLOAT")
@@ -92,22 +92,139 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #self.resize(int(self.frameGeometry().width() * self.scaling_factor),
         #                  int(self.frameGeometry().height() * self.scaling_factor))
         
-        self.resize(int(780 * self.scaling_factor),
-                          int(400 * self.scaling_factor))
+
+        
+        icon_path = get_python_lib() + os.sep + "alyvix" + os.sep + "extra" + os.sep + "robotide" + os.sep +"images"
+             
+        if self.scaling_factor <= 1.3:
+        
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/32x32/user-desktop.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonImageFinder.setIcon(icon)
+            #self.toolButtonImageFinder.setIconSize(QSize(64, 64))
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/32x32/preferences-desktop-theme.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonRectFinder.setIcon(icon)
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/32x32/texteffect.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonTextFinder.setIcon(icon)
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/32x32/blockdevice-2.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonObjectFinder.setIcon(icon)
+            
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/32x32/preferences-system-2.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonEdit.setIcon(icon)
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/32x32/trash-empty-3.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonRemove.setIcon(icon)
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/32x32/window-close-2.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonCancel.setIcon(icon)
+            
+        else:
+                   
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/64x64/user-desktop.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonImageFinder.setIcon(icon)
+
+            
+            #self.toolButtonImageFinder.setIconSize(QSize(64, 64))
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/64x64/preferences-desktop-theme.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonRectFinder.setIcon(icon)
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/64x64/texteffect.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonTextFinder.setIcon(icon)
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/64x64/blockdevice-2.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonObjectFinder.setIcon(icon)
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/64x64/preferences-system-2.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonEdit.setIcon(icon)
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/64x64/trash-empty-3.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonRemove.setIcon(icon)
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/64x64/window-close-2.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonCancel.setIcon(icon)
+        
+            #spacerItem = self.gridLayout.itemAtPosition(1, 0)
+            #pointer = spacerItem.widget()
+            #index = self.gridLayout.indexOf(pointer)
+            #self.gridLayout.takeAt(index)
+
+            
+            #self.gridLayout.removeWidget(self.gridLayout.itemAtPosition(10, 0).widget());
+
+            #spacerItem3 = QSpacerItem(40, 5, QSizePolicy.Expanding, QSizePolicy.Minimum)
+            #self.gridLayout.addItem(spacerItem3, 1, 0, 1, 3)
+        
+                
+        
+        self.toolButtonImageFinder.setMinimumSize(QSize(int(self.toolButtonImageFinder.minimumSize().width() * self.scaling_factor), 0))
+        self.toolButtonImageFinder.setIconSize(QSize(int(32* self.scaling_factor), int(32* self.scaling_factor)))
+        
+        self.toolButtonRectFinder.setMinimumSize(QSize(self.toolButtonRectFinder.minimumSize().width() * self.scaling_factor, 0))
+        self.toolButtonRectFinder.setIconSize(QSize(int(32* self.scaling_factor), int(32* self.scaling_factor)))
+        
+        self.toolButtonTextFinder.setMinimumSize(QSize(self.toolButtonTextFinder.minimumSize().width() * self.scaling_factor, 0))
+        self.toolButtonTextFinder.setIconSize(QSize(int(32* self.scaling_factor), int(32* self.scaling_factor)))
+        
+        self.toolButtonObjectFinder.setMinimumSize(QSize(self.toolButtonObjectFinder.minimumSize().width() * self.scaling_factor, 0))
+        self.toolButtonObjectFinder.setIconSize(QSize(int(32* self.scaling_factor), int(32* self.scaling_factor)))
+        
+        self.toolButtonEdit.setMinimumSize(QSize(self.toolButtonEdit.minimumSize().width() * self.scaling_factor, 0))
+        self.toolButtonEdit.setIconSize(QSize(int(32* self.scaling_factor), int(32* self.scaling_factor)))
+        
+        self.toolButtonRemove.setMinimumSize(QSize(self.toolButtonRemove.minimumSize().width() * self.scaling_factor, 0))
+        self.toolButtonRemove.setIconSize(QSize(int(32* self.scaling_factor), int(32* self.scaling_factor)))
+        
+        self.toolButtonCancel.setMinimumSize(QSize(self.toolButtonCancel.minimumSize().width() * self.scaling_factor, 0))
+        self.toolButtonCancel.setIconSize(QSize(int(32* self.scaling_factor), int(32* self.scaling_factor)))
+        
+        self.spinBoxDelay.setMinimumSize(QSize(int(self.spinBoxDelay.minimumSize().width() * self.scaling_factor), 0))
+        
+        self.labelSpaceUnderObjectFinder.setMaximumSize(QSize(16777215, int(self.labelSpaceUnderObjectFinder.maximumSize().height() * self.scaling_factor)))
+
+        self.labelSpaceUnderRemove.setMaximumSize(QSize(16777215, int(self.labelSpaceUnderRemove.maximumSize().height() * self.scaling_factor)))
+
+        self.labelSpaceUnderTextFinder.setMaximumSize(QSize(16777215, int(self.labelSpaceUnderTextFinder.maximumSize().height() * self.scaling_factor)))
+        
+        self.labelSpaceUnderSelect.setMaximumSize(QSize(16777215, int(self.labelSpaceUnderSelect.maximumSize().height() * self.scaling_factor)))
+        
+        self.labelSpaceUnderBuild.setMaximumSize(QSize(16777215, int(self.labelSpaceUnderBuild.maximumSize().height() * self.scaling_factor)))
+        
+        self.label_6.setMaximumSize(QSize(16777215, int(self.label_6.maximumSize().height() * self.scaling_factor)))
+        
+        
+        
+        self.resize(int(self.width() * self.scaling_factor),
+                         int(425 * self.scaling_factor))
 
         self.widget.setGeometry(int(self.widget.x() * self.scaling_factor), int(self.widget.y()*self.scaling_factor),
                                             int(self.widget.width()*self.scaling_factor), int(self.widget.height()*self.scaling_factor))
+
                                             
-        
-        self.widget_2.setGeometry(QRect(int(self.widget_2.x()*self.scaling_factor), int(self.widget_2.y()*self.scaling_factor),
-                                      int(self.widget_2.width()*self.scaling_factor), int(self.widget_2.height()*self.scaling_factor)))
-                                      
         self.gridLayoutWidget.setGeometry(QRect(int(self.gridLayoutWidget.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget.geometry().y() * self.scaling_factor),
                                           int(self.gridLayoutWidget.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget.geometry().height() * self.scaling_factor)))
                                
         self.gridLayoutWidget_2.setGeometry(QRect(int(self.gridLayoutWidget_2.geometry().x() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().y() * self.scaling_factor),
                                           int(self.gridLayoutWidget_2.geometry().width() * self.scaling_factor), int(self.gridLayoutWidget_2.geometry().height() * self.scaling_factor)))
-                                          
+                                
         
         """
         self.pushButtonNew.setGeometry(QRect(int(8*self.scaling_factor), int(235*self.scaling_factor)
@@ -126,7 +243,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                                        int(37*self.scaling_factor), int(20*self.scaling_factor)))
          
         """         
-        
+
         if main_menu_last_pos is not None:
             self.move(main_menu_last_pos[0],main_menu_last_pos[1])
 
@@ -135,14 +252,14 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.setWindowFlags(Qt.Window)
         
         #self.connect(self.pushButtonNew, SIGNAL("clicked()"), self.add_item)
-        self.connect(self.pushButtonEdit, SIGNAL("clicked()"), self.edit_item)
-        self.connect(self.pushButtonRemove, SIGNAL("clicked()"), self.remove_item)
-        self.connect(self.pushButtonCancel, SIGNAL("clicked()"), self.cancel_action)
+        self.connect(self.toolButtonEdit, SIGNAL("clicked()"), self.edit_item)
+        self.connect(self.toolButtonRemove, SIGNAL("clicked()"), self.remove_item)
+        self.connect(self.toolButtonCancel, SIGNAL("clicked()"), self.cancel_action)
         
-        self.connect(self.pushButtonRF, SIGNAL("clicked()"), self.open_rectfinder_view)
-        self.connect(self.pushButtonIF, SIGNAL("clicked()"), self.open_imagefinder_view)
-        self.connect(self.pushButtonTF, SIGNAL("clicked()"), self.open_textfinder_view)
-        self.connect(self.pushButtonOF, SIGNAL("clicked()"), self.open_objectfinder_controller)
+        self.connect(self.toolButtonRectFinder, SIGNAL("clicked()"), self.open_rectfinder_view)
+        self.connect(self.toolButtonImageFinder, SIGNAL("clicked()"), self.open_imagefinder_view)
+        self.connect(self.toolButtonTextFinder, SIGNAL("clicked()"), self.open_textfinder_view)
+        self.connect(self.toolButtonObjectFinder, SIGNAL("clicked()"), self.open_objectfinder_controller)
         
         self.connect(self.lineEditSearch, SIGNAL("textChanged(QString)"), self, SLOT("search_event(QString)"))
         self.lineEditSearch.installEventFilter(self)
@@ -168,7 +285,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.update_path()
         self.update_list()
         
-        self.widget_2.hide()
+        #self.widget_2.hide()
         
         QShortcut(QKeySequence("Ctrl+D"), self, self.doSomething)
         QShortcut(QKeySequence("down"), self, self.goDown)
@@ -181,19 +298,64 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.connect(self.resizeTimer, SIGNAL("timeout()"), self.resize_done)
         
         self.setMinimumWidth(int(340 * self.scaling_factor))
-        self.setMinimumHeight(int(290 * self.scaling_factor))
         
+        """
+        if self.scaling_factor <= 1.3:
+            self.setMinimumHeight(int(427 * self.scaling_factor))
+        else:
+            self.setMinimumHeight(int(427 * self.scaling_factor))
+        """
+        self.setMinimumHeight(int(427 * self.scaling_factor))
         
         header = self.tableWidget.horizontalHeader()
         header.setDefaultAlignment(Qt.AlignLeft)
         
-        header.setDefaultSectionSize(int(340*self.scaling_factor))
+
+        header.setDefaultSectionSize(int(370*self.scaling_factor))
+        
+        header.setSortIndicator(2, Qt.AscendingOrder)
         
         
         header.setResizeMode(0, QHeaderView.Interactive)
         header.setResizeMode(1, QHeaderView.ResizeToContents)
         
         self.tableWidget.resizeRowsToContents()
+        
+    def contextMenuEvent(self, event):
+        if event.pos().x() > self.tableWidget.x() and event.pos().y() > self.tableWidget.y() \
+            and event.pos().x() < self.tableWidget.x() + self.tableWidget.width() \
+            and event.pos().y() < self.tableWidget.y() + self.tableWidget.height():
+
+            
+            if self.tableWidget.selectionModel().selection().indexes():
+                menu = QMenu()
+                copyAction = menu.addAction("Copy Keyword Name")
+                deleAction = menu.addAction("Delete Keyword")
+                action = menu.exec_(self.mapToGlobal(event.pos()))
+                if action ==copyAction:
+                    self.contextMenuCopyAction()
+                    
+                if action ==deleAction:
+                    self.contextMenuDeleteSelected()
+
+    def contextMenuCopyAction(self):
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        last_index = -1
+        for index in sorted(indexes):
+            #print('Row %d is selected' % index.row())
+            last_index = index.row()
+            
+        text = str(self.tableWidget.item(last_index, 0).data(Qt.EditRole).toString())
+        #print selected_item_data
+
+        clipboard = QApplication.clipboard()
+        clip_text = clipboard.text()
+        
+        if clip_text != text:
+            clipboard.setText(text)
+
+    def contextMenuDeleteSelected(self):
+        self.remove_item()
         
     
     def showEvent(self, event):
@@ -254,41 +416,28 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #340 310
         
         #if resize_factor_h >= 1 and resize_factor_w >= 1:
+        
+        
         self.widget.setGeometry(QRect(self.widget.x(), self.widget.y(),
                                             int(self.frameGeometry().width()), int(self.frameGeometry().height())))
                                             
         self.gridLayoutWidget_2.setGeometry(QRect(self.gridLayoutWidget_2.x(), self.gridLayoutWidget_2.y(),
-                                            int(self.frameGeometry().width() - (220*self.scaling_factor)), int(self.frameGeometry().height() - (60*self.scaling_factor))))
+                                            int(self.frameGeometry().width() - (220*self.scaling_factor)), int(self.frameGeometry().height() - (56*self.scaling_factor))))
                                             
-        self.gridLayoutWidget.setGeometry(QRect(self.gridLayoutWidget_2.x() + self.gridLayoutWidget_2.width() + (10*self.scaling_factor), self.gridLayoutWidget.y(),
+        self.gridLayoutWidget.setGeometry(QRect(self.gridLayoutWidget_2.x() + self.gridLayoutWidget_2.width() + (7*self.scaling_factor), self.gridLayoutWidget.y(),
                                             int(self.gridLayoutWidget.width()), int(self.gridLayoutWidget.height())))
-                                                
-        #self.resizeTimer.start(500)
-        self.widget_2.setGeometry(QRect(int((self.width()/2) - (self.widget_2.width()/2)), int(10*self.scaling_factor),
-                               int(self.widget_2.width()), int(self.widget_2.height())))
-
-    
-        """
-        window_w = self.frameGeometry().width()
-        window_h = self.frameGeometry().height() 
         
-
-        self.listWidgetAlyObj.setGeometry(QRect(int(8*self.scaling_factor), int(28*self.scaling_factor),
-                                                int(window_w - (28*self.scaling_factor)), int(window_h - (112*self.scaling_factor))))
-                
-        list_w = self.listWidgetAlyObj.width() 
-        list_h = self.listWidgetAlyObj.height() 
+        header = self.tableWidget.horizontalHeader()
+        header.setDefaultAlignment(Qt.AlignLeft)
+        
+        header.setDefaultSectionSize(int(self.gridLayoutWidget_2.width()*0.64))
         
         
-        self.pushButtonNew.setGeometry(QRect(int(8*self.scaling_factor), int(self.listWidgetAlyObj.y() + self.listWidgetAlyObj.height() + (12 * self.scaling_factor))
-                                             , int(60*self.scaling_factor), int(23*self.scaling_factor)))
-        self.pushButtonEdit.setGeometry(QRect(int(80*self.scaling_factor), int(self.listWidgetAlyObj.y() + self.listWidgetAlyObj.height() + (12 * self.scaling_factor)),
-                                              int(60*self.scaling_factor), int(23*self.scaling_factor)))
-        self.pushButtonRemove.setGeometry(QRect(int(151*self.scaling_factor), int(self.listWidgetAlyObj.y() + self.listWidgetAlyObj.height() + (12 * self.scaling_factor)),
-                                                int(75*self.scaling_factor), int(23*self.scaling_factor)))
-
-        self.old_window_h = window_h
-        """
+        header.setResizeMode(0, QHeaderView.Interactive)
+        header.setResizeMode(1, QHeaderView.ResizeToContents)
+        
+        self.tableWidget.resizeRowsToContents()
+        
         
     def doSomething(self):
         self.remove_item()
@@ -389,6 +538,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
     
     def remove_item(self):
         global last_selected_index
+        global last_selected_name
+        
         self.action = "remove"
         
         row_number_to_remove = []
@@ -396,8 +547,16 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         indexes = self.tableWidget.selectionModel().selectedRows()
         
         sorted_indexes = sorted(indexes)
+
         first_index_to_delete = sorted_indexes[0].row()
+
         #print first_index_to_delete
+        
+        if first_index_to_delete > 0:
+            last_selected_name = self.tableWidget.item(first_index_to_delete-1, 0).data(Qt.EditRole).toString()
+        else:
+            last_selected_name = 0
+        
         
         if len(indexes) > 0:
                 
@@ -551,13 +710,18 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #    self.tableWidget.removeRow(row_number)
             
         #index_main_obj = self.update_list()
-        
-        index_to_select = self.update_list()
+
         
         if first_index_to_delete - 1 >= 0 :
-            self.tableWidget.setFocus()
-            self.tableWidget.selectRow(first_index_to_delete - 1)
-            last_selected_index = first_index_to_delete - 1
+
+            last_selected_index = first_index_to_delete-1
+        else:
+            last_selected_name = None
+            
+        #print last_selected_index
+        #print last_selected_name
+            
+        index_to_select = self.update_list()
                 
         
         """        
@@ -568,7 +732,67 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
         
         
+    def merge_into_of(self):
+    
+        main_object = None
+        sub_objects = []
         
+        indexes = self.tableWidget.selectionModel().selectedRows()
+        
+        ts_counter = 0
+        
+        of_s_counter = 0
+                
+        for index in indexes:
+            #print('Row %d is selected' % index.row())
+            row_number = index.row()
+            
+            xml_name = str(self.tableWidget.item(row_number, 1).data(Qt.UserRole).toString())
+            
+            if main_object is None and not xml_name.endswith("_TextFinder.xml") and not xml_name.endswith("_ObjectFinder.xml"):
+                main_object = xml_name
+            elif main_object is None and xml_name.endswith("_TextFinder.xml"):
+                sub_objects.append(xml_name)
+            elif main_object is not None and not xml_name.endswith("_ObjectFinder.xml"):
+                sub_objects.append(xml_name)
+            
+            
+            
+            if xml_name.endswith("_ObjectFinder.xml"):
+               of_s_counter += 1 
+
+
+            extra_path = get_python_lib() + os.sep + "alyvix" + os.sep + "robotproxy" + os.sep + self.path.split(os.sep)[-1] + "_extra"
+            scraper_path = extra_path + os.sep + str(xml_name).replace("_TextFinder.xml","")
+            
+            #print "xml_name", xml_name
+            
+            if os.path.exists(extra_path + os.sep + xml_name.replace("_TextFinder.xml","") + os.sep + "scraper.txt"):
+                ts_counter += 1
+                
+                    
+        #if len(indexes) == 1:
+        #    return None
+            
+        if ts_counter > 1:
+            QMessageBox.critical(self, "Error", "You can join just one Object Scraper in an Object Finder")
+            return None
+                
+        if of_s_counter > 0:
+            QMessageBox.critical(self, "Error", "You can not join Object Finders or Scrapers in an Object Finder")
+            return None
+            
+        if main_object is None and len(indexes) > 0:
+            QMessageBox.critical(self, "Error", "You have to join Text Finders or Scrapers with at least an Image Finder or a Rect finder")
+            return None
+            
+        if len(sub_objects) == 0:
+            return None 
+
+            
+        return (main_object, sub_objects)
+    
+    
     def remove_item_backup(self):
         self.action = "remove"
         
@@ -668,7 +892,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         global last_selected_index
         global last_selected_name
         
-    
+        icon_path = get_python_lib() + os.sep + "alyvix" + os.sep + "extra" + os.sep + "robotide" + os.sep +"images"
         header = self.tableWidget.horizontalHeader()
 
         if header.sortIndicatorOrder() == Qt.AscendingOrder:
@@ -717,7 +941,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             string = f.read()
             
         #print sorted(entries)
-
+        
+        icon_prefix_sf = "16x16"
+        if self.scaling_factor > 1.3:
+            icon_prefix_sf = "32x32"
+        
         for cdate, path in sorted(entries):
             filename = os.path.basename(path)
             #print cdate
@@ -737,9 +965,19 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 if filename.endswith('_RectFinder.xml'):
                     item_name.setData(Qt.EditRole, filename[:-15]);#item.setText(filename[:-15] + " [RF]")
                     item_type.setData(Qt.EditRole, "RF")
+                    
+                    icon = QIcon()
+                    icon.addPixmap(QPixmap(icon_path + os.sep + icon_prefix_sf + "/preferences-desktop-theme.png"), QIcon.Normal, QIcon.Off)
+                    item_type.setIcon(icon)
+                    
                 elif filename.endswith('_ImageFinder.xml'):
                     item_name.setData(Qt.EditRole, filename[:-16]);#item.setText(filename[:-15] + " [RF]")
                     item_type.setData(Qt.EditRole, "IF")
+                    
+                    icon = QIcon()
+                    icon.addPixmap(QPixmap(icon_path + os.sep + icon_prefix_sf + "/user-desktop.png"), QIcon.Normal, QIcon.Off)
+                    item_type.setIcon(icon)
+                    
                 elif filename.endswith("_TextFinder.xml"):
                     if os.path.exists(extra_path + os.sep + filename.replace("_TextFinder.xml","") + os.sep + "scraper.txt"):
                         #item.setText(filename[:-15] + " [TS]")
@@ -748,6 +986,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                     else:
                         item_name.setData(Qt.EditRole, filename[:-15]);#item.setText(filename[:-15] + " [RF]")
                         item_type.setData(Qt.EditRole, "TF")
+                                              
+                    icon = QIcon()
+                    icon.addPixmap(QPixmap(icon_path + os.sep + icon_prefix_sf + "/texteffect.png"), QIcon.Normal, QIcon.Off)
+                    item_type.setIcon(icon)
+
                 elif filename.endswith('_ObjectFinder.xml'):
                     if os.path.exists(path.replace("_ObjectFinder.xml","_ObjectFinder.alyscraper")):
                         item_name.setData(Qt.EditRole, filename[:-17]);#item.setText(filename[:-15] + " [RF]")
@@ -755,8 +998,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                     else:
                         item_name.setData(Qt.EditRole, filename[:-17]);#item.setText(filename[:-15] + " [RF]")
                         item_type.setData(Qt.EditRole, "OF")
+                                                                      
+                    icon = QIcon()
+                    icon.addPixmap(QPixmap(icon_path + os.sep + icon_prefix_sf + "/blockdevice-2.png"), QIcon.Normal, QIcon.Off)
+                    item_type.setIcon(icon)
                         
-                    
 
                 if self._deleted_obj_name is not None and (filename[:-15] == self._deleted_obj_name or filename[:-16] == self._deleted_obj_name or filename[:-17] == self._deleted_obj_name):
                     deleted_index = cnt
@@ -853,6 +1099,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                     self.tableWidget.selectRow(row_index)
                     row_selected = True
                     
+            #print last_selected_name
+            #print row_selected
             if row_selected is False:
                 self.tableWidget.setFocus()
                 self.tableWidget.selectRow(0)
@@ -913,7 +1161,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
     def restore_view(self):
         self.widget.show()
-        self.widget_2.hide()
+        #self.widget_2.hide()
         self.resize_all()
     
     def add_item(self):
@@ -921,15 +1169,19 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.action = "new"
         #self.lineEditSearch.setText("search...")
         self.widget.hide()
-        self.widget_2.show()
+        #self.widget_2.show()
         
                                
         self.resize_all()
         
+        
+    def set_last_name(self, name):
+        global last_selected_name
+        last_selected_name = name
+        
                     
     def edit_item(self):
         global last_selected_index
-        global last_selected_name
         global last_selected_name
     
         self.action = "edit"
@@ -949,7 +1201,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             last_index = index.row()
             
         last_selected_index = last_index
-        last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
+        last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole).toString()
     
         #print "type", self.tableWidget.item(last_index, 0).data(Qt.EditRole).toString()
         #print "name", self.tableWidget.item(last_index, 2).data(Qt.EditRole).toString()
@@ -1114,21 +1366,6 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #self.update()
         
     def open_rectfinder_view(self):
-   
-        global last_selected_index
-        global last_selected_name
-        
-        indexes = self.tableWidget.selectionModel().selectedRows()
-        last_index = -1
-        last_selected_name = None
-        for index in sorted(indexes):
-            #print('Row %d is selected' % index.row())
-            last_index = index.row()
-            
-        #last_selected_index = last_index
-        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
-        last_selected_index = self.tableWidget.rowCount()
-    
         self.action = "new"
         #self.lineEditSearch.setText("search...")
     
@@ -1146,20 +1383,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_rect_finder_controller.showFullScreen()
           
         
-    def open_imagefinder_view(self):
-        global last_selected_index
-        global last_selected_name
-        
-        indexes = self.tableWidget.selectionModel().selectedRows()
-        last_index = -1
-        for index in sorted(indexes):
-            #print('Row %d is selected' % index.row())
-            last_index = index.row()
-            
-        #last_selected_index = last_index
-        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
-        last_selected_index = self.tableWidget.rowCount()
-        
+    def open_imagefinder_view(self):        
         self.action = "new"
         #self.lineEditSearch.setText("search...")
     
@@ -1177,19 +1401,6 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_image_finder_controller.showFullScreen()
         
     def open_textfinder_view(self):
-        global last_selected_index
-        global last_selected_name
-        
-        indexes = self.tableWidget.selectionModel().selectedRows()
-        last_index = -1
-        for index in sorted(indexes):
-            #print('Row %d is selected' % index.row())
-            last_index = index.row()
-            
-        #last_selected_index = last_index
-        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
-        last_selected_index = self.tableWidget.rowCount()
-        
         self.action = "new"
         #self.lineEditSearch.setText("search...")
     
@@ -1207,21 +1418,17 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.alyvix_text_finder_controller.showFullScreen()
         
     def open_objectfinder_controller(self):
-        global last_selected_index
-        global last_selected_name
         
         indexes = self.tableWidget.selectionModel().selectedRows()
-        last_index = -1
-        for index in sorted(indexes):
-            #print('Row %d is selected' % index.row())
-            last_index = index.row()
+        
+        obj_tuple = None
+        
+        if len(indexes) > 1:
+            obj_tuple = self.merge_into_of()
             
-        #last_selected_index = last_index
-        #last_selected_name = self.tableWidget.item(last_index, 0).data(Qt.EditRole)
-        last_selected_index = -2
-        
-        print last_selected_name
-        
+            if obj_tuple is None:
+                return
+                    
         self.action = "new"
         #self.lineEditSearch.setText("search...")
     
@@ -1233,7 +1440,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         #img_color = screen_manager.grab_desktop(screen_manager.get_color_mat)
         #img_color = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)
         #image = QImage(img_color, img_color.shape[1], img_color.shape[0], img_color.strides[0], QImage.Format_RGB888)
-        self.alyvix_objectfinder_controller = AlyvixObjectFinderView(self)
+        
+        if obj_tuple is not None:
+            self.alyvix_objectfinder_controller = AlyvixObjectFinderView(self, main_object=obj_tuple[0], sub_objects=obj_tuple[1])
+        else:
+            self.alyvix_objectfinder_controller = AlyvixObjectFinderView(self)
         #self.alyvix_objectfinder_controller.set_bg_pixmap(image)
         self.alyvix_objectfinder_controller.show()
         
