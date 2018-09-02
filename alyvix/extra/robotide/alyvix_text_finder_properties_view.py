@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'alyvix_text_finder_properties_view.ui'
 #
-# Created: Tue Aug  7 16:04:29 2018
+# Created: Fri Aug 10 09:59:09 2018
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -247,13 +247,6 @@ class Ui_Form(object):
         self.gridLayout = QtGui.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setMargin(0)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.spinBoxArgs = QtGui.QSpinBox(self.gridLayoutWidget)
-        self.spinBoxArgs.setObjectName(_fromUtf8("spinBoxArgs"))
-        self.gridLayout.addWidget(self.spinBoxArgs, 17, 3, 1, 1)
-        self.labelArgs = QtGui.QLabel(self.gridLayoutWidget)
-        self.labelArgs.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.labelArgs.setObjectName(_fromUtf8("labelArgs"))
-        self.gridLayout.addWidget(self.labelArgs, 17, 2, 1, 1)
         self.holdreleaseRadio = QtGui.QRadioButton(self.gridLayoutWidget)
         self.holdreleaseRadio.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.holdreleaseRadio.setObjectName(_fromUtf8("holdreleaseRadio"))
@@ -434,6 +427,13 @@ class Ui_Form(object):
         self.spinBoxScrolls.setEnabled(False)
         self.spinBoxScrolls.setObjectName(_fromUtf8("spinBoxScrolls"))
         self.gridLayout.addWidget(self.spinBoxScrolls, 11, 1, 1, 1)
+        self.spinBoxArgs = QtGui.QSpinBox(self.gridLayoutWidget)
+        self.spinBoxArgs.setObjectName(_fromUtf8("spinBoxArgs"))
+        self.gridLayout.addWidget(self.spinBoxArgs, 1, 3, 1, 1)
+        self.labelArgs = QtGui.QLabel(self.gridLayoutWidget)
+        self.labelArgs.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.labelArgs.setObjectName(_fromUtf8("labelArgs"))
+        self.gridLayout.addWidget(self.labelArgs, 1, 2, 1, 1)
         self.roi_width_label = QtGui.QLabel(Form)
         self.roi_width_label.setGeometry(QtCore.QRect(45, 9799, 89, 20))
         self.roi_width_label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
@@ -592,7 +592,6 @@ class Ui_Form(object):
         item = self.listWidget.item(0)
         item.setText(_translate("Form", "main_component", None))
         self.listWidget.setSortingEnabled(__sortingEnabled)
-        self.labelArgs.setText(_translate("Form", "Arguments", None))
         self.holdreleaseRadio.setText(_translate("Form", "Hold\'n\'Release", None))
         self.lineEditText.setText(_translate("Form", "Type here the Text to find", None))
         self.labelClickDelay.setText(_translate("Form", "Delays [ms]", None))
@@ -629,6 +628,7 @@ class Ui_Form(object):
         self.comboBoxScrolls.setItemText(2, _translate("Form", "Left", None))
         self.comboBoxScrolls.setItemText(3, _translate("Form", "Right", None))
         self.labelDirectionScroll.setText(_translate("Form", "Direction", None))
+        self.labelArgs.setText(_translate("Form", "Arguments", None))
         self.roi_width_label.setText(_translate("Form", "Roi Width", None))
         self.roi_height_label.setText(_translate("Form", "Roi Height", None))
         self.roi_x_label.setText(_translate("Form", "Roi X", None))

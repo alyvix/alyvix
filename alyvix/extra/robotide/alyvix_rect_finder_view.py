@@ -307,7 +307,7 @@ class AlyvixRectFinderView(QWidget):
             self.save_python_file()
             #self.build_perf_data_xml()
             self._bg_pixmap.save(self._path + os.sep + self.object_name + "_RectFinder.png","PNG", -1)
-            self.parent.set_last_name(str(self.object_name))
+            #self.parent.set_last_name(str(self.object_name))
             if self.action == "new":
                 #print "add_new"
                 self.parent.add_new_item_on_list()
@@ -3658,10 +3658,10 @@ class AlyvixRectFinderView(QWidget):
             rect_finder.y = y
             rect_finder.height = height
             rect_finder.width = width
-            rect_finder.min_height = int(height/1.5)
-            rect_finder.max_height = int(height*1.5)
-            rect_finder.min_width = int(width/1.5)
-            rect_finder.max_width = int(width*1.5)
+            rect_finder.min_height = int(height-(height*0.05))
+            rect_finder.max_height = int(height+(height*0.05))
+            rect_finder.min_width = int(width-(width*0.1))
+            rect_finder.max_width = int(width+(width*0.1))
             
             self._main_rect_finder = rect_finder
             
@@ -3687,10 +3687,10 @@ class AlyvixRectFinderView(QWidget):
             rect_finder.y = y
             rect_finder.height = height
             rect_finder.width = width
-            rect_finder.min_height = height/2
-            rect_finder.max_height = height*2
-            rect_finder.min_width = width/2
-            rect_finder.max_width = width*2
+            rect_finder.min_height = int(height-(height*0.05))
+            rect_finder.max_height = int(height+(height*0.05))
+            rect_finder.min_width = int(width-(width*0.1))
+            rect_finder.max_width = int(width+(width*0.1))
             
             self._main_rect_finder = rect_finder
 
@@ -3706,10 +3706,10 @@ class AlyvixRectFinderView(QWidget):
             rect_finder.y = y
             rect_finder.height = height
             rect_finder.width = width
-            rect_finder.min_height = height/2
-            rect_finder.max_height = height*2
-            rect_finder.min_width = width/2
-            rect_finder.max_width = width*2
+            rect_finder.min_height = int(height-(height*0.05))
+            rect_finder.max_height = int(height+(height*0.05))
+            rect_finder.min_width = int(width-(width*0.1))
+            rect_finder.max_width = int(width+(width*0.1))
             
             self.__flag_capturing_sub_rect_roi = False
             self.__flag_capturing_sub_rect = True
@@ -3910,10 +3910,10 @@ class AlyvixRectFinderView(QWidget):
             rect_finder.y = y
             rect_finder.height = height
             rect_finder.width = width
-            rect_finder.min_height = int(height/1.5)
-            rect_finder.max_height = int(height*1.5)
-            rect_finder.min_width = int(width/1.5)
-            rect_finder.max_width = int(width*1.5)
+            rect_finder.min_height = int(height-(height*0.05))
+            rect_finder.max_height = int(height+(height*0.05))
+            rect_finder.min_width = int(width-(width*0.1))
+            rect_finder.max_width = int(width+(width*0.1))
         else:
             self.__flag_capturing_sub_rect = True
             self.__flag_capturing_sub_rect_roi = False
@@ -6929,8 +6929,8 @@ class MainRectForGui:
         self.timeout = 20
         self.timeout_exception = True
         self.sendkeys = ""
-        self.sendkeys_delay = 15
-        self.sendkeys_duration = 15
+        self.sendkeys_delay = 30
+        self.sendkeys_duration = 30
         self.mouse_or_key_is_set = False
         self.sendkeys_quotes = True
         self.text_encrypted = False
@@ -6986,8 +6986,8 @@ class SubRectForGui:
         self.number_of_clicks = 1
         self.click_delay = 10
         self.sendkeys = ""
-        self.sendkeys_delay = 15
-        self.sendkeys_duration = 15
+        self.sendkeys_delay = 30
+        self.sendkeys_duration = 30
         self.sendkeys_quotes = True
         self.text_encrypted = False
         

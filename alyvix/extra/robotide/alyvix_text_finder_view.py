@@ -9592,8 +9592,8 @@ class MainTextForGui:
         self.timeout = 20
         self.timeout_exception = True
         self.sendkeys = ""
-        self.sendkeys_delay = 15
-        self.sendkeys_duration = 15
+        self.sendkeys_delay = 30
+        self.sendkeys_duration = 30
         self.mouse_or_key_is_set = False
         self.sendkeys_quotes = True
         self.text_encrypted = False
@@ -9646,8 +9646,8 @@ class SubTextForGui:
         self.click_delay = 10
         self.doubleclick = False
         self.sendkeys = ""
-        self.sendkeys_delay = 15
-        self.sendkeys_duration = 15
+        self.sendkeys_delay = 30
+        self.sendkeys_duration = 30
         self.sendkeys_quotes = True
         self.text_encrypted = False
         

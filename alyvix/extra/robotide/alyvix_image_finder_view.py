@@ -236,7 +236,7 @@ class AlyvixImageFinderView(QWidget):
             image_name = self._path + os.sep + self.object_name + "_ImageFinder.png"
             self._bg_pixmap.save(image_name,"PNG", -1)
             self.save_template_images(image_name)
-            self.parent.set_last_name(str(self.object_name))
+            #self.parent.set_last_name(str(self.object_name))
             if self.action == "new":
                 self.parent.add_new_item_on_list()
         
@@ -6494,8 +6494,8 @@ class MainTemplateForGui:
         self.timeout = 20
         self.timeout_exception = True
         self.sendkeys = ""
-        self.sendkeys_delay = 15
-        self.sendkeys_duration = 15
+        self.sendkeys_delay = 30
+        self.sendkeys_duration = 30
         self.sendkeys_quotes = True
         self.text_encrypted = False
         self.enable_performance = True
@@ -6544,8 +6544,8 @@ class SubTemplateForGui:
         self.number_of_clicks = 1
         self.click_delay = 10
         self.sendkeys = ""
-        self.sendkeys_delay = 15
-        self.sendkeys_duration = 15
+        self.sendkeys_delay = 30
+        self.sendkeys_duration = 30
         self.sendkeys_quotes = True
         self.text_encrypted = False
         

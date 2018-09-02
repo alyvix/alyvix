@@ -675,19 +675,6 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="27" column="2">
-      <widget class="QLabel" name="labelArgs">
-       <property name="text">
-        <string>Arguments</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="27" column="3">
-      <widget class="QSpinBox" name="spinBoxArgs"/>
-     </item>
      <item row="2" column="3">
       <widget class="QRadioButton" name="wait_disapp_radio">
        <property name="layoutDirection">
@@ -800,6 +787,19 @@ Point</string>
        </property>
        <property name="singleStep">
         <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="QSpinBox" name="spinBoxArgs"/>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="labelArgs">
+       <property name="text">
+        <string>Arguments</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>

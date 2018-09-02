@@ -89,9 +89,11 @@ class dummy():
     def update_list(self):
         self.objectfinder_view.update_list()
 
-class AlyvixObjectFinderView(QDialog, Ui_Form):
+class AlyvixObjectFinderView(QWidget, Ui_Form):
     def __init__(self, parent, main_object=None, sub_objects=[]):
-        QDialog.__init__(self)
+        QWidget.__init__(self)
+        
+        #print "object init"
         
         global last_pos
         global last_row_selected
@@ -103,6 +105,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
 		
         self._main_deleted = False
         self._roi_restored_after_deleted_main = 0
+        
         
         self._old_sub_roi = []
         self.text_finder_roi_modified = []
@@ -164,6 +167,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                         
                         
         self.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
+        
+        #self.setAttribute(Qt.WA_DeleteOnClose)
         
         
         if last_pos is not None:
@@ -446,6 +451,14 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)
         
+        if self.action == "edit":
+            self.pv = PaintingView(self)
+            #print self._main_object_finder.xml_path.replace("xml", "png")
+            image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
+            self.pv.set_bg_pixmap(image)
+            
+            self.pv.showFullScreen()
+        
         """
         if self.parent.last_view_index != 0:
             
@@ -519,10 +532,18 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             pass
         
         
-        self.pv = PaintingView(self)
-        #print self._main_object_finder.xml_path.replace("xml", "png")
-        image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
-        self.pv.set_bg_pixmap(image)
+        try:
+            image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
+            self.pv.set_bg_pixmap(image)
+
+
+        except:
+            
+            self.pv = PaintingView(self)
+            #print self._main_object_finder.xml_path.replace("xml", "png")
+            image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
+            self.pv.set_bg_pixmap(image)
+            
         self.pv.showFullScreen()
         return True
             
@@ -597,6 +618,32 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             sub_object.is_textfinder = True
             
         else:
+        
+            hw_factor = 0
+                                
+            if sub_object.height < sub_object.width:
+                hw_factor = sub_object.height
+            else:
+                hw_factor = sub_object.width
+                
+                
+            sc_factor = 0
+                                
+            if self.pv._bg_pixmap.height() < self.pv._bg_pixmap.width():
+                sc_factor = self.pv._bg_pixmap.height()
+            else:
+                sc_factor = self.pv._bg_pixmap.width()
+                
+            percentage_screen_w = int(0.0125 * sc_factor)
+            percentage_screen_h = int(0.0125 * sc_factor)
+            percentage_object_w = int(0.2 * hw_factor) #sub_object.width)
+            percentage_object_h = int(0.2 * hw_factor) #sub_object.height)
+            
+            roi_height = percentage_screen_h + percentage_object_h + sub_object.height
+            
+            roi_width = percentage_screen_w + percentage_object_w + sub_object.width
+            
+            """
             hw_factor = 0
 
             if sub_object.height < sub_object.width:
@@ -604,10 +651,11 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             else:
                 hw_factor = sub_object.width
                 
+            
             roi_height = int(0.95 * hw_factor) + sub_object.height
 
             roi_width = int(0.95 * hw_factor) + sub_object.width
-
+            """
 
             roi_width_half = int((roi_width - sub_object.width)/2)
 
@@ -678,6 +726,9 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self._old_sub_objects = copy.deepcopy(self._sub_objects_finder)
         
     def showEvent(self, event):
+    
+        #print self.parent.xx
+        #print "object show event"
         global last_pos
         global last_row_selected
         if last_pos is not None:
@@ -742,16 +793,20 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         except:
             pass
 
+        """
         self.parent.show()
         self.pv.close()
         try:
             self.pv.close()
         except:
             pass
+        """
         self.close()
         
     def closeEvent(self, event):
+
         self.parent.show()
+        
         try:
             self.pv.close()
         except:
@@ -862,11 +917,13 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         except:
             pass
             
+        """
         self.parent.show()
         try:
             self.pv.close()
         except:
             pass
+        """
         self.close()
         
     def pushButtonCancel_event(self):
@@ -1617,7 +1674,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             main_obj = AlyvixTextFinderView(m_controller)
             arg_main_component = main_obj.args_number
             main_obj_name = main_obj.object_name
-            
+          
+        #print "main_obj.mouse_or_key_is_set ", main_obj.mouse_or_key_is_set 
         if main_obj.mouse_or_key_is_set is True:
             mouse_or_key_is_set = True
         
@@ -1898,6 +1956,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 else:
                     self._code_lines.append("        return False")
         
+        #print "self._main_object_finder.mouse_or_key_is_set", self._main_object_finder.mouse_or_key_is_set
         if self._main_object_finder.mouse_or_key_is_set:
             self._code_lines.append("    " + main_obj_name + "_mouse_keyboard(" + self._main_object_finder.component_args + ")")
             
@@ -2162,8 +2221,31 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 
                 #print "exit"
             else:
+                hw_factor = 0
+                                
+                if sub_obj.height < sub_obj.width:
+                    hw_factor = sub_obj.height
+                else:
+                    hw_factor = sub_obj.width
+                    
+                    
+                sc_factor = 0
+                                    
+                if self.pv._bg_pixmap.height() < self.pv._bg_pixmap.width():
+                    sc_factor = self.pv._bg_pixmap.height()
+                else:
+                    sc_factor = self.pv._bg_pixmap.width()
+                    
+                percentage_screen_w = int(0.0125 * sc_factor)
+                percentage_screen_h = int(0.0125 * sc_factor)
+                percentage_object_w = int(0.2 * hw_factor) #sub_obj.width)
+                percentage_object_h = int(0.2 * hw_factor) #sub_obj.height)
+                
+                roi_height = percentage_screen_h + percentage_object_h + sub_obj.height
+                
+                roi_width = percentage_screen_w + percentage_object_w + sub_obj.width
             
-            
+                """
                 hw_factor = 0
                 
                 if sub_obj.height < sub_obj.width:
@@ -2174,7 +2256,7 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
                 roi_height = int(0.95 * hw_factor) + sub_obj.height
 
                 roi_width = int(0.95 * hw_factor) + sub_obj.width
-
+                """
 
                 roi_width_half = int((roi_width - sub_obj.width)/2)
 
@@ -2276,16 +2358,24 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             self.object.image_view_properties.show()
     
     def open_select_obj_window(self):
-        self.select_main_object_view = None
         
         if self.button_selected == "set_main_object":
-            self.select_main_object_view = AlyvixObjectsSelection(self, True)
+            self.select_main_object_view = AlyvixObjectsSelection(parent=self, is_main=True)
         elif self.button_selected == "add_sub_object":
-            self.select_main_object_view = AlyvixObjectsSelection(self, False)
-            
-        self.hide()
+            self.select_main_object_view = AlyvixObjectsSelection(parent=self, is_main=False)
+          
+        #print "objs",self
+
+
         self.select_main_object_view.show()
         
+        self.hide()
+        """
+        try:
+            self.close()
+            self.parent.close()
+        except: pass
+        """
     def set_main_object(self, xml_name):
         filename = xml_name
         filename = filename.split(os.sep)[-1]
@@ -2375,9 +2465,18 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             pass
         
         
-        self.pv = PaintingView(self)
-        image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
-        self.pv.set_bg_pixmap(image)
+        try:
+            image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
+            self.pv.set_bg_pixmap(image)
+
+
+        except:
+            
+            self.pv = PaintingView(self)
+            #print self._main_object_finder.xml_path.replace("xml", "png")
+            image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
+            self.pv.set_bg_pixmap(image)
+            
         self.pv.showFullScreen()
         return True
         
@@ -2452,15 +2551,28 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
             
         else:
             hw_factor = 0
-
+                                
             if sub_object.height < sub_object.width:
                 hw_factor = sub_object.height
             else:
                 hw_factor = sub_object.width
                 
-            roi_height = int(0.95 * hw_factor) + sub_object.height
-
-            roi_width = int(0.95 * hw_factor) + sub_object.width
+                
+            sc_factor = 0
+                                
+            if self.pv._bg_pixmap.height() < self.pv._bg_pixmap.width():
+                sc_factor = self.pv._bg_pixmap.height()
+            else:
+                sc_factor = self.pv._bg_pixmap.width()
+                
+            percentage_screen_w = int(0.0125 * sc_factor)
+            percentage_screen_h = int(0.0125 * sc_factor)
+            percentage_object_w = int(0.2 * hw_factor) #image_finder.width)
+            percentage_object_h = int(0.2 * hw_factor) #image_finder.height)
+            
+            roi_height = percentage_screen_h + percentage_object_h + sub_object.height
+            
+            roi_width = percentage_screen_w + percentage_object_w + sub_object.width
 
 
             roi_width_half = int((roi_width - sub_object.width)/2)
@@ -2493,7 +2605,8 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         self._sub_objects_finder.append(sub_object)
         #self.build_sub_object(sub_object)
         
-        self.pv = PaintingView(self)
+        #self.pv = PaintingView(self)
+        
         #image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
         #self.pv.set_bg_pixmap(image)
         #self.pv.showFullScreen()
@@ -3290,9 +3403,18 @@ class AlyvixObjectFinderView(QDialog, Ui_Form):
         
         self._redraw_index = self.sub_object_index
         
-        self.pv = PaintingView(self)
-        image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
-        self.pv.set_bg_pixmap(image)
+        try:
+            image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
+            self.pv.set_bg_pixmap(image)
+
+
+        except:
+            
+            self.pv = PaintingView(self)
+            #print self._main_object_finder.xml_path.replace("xml", "png")
+            image = QImage(self._main_object_finder.xml_path.replace("xml", "png"))   
+            self.pv.set_bg_pixmap(image)
+            
         self.pv.showFullScreen()
         self._can_set_roi_unlim = True
         #self.update()
@@ -3461,16 +3583,20 @@ class SubObjectForGui:
         self.x_offset = None
         self.y_offset = None
         
-class AlyvixObjectsSelection(QDialog, Ui_Form_2):
+class AlyvixObjectsSelection(QWidget, Ui_Form_2):
+
     
-    def __init__(self, parent, is_main):
-        
+    def __init__(self, parent=None, is_main=False):
+
+                    
         global old_order
         global old_section
         
-        QDialog.__init__(self)
+        QWidget.__init__(self)
         
         self.setupUi(self)
+        
+        self.setWindowTitle("Alyvix - Select Component")
         
                 
         self.parent = parent
@@ -3589,6 +3715,12 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
                     self.lineEditSearch.setText("")
                     return True
                     
+            if event.type() == event.KeyPress:
+            
+                if self.lineEditSearch.text() == "search..." and object.objectName() == "lineEditSearch":
+                    self.lineEditSearch.setText("")
+
+                    
             if event.type()== event.FocusOut:
                 if self.lineEditSearch.text() == "" and object.objectName() == "lineEditSearch":
                     self.lineEditSearch.setText("search...")
@@ -3631,12 +3763,29 @@ class AlyvixObjectsSelection(QDialog, Ui_Form_2):
         
         
     def closeEvent(self, event):
+        
+        #print "self close"
+
         if self.parent._main_object_finder.xml_path != "":
-            self.parent.pv = PaintingView(self.parent)
-            image = QImage(self.parent._main_object_finder.xml_path.replace("xml", "png"))   
-            self.parent.pv.set_bg_pixmap(image)
+            try:
+                image = QImage(self.parent._main_object_finder.xml_path.replace("xml", "png"))   
+                self.parent.pv.set_bg_pixmap(image)
+
+
+            except:
+                
+                pass
+        
+        try:
             self.parent.pv.showFullScreen()
+        except:
+            pass #no image if we dont have selected a main
+            
+        #self.parent.obj_Selection_open = False
+
+        #print self.parent.parent.xx
         self.parent.show()
+        
         
     @pyqtSlot(QString)
     def search_event(self, text):
@@ -4025,7 +4174,7 @@ class LineTextWidget(QFrame):
     
 class PaintingView(QWidget):
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         QWidget.__init__(self)
         
         self.parent = parent
@@ -4098,7 +4247,13 @@ class PaintingView(QWidget):
         self.setMouseTracking(True)
         
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        #self.setAttribute(Qt.WA_DeleteOnClose)
         
+    def closeEvent(self, event):
+
+        pass #self.deleteLater()
+        
+            
     def keyPressEvent(self, event):
         global last_pos
         if event.modifiers() == Qt.ControlModifier:
@@ -4272,6 +4427,31 @@ class PaintingView(QWidget):
                     
 
                     hw_factor = 0
+                                        
+                    if self.parent._sub_objects_finder[index].height < self.parent._sub_objects_finder[index].width:
+                        hw_factor = self.parent._sub_objects_finder[index].height
+                    else:
+                        hw_factor = self.parent._sub_objects_finder[index].width
+                        
+                        
+                    sc_factor = 0
+                                
+                    if self._bg_pixmap.height() < self._bg_pixmap.width():
+                        sc_factor = self._bg_pixmap.height()
+                    else:
+                        sc_factor = self._bg_pixmap.width()
+                        
+                    percentage_screen_w = int(0.0125 * sc_factor)
+                    percentage_screen_h = int(0.0125 * sc_factor)
+                    percentage_object_w = int(0.2 * hw_factor) #image_finder.width)
+                    percentage_object_h = int(0.2 * hw_factor) #image_finder.height)
+                    
+                    roi_height = percentage_screen_h + percentage_object_h + self.parent._sub_objects_finder[index].height
+                    
+                    roi_width = percentage_screen_w + percentage_object_w + self.parent._sub_objects_finder[index].width
+                    
+                    """
+                    hw_factor = 0
 
                     if self.parent._sub_objects_finder[index].height < self.parent._sub_objects_finder[index].width:
                         hw_factor = self.parent._sub_objects_finder[index].height
@@ -4281,7 +4461,7 @@ class PaintingView(QWidget):
                     roi_height = int(0.95 * hw_factor) + self.parent._sub_objects_finder[index].height
 
                     roi_width = int(0.95 * hw_factor) + self.parent._sub_objects_finder[index].width
-
+                    """
 
                     roi_width_half = int((roi_width - self.parent._sub_objects_finder[index].width)/2)
 

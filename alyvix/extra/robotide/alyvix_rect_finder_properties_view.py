@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'alyvix_rect_finder_properties_view.ui'
 #
-# Created: Tue Aug  7 16:04:29 2018
+# Created: Fri Aug 10 09:59:10 2018
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -287,13 +287,6 @@ class Ui_Form(object):
         self.min_width_spinbox.setMaximum(9999)
         self.min_width_spinbox.setObjectName(_fromUtf8("min_width_spinbox"))
         self.gridLayout.addWidget(self.min_width_spinbox, 9, 3, 1, 1)
-        self.labelArgs = QtGui.QLabel(self.gridLayoutWidget)
-        self.labelArgs.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.labelArgs.setObjectName(_fromUtf8("labelArgs"))
-        self.gridLayout.addWidget(self.labelArgs, 27, 2, 1, 1)
-        self.spinBoxArgs = QtGui.QSpinBox(self.gridLayoutWidget)
-        self.spinBoxArgs.setObjectName(_fromUtf8("spinBoxArgs"))
-        self.gridLayout.addWidget(self.spinBoxArgs, 27, 3, 1, 1)
         self.wait_disapp_radio = QtGui.QRadioButton(self.gridLayoutWidget)
         self.wait_disapp_radio.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.wait_disapp_radio.setChecked(False)
@@ -344,6 +337,13 @@ class Ui_Form(object):
         self.doubleSpinBoxWarning.setSingleStep(1.0)
         self.doubleSpinBoxWarning.setObjectName(_fromUtf8("doubleSpinBoxWarning"))
         self.gridLayout.addWidget(self.doubleSpinBoxWarning, 3, 1, 1, 1)
+        self.spinBoxArgs = QtGui.QSpinBox(self.gridLayoutWidget)
+        self.spinBoxArgs.setObjectName(_fromUtf8("spinBoxArgs"))
+        self.gridLayout.addWidget(self.spinBoxArgs, 1, 3, 1, 1)
+        self.labelArgs = QtGui.QLabel(self.gridLayoutWidget)
+        self.labelArgs.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.labelArgs.setObjectName(_fromUtf8("labelArgs"))
+        self.gridLayout.addWidget(self.labelArgs, 1, 2, 1, 1)
         self.listWidget = QtGui.QListWidget(Form)
         self.listWidget.setGeometry(QtCore.QRect(9, 9, 157, 507))
         self.listWidget.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
@@ -680,7 +680,6 @@ class Ui_Form(object):
         self.holdreleaseComboBox.setItemText(5, _translate("Form", "Release Right", None))
         self.use_tolerance.setText(_translate("Form", "Tolerance", None))
         self.text_encrypted.setText(_translate("Form", "Encrypted", None))
-        self.labelArgs.setText(_translate("Form", "Arguments", None))
         self.wait_disapp_radio.setText(_translate("Form", "Disappeared", None))
         self.wait_radio.setText(_translate("Form", "Appeared", None))
         self.labelWarning.setText(_translate("Form", "Warning", None))
@@ -688,6 +687,7 @@ class Ui_Form(object):
         self.labelCritical.setText(_translate("Form", "Critical", None))
         self.timeout_label.setText(_translate("Form", "Timeout", None))
         self.timeout_exception.setText(_translate("Form", "Break", None))
+        self.labelArgs.setText(_translate("Form", "Arguments", None))
         __sortingEnabled = self.listWidget.isSortingEnabled()
         self.listWidget.setSortingEnabled(False)
         item = self.listWidget.item(0)

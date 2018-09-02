@@ -25,7 +25,7 @@ import datetime
 import cv2
 import locale
 
-from PyQt4.QtGui import QApplication, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox, QKeySequence, QShortcut, QTableWidgetItem, QDateTimeEdit,QHeaderView, QAbstractItemView, QIcon, QSpacerItem, QSizePolicy, QMenu
+from PyQt4.QtGui import QApplication, QWidget, QMainWindow, QDialog, QCursor, QImage, QPixmap, QListWidgetItem, QMessageBox, QKeySequence, QShortcut, QTableWidgetItem, QDateTimeEdit,QHeaderView, QAbstractItemView, QIcon, QSpacerItem, QSizePolicy, QMenu
 from PyQt4.QtCore import Qt, QThread, SIGNAL, QTimer, QUrl, QString, QRect, QEvent, QDate,QDateTime, pyqtSlot, SLOT, QSize
 
 from PyQt4.QtWebKit import QWebSettings
@@ -37,7 +37,7 @@ from alyvix_image_finder_view import AlyvixImageFinderView
 from alyvix_image_finder_view import AlyvixImageFinderPropertiesView
 from alyvix_text_finder_view import AlyvixTextFinderView
 from alyvix_text_finder_view import AlyvixTextFinderPropertiesView
-from alyvix_object_finder_view import AlyvixObjectFinderView, PaintingView
+from alyvix_object_finder_view import AlyvixObjectFinderView, PaintingView, AlyvixObjectsSelection
 from alyvix_code_view import AlyvixCustomCodeView
 
 from alyvix.tools.screen import ScreenManager
@@ -58,11 +58,17 @@ last_selected_name = None
 old_order = Qt.AscendingOrder
 old_section = 2
 
+app = None
 
-class AlyvixMainMenuController(QDialog, Ui_Form):
+#class AlyvixMainMenuController(QMainWindow, Ui_Form):
+
+
+class AlyvixMainMenuController(QWidget, Ui_Form):
 
     def __init__(self):
-        QDialog.__init__(self)
+        QWidget.__init__(self)
+        #def __init__(self, full_file_name=None):
+        #    QDialog.__init__(self)
         
         global main_menu_last_pos
         global last_selected_index
@@ -70,13 +76,15 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         global old_order
         global old_section
         
+        global app
+        
         last_selected_index = -1
         
         self._deleted_obj_name = None
         self._deleted_file_name = None
         
         self.is_AlyvixMainMenuController = True        
-        
+        #self.alyvix_objectfinder_controller = None
         old_order = Qt.AscendingOrder
         old_section = 2
 
@@ -85,6 +93,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
 
         # Set up the user interface from Designer.
         self.setupUi(self)
+        
+        self.xx = 5
         
                 
         #self.listWidgetAlyObj = listWidgetAlyObj2()
@@ -281,7 +291,7 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         if len(sys.argv) > 1:
             self.full_file_name = sys.argv[1]
             #print self.full_file_name
-            
+
         self.update_path()
         self.update_list()
         
@@ -321,6 +331,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
         self.tableWidget.resizeRowsToContents()
         
+        #self.lineEditSearch.setFocus() 
+        
     def contextMenuEvent(self, event):
         if event.pos().x() > self.tableWidget.x() and event.pos().y() > self.tableWidget.y() \
             and event.pos().x() < self.tableWidget.x() + self.tableWidget.width() \
@@ -329,8 +341,8 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             
             if self.tableWidget.selectionModel().selection().indexes():
                 menu = QMenu()
-                copyAction = menu.addAction("Copy Keyword Name")
-                deleAction = menu.addAction("Delete Keyword")
+                copyAction = menu.addAction("Copy keyword name (Ctrl+C)")
+                deleAction = menu.addAction("Delete keyword (Ctrl+D)")
                 action = menu.exec_(self.mapToGlobal(event.pos()))
                 if action ==copyAction:
                     self.contextMenuCopyAction()
@@ -359,9 +371,31 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         
     
     def showEvent(self, event):
+        #print "showeee"
+        global app
         global main_menu_last_pos
         global last_selected_index
         global last_selected_name
+        
+        for w in app.allWidgets():
+            if isinstance(w, AlyvixObjectFinderView) or isinstance(w, PaintingView) or isinstance(w, AlyvixObjectsSelection) \
+                or isinstance(w, AlyvixRectFinderView) \
+                or isinstance(w, AlyvixRectFinderPropertiesView) \
+                or isinstance(w, AlyvixImageFinderView) \
+                or isinstance(w, AlyvixImageFinderPropertiesView) \
+                or isinstance(w, AlyvixTextFinderView) \
+                or isinstance(w, AlyvixTextFinderPropertiesView):
+                
+                print "w: " + str(w) + ", close"
+                
+                try:
+                    w.close()
+                    w.deleteLater()
+                except:
+                    pass
+
+            #print "w",w
+
         
         #print last_selected_index
         
@@ -412,10 +446,6 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         self.old_window_h = self.frameGeometry().height()
     
     def resize_all(self):
-
-        #340 310
-        
-        #if resize_factor_h >= 1 and resize_factor_w >= 1:
         
         
         self.widget.setGeometry(QRect(self.widget.x(), self.widget.y(),
@@ -430,13 +460,17 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
         header = self.tableWidget.horizontalHeader()
         header.setDefaultAlignment(Qt.AlignLeft)
         
-        header.setDefaultSectionSize(int(self.gridLayoutWidget_2.width()*0.64))
+        #print self.gridLayoutWidget_2.width()
+        
+        #for windows restore bug
+        if self.gridLayoutWidget_2.width() != 0:
+            header.setDefaultSectionSize(int(self.gridLayoutWidget_2.width()*0.64))
         
         
-        header.setResizeMode(0, QHeaderView.Interactive)
-        header.setResizeMode(1, QHeaderView.ResizeToContents)
+            header.setResizeMode(0, QHeaderView.Interactive)
+            header.setResizeMode(1, QHeaderView.ResizeToContents)
         
-        self.tableWidget.resizeRowsToContents()
+            self.tableWidget.resizeRowsToContents()
         
         
     def doSomething(self):
@@ -493,6 +527,11 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
                 if self.lineEditSearch.text() == "" and object.objectName() == "lineEditSearch":
                     self.lineEditSearch.setText("search...")
                     return True
+                    
+            if event.type() == event.KeyPress:
+            
+                if self.lineEditSearch.text() == "search..." and object.objectName() == "lineEditSearch":
+                    self.lineEditSearch.setText("")
                 
             if event.matches(QKeySequence.Copy):
             #if Qt.ControlModifier == QApplication.keyboardModifiers() and event.key() == Qt.Key_C: 
@@ -1153,6 +1192,10 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             self.close()
             
     def closeEvent(self, event):
+        global main_menu_last_pos
+        global last_selected_index
+        global last_selected_name
+        print str(self.lineEditSearch.text()) + ";" + str(main_menu_last_pos[0]) + ";" + str(main_menu_last_pos[1]) + ";" + str(last_selected_index) + ";" + str(last_selected_name) + ";"
         if self.window is not None:
             self.window.close()
     
@@ -1217,11 +1260,12 @@ class AlyvixMainMenuController(QDialog, Ui_Form):
             time.sleep(0.600)
             self.alyvix_finder_controller = AlyvixObjectFinderView(self)
             
+            """
             self.alyvix_finder_controller.pv = PaintingView(self.alyvix_finder_controller)
             image = QImage(self.alyvix_finder_controller._main_object_finder.xml_path.replace("xml", "png"))   
             self.alyvix_finder_controller.pv.set_bg_pixmap(image)
             self.alyvix_finder_controller.pv.showFullScreen()
-            
+            """
             self.alyvix_finder_controller.show()
             return
             
