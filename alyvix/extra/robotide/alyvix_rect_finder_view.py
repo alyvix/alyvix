@@ -3658,10 +3658,61 @@ class AlyvixRectFinderView(QWidget):
             rect_finder.y = y
             rect_finder.height = height
             rect_finder.width = width
-            rect_finder.min_height = int(height-(height*0.05))
-            rect_finder.max_height = int(height+(height*0.05))
-            rect_finder.min_width = int(width-(width*0.1))
-            rect_finder.max_width = int(width+(width*0.1))
+            
+            height_factor = 0.22
+            
+            if rect_finder.height > 40:
+            
+                height_factor = 0.18 #18%
+                        
+            if rect_finder.height > 90:
+            
+                height_factor = 0.11 #11%
+                
+            if rect_finder.height > 130:
+            
+                height_factor = 0.08 #8%
+                
+            if rect_finder.height > 300:
+            
+                height_factor = 0.06 #6%
+                
+            if rect_finder.height > 600:
+            
+                height_factor = 0.03 #3%
+                
+                
+            width_factor = 0.22
+            
+            if rect_finder.width > 40:
+            
+                width_factor = 0.18 #18%
+                        
+            if rect_finder.width > 90:
+            
+                width_factor = 0.11 #11%
+            
+            if rect_finder.width > 130:
+            
+                width_factor = 0.08 #8%
+                
+            if rect_finder.width > 300:
+            
+                width_factor = 0.06 #6%
+                
+            if rect_finder.width > 600:
+            
+                width_factor = 0.03 #3%
+                
+            rect_finder.min_height = int(height-(height*height_factor))
+            rect_finder.max_height = int(height+(height*height_factor))
+            rect_finder.min_width = int(width-(width*width_factor))
+            rect_finder.max_width = int(width+(width*width_factor))
+            
+            
+            rect_finder.height_tolerance = int(height*height_factor)
+            
+            rect_finder.width_tolerance = int(width*width_factor)
             
             self._main_rect_finder = rect_finder
             
@@ -3687,10 +3738,69 @@ class AlyvixRectFinderView(QWidget):
             rect_finder.y = y
             rect_finder.height = height
             rect_finder.width = width
-            rect_finder.min_height = int(height-(height*0.05))
-            rect_finder.max_height = int(height+(height*0.05))
-            rect_finder.min_width = int(width-(width*0.1))
-            rect_finder.max_width = int(width+(width*0.1))
+            
+            minmax_factor = 0
+            if rect_finder.height > rect_finder.width:
+                minmax_factor = rect_finder.width
+            else:
+                minmax_factor = rect_finder.height
+                
+                
+            height_factor = 0.22
+            
+            if rect_finder.height > 40:
+            
+                height_factor = 0.18 #18%
+                        
+            if rect_finder.height > 90:
+            
+                height_factor = 0.11 #11%
+                
+            if rect_finder.height > 130:
+            
+                height_factor = 0.08 #8%
+                
+            if rect_finder.height > 300:
+            
+                height_factor = 0.06 #6%
+                
+            if rect_finder.height > 600:
+            
+                height_factor = 0.03 #3%
+                
+                
+            width_factor = 0.22
+            
+            if rect_finder.width > 40:
+            
+                width_factor = 0.18 #18%
+                        
+            if rect_finder.width > 90:
+            
+                width_factor = 0.11 #11%
+            
+            if rect_finder.width > 130:
+            
+                width_factor = 0.08 #8%
+                
+            if rect_finder.width > 300:
+            
+                width_factor = 0.06 #6%
+                
+            if rect_finder.width > 600:
+            
+                width_factor = 0.03 #3%
+            
+
+                
+            rect_finder.min_height = int(height-(height*height_factor))
+            rect_finder.max_height = int(height+(height*height_factor))
+            rect_finder.min_width = int(width-(width*width_factor))
+            rect_finder.max_width = int(width+(width*width_factor))
+            
+            rect_finder.height_tolerance = int(height*height_factor)
+            
+            rect_finder.width_tolerance = int(width*width_factor)
             
             self._main_rect_finder = rect_finder
 
@@ -3706,10 +3816,60 @@ class AlyvixRectFinderView(QWidget):
             rect_finder.y = y
             rect_finder.height = height
             rect_finder.width = width
-            rect_finder.min_height = int(height-(height*0.05))
-            rect_finder.max_height = int(height+(height*0.05))
-            rect_finder.min_width = int(width-(width*0.1))
-            rect_finder.max_width = int(width+(width*0.1))
+
+            height_factor = 0.22
+            
+            if rect_finder.height > 40:
+            
+                height_factor = 0.18 #18%
+                        
+            if rect_finder.height > 90:
+            
+                height_factor = 0.11 #11%
+                
+            if rect_finder.height > 130:
+            
+                height_factor = 0.08 #8%
+                
+            if rect_finder.height > 300:
+            
+                height_factor = 0.06 #6%
+                
+            if rect_finder.height > 600:
+            
+                height_factor = 0.03 #3%
+                
+                
+            width_factor = 0.22
+            
+            if rect_finder.width > 40:
+            
+                width_factor = 0.18 #18%
+                        
+            if rect_finder.width > 90:
+            
+                width_factor = 0.11 #11%
+            
+            if rect_finder.width > 130:
+            
+                width_factor = 0.08 #8%
+                
+            if rect_finder.width > 300:
+            
+                width_factor = 0.06 #6%
+                
+            if rect_finder.width > 600:
+            
+                width_factor = 0.03 #3%
+                
+            rect_finder.min_height = int(height-(height*height_factor))
+            rect_finder.max_height = int(height+(height*height_factor))
+            rect_finder.min_width = int(width-(width*width_factor))
+            rect_finder.max_width = int(width+(width*width_factor))
+            
+            rect_finder.height_tolerance = int(height*height_factor)
+            
+            rect_finder.width_tolerance = int(width*width_factor)
             
             self.__flag_capturing_sub_rect_roi = False
             self.__flag_capturing_sub_rect = True
@@ -3910,10 +4070,61 @@ class AlyvixRectFinderView(QWidget):
             rect_finder.y = y
             rect_finder.height = height
             rect_finder.width = width
-            rect_finder.min_height = int(height-(height*0.05))
-            rect_finder.max_height = int(height+(height*0.05))
-            rect_finder.min_width = int(width-(width*0.1))
-            rect_finder.max_width = int(width+(width*0.1))
+            
+            height_factor = 0.22
+            
+            if rect_finder.height > 40:
+            
+                height_factor = 0.18 #18%
+                        
+            if rect_finder.height > 90:
+            
+                height_factor = 0.11 #11%
+                
+            if rect_finder.height > 130:
+            
+                height_factor = 0.08 #8%
+                
+            if rect_finder.height > 300:
+            
+                height_factor = 0.06 #6%
+                
+            if rect_finder.height > 600:
+            
+                height_factor = 0.03 #3%
+                
+                
+            width_factor = 0.22
+            
+            if rect_finder.width > 40:
+            
+                width_factor = 0.18 #18%
+                        
+            if rect_finder.width > 90:
+            
+                width_factor = 0.11 #11%
+            
+            if rect_finder.width > 130:
+            
+                width_factor = 0.08 #8%
+                
+            if rect_finder.width > 300:
+            
+                width_factor = 0.06 #6%
+                
+            if rect_finder.width > 600:
+            
+                width_factor = 0.03 #3%
+                
+            rect_finder.min_height = int(height-(height*height_factor))
+            rect_finder.max_height = int(height+(height*height_factor))
+            rect_finder.min_width = int(width-(width*width_factor))
+            rect_finder.max_width = int(width+(width*width_factor))
+            
+            rect_finder.height_tolerance = int(height*height_factor)
+            
+            rect_finder.width_tolerance = int(width*width_factor)
+            
         else:
             self.__flag_capturing_sub_rect = True
             self.__flag_capturing_sub_rect_roi = False
@@ -7512,9 +7723,12 @@ class AlyvixRectFinderPropertiesView(QDialog, Ui_Form):
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)  
         
-        if self.parent.last_view_index != 0:
+        if self.parent.last_view_index != 0 and len(self.parent._sub_rects_finder) > 0:
             
             self.listWidget.setCurrentRow(self.parent.last_view_index)
+            
+        else:
+            self.parent.last_view_index = 0
 
     def moveEvent(self, event):
         self.parent._last_pos = (self.frameGeometry().x(), self.frameGeometry().y())

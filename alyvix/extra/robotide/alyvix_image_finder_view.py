@@ -7004,9 +7004,11 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)
             
-        if self.parent.last_view_index != 0:
+        if self.parent.last_view_index != 0 and len(self.parent._sub_templates_finder) > 0:
             
             self.listWidget.setCurrentRow(self.parent.last_view_index)
+        else:
+            self.parent.last_view_index = 0
             
     """
     def showEvent(self, event):
