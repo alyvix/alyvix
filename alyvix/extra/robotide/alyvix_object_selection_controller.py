@@ -107,7 +107,11 @@ class AlyvixMainMenuController(QWidget, Ui_Form):
         icon_path = get_python_lib() + os.sep + "alyvix" + os.sep + "extra" + os.sep + "robotide" + os.sep +"images"
              
         if self.scaling_factor <= 1.3:
-        
+
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/16x16/window-close.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonCancelText.setIcon(icon)
+            
             
             icon = QIcon()
             icon.addPixmap(QPixmap(icon_path + "/32x32/user-desktop.png"), QIcon.Normal, QIcon.Off)
@@ -140,6 +144,10 @@ class AlyvixMainMenuController(QWidget, Ui_Form):
             self.toolButtonCancel.setIcon(icon)
             
         else:
+        
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/32x32/window-close.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonCancelText.setIcon(icon)
                    
             icon = QIcon()
             icon.addPixmap(QPixmap(icon_path + "/64x64/user-desktop.png"), QIcon.Normal, QIcon.Off)
@@ -270,6 +278,8 @@ class AlyvixMainMenuController(QWidget, Ui_Form):
         self.connect(self.toolButtonImageFinder, SIGNAL("clicked()"), self.open_imagefinder_view)
         self.connect(self.toolButtonTextFinder, SIGNAL("clicked()"), self.open_textfinder_view)
         self.connect(self.toolButtonObjectFinder, SIGNAL("clicked()"), self.open_objectfinder_controller)
+        
+        self.connect(self.toolButtonCancelText, SIGNAL("clicked()"), self.clear_text)
         
         self.connect(self.lineEditSearch, SIGNAL("textChanged(QString)"), self, SLOT("search_event(QString)"))
         self.lineEditSearch.installEventFilter(self)
@@ -430,7 +440,11 @@ class AlyvixMainMenuController(QWidget, Ui_Form):
         elif last_selected_index != -1 and self.tableWidget.rowCount() > 0:
             self.tableWidget.setFocus()
             self.tableWidget.selectRow(last_selected_index)
-        
+            
+    def clear_text(self):
+        #if text == "search...":
+        #    self.update_list_for_search()
+        self.lineEditSearch.setText("search...")
         
     def moveEvent(self, event):
         global main_menu_last_pos

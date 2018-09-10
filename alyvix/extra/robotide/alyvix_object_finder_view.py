@@ -3596,7 +3596,7 @@ class AlyvixObjectsSelection(QWidget, Ui_Form_2):
         
         self.setupUi(self)
         
-        self.setWindowTitle("Alyvix - Select Component")
+        #self.setWindowTitle("Alyvix - Select Component")
         
                 
         self.parent = parent
@@ -3611,7 +3611,10 @@ class AlyvixObjectsSelection(QWidget, Ui_Form_2):
         old_section = 2
         
         if self.scaling_factor <= 1.3:
-        
+            
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/16x16/window-close.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonCancelText.setIcon(icon)
             
             icon = QIcon()
             icon.addPixmap(QPixmap(icon_path + "/32x32/dialog-ok-3.png"), QIcon.Normal, QIcon.Off)
@@ -3623,6 +3626,9 @@ class AlyvixObjectsSelection(QWidget, Ui_Form_2):
             self.toolButtonCancel.setIcon(icon)
             
         else:
+            icon = QIcon()
+            icon.addPixmap(QPixmap(icon_path + "/32x32/window-close.png"), QIcon.Normal, QIcon.Off)
+            self.toolButtonCancelText.setIcon(icon)
             
             icon = QIcon()
             icon.addPixmap(QPixmap(icon_path + "/64x64/dialog-ok-3.png"), QIcon.Normal, QIcon.Off)
@@ -3667,6 +3673,7 @@ class AlyvixObjectsSelection(QWidget, Ui_Form_2):
         self.connect(self.toolButtonOk, SIGNAL('clicked()'), self.push_button_select_event)   
         self.connect(self.toolButtonCancel, SIGNAL('clicked()'), self.push_button_cancel_event)   
         self.connect(self.lineEditSearch, SIGNAL("textChanged(QString)"), self, SLOT("search_event(QString)"))
+        self.connect(self.toolButtonCancelText, SIGNAL("clicked()"), self.clear_text)
         
         self.lineEditSearch.installEventFilter(self)
         
@@ -3729,6 +3736,11 @@ class AlyvixObjectsSelection(QWidget, Ui_Form_2):
             pass
         return super(AlyvixObjectsSelection, self).eventFilter(object, event)
         
+    def clear_text(self):
+        #if text == "search...":
+        #    self.update_list_for_search()
+        self.lineEditSearch.setText("search...")
+        
     def resizeEvent(self, event):
     
         self.resize_all()
@@ -3745,7 +3757,7 @@ class AlyvixObjectsSelection(QWidget, Ui_Form_2):
                                             int(self.frameGeometry().width()), int(self.frameGeometry().height())))
                                             
         self.gridLayoutWidget_2.setGeometry(QRect(self.gridLayoutWidget_2.x(), self.gridLayoutWidget_2.y(),
-                                            int(self.frameGeometry().width() - (27*self.scaling_factor)), int(self.frameGeometry().height() - (100*self.scaling_factor))))
+                                            int(self.frameGeometry().width() - (30*self.scaling_factor)), int(self.frameGeometry().height() - (100*self.scaling_factor))))
                                             
         self.gridLayoutWidget.setGeometry(QRect(self.gridLayoutWidget.x(), self.gridLayoutWidget_2.y() + self.gridLayoutWidget_2.height() + (3*self.scaling_factor),
                                             int(self.gridLayoutWidget.width()), int(self.gridLayoutWidget.height())))

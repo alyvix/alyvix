@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Alyvix - Select Finder</string>
+   <string>Alyvix - Object Selector</string>
   </property>
   <widget class="QWidget" name="widget" native="true">
    <property name="geometry">
@@ -32,22 +32,29 @@
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
-     <item row="2" column="0" colspan="3">
-      <widget class="QLineEdit" name="lineEditSearch">
+     <item row="1" column="0" colspan="3">
+      <widget class="QLabel" name="labelSpaceUnderSelect">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>4</height>
+        </size>
+       </property>
        <property name="text">
-        <string>search...</string>
+        <string/>
        </property>
       </widget>
      </item>
-     <item row="0" column="0" colspan="2">
-      <widget class="QLabel" name="label_5">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
+     <item row="2" column="0" colspan="2">
+      <widget class="QLineEdit" name="lineEditSearch">
        <property name="text">
-        <string>Select</string>
+        <string>search...</string>
        </property>
       </widget>
      </item>
@@ -235,22 +242,33 @@
        </item>
       </widget>
      </item>
-     <item row="1" column="0" colspan="3">
-      <widget class="QLabel" name="labelSpaceUnderSelect">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
+     <item row="0" column="0" colspan="3">
+      <widget class="QLabel" name="label_5">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
        </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>4</height>
-        </size>
+       <property name="text">
+        <string>Select</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QToolButton" name="toolButtonCancelText">
+       <property name="styleSheet">
+        <string notr="true">border: none;
+background-color: transparent;</string>
        </property>
        <property name="text">
         <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>../../../../../../../openicon/open_icon_library-standard-0.11.tar/open_icon_library-standard-0.11/open_icon_library-standard/icons/png/16x16/actions/window-close.png</normaloff>../../../../../../../openicon/open_icon_library-standard-0.11.tar/open_icon_library-standard-0.11/open_icon_library-standard/icons/png/16x16/actions/window-close.png</iconset>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonIconOnly</enum>
        </property>
       </widget>
      </item>
