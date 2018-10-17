@@ -424,6 +424,16 @@ def get_mstsc_hostname(customer_name='test', path_json=''):
         return False
 
 
+def get_dictionary_value(path_file_json='init', name_dict_json='dict_01',
+                         name_key_json='key_01', verbose=False):
+    jm = JSONManager(path_file_json=path_file_json)
+    value_json = jm.get_json_value(name_dict_json=name_dict_json,
+                                   name_key_json=name_key_json)
+    if verbose:
+        print(value_json)
+    return value_json
+
+
 def get_aos_id(scraped_string, customer_name='test', path_json='',
                map_norm=True, verbose=False):
     sm = StringManager(scraped_string=scraped_string,
