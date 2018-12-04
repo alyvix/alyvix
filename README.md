@@ -1,4 +1,4 @@
-![Alyvix logo](http://www.alyvix.com/wp-content/uploads/2015/01/01-Logo-alyvix-sehr-klein.png)
+![Alyvix logo](https://www.alyvix.com/alyvix_doc/html/_static/alyvix_logo_100x83.png)
 # Visual Synthetic Monitoring
 
 This is the official GitHub repository of Alyvix.
