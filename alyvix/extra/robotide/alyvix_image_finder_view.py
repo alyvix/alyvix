@@ -236,6 +236,7 @@ class AlyvixImageFinderView(QWidget):
             image_name = self._path + os.sep + self.object_name + "_ImageFinder.png"
             self._bg_pixmap.save(image_name,"PNG", -1)
             self.save_template_images(image_name)
+            #self.parent.set_last_name(str(self.object_name))
             if self.action == "new":
                 self.parent.add_new_item_on_list()
         
@@ -266,6 +267,32 @@ class AlyvixImageFinderView(QWidget):
                         self.parent.parent._sub_objects_finder[sel_index-1].height = self._main_template.height
                         self.parent.parent._sub_objects_finder[sel_index-1].width = self._main_template.width
                         
+                        
+                        hw_factor = 0
+                                            
+                        if self.parent.parent._sub_objects_finder[sel_index-1].height < self.parent.parent._sub_objects_finder[sel_index-1].width:
+                            hw_factor = self.parent.parent._sub_objects_finder[sel_index-1].height
+                        else:
+                            hw_factor = self.parent.parent._sub_objects_finder[sel_index-1].width
+                            
+                            
+                        sc_factor = 0
+                                            
+                        if self._bg_pixmap.height() < self._bg_pixmap.width():
+                            sc_factor = self._bg_pixmap.height()
+                        else:
+                            sc_factor = self._bg_pixmap.width()
+                            
+                        percentage_screen_w = int(0.0125 * sc_factor)
+                        percentage_screen_h = int(0.0125 * sc_factor)
+                        percentage_object_w = int(0.2 * hw_factor) #self.parent.parent._sub_objects_finder[sel_index-1].width)
+                        percentage_object_h = int(0.2 * hw_factor) #self.parent.parent._sub_objects_finder[sel_index-1].height)
+                        
+                        roi_height = percentage_screen_h + percentage_object_h + self.parent.parent._sub_objects_finder[sel_index-1].height
+                        
+                        roi_width = percentage_screen_w + percentage_object_w + self.parent.parent._sub_objects_finder[sel_index-1].width
+                        
+                        """
                         hw_factor = 0
 
                         if self.parent.parent._sub_objects_finder[sel_index-1].height < self.parent.parent._sub_objects_finder[sel_index-1].width:
@@ -276,7 +303,7 @@ class AlyvixImageFinderView(QWidget):
                         roi_height = int(0.95 * hw_factor) + self.parent.parent._sub_objects_finder[sel_index-1].height
 
                         roi_width = int(0.95 * hw_factor) + self.parent.parent._sub_objects_finder[sel_index-1].width
-
+                        """
 
                         roi_width_half = int((roi_width - self.parent.parent._sub_objects_finder[sel_index-1].width)/2)
 
@@ -353,6 +380,7 @@ class AlyvixImageFinderView(QWidget):
             
         try:
             if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.set_last_name(str(self.object_name))
                 self.parent.update_list()
         except:
             pass
@@ -688,8 +716,12 @@ class AlyvixImageFinderView(QWidget):
                     
                     roi_width = percentage_screen_w + percentage_object_w + self._sub_templates_finder[index].width
                     """
-                    hw_factor = 0
+
                     
+                    """
+                    
+                    hw_factor = 0
+                                        
                     if self._sub_templates_finder[index].height < self._sub_templates_finder[index].width:
                         hw_factor = self._sub_templates_finder[index].height
                     else:
@@ -699,7 +731,32 @@ class AlyvixImageFinderView(QWidget):
                     roi_height = int(0.95 * hw_factor) + self._sub_templates_finder[index].height
 
                     roi_width = int(0.95 * hw_factor) + self._sub_templates_finder[index].width
-
+                    """
+                    
+                    hw_factor = 0
+                                        
+                    if self._sub_templates_finder[index].height < self._sub_templates_finder[index].width:
+                        hw_factor = self._sub_templates_finder[index].height
+                    else:
+                        hw_factor = self._sub_templates_finder[index].width
+                        
+                        
+                    sc_factor = 0
+                                        
+                    if self._bg_pixmap.height() < self._bg_pixmap.width():
+                        sc_factor = self._bg_pixmap.height()
+                    else:
+                        sc_factor = self._bg_pixmap.width()
+                        
+                    percentage_screen_w = int(0.0125 * sc_factor)
+                    percentage_screen_h = int(0.0125 * sc_factor)
+                    percentage_object_w = int(0.2 * hw_factor) #self._sub_templates_finder[index].width)
+                    percentage_object_h = int(0.2 * hw_factor) #self._sub_templates_finder[index].height)
+                    
+                    roi_height = percentage_screen_h + percentage_object_h + self._sub_templates_finder[index].height
+                    
+                    roi_width = percentage_screen_w + percentage_object_w + self._sub_templates_finder[index].width
+                    
 
                     roi_width_half = int((roi_width - self._sub_templates_finder[index].width)/2)
 
@@ -1930,8 +1987,10 @@ class AlyvixImageFinderView(QWidget):
             
             mouse_position = QPoint(QCursor.pos())
         
-            old_x = rect.roi_x
-            old_width = rect.roi_width 
+            old_roi_x = rect.roi_x
+            old_x = rect.x
+            old_roi_width = rect.roi_width 
+            old_width = rect.width
             
             
             rect.roi_x = mouse_position.x() - self._main_template.x
@@ -1940,14 +1999,29 @@ class AlyvixImageFinderView(QWidget):
             
             
             if rect.x < rect.roi_x + self._main_template.x:
-                rect.roi_x = rect.x - self._main_template.x - 1 #rect.roi_x +  self._main_template.x
-                rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_template.x))
+                #rect.roi_x = rect.x - self._main_template.x - 1 #rect.roi_x +  self._main_template.x
+                #rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_template.x))
+                rect.x = (rect.roi_x + self._main_template.x)#+1
+                rect.width = rect.width - (rect.x - old_x)
                 
+
+            if rect.width < int(4 * self.scaling_factor):
                 
-             
-                    
-            old_y = rect.roi_y
-            old_height = rect.roi_height 
+                rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                rect.width = (4 * self.scaling_factor)
+                rect.roi_x = rect.x - self._main_template.x# - 1
+                rect.roi_width = self._old_roi_width_rect - (rect.roi_x - self._old_roi_x_rect)
+                
+                            
+            x_offset =  old_x - rect.x
+            
+            if rect.x_offset is not None and rect.x_offset is not None:
+                rect.x_offset = rect.x_offset + x_offset
+                
+            old_roi_y = rect.roi_y
+            old_y = rect.y
+            old_roi_height = rect.roi_height
+            old_height = rect.height
             
             
             rect.roi_y = mouse_position.y() - self._main_template.y
@@ -1956,18 +2030,31 @@ class AlyvixImageFinderView(QWidget):
             
             
             if rect.y < rect.roi_y + self._main_template.y:
-                rect.roi_y = rect.y - self._main_template.y -1#rect.roi_y +  self._main_template.y
-                rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_template.y))
+
+                rect.y = (rect.roi_y + self._main_template.y)#+1
+                rect.height = rect.height - (rect.y - old_y)
                 
+
+            if rect.height < int(4 * self.scaling_factor):
                 
+                rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                rect.height = (4 * self.scaling_factor)
+                rect.roi_y = rect.y - self._main_template.y# - 1
+                rect.roi_height = self._old_roi_height_rect - (rect.roi_y - self._old_roi_y_rect)
+                
+            y_offset =  old_y - rect.y
+            
+            if rect.y_offset is not None and rect.y_offset is not None:
+                rect.y_offset = rect.y_offset + y_offset
                 
         elif  self.__flag_mouse_is_on_right_up_corner_roi == True:
         
             mouse_position = QPoint(QCursor.pos())
 
-            mouse_position = QPoint(QCursor.pos())
-
-            old_width = rect.roi_width 
+            old_roi_y = rect.roi_y
+            old_y = rect.y
+            old_roi_height = rect.roi_height
+            old_height = rect.height
             
             #rect.width = mouse_position.x() - rect.x
             
@@ -1976,11 +2063,21 @@ class AlyvixImageFinderView(QWidget):
 
 
             if rect.x + rect.width > rect.roi_x + self._main_template.x + rect.roi_width:
-                #rect.y = old_y #rect.roi_x +  self._main_template.x
-                rect.roi_width = (rect.x - (self._old_roi_x_rect + self._main_template.x)) + rect.width + 1
-               
-            old_y = rect.roi_y
-            old_height = rect.roi_height 
+                #rect.x = old_x #rect.roi_x +  self._main_template.x
+                rect.width = rect.roi_x + self._main_template.x + rect.roi_width - rect.x
+                
+            if rect.width < int(4 * self.scaling_factor):
+                
+                #rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                rect.width = (4 * self.scaling_factor)
+                #rect.roi_x = rect.x - self._main_template.x# - 1
+                rect.roi_width = (rect.x + rect.width) - (rect.roi_x + self._main_template.x)
+
+
+            old_roi_y = rect.roi_y
+            old_y = rect.y
+            old_roi_height = rect.roi_height
+            old_height = rect.height
             
             
             rect.roi_y = mouse_position.y() - self._main_template.y
@@ -1989,8 +2086,22 @@ class AlyvixImageFinderView(QWidget):
             
             
             if rect.y < rect.roi_y + self._main_template.y:
-                rect.roi_y = rect.y - self._main_template.y -1#rect.roi_y +  self._main_template.y
-                rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_template.y))
+
+                rect.y = (rect.roi_y + self._main_template.y)#+1
+                rect.height = rect.height - (rect.y - old_y)
+                
+
+            if rect.height < int(4 * self.scaling_factor):
+                
+                rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                rect.height = (4 * self.scaling_factor)
+                rect.roi_y = rect.y - self._main_template.y# - 1
+                rect.roi_height = self._old_roi_height_rect - (rect.roi_y - self._old_roi_y_rect)
+                
+            y_offset =  old_y - rect.y
+            
+            if rect.y_offset is not None and rect.y_offset is not None:
+                rect.y_offset = rect.y_offset + y_offset
                 
                 
         elif  self.__flag_mouse_is_on_right_bottom_corner_roi == True:
@@ -1998,7 +2109,10 @@ class AlyvixImageFinderView(QWidget):
             mouse_position = QPoint(QCursor.pos())
 
             
-            old_width = rect.roi_width 
+            old_roi_x = rect.roi_x
+            old_x = rect.x
+            old_roi_width = rect.roi_width
+            old_width = rect.width
             
             #rect.width = mouse_position.x() - rect.x
             
@@ -2007,10 +2121,21 @@ class AlyvixImageFinderView(QWidget):
 
 
             if rect.x + rect.width > rect.roi_x + self._main_template.x + rect.roi_width:
-                #rect.y = old_y #rect.roi_x +  self._main_template.x
-                rect.roi_width = (rect.x - (self._old_roi_x_rect + self._main_template.x)) + rect.width + 1
+                #rect.x = old_x #rect.roi_x +  self._main_template.x
+                rect.width = rect.roi_x + self._main_template.x + rect.roi_width - rect.x
+                
+            if rect.width < int(4 * self.scaling_factor):
+                
+                #rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                rect.width = (4 * self.scaling_factor)
+                #rect.roi_x = rect.x - self._main_template.x# - 1
+                rect.roi_width = (rect.x + rect.width) - (rect.roi_x + self._main_template.x)
+                
+            old_roi_y = rect.roi_y
+            old_y = rect.y
+            old_roi_height = rect.roi_height
+            old_height = rect.height
             
-            old_height = rect.roi_height 
             
             #rect.height = mouse_position.y() - rect.y
             
@@ -2020,15 +2145,23 @@ class AlyvixImageFinderView(QWidget):
 
             if rect.y + rect.height > rect.roi_y + self._main_template.y + rect.roi_height:
                 #rect.y = old_y #rect.roi_y +  self._main_template.y
-                rect.roi_height = (rect.y - (self._old_roi_y_rect + self._main_template.y)) + rect.height + 1
-            
+                rect.height = rect.roi_y + self._main_template.y + rect.roi_height - rect.y
+                
+            if rect.height < int(4 * self.scaling_factor):
+                
+                #rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                rect.height = (4 * self.scaling_factor)
+                #rect.roi_y = rect.y - self._main_template.y# - 1
+                rect.roi_height = (rect.y + rect.height) - (rect.roi_y + self._main_template.y)
                 
                 
         elif  self.__flag_mouse_is_on_left_bottom_corner_roi == True:
             mouse_position = QPoint(QCursor.pos())
-
-            old_x = rect.roi_x
-            old_width = rect.roi_width 
+            
+            old_roi_x = rect.roi_x
+            old_x = rect.x
+            old_roi_width = rect.roi_width 
+            old_width = rect.width
             
             
             rect.roi_x = mouse_position.x() - self._main_template.x
@@ -2037,12 +2170,33 @@ class AlyvixImageFinderView(QWidget):
             
             
             if rect.x < rect.roi_x + self._main_template.x:
-                rect.roi_x = rect.x - self._main_template.x - 1 #rect.roi_x +  self._main_template.x
-                rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_template.x))
+                #rect.roi_x = rect.x - self._main_template.x - 1 #rect.roi_x +  self._main_template.x
+                #rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_template.x))
+                rect.x = (rect.roi_x + self._main_template.x)#+1
+                rect.width = rect.width - (rect.x - old_x)
                 
-                    
+
+            if rect.width < int(4 * self.scaling_factor):
                 
-            old_height = rect.roi_height 
+                rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                rect.width = (4 * self.scaling_factor)
+                rect.roi_x = rect.x - self._main_template.x# - 1
+                rect.roi_width = self._old_roi_width_rect - (rect.roi_x - self._old_roi_x_rect)
+                
+                            
+            x_offset =  old_x - rect.x
+            
+            if rect.x_offset is not None and rect.x_offset is not None:
+                rect.x_offset = rect.x_offset + x_offset
+                
+                
+
+                #pass #rect.width = old_width
+
+            old_roi_y = rect.roi_y
+            old_y = rect.y
+            old_roi_height = rect.roi_height
+            old_height = rect.height
             
             #rect.height = mouse_position.y() - rect.y
             
@@ -2052,7 +2206,15 @@ class AlyvixImageFinderView(QWidget):
 
             if rect.y + rect.height > rect.roi_y + self._main_template.y + rect.roi_height:
                 #rect.y = old_y #rect.roi_y +  self._main_template.y
-                rect.roi_height = (rect.y - (self._old_roi_y_rect + self._main_template.y)) + rect.height + 1
+                rect.height = rect.roi_y + self._main_template.y + rect.roi_height - rect.y
+                
+            if rect.height < int(4 * self.scaling_factor):
+                
+                #rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                rect.height = (4 * self.scaling_factor)
+                #rect.roi_y = rect.y - self._main_template.y# - 1
+                rect.roi_height = (rect.y + rect.height) - (rect.roi_y + self._main_template.y)
+            
             
             
         
@@ -2060,8 +2222,10 @@ class AlyvixImageFinderView(QWidget):
         
             mouse_position = QPoint(QCursor.pos())
 
-            old_x = rect.roi_x
-            old_width = rect.roi_width 
+            old_roi_x = rect.roi_x
+            old_x = rect.x
+            old_roi_width = rect.roi_width 
+            old_width = rect.width
             
             
             rect.roi_x = mouse_position.x() - self._main_template.x
@@ -2070,20 +2234,37 @@ class AlyvixImageFinderView(QWidget):
             
             
             if rect.x < rect.roi_x + self._main_template.x:
-                rect.roi_x = rect.x - self._main_template.x - 1 #rect.roi_x +  self._main_template.x
-                rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_template.x))
+                #rect.roi_x = rect.x - self._main_template.x - 1 #rect.roi_x +  self._main_template.x
+                #rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_template.x))
+                rect.x = (rect.roi_x + self._main_template.x)#+1
+                rect.width = rect.width - (rect.x - old_x)
                 
-            """
-            if rect.roi_width < int(4 * self.scaling_factor):
-                rect.roi_width = old_width
-                rect.roi_x = old_x
-            """    
+
+            if rect.width < int(4 * self.scaling_factor):
+                
+                rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                rect.width = (4 * self.scaling_factor)
+                rect.roi_x = rect.x - self._main_template.x# - 1
+                rect.roi_width = self._old_roi_width_rect - (rect.roi_x - self._old_roi_x_rect)
+                
+                            
+            x_offset =  old_x - rect.x
+            
+            if rect.x_offset is not None and rect.x_offset is not None:
+                rect.x_offset = rect.x_offset + x_offset
+                
+                
+
+                #pass #rect.width = old_width
+  
         elif self.__flag_mouse_is_on_top_border_roi is True:
         
             mouse_position = QPoint(QCursor.pos())
 
-            old_y = rect.roi_y
-            old_height = rect.roi_height 
+            old_roi_y = rect.roi_y
+            old_y = rect.y
+            old_roi_height = rect.roi_height
+            old_height = rect.height
             
             
             rect.roi_y = mouse_position.y() - self._main_template.y
@@ -2092,14 +2273,31 @@ class AlyvixImageFinderView(QWidget):
             
             
             if rect.y < rect.roi_y + self._main_template.y:
-                rect.roi_y = rect.y - self._main_template.y -1#rect.roi_y +  self._main_template.y
-                rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_template.y))
+
+                rect.y = (rect.roi_y + self._main_template.y)#+1
+                rect.height = rect.height - (rect.y - old_y)
+                
+
+            if rect.height < int(4 * self.scaling_factor):
+                
+                rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                rect.height = (4 * self.scaling_factor)
+                rect.roi_y = rect.y - self._main_template.y# - 1
+                rect.roi_height = self._old_roi_height_rect - (rect.roi_y - self._old_roi_y_rect)
+                
+            y_offset =  old_y - rect.y
+            
+            if rect.y_offset is not None and rect.y_offset is not None:
+                rect.y_offset = rect.y_offset + y_offset
                 
         elif self.__flag_mouse_is_on_bottom_border_roi is True:
         
             mouse_position = QPoint(QCursor.pos())
 
-            old_height = rect.roi_height 
+            old_roi_y = rect.roi_y
+            old_y = rect.y
+            old_roi_height = rect.roi_height
+            old_height = rect.height
             
             #rect.height = mouse_position.y() - rect.y
             
@@ -2109,7 +2307,14 @@ class AlyvixImageFinderView(QWidget):
 
             if rect.y + rect.height > rect.roi_y + self._main_template.y + rect.roi_height:
                 #rect.y = old_y #rect.roi_y +  self._main_template.y
-                rect.roi_height = (rect.y - (self._old_roi_y_rect + self._main_template.y)) + rect.height + 1
+                rect.height = rect.roi_y + self._main_template.y + rect.roi_height - rect.y
+                
+            if rect.height < int(4 * self.scaling_factor):
+                
+                #rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                rect.height = (4 * self.scaling_factor)
+                #rect.roi_y = rect.y - self._main_template.y# - 1
+                rect.roi_height = (rect.y + rect.height) - (rect.roi_y + self._main_template.y)
             
                 
 
@@ -2118,7 +2323,10 @@ class AlyvixImageFinderView(QWidget):
         
             mouse_position = QPoint(QCursor.pos())
 
-            old_width = rect.roi_width 
+            old_roi_y = rect.roi_y
+            old_y = rect.y
+            old_roi_height = rect.roi_height
+            old_height = rect.height
             
             #rect.width = mouse_position.x() - rect.x
             
@@ -2127,8 +2335,15 @@ class AlyvixImageFinderView(QWidget):
 
 
             if rect.x + rect.width > rect.roi_x + self._main_template.x + rect.roi_width:
-                #rect.y = old_y #rect.roi_x +  self._main_template.x
-                rect.roi_width = (rect.x - (self._old_roi_x_rect + self._main_template.x)) + rect.width + 1
+                #rect.x = old_x #rect.roi_x +  self._main_template.x
+                rect.width = rect.roi_x + self._main_template.x + rect.roi_width - rect.x
+                
+            if rect.width < int(4 * self.scaling_factor):
+                
+                #rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                rect.width = (4 * self.scaling_factor)
+                #rect.roi_x = rect.x - self._main_template.x# - 1
+                rect.roi_width = (rect.x + rect.width) - (rect.roi_x + self._main_template.x)
 
 
         elif  self.__flag_mouse_is_on_left_up_corner is True:
@@ -2148,7 +2363,9 @@ class AlyvixImageFinderView(QWidget):
             
             if self.__border_index != 0:
                 if  mouse_position.x() < (rect.roi_x +  self._main_template.x):
-                
+                    rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_template.x) - rect.x)
+                    rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
+                    """
                     if rect.roi_unlimited_left:
                         rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_template.x) - rect.x)
                         rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
@@ -2158,6 +2375,7 @@ class AlyvixImageFinderView(QWidget):
                         
                         #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_template.x) - rect.x)
                         #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
+                    """
                         
             
             if rect.width < int(4 * self.scaling_factor):
@@ -2186,7 +2404,9 @@ class AlyvixImageFinderView(QWidget):
                 
             if self.__border_index != 0:
                 if  mouse_position.y() < (rect.roi_y +  self._main_template.y):
-            
+                    rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_template.y) - rect.y)
+                    rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
+                    """
                     if rect.roi_unlimited_up:
                         rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_template.y) - rect.y)
                         rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
@@ -2196,7 +2416,7 @@ class AlyvixImageFinderView(QWidget):
                         
                         #rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_template.y) - rect.y)
                         #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
-
+                    """
             
             if rect.height < int(4 * self.scaling_factor):
                 rect.height = int(4 * self.scaling_factor)
@@ -2227,7 +2447,9 @@ class AlyvixImageFinderView(QWidget):
             
             if self.__border_index != 0:
                 if  rect.x + rect.width > rect.roi_x + self._main_template.x + rect.roi_width:
-                
+                    rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_template.x + rect.roi_width))
+                    #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
+                    """
                     if rect.roi_unlimited_right:
                         rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_template.x + rect.roi_width))
                         #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
@@ -2236,7 +2458,7 @@ class AlyvixImageFinderView(QWidget):
                         rect.width = self._old_width_rect + ((rect.roi_x + rect.roi_width + self._main_template.x) - (self._old_x_rect + self._old_width_rect)) - 1
 
                         #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_template.x + rect.roi_width))
-                        
+                    """    
 
             
             if rect.width < int(4 * self.scaling_factor):
@@ -2254,7 +2476,9 @@ class AlyvixImageFinderView(QWidget):
                 
             if self.__border_index != 0:
                 if  mouse_position.y() < (rect.roi_y +  self._main_template.y):
-            
+                    rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_template.y) - rect.y)
+                    rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
+                    """
                     if rect.roi_unlimited_up:
                         rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_template.y) - rect.y)
                         rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
@@ -2264,7 +2488,7 @@ class AlyvixImageFinderView(QWidget):
                         
                         #rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_template.y) - rect.y)
                         #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
-
+                    """
             
             if rect.height < int(4 * self.scaling_factor):
                 rect.height = int(4 * self.scaling_factor)
@@ -2295,7 +2519,10 @@ class AlyvixImageFinderView(QWidget):
             
             if self.__border_index != 0:
                 if  rect.x + rect.width > rect.roi_x + self._main_template.x + rect.roi_width:
-                
+                    rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_template.x + rect.roi_width))
+                    #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
+                    
+                    """
                     if rect.roi_unlimited_right:
                         rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_template.x + rect.roi_width))
                         #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
@@ -2305,7 +2532,7 @@ class AlyvixImageFinderView(QWidget):
 
                         #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_template.x + rect.roi_width))
                         #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
-
+                    """
 
             
             if rect.width < int(4 * self.scaling_factor):
@@ -2322,7 +2549,9 @@ class AlyvixImageFinderView(QWidget):
             
             if self.__border_index != 0:
                 if  rect.y + rect.height > rect.roi_y + self._main_template.y + rect.roi_height:
-                
+                    rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_template.y + rect.roi_height))
+                    #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
+                    """
                     if rect.roi_unlimited_down:
                         rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_template.y + rect.roi_height))
                         #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
@@ -2332,7 +2561,7 @@ class AlyvixImageFinderView(QWidget):
 
                         #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_template.y + rect.roi_height))
                         #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
-
+                    """
             
             if rect.height < int(4 * self.scaling_factor):
                 rect.height = int(4 * self.scaling_factor)
@@ -2358,7 +2587,9 @@ class AlyvixImageFinderView(QWidget):
             
             if self.__border_index != 0:
                 if  mouse_position.x() < (rect.roi_x +  self._main_template.x):
-                
+                    rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_template.x) - rect.x)
+                    rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
+                    """
                     if rect.roi_unlimited_left:
                         rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_template.x) - rect.x)
                         rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
@@ -2368,7 +2599,7 @@ class AlyvixImageFinderView(QWidget):
                         
                         #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_template.x) - rect.x)
                         #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
-                        
+                    """    
             
             if rect.width < int(4 * self.scaling_factor):
                 rect.width = int(4 * self.scaling_factor)
@@ -2398,6 +2629,10 @@ class AlyvixImageFinderView(QWidget):
             if self.__border_index != 0:
                 if  rect.y + rect.height > rect.roi_y + self._main_template.y + rect.roi_height:
                 
+                    rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_template.y + rect.roi_height))
+                    #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
+                    """
+                    
                     if rect.roi_unlimited_down:
                         rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_template.y + rect.roi_height))
                         #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
@@ -2407,7 +2642,7 @@ class AlyvixImageFinderView(QWidget):
 
                         #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_template.y + rect.roi_height))
                         #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
-
+                    """
             
             if rect.height < int(4 * self.scaling_factor):
                 rect.height = int(4 * self.scaling_factor)
@@ -2450,6 +2685,10 @@ class AlyvixImageFinderView(QWidget):
             if self.__border_index != 0:
                 if  mouse_position.x() < (rect.roi_x +  self._main_template.x):
                 
+                    rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_template.x) - rect.x)
+                    rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
+                    
+                    """
                     if rect.roi_unlimited_left:
                         rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_template.x) - rect.x)
                         rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
@@ -2459,12 +2698,13 @@ class AlyvixImageFinderView(QWidget):
                         
                         #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_template.x) - rect.x)
                         #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
+                    """
                         
-            
+
             if rect.width < int(4 * self.scaling_factor):
                 rect.width = int(4 * self.scaling_factor)
                 rect.x = self._old_x_rect + self._old_width_rect - int(4 * self.scaling_factor)
-                 
+                
             x_offset =  old_x - rect.x
 
                                     
@@ -2491,7 +2731,11 @@ class AlyvixImageFinderView(QWidget):
                 
             if self.__border_index != 0:
                 if  mouse_position.y() < (rect.roi_y +  self._main_template.y):
+                
+                    rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_template.y) - rect.y)
+                    rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
             
+                    """
                     if rect.roi_unlimited_up:
                         rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_template.y) - rect.y)
                         rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
@@ -2501,7 +2745,7 @@ class AlyvixImageFinderView(QWidget):
                         
                         #rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_template.y) - rect.y)
                         #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
-
+                    """
             
             if rect.height < int(4 * self.scaling_factor):
                 rect.height = int(4 * self.scaling_factor)
@@ -2532,7 +2776,10 @@ class AlyvixImageFinderView(QWidget):
             
             if self.__border_index != 0:
                 if  rect.y + rect.height > rect.roi_y + self._main_template.y + rect.roi_height:
-                
+
+                    rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_template.y + rect.roi_height))
+                    #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
+                    """
                     if rect.roi_unlimited_down:
                         rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_template.y + rect.roi_height))
                         #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
@@ -2542,7 +2789,7 @@ class AlyvixImageFinderView(QWidget):
 
                         #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_template.y + rect.roi_height))
                         #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_template.y) - rect.y)
-
+                    """
             
             if rect.height < int(4 * self.scaling_factor):
                 rect.height = int(4 * self.scaling_factor)
@@ -2564,7 +2811,11 @@ class AlyvixImageFinderView(QWidget):
             
             if self.__border_index != 0:
                 if  rect.x + rect.width > rect.roi_x + self._main_template.x + rect.roi_width:
-                
+
+                    rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_template.x + rect.roi_width))
+                    #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
+                    
+                    """
                     if rect.roi_unlimited_right:
                         rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_template.x + rect.roi_width))
                         #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
@@ -2574,7 +2825,7 @@ class AlyvixImageFinderView(QWidget):
 
                         #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_template.x + rect.roi_width))
                         #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_template.x) - rect.x)
-
+                    """
 
             
             if rect.width < int(4 * self.scaling_factor):
@@ -3234,6 +3485,31 @@ class AlyvixImageFinderView(QWidget):
             #roi_width = percentage_screen_w + percentage_object_w + image_finder.width
             
             hw_factor = 0
+                                
+            if image_finder.height < image_finder.width:
+                hw_factor = image_finder.height
+            else:
+                hw_factor = image_finder.width
+                
+                
+            sc_factor = 0
+                                
+            if self._bg_pixmap.height() < self._bg_pixmap.width():
+                sc_factor = self._bg_pixmap.height()
+            else:
+                sc_factor = self._bg_pixmap.width()
+                
+            percentage_screen_w = int(0.0125 * sc_factor)
+            percentage_screen_h = int(0.0125 * sc_factor)
+            percentage_object_w = int(0.2 * hw_factor) #image_finder.width)
+            percentage_object_h = int(0.2 * hw_factor) #image_finder.height)
+            
+            roi_height = percentage_screen_h + percentage_object_h + image_finder.height
+            
+            roi_width = percentage_screen_w + percentage_object_w + image_finder.width
+            
+            """
+            hw_factor = 0
             
             if image_finder.height < image_finder.width:
                 hw_factor = image_finder.height
@@ -3245,7 +3521,7 @@ class AlyvixImageFinderView(QWidget):
             roi_height = int(0.95 * hw_factor) + image_finder.height
 
             roi_width = int(0.95 * hw_factor) + image_finder.width
-            
+            """
 
             roi_width_half = int((roi_width - image_finder.width)/2)
 
@@ -6218,8 +6494,8 @@ class MainTemplateForGui:
         self.timeout = 20
         self.timeout_exception = True
         self.sendkeys = ""
-        self.sendkeys_delay = 15
-        self.sendkeys_duration = 15
+        self.sendkeys_delay = 30
+        self.sendkeys_duration = 30
         self.sendkeys_quotes = True
         self.text_encrypted = False
         self.enable_performance = True
@@ -6268,8 +6544,8 @@ class SubTemplateForGui:
         self.number_of_clicks = 1
         self.click_delay = 10
         self.sendkeys = ""
-        self.sendkeys_delay = 15
-        self.sendkeys_duration = 15
+        self.sendkeys_delay = 30
+        self.sendkeys_duration = 30
         self.sendkeys_quotes = True
         self.text_encrypted = False
         
@@ -6728,9 +7004,11 @@ class AlyvixImageFinderPropertiesView(QDialog, Ui_Form):
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)
             
-        if self.parent.last_view_index != 0:
+        if self.parent.last_view_index != 0 and len(self.parent._sub_templates_finder) > 0:
             
             self.listWidget.setCurrentRow(self.parent.last_view_index)
+        else:
+            self.parent.last_view_index = 0
             
     """
     def showEvent(self, event):

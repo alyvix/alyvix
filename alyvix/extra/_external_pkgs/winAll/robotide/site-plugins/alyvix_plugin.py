@@ -134,7 +134,18 @@ class AlyvixRidePlugin(Plugin):
             started = True
             """
         else:
-            self._show_window("Alyvix - Select Finder")
+            #hwnd_found_list = self._get_hwnd("Alyvix - Selector")
+            
+            #print "select list", hwnd_found_list
+            
+            hwnd_found_list = self._get_hwnd("Alyvix - Object Selector")
+            
+            print "of list", hwnd_found_list
+            
+            if len(hwnd_found_list) > 0:
+                return
+            
+            self._show_window("Alyvix - Selector")
         #worker = Thread(target=self.notepad)
         #worker.setDaemon(True)
         #worker.start()

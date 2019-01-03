@@ -163,325 +163,7 @@
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="9" column="0" colspan="2">
-      <widget class="QCheckBox" name="timeout_exception">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Break</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="3">
-      <widget class="QRadioButton" name="dontclickRadio">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>None</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_2</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="19" column="3">
-      <widget class="QCheckBox" name="text_encrypted">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string> Encrypted</string>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0" colspan="4">
-      <widget class="Line" name="line_8">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="18" column="2">
-      <widget class="QLabel" name="labelSendKeysDuration">
-       <property name="text">
-        <string>Duration [ms] </string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="18" column="1">
-      <widget class="QSpinBox" name="spinBoxSendKeysDelay">
-       <property name="maximum">
-        <number>60000</number>
-       </property>
-       <property name="value">
-        <number>15</number>
-       </property>
-      </widget>
-     </item>
-     <item row="19" column="2">
-      <widget class="QCheckBox" name="add_quotes">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Quotes</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" colspan="4">
-      <widget class="Line" name="line_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="17" column="0" colspan="4">
-      <widget class="QLineEdit" name="inserttext">
-       <property name="text">
-        <string>Type text strings and shortcuts</string>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="0" colspan="4">
-      <widget class="Line" name="line_10">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="18" column="0">
-      <widget class="QLabel" name="labelSendKeysDelay">
-       <property name="text">
-        <string>Delays [ms] </string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="13" column="2">
-      <widget class="QLabel" name="labelClickDelay">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Delays [ms]</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="labelWarning">
-       <property name="text">
-        <string>Warning</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="3">
-      <widget class="QDoubleSpinBox" name="doubleSpinBoxThreshold">
-       <property name="maximum">
-        <double>1.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.050000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="2">
-      <widget class="QLabel" name="labelCritical">
-       <property name="text">
-        <string>Critical</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="3">
-      <widget class="QSpinBox" name="spinBoxArgs"/>
-     </item>
-     <item row="8" column="2">
-      <widget class="QLabel" name="timeout_label">
-       <property name="text">
-        <string>Timeout</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0" colspan="3">
-      <widget class="QRadioButton" name="wait_radio">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Appeared</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_5</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="0" column="1" colspan="3">
-      <widget class="QLineEdit" name="namelineedit">
-       <property name="text">
-        <string>Type the keyword name</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0" colspan="3">
-      <widget class="QLabel" name="threshold_label">
-       <property name="text">
-        <string>Threshold</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="3">
-      <widget class="QRadioButton" name="wait_disapp_radio">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Disappeared</string>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_5</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="1" column="2">
-      <widget class="QLabel" name="labelArgs">
-       <property name="text">
-        <string>Arguments</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="12" column="1" rowspan="2">
-      <widget class="QPushButton" name="pushButtonXYoffset">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Interaction
-Point</string>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="0">
-      <widget class="QRadioButton" name="clickRadio">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Click</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_2</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="15" column="3">
-      <widget class="QSpinBox" name="holdreleaseSpinBox">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>9999</number>
-       </property>
-      </widget>
-     </item>
-     <item row="12" column="3">
-      <widget class="QSpinBox" name="clicknumber_spinbox">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimum">
-        <number>1</number>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="3">
-      <widget class="QSpinBox" name="timeout_spinbox">
-       <property name="maximum">
-        <number>999999</number>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="2" colspan="2">
-      <widget class="QCheckBox" name="checkBoxEnablePerformance">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Performance</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="15" column="0">
-      <widget class="QRadioButton" name="holdreleaseRadio">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Hold'n'Release</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_2</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="18" column="3">
-      <widget class="QSpinBox" name="spinBoxSendKeysDuration">
-       <property name="maximum">
-        <number>60000</number>
-       </property>
-       <property name="value">
-        <number>15</number>
-       </property>
-      </widget>
-     </item>
-     <item row="13" column="3">
+     <item row="17" column="3">
       <widget class="QSpinBox" name="clickdelay_spinbox">
        <property name="enabled">
         <bool>false</bool>
@@ -497,7 +179,7 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="12" column="2">
+     <item row="16" column="2">
       <widget class="QLabel" name="labelClickNumber">
        <property name="enabled">
         <bool>false</bool>
@@ -510,7 +192,20 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="11" column="2">
+     <item row="15" column="1">
+      <widget class="QRadioButton" name="rightclickRadio">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Right Click</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_2</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="15" column="2">
       <widget class="QRadioButton" name="movemouseRadio">
        <property name="layoutDirection">
         <enum>Qt::RightToLeft</enum>
@@ -520,19 +215,6 @@ Point</string>
        </property>
        <property name="checked">
         <bool>false</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_2</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="11" column="1">
-      <widget class="QRadioButton" name="rightclickRadio">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Right Click</string>
        </property>
        <attribute name="buttonGroup">
         <string notr="true">buttonGroup_2</string>
@@ -552,40 +234,200 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="3">
-      <widget class="QDoubleSpinBox" name="doubleSpinBoxCritical">
-       <property name="maximum">
-        <double>9999.989999999999782</double>
-       </property>
-       <property name="singleStep">
-        <double>1.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="2" colspan="2">
-      <widget class="QCheckBox" name="checkBoxMatchColors">
+     <item row="19" column="0">
+      <widget class="QRadioButton" name="holdreleaseRadio">
        <property name="layoutDirection">
         <enum>Qt::RightToLeft</enum>
        </property>
        <property name="text">
-        <string>Colors</string>
+        <string>Hold'n'Release</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_2</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="16" column="3">
+      <widget class="QSpinBox" name="clicknumber_spinbox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+      </widget>
+     </item>
+     <item row="22" column="3">
+      <widget class="QSpinBox" name="spinBoxSendKeysDuration">
+       <property name="maximum">
+        <number>60000</number>
+       </property>
+       <property name="value">
+        <number>15</number>
+       </property>
+      </widget>
+     </item>
+     <item row="23" column="3">
+      <widget class="QCheckBox" name="text_encrypted">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string> Encrypted</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="15" column="3">
+      <widget class="QRadioButton" name="dontclickRadio">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>None</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_2</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="22" column="2">
+      <widget class="QLabel" name="labelSendKeysDuration">
+       <property name="text">
+        <string>Duration [ms] </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="17" column="2">
+      <widget class="QLabel" name="labelClickDelay">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Delays [ms]</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="22" column="1">
+      <widget class="QSpinBox" name="spinBoxSendKeysDelay">
+       <property name="maximum">
+        <number>60000</number>
+       </property>
+       <property name="value">
+        <number>15</number>
+       </property>
+      </widget>
+     </item>
+     <item row="23" column="2">
+      <widget class="QCheckBox" name="add_quotes">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Quotes</string>
        </property>
        <property name="checked">
         <bool>true</bool>
        </property>
       </widget>
      </item>
-     <item row="7" column="1">
-      <widget class="QDoubleSpinBox" name="doubleSpinBoxWarning">
-       <property name="maximum">
-        <double>9999.989999999999782</double>
-       </property>
-       <property name="singleStep">
-        <double>1.000000000000000</double>
+     <item row="7" column="0" colspan="4">
+      <widget class="Line" name="line_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
       </widget>
      </item>
-     <item row="15" column="2">
+     <item row="15" column="0">
+      <widget class="QRadioButton" name="clickRadio">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Click</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_2</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="0" column="1" colspan="3">
+      <widget class="QLineEdit" name="namelineedit">
+       <property name="text">
+        <string>Type the keyword name</string>
+       </property>
+      </widget>
+     </item>
+     <item row="22" column="0">
+      <widget class="QLabel" name="labelSendKeysDelay">
+       <property name="text">
+        <string>Delays [ms] </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="16" column="1" rowspan="2">
+      <widget class="QPushButton" name="pushButtonXYoffset">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Interaction
+Point</string>
+       </property>
+      </widget>
+     </item>
+     <item row="19" column="3">
+      <widget class="QSpinBox" name="holdreleaseSpinBox">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>9999</number>
+       </property>
+      </widget>
+     </item>
+     <item row="14" column="0" colspan="4">
+      <widget class="Line" name="line_10">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="21" column="0" colspan="4">
+      <widget class="QLineEdit" name="inserttext">
+       <property name="text">
+        <string>Type text strings and shortcuts</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0" colspan="3">
+      <widget class="QLabel" name="threshold_label">
+       <property name="text">
+        <string>Threshold</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="19" column="2">
       <widget class="QLabel" name="labelPixels">
        <property name="enabled">
         <bool>false</bool>
@@ -598,7 +440,57 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="15" column="1">
+     <item row="18" column="1">
+      <widget class="QSpinBox" name="spinBoxScrolls">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="18" column="3">
+      <widget class="QComboBox" name="comboBoxScrolls">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <item>
+        <property name="text">
+         <string>Up</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Down</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Left</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Right</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="18" column="2">
+      <widget class="QLabel" name="labelDirectionScroll">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>Direction</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="19" column="1">
       <widget class="QComboBox" name="holdreleaseComboBox">
        <property name="enabled">
         <bool>false</bool>
@@ -635,7 +527,23 @@ Point</string>
        </item>
       </widget>
      </item>
-     <item row="14" column="0">
+     <item row="2" column="2">
+      <widget class="QRadioButton" name="wait_radio">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Appeared</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_5</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="18" column="0">
       <widget class="QLabel" name="scrollsLabel">
        <property name="enabled">
         <bool>false</bool>
@@ -648,50 +556,135 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="14" column="1">
-      <widget class="QSpinBox" name="spinBoxScrolls">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="14" column="3">
-      <widget class="QComboBox" name="comboBoxScrolls">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <item>
-        <property name="text">
-         <string>Up</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Down</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Left</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Right</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="14" column="2">
-      <widget class="QLabel" name="labelDirectionScroll">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
+     <item row="2" column="3">
+      <widget class="QRadioButton" name="wait_disapp_radio">
        <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
+        <enum>Qt::RightToLeft</enum>
        </property>
        <property name="text">
-        <string>Direction</string>
+        <string>Disappeared</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_5</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="4" column="2">
+      <widget class="QLabel" name="timeout_label">
+       <property name="text">
+        <string>Timeout</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLabel" name="labelCritical">
+       <property name="text">
+        <string>Critical</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="3">
+      <widget class="QSpinBox" name="timeout_spinbox">
+       <property name="maximum">
+        <number>999999</number>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="3">
+      <widget class="QDoubleSpinBox" name="doubleSpinBoxCritical">
+       <property name="maximum">
+        <double>9999.989999999999782</double>
+       </property>
+       <property name="singleStep">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QDoubleSpinBox" name="doubleSpinBoxWarning">
+       <property name="maximum">
+        <double>9999.989999999999782</double>
+       </property>
+       <property name="singleStep">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="labelWarning">
+       <property name="text">
+        <string>Warning</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="3">
+      <widget class="QDoubleSpinBox" name="doubleSpinBoxThreshold">
+       <property name="maximum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.050000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="2" colspan="2">
+      <widget class="QCheckBox" name="checkBoxEnablePerformance">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Performance</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0" colspan="2">
+      <widget class="QCheckBox" name="timeout_exception">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Break</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="3">
+      <widget class="QCheckBox" name="checkBoxMatchColors">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Colors</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="QSpinBox" name="spinBoxArgs"/>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="labelArgs">
+       <property name="text">
+        <string>Arguments</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -720,85 +713,27 @@ Point</string>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
-     <item row="5" column="3">
-      <widget class="QSpinBox" name="clickdelay_spinbox_2">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>60000</number>
-       </property>
-       <property name="value">
-        <number>10</number>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="3">
-      <widget class="QRadioButton" name="dontclickRadio_2">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
+     <item row="1" column="0" colspan="3">
+      <widget class="QLabel" name="threshold_label_2">
        <property name="text">
-        <string>None</string>
+        <string>Threshold</string>
        </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_4</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="4" column="3">
-      <widget class="QSpinBox" name="clicknumber_spinbox_2">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimum">
-        <number>1</number>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
-     <item row="10" column="3">
-      <widget class="QSpinBox" name="spinBoxSendKeysDuration_2">
+     <item row="1" column="3">
+      <widget class="QDoubleSpinBox" name="doubleSpinBoxThreshold_2">
        <property name="maximum">
-        <number>60000</number>
+        <double>1.000000000000000</double>
        </property>
-       <property name="value">
-        <number>15</number>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="3">
-      <widget class="QCheckBox" name="text_encrypted_2">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Encrypted</string>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
+       <property name="singleStep">
+        <double>0.050000000000000</double>
        </property>
       </widget>
      </item>
-     <item row="7" column="3">
-      <widget class="QSpinBox" name="holdreleaseSpinBox_2">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>9999</number>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="2">
+     <item row="4" column="2">
       <widget class="QRadioButton" name="movemouseRadio_2">
        <property name="layoutDirection">
         <enum>Qt::RightToLeft</enum>
@@ -814,34 +749,14 @@ Point</string>
        </attribute>
       </widget>
      </item>
-     <item row="9" column="0" colspan="4">
+     <item row="10" column="0" colspan="4">
       <widget class="QLineEdit" name="inserttext_2">
        <property name="text">
         <string>Type text strings and shortcuts</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="3">
-      <widget class="QDoubleSpinBox" name="doubleSpinBoxThreshold_2">
-       <property name="maximum">
-        <double>1.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.050000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" colspan="3">
-      <widget class="QLabel" name="threshold_label_2">
-       <property name="text">
-        <string>Threshold</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
+     <item row="4" column="0">
       <widget class="QRadioButton" name="clickRadio_2">
        <property name="layoutDirection">
         <enum>Qt::RightToLeft</enum>
@@ -854,7 +769,17 @@ Point</string>
        </attribute>
       </widget>
      </item>
-     <item row="4" column="2">
+     <item row="11" column="0">
+      <widget class="QLabel" name="labelSendKeysDelay_2">
+       <property name="text">
+        <string>Delays [ms] </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="2">
       <widget class="QLabel" name="labelClickNumber_2">
        <property name="enabled">
         <bool>false</bool>
@@ -867,7 +792,7 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="4" column="1">
       <widget class="QRadioButton" name="rightclickRadio_2">
        <property name="layoutDirection">
         <enum>Qt::RightToLeft</enum>
@@ -880,58 +805,14 @@ Point</string>
        </attribute>
       </widget>
      </item>
-     <item row="10" column="0">
-      <widget class="QLabel" name="labelSendKeysDelay_2">
-       <property name="text">
-        <string>Delays [ms] </string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" colspan="4">
+     <item row="3" column="0" colspan="4">
       <widget class="Line" name="line_5">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
       </widget>
      </item>
-     <item row="4" column="1" rowspan="2">
-      <widget class="QPushButton" name="pushButtonXYoffset_2">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Interaction
-Point</string>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="2">
-      <widget class="QLabel" name="labelSendKeysDuration_2">
-       <property name="text">
-        <string>Duration [ms] </string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="2">
-      <widget class="QLabel" name="labelClickDelay_2">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Delays [ms]</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="2">
+     <item row="12" column="2">
       <widget class="QCheckBox" name="add_quotes_2">
        <property name="layoutDirection">
         <enum>Qt::RightToLeft</enum>
@@ -944,7 +825,7 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="2">
+     <item row="8" column="2">
       <widget class="QLabel" name="labelPixels_2">
        <property name="enabled">
         <bool>false</bool>
@@ -957,7 +838,41 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="0">
+     <item row="5" column="1" rowspan="2">
+      <widget class="QPushButton" name="pushButtonXYoffset_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Interaction
+Point</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="2">
+      <widget class="QLabel" name="labelSendKeysDuration_2">
+       <property name="text">
+        <string>Duration [ms] </string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="2">
+      <widget class="QLabel" name="labelClickDelay_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Delays [ms]</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0">
       <widget class="QRadioButton" name="holdreleaseRadio_2">
        <property name="layoutDirection">
         <enum>Qt::RightToLeft</enum>
@@ -970,7 +885,7 @@ Point</string>
        </attribute>
       </widget>
      </item>
-     <item row="7" column="1">
+     <item row="8" column="1">
       <widget class="QComboBox" name="holdreleaseComboBox_2">
        <property name="enabled">
         <bool>false</bool>
@@ -1007,20 +922,7 @@ Point</string>
        </item>
       </widget>
      </item>
-     <item row="0" column="2" colspan="2">
-      <widget class="QCheckBox" name="checkBoxMatchColors_2">
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>Colors</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="1">
+     <item row="11" column="1">
       <widget class="QSpinBox" name="spinBoxSendKeysDelay_2">
        <property name="maximum">
         <number>60000</number>
@@ -1030,7 +932,30 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="6" column="0">
+     <item row="7" column="1">
+      <widget class="QSpinBox" name="spinBoxScrolls_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="2">
+      <widget class="QLabel" name="labelDirectionScroll_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>Direction</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
       <widget class="QLabel" name="scrollsLabel_2">
        <property name="enabled">
         <bool>false</bool>
@@ -1043,14 +968,7 @@ Point</string>
        </property>
       </widget>
      </item>
-     <item row="6" column="1">
-      <widget class="QSpinBox" name="spinBoxScrolls_2">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="3">
+     <item row="7" column="3">
       <widget class="QComboBox" name="comboBoxScrolls_2">
        <property name="enabled">
         <bool>false</bool>
@@ -1077,19 +995,94 @@ Point</string>
        </item>
       </widget>
      </item>
-     <item row="6" column="2">
-      <widget class="QLabel" name="labelDirectionScroll_2">
+     <item row="5" column="3">
+      <widget class="QSpinBox" name="clicknumber_spinbox_2">
        <property name="enabled">
         <bool>false</bool>
        </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="3">
+      <widget class="QSpinBox" name="spinBoxSendKeysDuration_2">
+       <property name="maximum">
+        <number>60000</number>
+       </property>
+       <property name="value">
+        <number>15</number>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="3">
+      <widget class="QRadioButton" name="dontclickRadio_2">
        <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
+        <enum>Qt::RightToLeft</enum>
        </property>
        <property name="text">
-        <string>Direction</string>
+        <string>None</string>
        </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_4</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="6" column="3">
+      <widget class="QSpinBox" name="clickdelay_spinbox_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>60000</number>
+       </property>
+       <property name="value">
+        <number>10</number>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="3">
+      <widget class="QSpinBox" name="holdreleaseSpinBox_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>9999</number>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="3">
+      <widget class="QCheckBox" name="text_encrypted_2">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Encrypted</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QCheckBox" name="checkBoxMatchColors_2">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Colors</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

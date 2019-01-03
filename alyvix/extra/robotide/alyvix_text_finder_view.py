@@ -457,6 +457,7 @@ class AlyvixTextFinderView(QWidget):
             
         try:
             if self.parent.is_AlyvixMainMenuController is True:
+                self.parent.set_last_name(str(self.object_name))
                 self.parent.update_list()
         except:
             pass
@@ -787,7 +788,33 @@ class AlyvixTextFinderView(QWidget):
                     self._main_text.roi_height = self._main_text.height + int(6*self.scaling_factor)
                     self._main_text.roi_width = self._main_text.width + int(6*self.scaling_factor)
                     """
+                                                     
+                    hw_factor = 0
+                                        
+                    if self._main_text.height < self._main_text.width:
+                        hw_factor = self._main_text.height
+                    else:
+                        hw_factor = self._main_text.width
+                        
+                        
+                    sc_factor = 0
+                                        
+                    if self._bg_pixmap.height() < self._bg_pixmap.width():
+                        sc_factor = self._bg_pixmap.height()
+                    else:
+                        sc_factor = self._bg_pixmap.width()
+                        
+                    percentage_screen_w = int(0.0125 * sc_factor)
+                    percentage_screen_h = int(0.0125 * sc_factor)
+                    percentage_object_w = int(0.2 * hw_factor) #self._main_text.width)
+                    percentage_object_h = int(0.2 * hw_factor) #self._main_text.height)
                     
+                    roi_height = percentage_screen_h + percentage_object_h + self._main_text.height
+                    
+                    roi_width = percentage_screen_w + percentage_object_w + self._main_text.width
+                    
+                    
+                    """
                     hw_factor = 0
                     
                     if self._main_text.height < self._main_text.width:
@@ -798,6 +825,7 @@ class AlyvixTextFinderView(QWidget):
                     roi_height = int(0.95 * hw_factor) + self._main_text.height
 
                     roi_width = int(0.95 * hw_factor) + self._main_text.width
+                    """
 
 
                     roi_width_half = int((roi_width - self._main_text.width)/2)
@@ -893,6 +921,32 @@ class AlyvixTextFinderView(QWidget):
                     """
                     
                     hw_factor = 0
+                                        
+                    if self._sub_texts_finder[index].height < self._sub_texts_finder[index].width:
+                        hw_factor = self._sub_texts_finder[index].height
+                    else:
+                        hw_factor = self._sub_texts_finder[index].width
+                        
+                        
+                    sc_factor = 0
+                                        
+                    if self._bg_pixmap.height() < self._bg_pixmap.width():
+                        sc_factor = self._bg_pixmap.height()
+                    else:
+                        sc_factor = self._bg_pixmap.width()
+                        
+                    percentage_screen_w = int(0.0125 * sc_factor)
+                    percentage_screen_h = int(0.0125 * sc_factor)
+                    percentage_object_w = int(0.2 * hw_factor) #self._sub_texts_finder[index].width)
+                    percentage_object_h = int(0.2 * hw_factor) #self._sub_texts_finder[index].height)
+                    
+                    roi_height = percentage_screen_h + percentage_object_h + self._sub_texts_finder[index].height
+                    
+                    roi_width = percentage_screen_w + percentage_object_w + self._sub_texts_finder[index].width
+                    
+                    
+                    """
+                    hw_factor = 0
                     
                     if self._sub_texts_finder[index].height < self._sub_texts_finder[index].width:
                         hw_factor = self._sub_texts_finder[index].height
@@ -902,7 +956,7 @@ class AlyvixTextFinderView(QWidget):
                     roi_height = int(0.95 * hw_factor) + self._sub_texts_finder[index].height
 
                     roi_width = int(0.95 * hw_factor) + self._sub_texts_finder[index].width
-
+                    """
 
                     roi_width_half = int((roi_width - self._sub_texts_finder[index].width)/2)
 
@@ -2495,11 +2549,8 @@ class AlyvixTextFinderView(QWidget):
             
             mouse_position = QPoint(QCursor.pos())
         
-            old_x = rect.roi_x
-            old_width = rect.roi_width 
-            
-            
             if self.__border_index == 0:
+                """
                 old_x = rect.roi_x
                 old_width = rect.roi_width 
                 
@@ -2512,251 +2563,42 @@ class AlyvixTextFinderView(QWidget):
                 if rect.x < rect.roi_x:
                     rect.roi_x = rect.x -1
                     rect.roi_width = self._old_roi_width_rect + (self._old_roi_x_rect - rect.x) + 1
+                """
                     
-                 
-                        
-                old_y = rect.roi_y
-                old_height = rect.roi_height 
-                
-                
-                rect.roi_y = mouse_position.y()
-                rect.roi_height =  (self._old_roi_y_rect - mouse_position.y()) + (self._old_roi_height_rect) #rect.roi_height + (rect.roi_y + 0 - mouse_position.y())
-
-                
-                
-                if rect.y < rect.roi_y:
-                    rect.roi_y = rect.y -1
-                    rect.roi_height = self._old_roi_height_rect + (self._old_roi_y_rect - rect.y) + 1
-
-            else:
-                rect.roi_x = mouse_position.x() - self._main_text.x
-                rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
-
-                
-                
-                if rect.x < rect.roi_x + self._main_text.x:
-                    rect.roi_x = rect.x - self._main_text.x - 1 #rect.roi_x +  self._main_text.x
-                    rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_text.x))
-                    
-                    
-                 
-                        
-                old_y = rect.roi_y
-                old_height = rect.roi_height 
-                
-                
-                rect.roi_y = mouse_position.y() - self._main_text.y
-                rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
-
-                
-                
-                if rect.y < rect.roi_y + self._main_text.y:
-                    rect.roi_y = rect.y - self._main_text.y -1#rect.roi_y +  self._main_text.y
-                    rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_text.y))
-                    
-                    
-                
-        elif  self.__flag_mouse_is_on_right_up_corner_roi == True:
-        
-            mouse_position = QPoint(QCursor.pos())
-
-            if self.__border_index == 0:
-            
-                old_y = rect.roi_y
-                old_height = rect.roi_height 
-                
-                
-                rect.roi_y = mouse_position.y()
-                rect.roi_height =  (self._old_roi_y_rect - mouse_position.y()) + (self._old_roi_height_rect) #rect.roi_height + (rect.roi_y + 0 - mouse_position.y())
-
-                
-                
-                if rect.y < rect.roi_y:
-                    rect.roi_y = rect.y -1
-                    rect.roi_height = self._old_roi_height_rect + (self._old_roi_y_rect - rect.y) + 1
-                    
-
-                old_width = rect.roi_width 
-                
-                #rect.width = mouse_position.x() - rect.x
-                
-                rect.roi_width = mouse_position.x() - rect.roi_x
-                #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
-
-
-                if rect.x + rect.width > rect.roi_x + rect.roi_width:
-                    #rect.y = old_y #rect.roi_x +  self._main_text.x
-                    rect.roi_width = ((rect.x + rect.width) - rect.roi_x) + 1
-
-            else:
-            
-                old_width = rect.roi_width 
-                
-                #rect.width = mouse_position.x() - rect.x
-                
-                rect.roi_width = mouse_position.x() - (rect.roi_x + self._main_text.x)
-                #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
-
-
-                if rect.x + rect.width > rect.roi_x + self._main_text.x + rect.roi_width:
-                    #rect.y = old_y #rect.roi_x +  self._main_text.x
-                    rect.roi_width = (rect.x - (self._old_roi_x_rect + self._main_text.x)) + rect.width + 1
-                   
-                old_y = rect.roi_y
-                old_height = rect.roi_height 
-                
-                
-                rect.roi_y = mouse_position.y() - self._main_text.y
-                rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
-
-                
-                
-                if rect.y < rect.roi_y + self._main_text.y:
-                    rect.roi_y = rect.y - self._main_text.y -1#rect.roi_y +  self._main_text.y
-                    rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_text.y))
-                    
-                
-        elif  self.__flag_mouse_is_on_right_bottom_corner_roi == True:
-        
-            mouse_position = QPoint(QCursor.pos())
-            
-            if self.__border_index == 0:
-            
-                old_width = rect.roi_width 
-                
-                #rect.width = mouse_position.x() - rect.x
-                
-                rect.roi_width = mouse_position.x() - rect.roi_x
-                #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
-
-
-                if rect.x + rect.width > rect.roi_x + rect.roi_width:
-                    #rect.y = old_y #rect.roi_x +  self._main_text.x
-                    rect.roi_width = ((rect.x + rect.width) - rect.roi_x) + 1
-
-                
-                old_height = rect.roi_height 
-                
-                #rect.height = mouse_position.y() - rect.y
-                
-                rect.roi_height = mouse_position.y() - rect.roi_y
-                #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_teyt.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_teyt.y - mouse_position.y())
-
-
-                if rect.y + rect.height > rect.roi_y + rect.roi_height:
-                    #rect.y = old_y #rect.roi_y +  self._main_teyt.y
-                    rect.roi_height = ((rect.y + rect.height) - rect.roi_y) + 1
-                    
-            else:
-
-        
-                old_width = rect.roi_width 
-                
-                #rect.width = mouse_position.x() - rect.x
-                
-                rect.roi_width = mouse_position.x() - (rect.roi_x + self._main_text.x)
-                #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
-
-
-                if rect.x + rect.width > rect.roi_x + self._main_text.x + rect.roi_width:
-                    #rect.y = old_y #rect.roi_x +  self._main_text.x
-                    rect.roi_width = (rect.x - (self._old_roi_x_rect + self._main_text.x)) + rect.width + 1
-                
-                old_height = rect.roi_height 
-                
-                #rect.height = mouse_position.y() - rect.y
-                
-                rect.roi_height = mouse_position.y() - (rect.roi_y + self._main_text.y)
-                #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
-
-
-                if rect.y + rect.height > rect.roi_y + self._main_text.y + rect.roi_height:
-                    #rect.y = old_y #rect.roi_y +  self._main_text.y
-                    rect.roi_height = (rect.y - (self._old_roi_y_rect + self._main_text.y)) + rect.height + 1
-                
-                    
-                
-        elif  self.__flag_mouse_is_on_left_bottom_corner_roi == True:
-            mouse_position = QPoint(QCursor.pos())
-            
-            if self.__border_index == 0:
-
-                old_x = rect.roi_x
-                old_width = rect.roi_width 
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width 
+                old_width = rect.width
                 
                 
                 rect.roi_x = mouse_position.x()
-                rect.roi_width =  (self._old_roi_x_rect - mouse_position.x()) + (self._old_roi_width_rect) #rect.roi_width + (rect.roi_x + 0 - mouse_position.x())
+                rect.roi_width = (self._old_roi_x_rect - mouse_position.x()) + (self._old_roi_width_rect) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
 
                 
                 
-                if rect.x < rect.roi_x:
-                    rect.roi_x = rect.x -1
-                    rect.roi_width = self._old_roi_width_rect + (self._old_roi_x_rect - rect.x) + 1
+                if rect.x < rect.roi_x: #+ self._main_text.x:
+                    rect.x = rect.roi_x
+                    rect.width = rect.width - (rect.x - old_x)
                     
-                old_height = rect.roi_height 
-                
-                #rect.height = mouse_position.y() - rect.y
-                
-                rect.roi_height = mouse_position.y() - rect.roi_y
-                #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_teyt.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_teyt.y - mouse_position.y())
 
-
-                if rect.y + rect.height > rect.roi_y + rect.roi_height:
-                    #rect.y = old_y #rect.roi_y +  self._main_teyt.y
-                    rect.roi_height = ((rect.y + rect.height) - rect.roi_y) + 1
+                if rect.width < int(4 * self.scaling_factor):
                     
+                    rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    rect.roi_x = rect.x #- self._main_text.x# - 1
+                    rect.roi_width = self._old_roi_width_rect - (rect.roi_x - self._old_roi_x_rect)
                     
+                                
+                x_offset =  old_x - rect.x
+                
+                if rect.x_offset is not None and rect.x_offset is not None:
+                    rect.x_offset = rect.x_offset + x_offset
+                    
+                for sub_image_finder in self._sub_texts_finder:
+                    sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
 
             else:
-                old_x = rect.roi_x
-                old_width = rect.roi_width 
-                
-                
-                rect.roi_x = mouse_position.x() - self._main_text.x
-                rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
-
-                
-                
-                if rect.x < rect.roi_x + self._main_text.x:
-                    rect.roi_x = rect.x - self._main_text.x - 1 #rect.roi_x +  self._main_text.x
-                    rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_text.x))
-                    
-                        
-                    
-                old_height = rect.roi_height 
-                
-                #rect.height = mouse_position.y() - rect.y
-                
-                rect.roi_height = mouse_position.y() - (rect.roi_y + self._main_text.y)
-                #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
-
-
-                if rect.y + rect.height > rect.roi_y + self._main_text.y + rect.roi_height:
-                    #rect.y = old_y #rect.roi_y +  self._main_text.y
-                    rect.roi_height = (rect.y - (self._old_roi_y_rect + self._main_text.y)) + rect.height + 1
-                
-                
-        
-        elif self.__flag_mouse_is_on_left_border_roi is True:
-        
-            mouse_position = QPoint(QCursor.pos())
-            
-            if self.__border_index == 0:
-                old_x = rect.roi_x
-                old_width = rect.roi_width 
-                
-                
-                rect.roi_x = mouse_position.x()
-                rect.roi_width =  (self._old_roi_x_rect - mouse_position.x()) + (self._old_roi_width_rect) #rect.roi_width + (rect.roi_x + 0 - mouse_position.x())
-
-                
-                
-                if rect.x < rect.roi_x:
-                    rect.roi_x = rect.x -1
-                    rect.roi_width = self._old_roi_width_rect + (self._old_roi_x_rect - rect.x) + 1
-
-            else:
+                """
                 old_x = rect.roi_x
                 old_width = rect.roi_width 
                 
@@ -2771,15 +2613,40 @@ class AlyvixTextFinderView(QWidget):
                     rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_text.x))
                     
                 """
-                if rect.roi_width < int(4 * self.scaling_factor):
-                    rect.roi_width = old_width
-                    rect.roi_x = old_x
-                """    
-        elif self.__flag_mouse_is_on_top_border_roi is True:
-        
-            mouse_position = QPoint(QCursor.pos())
-            
+                
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width 
+                old_width = rect.width
+                
+                
+                rect.roi_x = mouse_position.x() - self._main_text.x
+                rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
+
+                
+                
+                if rect.x < rect.roi_x + self._main_text.x:
+                    #rect.roi_x = rect.x - self._main_text.x - 1 #rect.roi_x +  self._main_text.x
+                    #rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_text.x))
+                    rect.x = (rect.roi_x + self._main_text.x)#+1
+                    rect.width = rect.width - (rect.x - old_x)
+                    
+
+                if rect.width < int(4 * self.scaling_factor):
+                    
+                    rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    rect.roi_x = rect.x - self._main_text.x# - 1
+                    rect.roi_width = self._old_roi_width_rect - (rect.roi_x - self._old_roi_x_rect)
+                    
+                                
+                x_offset =  old_x - rect.x
+                
+                if rect.x_offset is not None and rect.x_offset is not None:
+                    rect.x_offset = rect.x_offset + x_offset
+
             if self.__border_index == 0:
+                """
                 old_y = rect.roi_y
                 old_height = rect.roi_height 
                 
@@ -2792,9 +2659,42 @@ class AlyvixTextFinderView(QWidget):
                 if rect.y < rect.roi_y:
                     rect.roi_y = rect.y -1
                     rect.roi_height = self._old_roi_height_rect + (self._old_roi_y_rect - rect.y) + 1
+                """
+                    
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height 
+                old_height = rect.height
+                
+                
+                rect.roi_y = mouse_position.y()
+                rect.roi_height = (self._old_roi_y_rect - mouse_position.y()) + (self._old_roi_height_rect) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+                
+                
+                if rect.y < rect.roi_y: #+ self._main_text.y:
+                    rect.y = rect.roi_y
+                    rect.height = rect.height - (rect.y - old_y)
+                    
+
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    rect.roi_y = rect.y #- self._main_text.y# - 1
+                    rect.roi_height = self._old_roi_height_rect - (rect.roi_y - self._old_roi_y_rect)
+                    
+                                
+                y_offset =  old_y - rect.y
+                
+                if rect.y_offset is not None and rect.y_offset is not None:
+                    rect.y_offset = rect.y_offset + y_offset
+                    
+                for sub_image_finder in self._sub_texts_finder:
+                    sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
 
             else:
-
+                """
                 old_y = rect.roi_y
                 old_height = rect.roi_height 
                 
@@ -2805,15 +2705,280 @@ class AlyvixTextFinderView(QWidget):
                 
                 
                 if rect.y < rect.roi_y + self._main_text.y:
-                    rect.roi_y = rect.y - self._main_text.y -1#rect.roi_y +  self._main_text.y
+                    rect.roi_y = rect.y - self._main_text.y - 1 #rect.roi_y +  self._main_text.y
                     rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_text.y))
+                    
+                """
                 
-        elif self.__flag_mouse_is_on_bottom_border_roi is True:
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height 
+                old_height = rect.height
+                
+                
+                rect.roi_y = mouse_position.y() - self._main_text.y
+                rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+                
+                
+                if rect.y < rect.roi_y + self._main_text.y:
+                    #rect.roi_y = rect.y - self._main_text.y - 1 #rect.roi_y +  self._main_text.y
+                    #rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_text.y))
+                    rect.y = (rect.roi_y + self._main_text.y)#+1
+                    rect.height = rect.height - (rect.y - old_y)
+                    
+
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    rect.roi_y = rect.y - self._main_text.y# - 1
+                    rect.roi_height = self._old_roi_height_rect - (rect.roi_y - self._old_roi_y_rect)
+                    
+                                
+                y_offset =  old_y - rect.y
+                
+                if rect.y_offset is not None and rect.y_offset is not None:
+                    rect.y_offset = rect.y_offset + y_offset                    
+                    
+                
+        elif  self.__flag_mouse_is_on_right_up_corner_roi == True:
         
             mouse_position = QPoint(QCursor.pos())
-
+            
             if self.__border_index == 0:
 
+                """
+                old_width = rect.roi_width 
+                
+                #rect.width = mouse_position.x() - rect.x
+                
+                rect.roi_width = mouse_position.x() - rect.roi_x
+                #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_teyt.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_teyt.x - mouse_position.x())
+
+
+                if rect.x + rect.width > rect.roi_x + rect.roi_width:
+                    #rect.x = old_x #rect.roi_x +  self._main_teyt.x
+                    rect.roi_width = ((rect.x + rect.width) - rect.roi_x) + 1
+                """
+                
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width
+                old_width = rect.width
+                
+                #rect.width = mouse_position.x() - rect.x
+                
+                rect.roi_width = mouse_position.x() - rect.roi_x
+                #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
+
+
+                if rect.x + rect.width > rect.roi_x + rect.roi_width:
+                    #rect.x = old_x #rect.roi_x +  self._main_text.x
+                    rect.width = rect.roi_x + rect.roi_width - rect.x
+                    #rect.roi_x + self._main_text.x + rect.roi_width - rect.x
+                    
+                if rect.width < int(4 * self.scaling_factor):
+                    
+                    #rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    #rect.roi_x = rect.x - self._main_text.x# - 1
+                    rect.roi_width = (rect.x + rect.width) - (rect.roi_x)
+
+            else:
+
+            
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width
+                old_width = rect.width
+                
+                #rect.width = mouse_position.x() - rect.x
+                
+                rect.roi_width = mouse_position.x() - (rect.roi_x + self._main_text.x)
+                #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
+
+
+                if rect.x + rect.width > rect.roi_x + self._main_text.x + rect.roi_width:
+                    #rect.x = old_x #rect.roi_x +  self._main_text.x
+                    rect.width = rect.roi_x + self._main_text.x + rect.roi_width - rect.x
+                    
+                if rect.width < int(4 * self.scaling_factor):
+                    
+                    #rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    #rect.roi_x = rect.x - self._main_text.x# - 1
+                    rect.roi_width = (rect.x + rect.width) - (rect.roi_x + self._main_text.x)
+
+            if self.__border_index == 0:
+                """
+                old_y = rect.roi_y
+                old_height = rect.roi_height 
+                
+                
+                rect.roi_y = mouse_position.y()
+                rect.roi_height =  (self._old_roi_y_rect - mouse_position.y()) + (self._old_roi_height_rect) #rect.roi_height + (rect.roi_y + 0 - mouse_position.y())
+
+                
+                
+                if rect.y < rect.roi_y:
+                    rect.roi_y = rect.y -1
+                    rect.roi_height = self._old_roi_height_rect + (self._old_roi_y_rect - rect.y) + 1
+                """
+                    
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height 
+                old_height = rect.height
+                
+                
+                rect.roi_y = mouse_position.y()
+                rect.roi_height = (self._old_roi_y_rect - mouse_position.y()) + (self._old_roi_height_rect) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+                
+                
+                if rect.y < rect.roi_y: #+ self._main_text.y:
+                    rect.y = rect.roi_y
+                    rect.height = rect.height - (rect.y - old_y)
+                    
+
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    rect.roi_y = rect.y #- self._main_text.y# - 1
+                    rect.roi_height = self._old_roi_height_rect - (rect.roi_y - self._old_roi_y_rect)
+                    
+                                
+                y_offset =  old_y - rect.y
+                
+                if rect.y_offset is not None and rect.y_offset is not None:
+                    rect.y_offset = rect.y_offset + y_offset
+                    
+                for sub_image_finder in self._sub_texts_finder:
+                    sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
+
+            else:
+                """
+                old_y = rect.roi_y
+                old_height = rect.roi_height 
+                
+                
+                rect.roi_y = mouse_position.y() - self._main_text.y
+                rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+                
+                
+                if rect.y < rect.roi_y + self._main_text.y:
+                    rect.roi_y = rect.y - self._main_text.y - 1 #rect.roi_y +  self._main_text.y
+                    rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_text.y))
+                    
+                """
+                
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height 
+                old_height = rect.height
+                
+                
+                rect.roi_y = mouse_position.y() - self._main_text.y
+                rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+                
+                
+                if rect.y < rect.roi_y + self._main_text.y:
+                    #rect.roi_y = rect.y - self._main_text.y - 1 #rect.roi_y +  self._main_text.y
+                    #rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_text.y))
+                    rect.y = (rect.roi_y + self._main_text.y)#+1
+                    rect.height = rect.height - (rect.y - old_y)
+                    
+
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    rect.roi_y = rect.y - self._main_text.y# - 1
+                    rect.roi_height = self._old_roi_height_rect - (rect.roi_y - self._old_roi_y_rect)
+                    
+                                
+                y_offset =  old_y - rect.y
+                
+                if rect.y_offset is not None and rect.y_offset is not None:
+                    rect.y_offset = rect.y_offset + y_offset
+                
+        elif  self.__flag_mouse_is_on_right_bottom_corner_roi == True:
+        
+            mouse_position = QPoint(QCursor.pos())
+            
+                    
+            if self.__border_index == 0:
+
+                """
+                old_width = rect.roi_width 
+                
+                #rect.width = mouse_position.x() - rect.x
+                
+                rect.roi_width = mouse_position.x() - rect.roi_x
+                #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_teyt.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_teyt.x - mouse_position.x())
+
+
+                if rect.x + rect.width > rect.roi_x + rect.roi_width:
+                    #rect.x = old_x #rect.roi_x +  self._main_teyt.x
+                    rect.roi_width = ((rect.x + rect.width) - rect.roi_x) + 1
+                """
+                
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width
+                old_width = rect.width
+                
+                #rect.width = mouse_position.x() - rect.x
+                
+                rect.roi_width = mouse_position.x() - rect.roi_x
+                #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
+
+
+                if rect.x + rect.width > rect.roi_x + rect.roi_width:
+                    #rect.x = old_x #rect.roi_x +  self._main_text.x
+                    rect.width = rect.roi_x + rect.roi_width - rect.x
+                    #rect.roi_x + self._main_text.x + rect.roi_width - rect.x
+                    
+                if rect.width < int(4 * self.scaling_factor):
+                    
+                    #rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    #rect.roi_x = rect.x - self._main_text.x# - 1
+                    rect.roi_width = (rect.x + rect.width) - (rect.roi_x)
+
+            else:
+
+            
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width
+                old_width = rect.width
+                
+                #rect.width = mouse_position.x() - rect.x
+                
+                rect.roi_width = mouse_position.x() - (rect.roi_x + self._main_text.x)
+                #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
+
+
+                if rect.x + rect.width > rect.roi_x + self._main_text.x + rect.roi_width:
+                    #rect.x = old_x #rect.roi_x +  self._main_text.x
+                    rect.width = rect.roi_x + self._main_text.x + rect.roi_width - rect.x
+                    
+                if rect.width < int(4 * self.scaling_factor):
+                    
+                    #rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    #rect.roi_x = rect.x - self._main_text.x# - 1
+                    rect.roi_width = (rect.x + rect.width) - (rect.roi_x + self._main_text.x)
+                    
+            
+            if self.__border_index == 0:
+
+                """
                 old_height = rect.roi_height 
                 
                 #rect.height = mouse_position.y() - rect.y
@@ -2825,11 +2990,38 @@ class AlyvixTextFinderView(QWidget):
                 if rect.y + rect.height > rect.roi_y + rect.roi_height:
                     #rect.y = old_y #rect.roi_y +  self._main_teyt.y
                     rect.roi_height = ((rect.y + rect.height) - rect.roi_y) + 1
+                """
+                
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height
+                old_height = rect.height
+                
+                #rect.height = mouse_position.y() - rect.y
+                
+                rect.roi_height = mouse_position.y() - rect.roi_y
+                #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+
+                if rect.y + rect.height > rect.roi_y + rect.roi_height:
+                    #rect.y = old_y #rect.roi_y +  self._main_text.y
+                    rect.height = rect.roi_y + rect.roi_height - rect.y
+                    #rect.roi_y + self._main_text.y + rect.roi_height - rect.y
+                    
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    #rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    #rect.roi_y = rect.y - self._main_text.y# - 1
+                    rect.roi_height = (rect.y + rect.height) - (rect.roi_y)
 
             else:
 
             
-                old_height = rect.roi_height 
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height
+                old_height = rect.height
                 
                 #rect.height = mouse_position.y() - rect.y
                 
@@ -2839,9 +3031,445 @@ class AlyvixTextFinderView(QWidget):
 
                 if rect.y + rect.height > rect.roi_y + self._main_text.y + rect.roi_height:
                     #rect.y = old_y #rect.roi_y +  self._main_text.y
-                    rect.roi_height = (rect.y - (self._old_roi_y_rect + self._main_text.y)) + rect.height + 1
-                
+                    rect.height = rect.roi_y + self._main_text.y + rect.roi_height - rect.y
                     
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    #rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    #rect.roi_y = rect.y - self._main_text.y# - 1
+                    rect.roi_height = (rect.y + rect.height) - (rect.roi_y + self._main_text.y)
+                
+        elif  self.__flag_mouse_is_on_left_bottom_corner_roi == True:
+            mouse_position = QPoint(QCursor.pos())
+            
+            if self.__border_index == 0:
+                """
+                old_x = rect.roi_x
+                old_width = rect.roi_width 
+                
+                
+                rect.roi_x = mouse_position.x()
+                rect.roi_width =  (self._old_roi_x_rect - mouse_position.x()) + (self._old_roi_width_rect) #rect.roi_width + (rect.roi_x + 0 - mouse_position.x())
+
+                
+                
+                if rect.x < rect.roi_x:
+                    rect.roi_x = rect.x -1
+                    rect.roi_width = self._old_roi_width_rect + (self._old_roi_x_rect - rect.x) + 1
+                """
+                    
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width 
+                old_width = rect.width
+                
+                
+                rect.roi_x = mouse_position.x()
+                rect.roi_width = (self._old_roi_x_rect - mouse_position.x()) + (self._old_roi_width_rect) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
+
+                
+                
+                if rect.x < rect.roi_x: #+ self._main_text.x:
+                    rect.x = rect.roi_x
+                    rect.width = rect.width - (rect.x - old_x)
+                    
+
+                if rect.width < int(4 * self.scaling_factor):
+                    
+                    rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    rect.roi_x = rect.x #- self._main_text.x# - 1
+                    rect.roi_width = self._old_roi_width_rect - (rect.roi_x - self._old_roi_x_rect)
+                    
+                                
+                x_offset =  old_x - rect.x
+                
+                if rect.x_offset is not None and rect.x_offset is not None:
+                    rect.x_offset = rect.x_offset + x_offset
+                    
+                for sub_image_finder in self._sub_texts_finder:
+                    sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
+
+            else:
+                """
+                old_x = rect.roi_x
+                old_width = rect.roi_width 
+                
+                
+                rect.roi_x = mouse_position.x() - self._main_text.x
+                rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
+
+                
+                
+                if rect.x < rect.roi_x + self._main_text.x:
+                    rect.roi_x = rect.x - self._main_text.x - 1 #rect.roi_x +  self._main_text.x
+                    rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_text.x))
+                    
+                """
+                
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width 
+                old_width = rect.width
+                
+                
+                rect.roi_x = mouse_position.x() - self._main_text.x
+                rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
+
+                
+                
+                if rect.x < rect.roi_x + self._main_text.x:
+                    #rect.roi_x = rect.x - self._main_text.x - 1 #rect.roi_x +  self._main_text.x
+                    #rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_text.x))
+                    rect.x = (rect.roi_x + self._main_text.x)#+1
+                    rect.width = rect.width - (rect.x - old_x)
+                    
+
+                if rect.width < int(4 * self.scaling_factor):
+                    
+                    rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    rect.roi_x = rect.x - self._main_text.x# - 1
+                    rect.roi_width = self._old_roi_width_rect - (rect.roi_x - self._old_roi_x_rect)
+                    
+                                
+                x_offset =  old_x - rect.x
+                
+                if rect.x_offset is not None and rect.x_offset is not None:
+                    rect.x_offset = rect.x_offset + x_offset
+                
+            if self.__border_index == 0:
+
+                """
+                old_height = rect.roi_height 
+                
+                #rect.height = mouse_position.y() - rect.y
+                
+                rect.roi_height = mouse_position.y() - rect.roi_y
+                #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_teyt.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_teyt.y - mouse_position.y())
+
+
+                if rect.y + rect.height > rect.roi_y + rect.roi_height:
+                    #rect.y = old_y #rect.roi_y +  self._main_teyt.y
+                    rect.roi_height = ((rect.y + rect.height) - rect.roi_y) + 1
+                """
+                
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height
+                old_height = rect.height
+                
+                #rect.height = mouse_position.y() - rect.y
+                
+                rect.roi_height = mouse_position.y() - rect.roi_y
+                #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+
+                if rect.y + rect.height > rect.roi_y + rect.roi_height:
+                    #rect.y = old_y #rect.roi_y +  self._main_text.y
+                    rect.height = rect.roi_y + rect.roi_height - rect.y
+                    #rect.roi_y + self._main_text.y + rect.roi_height - rect.y
+                    
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    #rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    #rect.roi_y = rect.y - self._main_text.y# - 1
+                    rect.roi_height = (rect.y + rect.height) - (rect.roi_y)
+
+            else:
+
+            
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height
+                old_height = rect.height
+                
+                #rect.height = mouse_position.y() - rect.y
+                
+                rect.roi_height = mouse_position.y() - (rect.roi_y + self._main_text.y)
+                #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+
+                if rect.y + rect.height > rect.roi_y + self._main_text.y + rect.roi_height:
+                    #rect.y = old_y #rect.roi_y +  self._main_text.y
+                    rect.height = rect.roi_y + self._main_text.y + rect.roi_height - rect.y
+                    
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    #rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    #rect.roi_y = rect.y - self._main_text.y# - 1
+                    rect.roi_height = (rect.y + rect.height) - (rect.roi_y + self._main_text.y)
+        
+        elif self.__flag_mouse_is_on_left_border_roi is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+            
+            if self.__border_index == 0:
+                """
+                old_x = rect.roi_x
+                old_width = rect.roi_width 
+                
+                
+                rect.roi_x = mouse_position.x()
+                rect.roi_width =  (self._old_roi_x_rect - mouse_position.x()) + (self._old_roi_width_rect) #rect.roi_width + (rect.roi_x + 0 - mouse_position.x())
+
+                
+                
+                if rect.x < rect.roi_x:
+                    rect.roi_x = rect.x -1
+                    rect.roi_width = self._old_roi_width_rect + (self._old_roi_x_rect - rect.x) + 1
+                """
+                    
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width 
+                old_width = rect.width
+                
+                
+                rect.roi_x = mouse_position.x()
+                rect.roi_width = (self._old_roi_x_rect - mouse_position.x()) + (self._old_roi_width_rect) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
+
+                
+                
+                if rect.x < rect.roi_x: #+ self._main_text.x:
+                    rect.x = rect.roi_x
+                    rect.width = rect.width - (rect.x - old_x)
+                    
+
+                if rect.width < int(4 * self.scaling_factor):
+                    
+                    rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    rect.roi_x = rect.x #- self._main_text.x# - 1
+                    rect.roi_width = self._old_roi_width_rect - (rect.roi_x - self._old_roi_x_rect)
+                    
+                                
+                x_offset =  old_x - rect.x
+                
+                if rect.x_offset is not None and rect.x_offset is not None:
+                    rect.x_offset = rect.x_offset + x_offset
+                    
+                for sub_image_finder in self._sub_texts_finder:
+                    sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
+
+            else:
+                """
+                old_x = rect.roi_x
+                old_width = rect.roi_width 
+                
+                
+                rect.roi_x = mouse_position.x() - self._main_text.x
+                rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
+
+                
+                
+                if rect.x < rect.roi_x + self._main_text.x:
+                    rect.roi_x = rect.x - self._main_text.x - 1 #rect.roi_x +  self._main_text.x
+                    rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_text.x))
+                    
+                """
+                
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width 
+                old_width = rect.width
+                
+                
+                rect.roi_x = mouse_position.x() - self._main_text.x
+                rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_text.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_text.x - mouse_position.x())
+
+                
+                
+                if rect.x < rect.roi_x + self._main_text.x:
+                    #rect.roi_x = rect.x - self._main_text.x - 1 #rect.roi_x +  self._main_text.x
+                    #rect.roi_width = self._old_roi_width_rect - (rect.x - (self._old_roi_x_rect + self._main_text.x))
+                    rect.x = (rect.roi_x + self._main_text.x)#+1
+                    rect.width = rect.width - (rect.x - old_x)
+                    
+
+                if rect.width < int(4 * self.scaling_factor):
+                    
+                    rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    rect.roi_x = rect.x - self._main_text.x# - 1
+                    rect.roi_width = self._old_roi_width_rect - (rect.roi_x - self._old_roi_x_rect)
+                    
+                                
+                x_offset =  old_x - rect.x
+                
+                if rect.x_offset is not None and rect.x_offset is not None:
+                    rect.x_offset = rect.x_offset + x_offset
+                    
+        elif self.__flag_mouse_is_on_top_border_roi is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+            
+            if self.__border_index == 0:
+                """
+                old_y = rect.roi_y
+                old_height = rect.roi_height 
+                
+                
+                rect.roi_y = mouse_position.y()
+                rect.roi_height =  (self._old_roi_y_rect - mouse_position.y()) + (self._old_roi_height_rect) #rect.roi_height + (rect.roi_y + 0 - mouse_position.y())
+
+                
+                
+                if rect.y < rect.roi_y:
+                    rect.roi_y = rect.y -1
+                    rect.roi_height = self._old_roi_height_rect + (self._old_roi_y_rect - rect.y) + 1
+                """
+                    
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height 
+                old_height = rect.height
+                
+                
+                rect.roi_y = mouse_position.y()
+                rect.roi_height = (self._old_roi_y_rect - mouse_position.y()) + (self._old_roi_height_rect) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+                
+                
+                if rect.y < rect.roi_y: #+ self._main_text.y:
+                    rect.y = rect.roi_y
+                    rect.height = rect.height - (rect.y - old_y)
+                    
+
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    rect.roi_y = rect.y #- self._main_text.y# - 1
+                    rect.roi_height = self._old_roi_height_rect - (rect.roi_y - self._old_roi_y_rect)
+                    
+                                
+                y_offset =  old_y - rect.y
+                
+                if rect.y_offset is not None and rect.y_offset is not None:
+                    rect.y_offset = rect.y_offset + y_offset
+                    
+                for sub_image_finder in self._sub_texts_finder:
+                    sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
+
+            else:
+                """
+                old_y = rect.roi_y
+                old_height = rect.roi_height 
+                
+                
+                rect.roi_y = mouse_position.y() - self._main_text.y
+                rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+                
+                
+                if rect.y < rect.roi_y + self._main_text.y:
+                    rect.roi_y = rect.y - self._main_text.y - 1 #rect.roi_y +  self._main_text.y
+                    rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_text.y))
+                    
+                """
+                
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height 
+                old_height = rect.height
+                
+                
+                rect.roi_y = mouse_position.y() - self._main_text.y
+                rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+                
+                
+                if rect.y < rect.roi_y + self._main_text.y:
+                    #rect.roi_y = rect.y - self._main_text.y - 1 #rect.roi_y +  self._main_text.y
+                    #rect.roi_height = self._old_roi_height_rect - (rect.y - (self._old_roi_y_rect + self._main_text.y))
+                    rect.y = (rect.roi_y + self._main_text.y)#+1
+                    rect.height = rect.height - (rect.y - old_y)
+                    
+
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    rect.roi_y = rect.y - self._main_text.y# - 1
+                    rect.roi_height = self._old_roi_height_rect - (rect.roi_y - self._old_roi_y_rect)
+                    
+                                
+                y_offset =  old_y - rect.y
+                
+                if rect.y_offset is not None and rect.y_offset is not None:
+                    rect.y_offset = rect.y_offset + y_offset
+                
+        elif self.__flag_mouse_is_on_bottom_border_roi is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+
+            if self.__border_index == 0:
+
+                """
+                old_height = rect.roi_height 
+                
+                #rect.height = mouse_position.y() - rect.y
+                
+                rect.roi_height = mouse_position.y() - rect.roi_y
+                #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_teyt.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_teyt.y - mouse_position.y())
+
+
+                if rect.y + rect.height > rect.roi_y + rect.roi_height:
+                    #rect.y = old_y #rect.roi_y +  self._main_teyt.y
+                    rect.roi_height = ((rect.y + rect.height) - rect.roi_y) + 1
+                """
+                
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height
+                old_height = rect.height
+                
+                #rect.height = mouse_position.y() - rect.y
+                
+                rect.roi_height = mouse_position.y() - rect.roi_y
+                #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+
+                if rect.y + rect.height > rect.roi_y + rect.roi_height:
+                    #rect.y = old_y #rect.roi_y +  self._main_text.y
+                    rect.height = rect.roi_y + rect.roi_height - rect.y
+                    #rect.roi_y + self._main_text.y + rect.roi_height - rect.y
+                    
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    #rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    #rect.roi_y = rect.y - self._main_text.y# - 1
+                    rect.roi_height = (rect.y + rect.height) - (rect.roi_y)
+
+            else:
+
+            
+                old_roi_y = rect.roi_y
+                old_y = rect.y
+                old_roi_height = rect.roi_height
+                old_height = rect.height
+                
+                #rect.height = mouse_position.y() - rect.y
+                
+                rect.roi_height = mouse_position.y() - (rect.roi_y + self._main_text.y)
+                #rect.roi_height = self._old_roi_height_rect + ((self._old_roi_y_rect + self._main_text.y) - mouse_position.y()) #rect.roi_height + (rect.roi_y + self._main_text.y - mouse_position.y())
+
+
+                if rect.y + rect.height > rect.roi_y + self._main_text.y + rect.roi_height:
+                    #rect.y = old_y #rect.roi_y +  self._main_text.y
+                    rect.height = rect.roi_y + self._main_text.y + rect.roi_height - rect.y
+                    
+                if rect.height < int(4 * self.scaling_factor):
+                    
+                    #rect.y = self._old_y_rect + self._old_height_rect - (4 * self.scaling_factor)
+                    rect.height = (4 * self.scaling_factor)
+                    #rect.roi_y = rect.y - self._main_text.y# - 1
+                    rect.roi_height = (rect.y + rect.height) - (rect.roi_y + self._main_text.y)
 
             #print rect.x
         elif self.__flag_mouse_is_on_right_border_roi is True:
@@ -2850,7 +3478,24 @@ class AlyvixTextFinderView(QWidget):
         
             if self.__border_index == 0:
 
+                """
                 old_width = rect.roi_width 
+                
+                #rect.width = mouse_position.x() - rect.x
+                
+                rect.roi_width = mouse_position.x() - rect.roi_x
+                #rect.roi_width = self._old_roi_width_rect + ((self._old_roi_x_rect + self._main_teyt.x) - mouse_position.x()) #rect.roi_width + (rect.roi_x + self._main_teyt.x - mouse_position.x())
+
+
+                if rect.x + rect.width > rect.roi_x + rect.roi_width:
+                    #rect.x = old_x #rect.roi_x +  self._main_teyt.x
+                    rect.roi_width = ((rect.x + rect.width) - rect.roi_x) + 1
+                """
+                
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width
+                old_width = rect.width
                 
                 #rect.width = mouse_position.x() - rect.x
                 
@@ -2859,12 +3504,24 @@ class AlyvixTextFinderView(QWidget):
 
 
                 if rect.x + rect.width > rect.roi_x + rect.roi_width:
-                    #rect.y = old_y #rect.roi_x +  self._main_text.x
-                    rect.roi_width = ((rect.x + rect.width) - rect.roi_x) + 1
+                    #rect.x = old_x #rect.roi_x +  self._main_text.x
+                    rect.width = rect.roi_x + rect.roi_width - rect.x
+                    #rect.roi_x + self._main_text.x + rect.roi_width - rect.x
+                    
+                if rect.width < int(4 * self.scaling_factor):
+                    
+                    #rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    #rect.roi_x = rect.x - self._main_text.x# - 1
+                    rect.roi_width = (rect.x + rect.width) - (rect.roi_x)
 
             else:
 
-                old_width = rect.roi_width 
+            
+                old_roi_x = rect.roi_x
+                old_x = rect.x
+                old_roi_width = rect.roi_width
+                old_width = rect.width
                 
                 #rect.width = mouse_position.x() - rect.x
                 
@@ -2873,292 +3530,19 @@ class AlyvixTextFinderView(QWidget):
 
 
                 if rect.x + rect.width > rect.roi_x + self._main_text.x + rect.roi_width:
-                    #rect.y = old_y #rect.roi_x +  self._main_text.x
-                    rect.roi_width = (rect.x - (self._old_roi_x_rect + self._main_text.x)) + rect.width + 1
-
+                    #rect.x = old_x #rect.roi_x +  self._main_text.x
+                    rect.width = rect.roi_x + self._main_text.x + rect.roi_width - rect.x
+                    
+                if rect.width < int(4 * self.scaling_factor):
+                    
+                    #rect.x = self._old_x_rect + self._old_width_rect - (4 * self.scaling_factor)
+                    rect.width = (4 * self.scaling_factor)
+                    #rect.roi_x = rect.x - self._main_text.x# - 1
+                    rect.roi_width = (rect.x + rect.width) - (rect.roi_x + self._main_text.x)
 
         elif  self.__flag_mouse_is_on_left_up_corner is True:
-            
-            mouse_position = QPoint(QCursor.pos())
         
-            old_x = rect.x
-
-                                    
-            rect.x = mouse_position.x()
-            rect.width = self._old_width_rect + (self._old_x_rect - mouse_position.x()) 
-            
-      
-            
-            if rect.x < 1:
-                rect.x = 1
-            
-            if self.__border_index != 0:
-                if  mouse_position.x() < (rect.roi_x +  self._main_text.x):
-                
-                    if rect.roi_unlimited_left:
-                        rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
-                        rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
-                    else:
-                        rect.x = rect.roi_x +  self._main_text.x + 1
-                        rect.width = self._old_width_rect + (self._old_x_rect - (rect.roi_x +  self._main_text.x)) 
-                        
-                        #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
-                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
-                        
-            
-            if rect.width < int(4 * self.scaling_factor):
-                rect.width = int(4 * self.scaling_factor)
-                rect.x = self._old_x_rect + self._old_width_rect - int(4 * self.scaling_factor)
-                 
-            x_offset =  old_x - rect.x
-
-                                    
-            if rect.x_offset is not None and rect.y_offset is not None:
-                rect.x_offset = rect.x_offset + x_offset
-            
-            #print x_offset
-                        
-            if self.__border_index == 0:
-                for sub_image_finder in self._sub_texts_finder:
-                    sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
-                    
-            old_y = rect.y
-            
-            rect.y = mouse_position.y()
-            rect.height = self._old_height_rect + (self._old_y_rect - mouse_position.y()) 
-            
-            if rect.y < 1:
-                rect.y = 1
-                
-            if self.__border_index != 0:
-                if  mouse_position.y() < (rect.roi_y +  self._main_text.y):
-            
-                    if rect.roi_unlimited_up:
-                        rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
-                        rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
-                    else:
-                        rect.y = rect.roi_y +  self._main_text.y + 1
-                        rect.height = self._old_height_rect + (self._old_y_rect - (rect.roi_y +  self._main_text.y)) 
-                        
-                        #rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
-                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
-
-            
-            if rect.height < int(4 * self.scaling_factor):
-                rect.height = int(4 * self.scaling_factor)
-                rect.y = self._old_y_rect + self._old_height_rect - int(4 * self.scaling_factor)
-                
-                 
-            y_offset =  old_y - rect.y
-            
-            if rect.x_offset is not None and rect.y_offset is not None:
-                rect.y_offset = rect.y_offset + y_offset
-                
-            #print x_offset
-            if self.__border_index == 0:
-                for sub_image_finder in self._sub_texts_finder:
-                    sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
-                
-        elif  self.__flag_mouse_is_on_right_up_corner == True:
-        
-            mouse_position = QPoint(QCursor.pos())
-
-            old_width = rect.width 
-            
-            rect.width = mouse_position.x() - rect.x
-            
-            if rect.x + rect.width > self._bg_pixmap.width() + 1:
-                rect.width = self._bg_pixmap.width() - rect.x - 1
-            
-            
-            if self.__border_index != 0:
-                if  rect.x + rect.width > rect.roi_x + self._main_text.x + rect.roi_width:
-                
-                    if rect.roi_unlimited_right:
-                        rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
-                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
-                    else:
-                        # -- rect.x = rect.roi_x +  self._main_text.x
-                        rect.width = self._old_width_rect + ((rect.roi_x + rect.roi_width + self._main_text.x) - (self._old_x_rect + self._old_width_rect)) - 1
-
-                        #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
-                        
-
-            
-            if rect.width < int(4 * self.scaling_factor):
-                rect.width = int(4 * self.scaling_factor)
-                #rect.x = self._old_x_rect + self._old_width_rect + 4
-                
-                 
-            old_y = rect.y
-            
-            rect.y = mouse_position.y()
-            rect.height = self._old_height_rect + (self._old_y_rect - mouse_position.y()) 
-            
-            if rect.y < 1:
-                rect.y = 1
-                
-            if self.__border_index != 0:
-                if  mouse_position.y() < (rect.roi_y +  self._main_text.y):
-            
-                    if rect.roi_unlimited_up:
-                        rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
-                        rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
-                    else:
-                        rect.y = rect.roi_y +  self._main_text.y + 1
-                        rect.height = self._old_height_rect + (self._old_y_rect - (rect.roi_y +  self._main_text.y)) 
-                        
-                        #rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
-                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
-
-            
-            if rect.height < int(4 * self.scaling_factor):
-                rect.height = int(4 * self.scaling_factor)
-                rect.y = self._old_y_rect + self._old_height_rect - int(4 * self.scaling_factor)
-                
-                 
-            y_offset =  old_y - rect.y
-            
-            if rect.x_offset is not None and rect.y_offset is not None:
-                rect.y_offset = rect.y_offset + y_offset
-                
-            #print x_offset
-            if self.__border_index == 0:
-                for sub_image_finder in self._sub_texts_finder:
-                    sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
-                
-        elif  self.__flag_mouse_is_on_right_bottom_corner == True:
-        
-            mouse_position = QPoint(QCursor.pos())
-
-            old_width = rect.width 
-            
-            rect.width = mouse_position.x() - rect.x
-            
-            if rect.x + rect.width > self._bg_pixmap.width() + 1:
-                rect.width = self._bg_pixmap.width() - rect.x - 1
-            
-            
-            if self.__border_index != 0:
-                if  rect.x + rect.width > rect.roi_x + self._main_text.x + rect.roi_width:
-                
-                    if rect.roi_unlimited_right:
-                        rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
-                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
-                    else:
-                        # -- rect.x = rect.roi_x +  self._main_text.x
-                        rect.width = self._old_width_rect + ((rect.roi_x + rect.roi_width + self._main_text.x) - (self._old_x_rect + self._old_width_rect)) -1 
-
-                        #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
-                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
-
-
-            
-            if rect.width < int(4 * self.scaling_factor):
-                rect.width = int(4 * self.scaling_factor)
-                #rect.x = self._old_x_rect + self._old_width_rect + 4
-
-            old_height = rect.height 
-            
-            rect.height = mouse_position.y() - rect.y
-       
-            if rect.y + rect.height > self._bg_pixmap.height() + 1:
-                rect.height = self._bg_pixmap.height() - rect.y - 1
-            
-            
-            if self.__border_index != 0:
-                if  rect.y + rect.height > rect.roi_y + self._main_text.y + rect.roi_height:
-                
-                    if rect.roi_unlimited_down:
-                        rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
-                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
-                    else:
-                        # -- rect.y = rect.roi_y +  self._main_text.y
-                        rect.height = self._old_height_rect + ((rect.roi_y + rect.roi_height + self._main_text.y) - (self._old_y_rect + self._old_height_rect)) -1
-
-                        #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
-                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
-
-            
-            if rect.height < int(4 * self.scaling_factor):
-                rect.height = int(4 * self.scaling_factor)
-                #rect.y = self._old_y_rect + self._old_height_rect + 4
-                
-        elif  self.__flag_mouse_is_on_left_bottom_corner == True:
-            mouse_position = QPoint(QCursor.pos())
-
-            old_x = rect.x
-            
-            #rect.width = rect.width + (rect.x - mouse_position.x())
-            #rect.x = mouse_position.x()
-
-                                    
-            rect.x = mouse_position.x()
-            rect.width = self._old_width_rect + (self._old_x_rect - mouse_position.x()) 
-          
-            
-            if rect.x < 1:
-                rect.x = 1
-            
-            if self.__border_index != 0:
-                if  mouse_position.x() < (rect.roi_x +  self._main_text.x):
-                
-                    if rect.roi_unlimited_left:
-                        rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
-                        rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
-                    else:
-                        rect.x = rect.roi_x +  self._main_text.x + 1
-                        rect.width = self._old_width_rect + (self._old_x_rect - (rect.roi_x +  self._main_text.x)) 
-                        
-                        #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
-                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
-                        
-            
-            if rect.width < int(4 * self.scaling_factor):
-                rect.width = int(4 * self.scaling_factor)
-                rect.x = self._old_x_rect + self._old_width_rect - int(4 * self.scaling_factor)
-                 
-            x_offset =  old_x - rect.x
-
-                                    
-            if rect.x_offset is not None and rect.y_offset is not None:
-                rect.x_offset = rect.x_offset + x_offset
-            
-            #print x_offset
-                        
-            if self.__border_index == 0:
-                for sub_image_finder in self._sub_texts_finder:
-                    sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
-                    
-                
-            old_height = rect.height 
-            
-            rect.height = mouse_position.y() - rect.y
-       
-            if rect.y + rect.height > self._bg_pixmap.height() + 1:
-                rect.height = self._bg_pixmap.height() - rect.y - 1
-            
-            
-            if self.__border_index != 0:
-                if  rect.y + rect.height > rect.roi_y + self._main_text.y + rect.roi_height:
-                
-                    if rect.roi_unlimited_down:
-                        rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
-                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
-                    else:
-                        # -- rect.y = rect.roi_y +  self._main_text.y
-                        rect.height = self._old_height_rect + ((rect.roi_y + rect.roi_height + self._main_text.y) - (self._old_y_rect + self._old_height_rect)) -1
-
-                        #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
-                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
-
-            
-            if rect.height < int(4 * self.scaling_factor):
-                rect.height = int(4 * self.scaling_factor)
-                #rect.y = self._old_y_rect + self._old_height_rect + 4
-        
-        elif self.__flag_mouse_is_on_left_border is True:
-        
+                                
             mouse_position = QPoint(QCursor.pos())
             
             if self.__border_index == 0:
@@ -3177,7 +3561,9 @@ class AlyvixTextFinderView(QWidget):
                     rect.x = 1
             
                 if  mouse_position.x() < (rect.roi_x):
-                
+                    rect.roi_width = rect.roi_width + (rect.roi_x - rect.x)
+                    rect.roi_x = rect.roi_x - (rect.roi_x - rect.x)
+                    """
                     if rect.roi_unlimited_left:
                         rect.roi_width = rect.roi_width + (rect.roi_x - rect.x)
                         rect.roi_x = rect.roi_x - (rect.roi_x - rect.x)
@@ -3187,6 +3573,7 @@ class AlyvixTextFinderView(QWidget):
                         
                         #rect.roi_width = rect.roi_width + (rect.roi_x - rect.x)
                         #rect.roi_x = rect.roi_x - (rect.roi_x - rect.x)
+                    """
                         
                 
                 if rect.width < int(4 * self.scaling_factor):
@@ -3220,7 +3607,9 @@ class AlyvixTextFinderView(QWidget):
                 
                 if self.__border_index != 0:
                     if  mouse_position.x() < (rect.roi_x +  self._main_text.x):
-                    
+                        rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
+                        rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        """
                         if rect.roi_unlimited_left:
                             rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
                             rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
@@ -3230,7 +3619,642 @@ class AlyvixTextFinderView(QWidget):
                             
                             #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
                             #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        """    
+                
+                if rect.width < int(4 * self.scaling_factor):
+                    rect.width = int(4 * self.scaling_factor)
+                    rect.x = self._old_x_rect + self._old_width_rect - int(4 * self.scaling_factor)
+                     
+                x_offset =  old_x - rect.x
+
+                                        
+                if rect.x_offset is not None and rect.y_offset is not None:
+                    rect.x_offset = rect.x_offset + x_offset
+                
+                #print x_offset
                             
+                if self.__border_index == 0:
+                    for sub_image_finder in self._sub_texts_finder:
+                        sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
+
+
+            if self.__border_index == 0:
+
+                old_y = rect.y
+                
+                #rect.height = rect.height + (rect.y - mouse_position.y())
+                #rect.y = mouse_position.y()
+
+                                        
+                rect.y = mouse_position.y()
+                rect.height = self._old_height_rect + (self._old_y_rect - mouse_position.y()) 
+                
+                
+                if rect.y < 1:
+                    rect.y = 1
+            
+                if  mouse_position.y() < (rect.roi_y):
+
+                    rect.roi_height = rect.roi_height + (rect.roi_y - rect.y)
+                    rect.roi_y = rect.roi_y - (rect.roi_y - rect.y)
+                    """
+                    if rect.roi_unlimited_left:
+                        rect.roi_height = rect.roi_height + (rect.roi_y - rect.y)
+                        rect.roi_y = rect.roi_y - (rect.roi_y - rect.y)
+                    else:
+                        rect.y = rect.roi_y + 1
+                        rect.height = self._old_height_rect + (self._old_y_rect - rect.roi_y) 
+                        
+                        #rect.roi_height = rect.roi_height + (rect.roi_y - rect.y)
+                        #rect.roi_y = rect.roi_y - (rect.roi_y - rect.y)
+                    """
+                
+                if rect.height < int(4 * self.scaling_factor):
+                    rect.height = int(4 * self.scaling_factor)
+                    rect.y = self._old_y_rect + self._old_height_rect - int(4 * self.scaling_factor)
+                     
+                y_offset =  old_y - rect.y
+
+                                        
+                if rect.y_offset is not None and rect.y_offset is not None:
+                    rect.y_offset = rect.y_offset + y_offset
+                
+                #print y_offset
+                            
+                if self.__border_index == 0:
+                    for sub_image_finder in self._sub_texts_finder:
+                        sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
+            else:
+                old_y = rect.y
+                
+                rect.y = mouse_position.y()
+                rect.height = self._old_height_rect + (self._old_y_rect - mouse_position.y()) 
+                
+                if rect.y < 1:
+                    rect.y = 1
+                    
+                if self.__border_index != 0:
+                    if  mouse_position.y() < (rect.roi_y +  self._main_text.y):
+                        rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
+                        rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        """
+                        if rect.roi_unlimited_up:
+                            rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
+                            rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        else:
+                            rect.y = rect.roi_y +  self._main_text.y + 1
+                            rect.height = self._old_height_rect + (self._old_y_rect - (rect.roi_y +  self._main_text.y)) 
+                            
+                            #rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
+                            #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        """
+
+                
+                if rect.height < int(4 * self.scaling_factor):
+                    rect.height = int(4 * self.scaling_factor)
+                    rect.y = self._old_y_rect + self._old_height_rect - int(4 * self.scaling_factor)
+                    
+                     
+                y_offset =  old_y - rect.y
+                
+                if rect.x_offset is not None and rect.y_offset is not None:
+                    rect.y_offset = rect.y_offset + y_offset
+                    
+                #print x_offset
+                if self.__border_index == 0:
+                    for sub_image_finder in self._sub_texts_finder:
+                        sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
+                
+                
+        elif  self.__flag_mouse_is_on_right_up_corner == True:
+        
+            mouse_position = QPoint(QCursor.pos())
+            
+            
+            if self.__border_index == 0:
+                old_width = rect.width 
+                
+                rect.width = mouse_position.x() - rect.x
+                
+                if rect.x + rect.width > self._bg_pixmap.width() + 1:
+                    rect.width = self._bg_pixmap.width() - rect.x - 1
+                
+                
+
+                if  rect.x + rect.width > rect.roi_x + rect.roi_width:
+
+                    rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + rect.roi_width))
+                    #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+
+                    """
+                    if rect.roi_unlimited_right:
+                        rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                    else:
+                        # -- rect.x = rect.roi_x +  self._main_text.x
+                        rect.width = self._old_width_rect + ((rect.roi_x + rect.roi_width) - (self._old_x_rect + self._old_width_rect)) -1
+
+                        #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                    """
+
+                
+                if rect.width < int(4 * self.scaling_factor):
+                    rect.width = int(4 * self.scaling_factor)
+                    #rect.x = self._old_x_rect + self._old_width_rect + 4
+                
+            
+            else:
+                old_width = rect.width 
+                
+                rect.width = mouse_position.x() - rect.x
+                
+                if rect.x + rect.width > self._bg_pixmap.width() + 1:
+                    rect.width = self._bg_pixmap.width() - rect.x - 1
+                
+                
+                if self.__border_index != 0:
+                    if  rect.x + rect.width > rect.roi_x + self._main_text.x + rect.roi_width:
+                        rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        """
+                        if rect.roi_unlimited_right:
+                            rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
+                            #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        else:
+                            # -- rect.x = rect.roi_x +  self._main_text.x
+                            rect.width = self._old_width_rect + ((rect.roi_x + rect.roi_width + self._main_text.x) - (self._old_x_rect + self._old_width_rect)) -1
+
+                            #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
+                            #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        """
+
+                
+                if rect.width < int(4 * self.scaling_factor):
+                    rect.width = int(4 * self.scaling_factor)
+                    #rect.x = self._old_x_rect + self._old_width_rect + 4
+
+
+
+            if self.__border_index == 0:
+
+                old_y = rect.y
+                
+                #rect.height = rect.height + (rect.y - mouse_position.y())
+                #rect.y = mouse_position.y()
+
+                                        
+                rect.y = mouse_position.y()
+                rect.height = self._old_height_rect + (self._old_y_rect - mouse_position.y()) 
+                
+                
+                if rect.y < 1:
+                    rect.y = 1
+            
+                if  mouse_position.y() < (rect.roi_y):
+
+                    rect.roi_height = rect.roi_height + (rect.roi_y - rect.y)
+                    rect.roi_y = rect.roi_y - (rect.roi_y - rect.y)
+                    """
+                    if rect.roi_unlimited_left:
+                        rect.roi_height = rect.roi_height + (rect.roi_y - rect.y)
+                        rect.roi_y = rect.roi_y - (rect.roi_y - rect.y)
+                    else:
+                        rect.y = rect.roi_y + 1
+                        rect.height = self._old_height_rect + (self._old_y_rect - rect.roi_y) 
+                        
+                        #rect.roi_height = rect.roi_height + (rect.roi_y - rect.y)
+                        #rect.roi_y = rect.roi_y - (rect.roi_y - rect.y)
+                    """
+                
+                if rect.height < int(4 * self.scaling_factor):
+                    rect.height = int(4 * self.scaling_factor)
+                    rect.y = self._old_y_rect + self._old_height_rect - int(4 * self.scaling_factor)
+                     
+                y_offset =  old_y - rect.y
+
+                                        
+                if rect.y_offset is not None and rect.y_offset is not None:
+                    rect.y_offset = rect.y_offset + y_offset
+                
+                #print y_offset
+                            
+                if self.__border_index == 0:
+                    for sub_image_finder in self._sub_texts_finder:
+                        sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
+            else:
+                old_y = rect.y
+                
+                rect.y = mouse_position.y()
+                rect.height = self._old_height_rect + (self._old_y_rect - mouse_position.y()) 
+                
+                if rect.y < 1:
+                    rect.y = 1
+                    
+                if self.__border_index != 0:
+                    if  mouse_position.y() < (rect.roi_y +  self._main_text.y):
+                        rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
+                        rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        """
+                        if rect.roi_unlimited_up:
+                            rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
+                            rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        else:
+                            rect.y = rect.roi_y +  self._main_text.y + 1
+                            rect.height = self._old_height_rect + (self._old_y_rect - (rect.roi_y +  self._main_text.y)) 
+                            
+                            #rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
+                            #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        """
+
+                
+                if rect.height < int(4 * self.scaling_factor):
+                    rect.height = int(4 * self.scaling_factor)
+                    rect.y = self._old_y_rect + self._old_height_rect - int(4 * self.scaling_factor)
+                    
+                     
+                y_offset =  old_y - rect.y
+                
+                if rect.x_offset is not None and rect.y_offset is not None:
+                    rect.y_offset = rect.y_offset + y_offset
+                    
+                #print x_offset
+                if self.__border_index == 0:
+                    for sub_image_finder in self._sub_texts_finder:
+                        sub_image_finder.roi_y = sub_image_finder.roi_y + y_offset
+                
+                
+        elif  self.__flag_mouse_is_on_right_bottom_corner == True:
+        
+            mouse_position = QPoint(QCursor.pos())
+            
+            if self.__border_index == 0:
+            
+                old_height = rect.height 
+                
+                rect.height = mouse_position.y() - rect.y
+           
+                if rect.y + rect.height > self._bg_pixmap.height() + 1:
+                    rect.height = self._bg_pixmap.height() - rect.y - 1
+                
+                
+
+                if  rect.y + rect.height > rect.roi_y + rect.roi_height:
+                
+                    rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + rect.roi_height))
+                    #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                
+                    """
+                    if rect.roi_unlimited_down:
+                        rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                    else:
+                        # -- rect.y = rect.roi_y +  self._main_text.y
+                        rect.height = self._old_height_rect + ((rect.roi_y + rect.roi_height) - (self._old_y_rect + self._old_height_rect)) -1
+
+                        #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                    """
+                
+                if rect.height < int(4 * self.scaling_factor):
+                    rect.height = int(4 * self.scaling_factor)
+                    #rect.y = self._old_y_rect + self._old_height_rect + 4
+                
+            
+            else:
+
+                old_height = rect.height 
+                
+                rect.height = mouse_position.y() - rect.y
+           
+                if rect.y + rect.height > self._bg_pixmap.height() + 1:
+                    rect.height = self._bg_pixmap.height() - rect.y - 1
+                
+                
+                if self.__border_index != 0:
+                    if  rect.y + rect.height > rect.roi_y + self._main_text.y + rect.roi_height:
+                        rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        """
+                        if rect.roi_unlimited_down:
+                            rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
+                            #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        else:
+                            # -- rect.y = rect.roi_y +  self._main_text.y
+                            rect.height = self._old_height_rect + ((rect.roi_y + rect.roi_height + self._main_text.y) - (self._old_y_rect + self._old_height_rect)) -1
+
+                            #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
+                            #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        """
+                
+                if rect.height < int(4 * self.scaling_factor):
+                    rect.height = int(4 * self.scaling_factor)
+                    #rect.y = self._old_y_rect + self._old_height_rect + 4
+
+            if self.__border_index == 0:
+                old_width = rect.width 
+                
+                rect.width = mouse_position.x() - rect.x
+                
+                if rect.x + rect.width > self._bg_pixmap.width() + 1:
+                    rect.width = self._bg_pixmap.width() - rect.x - 1
+                
+                
+
+                if  rect.x + rect.width > rect.roi_x + rect.roi_width:
+
+                    rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + rect.roi_width))
+                    #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+
+                    """
+                    if rect.roi_unlimited_right:
+                        rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                    else:
+                        # -- rect.x = rect.roi_x +  self._main_text.x
+                        rect.width = self._old_width_rect + ((rect.roi_x + rect.roi_width) - (self._old_x_rect + self._old_width_rect)) -1
+
+                        #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                    """
+
+                
+                if rect.width < int(4 * self.scaling_factor):
+                    rect.width = int(4 * self.scaling_factor)
+                    #rect.x = self._old_x_rect + self._old_width_rect + 4
+                
+            
+            else:
+                old_width = rect.width 
+                
+                rect.width = mouse_position.x() - rect.x
+                
+                if rect.x + rect.width > self._bg_pixmap.width() + 1:
+                    rect.width = self._bg_pixmap.width() - rect.x - 1
+                
+                
+                if self.__border_index != 0:
+                    if  rect.x + rect.width > rect.roi_x + self._main_text.x + rect.roi_width:
+                        rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        """
+                        if rect.roi_unlimited_right:
+                            rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
+                            #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        else:
+                            # -- rect.x = rect.roi_x +  self._main_text.x
+                            rect.width = self._old_width_rect + ((rect.roi_x + rect.roi_width + self._main_text.x) - (self._old_x_rect + self._old_width_rect)) -1
+
+                            #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
+                            #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        """
+
+                
+                if rect.width < int(4 * self.scaling_factor):
+                    rect.width = int(4 * self.scaling_factor)
+                    #rect.x = self._old_x_rect + self._old_width_rect + 4
+
+
+                
+        elif  self.__flag_mouse_is_on_left_bottom_corner == True:
+            mouse_position = QPoint(QCursor.pos())
+
+            if self.__border_index == 0:
+            
+                old_height = rect.height 
+                
+                rect.height = mouse_position.y() - rect.y
+           
+                if rect.y + rect.height > self._bg_pixmap.height() + 1:
+                    rect.height = self._bg_pixmap.height() - rect.y - 1
+                
+                
+
+                if  rect.y + rect.height > rect.roi_y + rect.roi_height:
+                
+                    rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + rect.roi_height))
+                    #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                
+                    """
+                    if rect.roi_unlimited_down:
+                        rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                    else:
+                        # -- rect.y = rect.roi_y +  self._main_text.y
+                        rect.height = self._old_height_rect + ((rect.roi_y + rect.roi_height) - (self._old_y_rect + self._old_height_rect)) -1
+
+                        #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                    """
+                
+                if rect.height < int(4 * self.scaling_factor):
+                    rect.height = int(4 * self.scaling_factor)
+                    #rect.y = self._old_y_rect + self._old_height_rect + 4
+                
+            
+            else:
+
+                old_height = rect.height 
+                
+                rect.height = mouse_position.y() - rect.y
+           
+                if rect.y + rect.height > self._bg_pixmap.height() + 1:
+                    rect.height = self._bg_pixmap.height() - rect.y - 1
+                
+                
+                if self.__border_index != 0:
+                    if  rect.y + rect.height > rect.roi_y + self._main_text.y + rect.roi_height:
+                        rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        """
+                        if rect.roi_unlimited_down:
+                            rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
+                            #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        else:
+                            # -- rect.y = rect.roi_y +  self._main_text.y
+                            rect.height = self._old_height_rect + ((rect.roi_y + rect.roi_height + self._main_text.y) - (self._old_y_rect + self._old_height_rect)) -1
+
+                            #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
+                            #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        """
+                
+                if rect.height < int(4 * self.scaling_factor):
+                    rect.height = int(4 * self.scaling_factor)
+                    #rect.y = self._old_y_rect + self._old_height_rect + 4
+                    
+            if self.__border_index == 0:
+
+                old_x = rect.x
+                
+                #rect.width = rect.width + (rect.x - mouse_position.x())
+                #rect.x = mouse_position.x()
+
+                                        
+                rect.x = mouse_position.x()
+                rect.width = self._old_width_rect + (self._old_x_rect - mouse_position.x()) 
+                
+                
+                if rect.x < 1:
+                    rect.x = 1
+            
+                if  mouse_position.x() < (rect.roi_x):
+                    rect.roi_width = rect.roi_width + (rect.roi_x - rect.x)
+                    rect.roi_x = rect.roi_x - (rect.roi_x - rect.x)
+                    """
+                    if rect.roi_unlimited_left:
+                        rect.roi_width = rect.roi_width + (rect.roi_x - rect.x)
+                        rect.roi_x = rect.roi_x - (rect.roi_x - rect.x)
+                    else:
+                        rect.x = rect.roi_x + 1
+                        rect.width = self._old_width_rect + (self._old_x_rect - rect.roi_x) 
+                        
+                        #rect.roi_width = rect.roi_width + (rect.roi_x - rect.x)
+                        #rect.roi_x = rect.roi_x - (rect.roi_x - rect.x)
+                    """
+                        
+                
+                if rect.width < int(4 * self.scaling_factor):
+                    rect.width = int(4 * self.scaling_factor)
+                    rect.x = self._old_x_rect + self._old_width_rect - int(4 * self.scaling_factor)
+                     
+                x_offset =  old_x - rect.x
+
+                                        
+                if rect.x_offset is not None and rect.y_offset is not None:
+                    rect.x_offset = rect.x_offset + x_offset
+                
+                #print x_offset
+                            
+                if self.__border_index == 0:
+                    for sub_image_finder in self._sub_texts_finder:
+                        sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
+            else:
+                old_x = rect.x
+                
+                #rect.width = rect.width + (rect.x - mouse_position.x())
+                #rect.x = mouse_position.x()
+
+                                        
+                rect.x = mouse_position.x()
+                rect.width = self._old_width_rect + (self._old_x_rect - mouse_position.x()) 
+                
+                
+                if rect.x < 1:
+                    rect.x = 1
+                
+                if self.__border_index != 0:
+                    if  mouse_position.x() < (rect.roi_x +  self._main_text.x):
+                        rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
+                        rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        """
+                        if rect.roi_unlimited_left:
+                            rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
+                            rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        else:
+                            rect.x = rect.roi_x +  self._main_text.x + 1
+                            rect.width = self._old_width_rect + (self._old_x_rect - (rect.roi_x +  self._main_text.x)) 
+                            
+                            #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
+                            #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        """    
+                
+                if rect.width < int(4 * self.scaling_factor):
+                    rect.width = int(4 * self.scaling_factor)
+                    rect.x = self._old_x_rect + self._old_width_rect - int(4 * self.scaling_factor)
+                     
+                x_offset =  old_x - rect.x
+
+                                        
+                if rect.x_offset is not None and rect.y_offset is not None:
+                    rect.x_offset = rect.x_offset + x_offset
+                
+                #print x_offset
+                            
+                if self.__border_index == 0:
+                    for sub_image_finder in self._sub_texts_finder:
+                        sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
+                    
+                    
+        
+        elif self.__flag_mouse_is_on_left_border is True:
+        
+            mouse_position = QPoint(QCursor.pos())
+            
+            if self.__border_index == 0:
+
+                old_x = rect.x
+                
+                #rect.width = rect.width + (rect.x - mouse_position.x())
+                #rect.x = mouse_position.x()
+
+                                        
+                rect.x = mouse_position.x()
+                rect.width = self._old_width_rect + (self._old_x_rect - mouse_position.x()) 
+                
+                
+                if rect.x < 1:
+                    rect.x = 1
+            
+                if  mouse_position.x() < (rect.roi_x):
+                    rect.roi_width = rect.roi_width + (rect.roi_x - rect.x)
+                    rect.roi_x = rect.roi_x - (rect.roi_x - rect.x)
+                    """
+                    if rect.roi_unlimited_left:
+                        rect.roi_width = rect.roi_width + (rect.roi_x - rect.x)
+                        rect.roi_x = rect.roi_x - (rect.roi_x - rect.x)
+                    else:
+                        rect.x = rect.roi_x + 1
+                        rect.width = self._old_width_rect + (self._old_x_rect - rect.roi_x) 
+                        
+                        #rect.roi_width = rect.roi_width + (rect.roi_x - rect.x)
+                        #rect.roi_x = rect.roi_x - (rect.roi_x - rect.x)
+                    """
+                        
+                
+                if rect.width < int(4 * self.scaling_factor):
+                    rect.width = int(4 * self.scaling_factor)
+                    rect.x = self._old_x_rect + self._old_width_rect - int(4 * self.scaling_factor)
+                     
+                x_offset =  old_x - rect.x
+
+                                        
+                if rect.x_offset is not None and rect.y_offset is not None:
+                    rect.x_offset = rect.x_offset + x_offset
+                
+                #print x_offset
+                            
+                if self.__border_index == 0:
+                    for sub_image_finder in self._sub_texts_finder:
+                        sub_image_finder.roi_x = sub_image_finder.roi_x + x_offset
+            else:
+                old_x = rect.x
+                
+                #rect.width = rect.width + (rect.x - mouse_position.x())
+                #rect.x = mouse_position.x()
+
+                                        
+                rect.x = mouse_position.x()
+                rect.width = self._old_width_rect + (self._old_x_rect - mouse_position.x()) 
+                
+                
+                if rect.x < 1:
+                    rect.x = 1
+                
+                if self.__border_index != 0:
+                    if  mouse_position.x() < (rect.roi_x +  self._main_text.x):
+                        rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
+                        rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        """
+                        if rect.roi_unlimited_left:
+                            rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
+                            rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        else:
+                            rect.x = rect.roi_x +  self._main_text.x + 1
+                            rect.width = self._old_width_rect + (self._old_x_rect - (rect.roi_x +  self._main_text.x)) 
+                            
+                            #rect.roi_width = rect.roi_width + ((rect.roi_x + self._main_text.x) - rect.x)
+                            #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        """    
                 
                 if rect.width < int(4 * self.scaling_factor):
                     rect.width = int(4 * self.scaling_factor)
@@ -3268,7 +4292,10 @@ class AlyvixTextFinderView(QWidget):
                     rect.y = 1
             
                 if  mouse_position.y() < (rect.roi_y):
-                
+
+                    rect.roi_height = rect.roi_height + (rect.roi_y - rect.y)
+                    rect.roi_y = rect.roi_y - (rect.roi_y - rect.y)
+                    """
                     if rect.roi_unlimited_left:
                         rect.roi_height = rect.roi_height + (rect.roi_y - rect.y)
                         rect.roi_y = rect.roi_y - (rect.roi_y - rect.y)
@@ -3278,7 +4305,7 @@ class AlyvixTextFinderView(QWidget):
                         
                         #rect.roi_height = rect.roi_height + (rect.roi_y - rect.y)
                         #rect.roi_y = rect.roi_y - (rect.roi_y - rect.y)
-                        
+                    """
                 
                 if rect.height < int(4 * self.scaling_factor):
                     rect.height = int(4 * self.scaling_factor)
@@ -3306,7 +4333,9 @@ class AlyvixTextFinderView(QWidget):
                     
                 if self.__border_index != 0:
                     if  mouse_position.y() < (rect.roi_y +  self._main_text.y):
-                
+                        rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
+                        rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        """
                         if rect.roi_unlimited_up:
                             rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
                             rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
@@ -3316,6 +4345,7 @@ class AlyvixTextFinderView(QWidget):
                             
                             #rect.roi_height = rect.roi_height + ((rect.roi_y + self._main_text.y) - rect.y)
                             #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        """
 
                 
                 if rect.height < int(4 * self.scaling_factor):
@@ -3350,6 +4380,10 @@ class AlyvixTextFinderView(QWidget):
 
                 if  rect.y + rect.height > rect.roi_y + rect.roi_height:
                 
+                    rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + rect.roi_height))
+                    #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                
+                    """
                     if rect.roi_unlimited_down:
                         rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + rect.roi_height))
                         #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
@@ -3359,7 +4393,7 @@ class AlyvixTextFinderView(QWidget):
 
                         #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
                         #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
-
+                    """
                 
                 if rect.height < int(4 * self.scaling_factor):
                     rect.height = int(4 * self.scaling_factor)
@@ -3378,7 +4412,9 @@ class AlyvixTextFinderView(QWidget):
                 
                 if self.__border_index != 0:
                     if  rect.y + rect.height > rect.roi_y + self._main_text.y + rect.roi_height:
-                    
+                        rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
+                        #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
+                        """
                         if rect.roi_unlimited_down:
                             rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
                             #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
@@ -3388,7 +4424,7 @@ class AlyvixTextFinderView(QWidget):
 
                             #rect.roi_height = rect.roi_height + ((rect.y + rect.height) - (rect.roi_y + self._main_text.y + rect.roi_height))
                             #rect.roi_y = rect.roi_y - ((rect.roi_y + self._main_text.y) - rect.y)
-
+                        """
                 
                 if rect.height < int(4 * self.scaling_factor):
                     rect.height = int(4 * self.scaling_factor)
@@ -3411,7 +4447,11 @@ class AlyvixTextFinderView(QWidget):
                 
 
                 if  rect.x + rect.width > rect.roi_x + rect.roi_width:
-                
+
+                    rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + rect.roi_width))
+                    #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+
+                    """
                     if rect.roi_unlimited_right:
                         rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + rect.roi_width))
                         #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
@@ -3421,7 +4461,7 @@ class AlyvixTextFinderView(QWidget):
 
                         #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
                         #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
-
+                    """
 
                 
                 if rect.width < int(4 * self.scaling_factor):
@@ -3440,7 +4480,9 @@ class AlyvixTextFinderView(QWidget):
                 
                 if self.__border_index != 0:
                     if  rect.x + rect.width > rect.roi_x + self._main_text.x + rect.roi_width:
-                    
+                        rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
+                        #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
+                        """
                         if rect.roi_unlimited_right:
                             rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
                             #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
@@ -3450,7 +4492,7 @@ class AlyvixTextFinderView(QWidget):
 
                             #rect.roi_width = rect.roi_width + ((rect.x + rect.width) - (rect.roi_x + self._main_text.x + rect.roi_width))
                             #rect.roi_x = rect.roi_x - ((rect.roi_x + self._main_text.x) - rect.x)
-
+                        """
 
                 
                 if rect.width < int(4 * self.scaling_factor):
@@ -4134,6 +5176,32 @@ class AlyvixTextFinderView(QWidget):
 
             """
             
+                                
+            hw_factor = 0
+                                
+            if text_finder.height < text_finder.width:
+                hw_factor = text_finder.height
+            else:
+                hw_factor = text_finder.width
+                
+                
+            sc_factor = 0
+                                
+            if self._bg_pixmap.height() < self._bg_pixmap.width():
+                sc_factor = self._bg_pixmap.height()
+            else:
+                sc_factor = self._bg_pixmap.width()
+                
+            percentage_screen_w = int(0.0125 * sc_factor)
+            percentage_screen_h = int(0.0125 * sc_factor)
+            percentage_object_w = int(0.2 * hw_factor) #text_finder.width)
+            percentage_object_h = int(0.2 * hw_factor) #text_finder.height)
+            
+            roi_height = percentage_screen_h + percentage_object_h + text_finder.height
+            
+            roi_width = percentage_screen_w + percentage_object_w + text_finder.width
+            
+            """
             hw_factor = 0
             
             if text_finder.height < text_finder.width:
@@ -4144,7 +5212,7 @@ class AlyvixTextFinderView(QWidget):
             roi_height = int(0.95 * hw_factor) + text_finder.height
 
             roi_width = int(0.95 * hw_factor) + text_finder.width
-
+            """
 
             roi_width_half = int((roi_width - text_finder.width)/2)
 
@@ -4220,6 +5288,32 @@ class AlyvixTextFinderView(QWidget):
             """
             
             hw_factor = 0
+                                
+            if text_finder.height < text_finder.width:
+                hw_factor = text_finder.height
+            else:
+                hw_factor = text_finder.width
+                
+                
+            sc_factor = 0
+                                
+            if self._bg_pixmap.height() < self._bg_pixmap.width():
+                sc_factor = self._bg_pixmap.height()
+            else:
+                sc_factor = self._bg_pixmap.width()
+                
+            percentage_screen_w = int(0.0125 * sc_factor)
+            percentage_screen_h = int(0.0125 * sc_factor)
+            percentage_object_w = int(0.2 * hw_factor) #text_finder.width)
+            percentage_object_h = int(0.2 * hw_factor) #text_finder.height)
+            
+            roi_height = percentage_screen_h + percentage_object_h + text_finder.height
+            
+            roi_width = percentage_screen_w + percentage_object_w + text_finder.width
+            
+            """
+            
+            hw_factor = 0
             
             if text_finder.height < text_finder.width:
                 hw_factor = text_finder.height
@@ -4230,6 +5324,7 @@ class AlyvixTextFinderView(QWidget):
             roi_height = int(0.95 * hw_factor) + text_finder.height
 
             roi_width = int(0.95 * hw_factor) + text_finder.width
+            """
 
 
             roi_width_half = int((roi_width - text_finder.width)/2)
@@ -8497,8 +9592,8 @@ class MainTextForGui:
         self.timeout = 20
         self.timeout_exception = True
         self.sendkeys = ""
-        self.sendkeys_delay = 15
-        self.sendkeys_duration = 15
+        self.sendkeys_delay = 30
+        self.sendkeys_duration = 30
         self.mouse_or_key_is_set = False
         self.sendkeys_quotes = True
         self.text_encrypted = False
@@ -8551,8 +9646,8 @@ class SubTextForGui:
         self.click_delay = 10
         self.doubleclick = False
         self.sendkeys = ""
-        self.sendkeys_delay = 15
-        self.sendkeys_duration = 15
+        self.sendkeys_delay = 30
+        self.sendkeys_duration = 30
         self.sendkeys_quotes = True
         self.text_encrypted = False
         
@@ -9153,9 +10248,11 @@ class AlyvixTextFinderPropertiesView(QDialog, Ui_Form):
         self.roi_x_spinbox.installEventFilter(self)
         self.roi_width_spinbox.installEventFilter(self)
         
-        if self.parent.last_view_index != 0:
+        if self.parent.last_view_index != 0 and len(self.parent._sub_texts_finder) > 0:
             
             self.listWidget.setCurrentRow(self.parent.last_view_index)
+        else:
+            self.parent.last_view_index = 0
 
     def moveEvent(self, event):
         self.parent._last_pos = (self.frameGeometry().x(), self.frameGeometry().y())
