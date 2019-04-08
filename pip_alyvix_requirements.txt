@@ -1,0 +1,7 @@
+PYTHON 3.6
+Flask 1.0.2
+Pillow 5.4.1
+cefpython3 66.0
+numpy 1.16.1
+opencv-python 4.0.0.21
+pywin32 224
