@@ -1,0 +1,590 @@
+<!DOCTYPE html> 
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="static/css/draw.css">
+  <script src="static/js/jquery-3.3.1.min.js"></script>
+    <script src="static/js/rect.js"></script>
+    	<link rel="stylesheet" type="text/css" href="static/codebase/fonts/font_roboto/roboto.css"/>
+	<link rel="stylesheet" type="text/css" href="static/codebase/dhtmlx.css"/>
+	<script src="static/codebase/dhtmlx.js"></script>
+  <script>
+  
+        var menu_is_open = false;
+  		var dhxWins;
+		function doOnLoad() {
+			dhxWins = new dhtmlXWindows();
+			//dhxWins.attachViewportTo("winVP");
+		}
+		
+		var idPrefix = 1;
+		function createWindow() {
+			var p = 0;
+			dhxWins.forEachWindow(function(){p++;});
+			if (p>=1) {
+				alert("Too many windows");
+				return;
+			}
+			var id = "userWin"+(idPrefix++);
+			//
+			var w = 320;
+			var h = 700;
+			var x = parseInt( ({{img_w}}/2) - (w/2) );
+			var y = 150;
+			//
+			dhxWins.createWindow(id, x, y, w, h);
+            dhxWins.window(id).attachEvent('onClose', closeWinEvent);
+            
+			dhxWins.window(id).setText("Hello!!");
+            dhxWins.window(id).appendObject("thumbnailsDiv");
+			// dhxWins.window(id).keepInViewport(true);
+			//
+		}
+        
+        function closeWinEvent(win)
+        {
+            //alert("unload");
+            win.detachObject();
+            return true;
+        }
+		
+		function doOnUnload() {
+			if (dhxWins != null && dhxWins.unload != null) {
+                dhxWins.forEachWindow(function(window){window.detachObject(true);});
+				dhxWins.unload();
+				dhxWins = null;
+			}
+		}
+        
+        function drawOnThumbnails(canvas_id, group, x, y, w, h, image_w, image_h)
+        {
+            var background_color = "";
+            var border_color = "";
+            
+            if (group == 0)
+            {
+                background_color = "#ff00ff";
+                border_color = "#ff0000";
+            }
+            else if (group == 1)
+            {
+                background_color = "#0072ff";
+                border_color = "#0000ff";
+            }
+            else if (group == 2)
+            {
+                background_color = "#00bc00";
+                border_color = "#009500";
+            }
+            
+            var canvas_thumbnail = document.getElementById(canvas_id);
+            var ctx_thumbnail = canvas_thumbnail.getContext('2d');
+            
+            canvas_thumbnail.setAttribute('width', image_w*dpi);
+            canvas_thumbnail.setAttribute('height', image_h*dpi);
+            
+            ctx_thumbnail.scale(dpi, dpi);
+            ctx_thumbnail.translate(0.5, 0.5);
+            ctx_thumbnail.lineWidth = 1;
+            ctx_thumbnail.strokeStyle = border_color;
+            ctx_thumbnail.strokeRect(x, y, w, h);
+
+            
+        }
+        
+        function createTreeTable(dat){
+        
+            $("#thumbnailsDiv").empty();
+            
+            var screen_dict = dat['screen'];
+            
+            var html_string = '';
+            
+
+            var image = screen_dict['image'];
+            var image_w = screen_dict['image_w'];
+            var image_h = screen_dict['image_h'];
+
+            var background_color_screen = "#808080";
+            var border_color_screen = "#808080";
+            
+            html_string += "<table><tr><td>";
+            
+            html_string += "<div class='tableDiv' style=\"width:" +  parseInt(15 + image_w) + "px; height: " + parseInt(image_h) + "px; font-size:15px; font-weight: bold; border-color: " + border_color_screen + "; border-style: solid; border-width: 1px;\">" ;
+            html_string += "<table style=\"width:" + parseInt(15 + image_w) + "px; height:"+ image_h +"px; border:none;\" cellspacing=\"0\" cellpadding=\"0\">" ;
+            html_string += "<tr>" ;
+            html_string += "<td style=\"width:20px; color: white; background-color: " + background_color_screen + "; padding: 0; margin: 0; font-size:12px; vertical-align: middle; text-align: center;\">S</td>" ;
+            html_string += "<td style=\"width:" +parseInt(image_w)+ "px; padding: 0; margin: 0;font-size:0;\"><canvas id=\"thumbnails_canvas_" + parseInt(i) + "\" style=\"background-image: url('data:image/png;base64," + image + "'); width:" + parseInt(image_w) + "px; height:"+ parseInt(image_h) +"px;\"></canvas></td>" ;
+            html_string += "</tr>" ;
+            html_string += "</table>"; 
+            html_string += "</div>" ;
+            //html_string += "</br>" ;
+            html_string += "</td>";
+            html_string += "<td></td>";
+            html_string += "<td></td>";
+            html_string += "</tr></table>";
+            $("#thumbnailsDiv").append(html_string);
+        
+            var thumbnails_array = dat['thumbnails'];
+        
+            for (var i = 0; i < thumbnails_array.length; i++){
+            
+                var thumbnail = thumbnails_array[i];
+                
+                var image = thumbnail['image'];
+                var image_w = thumbnail['image_w'];
+                var image_h = thumbnail['image_h'];
+                var x = thumbnail['x'];
+                var y = thumbnail['y'];
+                var w = thumbnail['w'];
+                var h = thumbnail['h'];
+                var group = thumbnail['group'];
+                var is_main = thumbnail['is_main'];
+                
+                var background_color = "";
+                var border_color = "";
+                
+                if (group == 0)
+                {
+                    background_color = "#ff00ff";
+                    border_color = "#ff0000";
+                }
+                else if (group == 1)
+                {
+                    background_color = "#0072ff";
+                    border_color = "#0000ff";
+                }
+                else if (group == 2)
+                {
+                    background_color = "#00bc00";
+                    border_color = "#009500";
+                }
+                
+                html_string = '';
+                
+                
+                html_string += "<div id='thumbnail_div_" + parseInt(i) + "' class='thumbnail-div group-" + parseInt(group) + "' style=\"width:" +  parseInt(15 + image_w) + "px; height: " + parseInt(image_h) + "px; font-size:15px; font-weight: bold; border-color: " + border_color + "; border-style: solid; border-width: 1px;\">" ;
+                html_string += "<table style=\"width:" + parseInt(15 + image_w) + "px; height:"+ image_h +"px; border:none;\" cellspacing=\"0\" cellpadding=\"0\">" ;
+                html_string += "<tr>" ;
+                html_string += "<td id='thumbnail_td_bg_" + parseInt(i) + "' style=\"width:20px; color: white; background-color: " + background_color + "; padding: 0; margin: 0; font-size:12px; vertical-align: middle; text-align: center;\">I</td>" ;
+                html_string += "<td id='thumbnail_td_canv_" + parseInt(i) + "' style=\"width:" +parseInt(image_w)+ "px; padding: 0; margin: 0;font-size:0;\"><canvas id=\"thumbnail_canvas_" + parseInt(i) + "\" style=\"background-image: url('data:image/png;base64," + image + "'); width:" + parseInt(image_w) + "px; height:"+ parseInt(image_h) +"px;\"></canvas></td>" ;
+                html_string += "</tr>" ;
+                html_string += "</table>"; 
+                html_string += "</div>" ;
+                html_string += "</br>" ;
+                
+                $("#thumbnailsDiv").append(html_string);
+                $("#thumbnailsDiv").append("<script>drawOnThumbnails('thumbnails_canvas_" + parseInt(i) + "' , " + parseInt(group) + ", " + parseInt(x) + ", " + parseInt(y) + ", " + parseInt(w) + ", " + parseInt(h) + ", " + parseInt(image_w) + ", " + parseInt(image_h) + ");");
+            
+            }
+            
+            createWindow();
+        }
+        
+        //edge bug: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/7628560/
+
+        class Box {
+
+            constructor(x, y, w, h, roi_x, roi_y, roi_w, roi_h) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+                this.roi_x = roi_x;
+                this.roi_y = roi_y;
+                this.roi_w = roi_w;
+                this.roi_h = roi_h;
+                this.roi_unlimited_left = false;
+                this.roi_unlimited_up = false;
+                this.roi_unlimited_right = false;
+                this.roi_unlimited_down = false;
+                this.group = 0;
+                this.is_main = false;
+            }
+
+        }
+        
+        var canvas = null;
+        var ctx = null;
+        var dpi = null;
+        
+        var screen_w = 0;
+        var screen_h = 0;
+        
+        var boxes = []
+        
+        var id_counter=0;
+
+        var rectManager = new RectManager();
+        
+        var background_base64_string = "{{base64url}}";
+        
+        {% for o in autocontoured_rects %}
+        rectManager.autocontoured_rects.push(new Box({{o[0]}}, {{o[1]}}, {{o[2]}}, {{o[3]}}, 0, 0, 0, 0));
+        {% endfor %}
+        
+       
+  
+        $(window).on("load",function() {
+        
+            
+            //var box1 = new Box(id=1, main=0, x=365, y=413, w=356, h=197, 340,370,436,277);
+            //var box2 = new Box(id=2, main=0, x=1011, y=359, w=162, h=295, 970,319,242,375);
+            
+            //boxes.push(box1);
+            //boxes.push(box2);
+            
+            rectManager.set_rectangles(boxes);
+        
+            //alert("sdsd");
+            //get the canvas, canvas context, and dpi
+            canvas = document.getElementById('myCanvas');
+            ctx = canvas.getContext('2d');
+            dpi = parseInt(window.devicePixelRatio || 1);
+            //dpi = 1;
+
+            //alert("sdsd");
+            
+            //var element = document.getElementsByTagName("myCanvas")[0];
+            //onResize( element, function(){ alert("Woo!"); } );
+            
+                      
+            $("#myCanvas").mousemove(function(e){handleMouseMove(e);});
+            
+            $("#myCanvas").mousedown(function(e){rectManager.mousedown(e);});
+            
+            $("#myCanvas").mouseup(function(e){rectManager.mouseup(e);});
+            
+            $("body").keydown (function(e){rectManager.keydown(e);});
+            
+            //rectManager.openwindow_
+            
+            $("body").keyup(function(e){rectManager.keyup(e);});
+            
+            $(window).keydown(function(event) 
+            {
+                if((event.keyCode == 107 && event.ctrlKey == true) || (event.keyCode == 109 && event.ctrlKey == true))
+                {
+                    event.preventDefault(); 
+                }
+
+                $(window).bind('mousewheel DOMMouseScroll', function(event) 
+                {
+                    if(event.ctrlKey == true)
+                    {
+                        event.preventDefault(); 
+                    }
+                });
+            });
+            
+            //var imageSrc =  $( "body" ).css('background-image').replace(/url\((['"])?(.*?)\1\)/gi, '$2').split(',')[0];
+            $( "body" ).css("background-image", "url('" + background_base64_string + "')");
+         
+            screen_h = {{img_h}};
+            screen_w = {{img_w}};
+
+            console.log('width =' + screen_w + ', height = ' + screen_h)    ;
+                
+            $("body").css({ "background-size": screen_w.toString() + "px " + screen_h.toString() + "px"});  
+            draw();
+        });
+        
+        
+        function fix_dpi() {
+            if (ctx==null) return;
+            //create a style object that returns width and height
+              let style = {
+                height() {
+                  return +getComputedStyle(canvas).getPropertyValue('height').slice(0,-2);
+                },
+                width() {
+                  return +getComputedStyle(canvas).getPropertyValue('width').slice(0,-2);
+                }
+              }
+              
+              //alert(dpi);
+            //set the correct attributes for a crystal clear image!
+              canvas.setAttribute('width', style.width()*dpi);
+              canvas.setAttribute('height', style.height()*dpi);
+              ctx.scale(dpi, dpi);
+              //alert(dpi)
+              //canvas.style.background = "red";  // a valid CSS colour.
+              
+
+            }
+            
+            
+        function draw(e=null) {
+            if (ctx==null) return; 
+
+            //call the dpi fix every time 
+            //canvas is redrawn
+            fix_dpi();
+            
+            //canvas = document.getElementById("myCanvas");
+            //ctx = canvas.getContext("2d");
+
+            //ctx.clearRect(0, 0, +getComputedStyle(canvas).getPropertyValue('width').slice(0,-2), +getComputedStyle(canvas).getPropertyValue('height').slice(0,-2));
+            ctx.translate(0.5, 0.5); //to eliminate blur effect
+
+            ctx.lineWidth = 1;
+
+            //draw stuff!
+            
+            //ctx.strokeStyle = '#ff0000';
+            //ctx.fillStyle = '#ff00ff';
+            
+            ctx.strokeStyle = '#0000ff';
+            ctx.fillStyle = '#00aaff';
+            
+            if(rectManager.show_autocontoured_rects == true)
+            {
+                var rects = rectManager.get_rectangles();
+                var autocontoured_rects = rectManager.get_autocontoured_rects();
+            
+                for(i=0; i<autocontoured_rects.length; i++)
+                {
+                    var autocontoured_box = autocontoured_rects[i];
+                    
+                    /*if(rectManager.group == 0)
+                    {
+                        ctx.strokeStyle = '#ff0000';
+                        ctx.fillStyle = '#ff00ff'; 
+                    }
+                    else if (rectManager.group == 1)
+                    {
+                        ctx.strokeStyle = '#0000ff';
+                        ctx.fillStyle = '#0072ff';
+                    }
+                    else if (rectManager.group == 2)
+                    {
+                        ctx.strokeStyle = '#009500';
+                        ctx.fillStyle = '#00bc00';
+                    }
+                    */
+                   
+                    var match = false;
+
+                    for(j=0; j<rects.length; j++)
+                    {
+
+                        var box = rects[j];
+                        if(box.x == autocontoured_box.x && box.y == autocontoured_box.y &&
+                            box.w == autocontoured_box.w && box.h == autocontoured_box.h)
+                            {
+                                if(box.group == 0)
+                                {
+                                    ctx.strokeStyle = '#ff0000';
+                                    ctx.fillStyle = '#ff00ff'; 
+                                } 
+                                else if (box.group == 1)
+                                {
+                                    ctx.strokeStyle = '#0000ff';
+                                    ctx.fillStyle = '#0072ff';
+                                }
+                                else if (box.group == 2)
+                                {
+                                    ctx.strokeStyle = '#009500';
+                                    ctx.fillStyle = '#00bc00';
+
+                                } 
+                                
+                                rectManager.draw_autocontoured_rect(ctx, box);
+                                match = true; 
+                            }
+                        
+                    }  
+                     
+                    if (match == false)
+                    {
+
+                        ctx.strokeStyle = '#656193';
+                        ctx.globalAlpha=0.3;
+                        ctx.fillStyle="#515285"; 
+                        ctx.fillRect(autocontoured_box.x, autocontoured_box.y,
+                                    autocontoured_box.w, autocontoured_box.h);
+                                    
+                        ctx.globalAlpha=1;
+                                    
+                        ctx.strokeRect(autocontoured_box.x, autocontoured_box.y,
+                                      autocontoured_box.w, autocontoured_box.h);
+                                            
+                    }
+
+                    
+                    ctx.fillStyle = '#AC60F6';
+                }
+            }
+            else
+            {
+                        
+                var rectangles = rectManager.get_rectangles();
+            
+                for(i=0; i<rectangles.length; i++)  
+                {
+                    var box = rectangles[i];
+                    
+                    if(box.group == 0)
+                    {
+                        ctx.strokeStyle = '#ff0000';
+                        
+                        if (box.is_main) ctx.fillStyle = '#ff00ff';
+                        else ctx.fillStyle = '#ff00ff'; //'#AC60F6';
+                    }
+                    else if (box.group == 1)
+                    {
+                        ctx.strokeStyle = '#0000ff';
+                        if (box.is_main) ctx.fillStyle = '#0072ff';
+                        else ctx.fillStyle = '#0072ff'; //'#50a5d6';
+                    }
+                    else if (box.group == 2)
+                    {
+                        ctx.strokeStyle = '#009500';
+                        if (box.is_main) ctx.fillStyle = '#00bc00';
+                        else ctx.fillStyle = '#00bc00'; //'#4ca737';
+                    }
+                    
+                    rectManager.draw_rect(ctx, box);
+                    
+                    
+                    ctx.fillStyle = '#AC60F6';
+                }
+                
+                if(e != null && rectManager.capturing_rect == true)
+                {
+                            
+                    var mouseX=parseInt(e.clientX);
+                    var mouseY=parseInt(e.clientY);
+                    
+                    ctx.strokeStyle = '#00ff00';
+                    
+
+                                    
+                    ctx.globalAlpha=0.3;
+                    ctx.fillStyle="#20b2aa"; 
+                    ctx.fillRect(rectManager.click_position_x, rectManager.click_position_y,
+                                    mouseX - rectManager.click_position_x, mouseY - rectManager.click_position_y);
+                                    
+                    ctx.globalAlpha=1;
+                                    
+                    ctx.strokeRect(rectManager.click_position_x, rectManager.click_position_y,
+                                    mouseX - rectManager.click_position_x, mouseY - rectManager.click_position_y);
+                }
+                    
+                
+                if(e != null && rectManager.border_index == null && rectManager.move_index == null &&
+                    rectManager.mouse_is_on_border == null && rectManager.mouse_is_inside_rectangle == null)
+                {
+                
+                    mouseX=parseInt(e.clientX);
+                    mouseY=parseInt(e.clientY);
+                    
+                    //ctx.fillStyle = '#AC60F6';
+                    
+                    if (rectManager.group == 0)
+                    {
+                        ctx.strokeStyle = '#ff00ff';
+                        ctx.globalAlpha=0.7;
+                    }
+                    
+                    if (rectManager.group == 1)
+                    {
+                        ctx.strokeStyle = '#0072ff';
+                        ctx.globalAlpha=0.7;
+                    }
+                    
+                    if (rectManager.group == 2)
+                    {
+                        ctx.strokeStyle = '#00bc00';
+                        ctx.globalAlpha=0.7;
+                    }
+                    
+
+                    
+
+                    //draw line
+                    ctx.beginPath();
+                        //ctx.lineWidth = 0.5;
+                        //vertical top
+                        //ctx.lineDashOffset = 2;
+                        
+                                            
+                        //ctx.moveTo(0, mouseY -5);
+                        //ctx.lineTo(+getComputedStyle(canvas).getPropertyValue('width').slice(0,-2) - 900, mouseY -5);
+                        //ctx.stroke();
+                        
+                        //ctx.setLineDash([0.5,1.5]); //larghezza dot, larghezza spazio
+                        
+                        ctx.moveTo(mouseX, 0);
+                        ctx.lineTo(mouseX, +getComputedStyle(canvas).getPropertyValue('height').slice(0,-2));
+
+                        ctx.moveTo(0, mouseY);
+                        ctx.lineTo(+getComputedStyle(canvas).getPropertyValue('width').slice(0,-2), mouseY);
+
+
+
+                        //ctx.strokeStyle = '#000000';
+                        ctx.stroke();
+                    
+                    ctx.closePath();
+                    //ctx.translate(-0.5, -0.5);
+                    
+                }
+            }
+            
+        }
+            
+        $(window).resize(function(){
+            //$('#canvas').height($('#canvas').width() / 2.031);
+            
+           /*             var imageSrc = $("#myCanvas").css('background-image').replace(/url\((['"])?(.*?)\1\)/gi, '$2').split(',')[0];
+                        
+            //alert(imageSrc);
+
+            // I just broke it up on newlines for readability        
+
+            var image = new Image();
+            image.src = imageSrc;
+
+            var width = image.width/dpi,
+                height = image.height/dpi;
+
+            //alert('width =' + width + ', height = ' + height)    
+
+
+                
+                $("#myCanvas").css({ cursor: "crosshair" });
+                $("#myCanvas").css({ "background-size": width.toString() + "px " + height.toString() + "px"});  */
+                
+            draw();
+        });
+        
+        
+        function handleMouseMove(e){
+            if(canvas==null) return;
+            // tell the browser we're handling this event
+            //e.preventDefault();
+            //e.stopPropagation();
+            draw(e);
+            rectManager.mousemove(e);
+
+        }
+
+
+        
+        
+    </script>
+</head>
+<body onload="doOnLoad();" onunload="doOnUnload();">
+    <canvas id='myCanvas' oncontextmenu="return false;" tabindex='1'></canvas>
+    <div id='myDiv'></div>
+    
+    <div id="objId" style="display: none;">
+		<div style="margin: 5px 8px;">
+			Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		</div>
+	</div>
+    <div id="thumbnailsDiv" style="display: none; margin: 5px 8px;">">
+
+	</div>
+</body>
+</html>

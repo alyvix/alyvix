@@ -22,10 +22,10 @@ from sys import platform as _platform
 
 if _platform == "linux" or _platform == "linux2":
     #linux...
-    from linux import ScreenManager
+    from .linux import ScreenManager
 elif _platform == "darwin":
     #mac...
-    from mac import ScreenManager
+    from .mac import ScreenManager
 elif _platform == "win32":
     #window...
-    from windows import ScreenManager
+    from .windows import ScreenManager
