@@ -44,6 +44,11 @@
         
         var old_win = 0;
         
+        var old_win_h = 0;
+        var old_win_w = 0;
+        var old_win_x = 0;
+        var old_win_y = 0;
+        
         var sorting_rows_dict = [];
         
 		function doOnLoad() {
@@ -178,6 +183,13 @@
 
 			var x = parseInt( ({{img_w}}/2) - (w/2) );
 			var y = 70;
+            
+            if (old_win_h != 0) h = old_win_h;
+            if (old_win_w != 0) w = old_win_w;
+            if (old_win_x != 0) x = old_win_x;            
+            if (old_win_y != 0) y = old_win_y;
+
+            
 			//
 			dhxWins.createWindow(id, x, y, w, h);
             dhxWins.window(id).attachEvent('onClose', closeWinEvent);
@@ -218,7 +230,7 @@
         function adjust_win_size(win = null){
         
             if (win==null) win = old_win;
-             var dimension = win.getDimension();
+            var dimension = win.getDimension();
             
             //$("#tt_window_table").height(dimension[1]);
             
@@ -248,6 +260,7 @@
 
             
             old_win_h = dimension[1];
+            old_win_w = dimension[0];
             
                           
             $("#tt_window").height(dimension[1]-50);
@@ -260,6 +273,15 @@
         
         function closeWinEvent(win)
         {
+            var dimension = win.getDimension();
+            var pos = win.getPosition();
+        
+            old_win_h = dimension[1];
+            old_win_w = dimension[0];
+            
+            old_win_x = pos[0];
+            old_win_y = pos[1];
+        
             ttWIndow_isOpen = false;
             //$("#myCanvas").unbind("mousedown");
             $("#myCanvas").mousemove(function(e){handleMouseMove(e);});
@@ -3361,12 +3383,33 @@
                     var mouseX=parseInt(e.clientX);
                     var mouseY=parseInt(e.clientY);
                     
-                    ctx.strokeStyle = '#00ff00';
+                    //ctx.strokeStyle = '#00ff00';
                     
 
                                     
                     ctx.globalAlpha=0.3;
-                    ctx.fillStyle="#20b2aa"; 
+                    //ctx.fillStyle="#20b2aa"; 
+                    
+                    
+                    if(rectManager.group == 0)
+                    {
+                        ctx.strokeStyle = '#ff0000';
+                        ctx.fillStyle = '#ff00ff';
+                    }
+                    else if (rectManager.group == 1)
+                    {
+                        ctx.strokeStyle = '#009500';
+                        ctx.fillStyle = '#00bc00';
+                    }
+                    else if (rectManager.group == 2)
+                    {
+
+                        ctx.strokeStyle = '#0000ff';
+                        ctx.fillStyle = '#0072ff';
+                    }
+                    
+                    
+                    
                     ctx.fillRect(rectManager.click_position_x, rectManager.click_position_y,
                                     mouseX - rectManager.click_position_x, mouseY - rectManager.click_position_y);
                                     

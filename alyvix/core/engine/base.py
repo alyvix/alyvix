@@ -17,3 +17,9 @@
 # Developer: Alan Pipitone (Violet Atom) - http://www.violetatom.com/
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
+
+
+class BaseFinder(object):
+
+    def __init__(self):
+        self.json = None

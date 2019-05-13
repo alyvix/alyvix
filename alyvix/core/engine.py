@@ -17,3 +17,16 @@
 # Developer: Alan Pipitone (Violet Atom) - http://www.violetatom.com/
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
+
+from alyvix.tools.screen import ScreenManager
+
+
+class EngineManager:
+
+    def __init__(self):
+
+        self.screen_manager = ScreenManager()
+
+        self.screen_w, self.screen_h = self.screen_manager.get_resolution()
+        self.scaling_factor = self.screen_manager.get_scaling_factor()
+        pass

@@ -195,6 +195,18 @@ class RectManager{
             }
         }
         
+        if (e.keyCode === 27)
+        {
+            if (boxes.length == 0)
+            {
+                $.ajax({
+                    url: "/cancel_event",
+                    type: "GET"
+                });
+                return;
+            }
+        }
+        
         if(e.key == "o" && this.key_ctrl_pressed == true){
         
             e.preventDefault();
@@ -229,6 +241,16 @@ class RectManager{
             boxes = boxes.concat(boxes_g0, boxes_g1, boxes_g2);
             
             this.rectangles = boxes;
+            
+            if (boxes.length == 0)
+            {
+                $.ajax({
+                    url: "/cancel_event",
+                    type: "GET"
+                });
+                return;
+            }
+            
      
             
             var jsonData = JSON.stringify({box_list:boxes, background: background_base64_string});
@@ -303,6 +325,7 @@ class RectManager{
     
     mousedown(e) // 1 for left, 2 for middle, 3 for right
     {
+        this.mousemove(this.last_mouse_event, boxes); //draw(this.last_mouse_event);
         
         if(e.which==1){
             
@@ -372,7 +395,7 @@ class RectManager{
 
             this.mouse_rbutton_pressed = true;
             
-            if(this.mouse_is_on_border != null)
+            if(this.mouse_is_on_border != null && this.show_autocontoured_rects == false)
             {
                 var rect = boxes[this.mouse_is_on_border];
                 
@@ -428,7 +451,7 @@ class RectManager{
                 boxes.splice(inside_index, 1);
 
             }
-            else{
+            else if (this.key_ctrl_pressed == false){
                                 
                 this.add_rect_autocontoured(this.last_mouse_event);
             }
@@ -486,7 +509,7 @@ class RectManager{
         this.mouse_is_on_border = null;
         this.mouse_is_inside_rectangle = null;
 
-        if (this.capturing_rect == false && this.drag_border == false && this.move_index == null && this.show_autocontoured_rects == false && this.intent["type"] != "set_interaction_point"){
+        if (this.capturing_rect == false && this.drag_border == false && this.move_index == null /*&& this.show_autocontoured_rects == false*/ && this.intent["type"] != "set_interaction_point"){
             for(i=0; i<this.rectangles.length; i++)
             {
                 var rect = this.rectangles[i];
@@ -496,7 +519,7 @@ class RectManager{
                     this.mouse_is_inside_rectangle = i;
                     $("#myCanvas").css({ cursor: "move" });  
                 }
-                else if (this.is_mouse_on_left_border_roi(e, rect) && this.is_mouse_on_top_border_roi(e, rect) && rect.is_main == false)
+                else if (this.is_mouse_on_left_border_roi(e, rect) && this.is_mouse_on_top_border_roi(e, rect) && rect.is_main == false && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_left_up_corner_roi = true;
 
@@ -525,7 +548,7 @@ class RectManager{
                     $("#myCanvas").css({ cursor: "nwse-resize" }); 
 
                 }
-                else if (this.is_mouse_on_right_border_roi(e, rect) && this.is_mouse_on_top_border_roi(e, rect) && rect.is_main == false)
+                else if (this.is_mouse_on_right_border_roi(e, rect) && this.is_mouse_on_top_border_roi(e, rect) && rect.is_main == false && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_right_up_corner_roi = true;
                     
@@ -554,7 +577,7 @@ class RectManager{
                     //mouse_on_border = True
                     $("#myCanvas").css({ cursor: "nesw-resize" }); 
                 }
-                else if (this.is_mouse_on_right_border_roi(e, rect) && this.is_mouse_on_bottom_border_roi(e, rect) && rect.is_main == false)
+                else if (this.is_mouse_on_right_border_roi(e, rect) && this.is_mouse_on_bottom_border_roi(e, rect) && rect.is_main == false && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_right_bottom_corner_roi = true;
                     
@@ -584,7 +607,7 @@ class RectManager{
                     $("#myCanvas").css({ cursor: "nwse-resize" }); 
                     
                 }
-                else if (this.is_mouse_on_left_border_roi(e, rect) && this.is_mouse_on_bottom_border_roi(e, rect) && rect.is_main == false)
+                else if (this.is_mouse_on_left_border_roi(e, rect) && this.is_mouse_on_bottom_border_roi(e, rect) && rect.is_main == false && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_left_bottom_corner_roi = true;
                     
@@ -612,7 +635,7 @@ class RectManager{
                     $("#myCanvas").css({ cursor: "nesw-resize" }); 
                 }
 
-                else if (this.is_mouse_on_left_border_roi(e, rect) && rect.is_main == false)
+                else if (this.is_mouse_on_left_border_roi(e, rect) && rect.is_main == false && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_left_border_roi = true;
                     
@@ -641,7 +664,7 @@ class RectManager{
                    
                 }
                                     
-                else if (this.is_mouse_on_top_border_roi(e, rect) && rect.is_main == false)
+                else if (this.is_mouse_on_top_border_roi(e, rect) && rect.is_main == false && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_top_border_roi = true;
                     this.mouse_is_on_left_border = false;
@@ -668,7 +691,7 @@ class RectManager{
                     //mouse_on_border = True
                     $("#myCanvas").css({ cursor: "ns-resize" }); 
                 }
-                else if (this.is_mouse_on_right_border_roi(e, rect) && rect.is_main == false)
+                else if (this.is_mouse_on_right_border_roi(e, rect) && rect.is_main == false && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_right_border_roi = true;
                     
@@ -696,7 +719,7 @@ class RectManager{
                     //mouse_on_border = True
                      $("#myCanvas").css({ cursor: "ew-resize" }); 
                 }
-                else if (this.is_mouse_on_bottom_border_roi(e, rect) && rect.is_main == false)
+                else if (this.is_mouse_on_bottom_border_roi(e, rect) && rect.is_main == false && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_bottom_border_roi = true;
                     
@@ -723,7 +746,7 @@ class RectManager{
                     //mouse_on_border = True
                     $("#myCanvas").css({ cursor: "ns-resize" }); 
                 }
-                else if (this.is_mouse_on_left_border(e, rect) && this.is_mouse_on_top_border(e, rect)){
+                else if (this.is_mouse_on_left_border(e, rect) && this.is_mouse_on_top_border(e, rect) && this.show_autocontoured_rects == false){
                     this.mouse_is_on_left_up_corner = true;
                     
                     this.mouse_is_on_left_border = false;
@@ -751,7 +774,7 @@ class RectManager{
                     
                 }
                 
-                else if (this.is_mouse_on_right_border(e, rect) && this.is_mouse_on_top_border(e, rect))
+                else if (this.is_mouse_on_right_border(e, rect) && this.is_mouse_on_top_border(e, rect) && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_right_up_corner = true;
                     
@@ -781,7 +804,7 @@ class RectManager{
                     
                 }
                 
-                else if (this.is_mouse_on_right_border(e, rect) && this.is_mouse_on_bottom_border(e, rect))
+                else if (this.is_mouse_on_right_border(e, rect) && this.is_mouse_on_bottom_border(e, rect) && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_right_bottom_corner = true;
                     this.mouse_is_on_left_border = false;
@@ -808,7 +831,7 @@ class RectManager{
                     $("#myCanvas").css({ cursor: "nwse-resize" }); 
                 }
 
-                else if (this.is_mouse_on_left_border(e, rect) && this.is_mouse_on_bottom_border(e, rect))
+                else if (this.is_mouse_on_left_border(e, rect) && this.is_mouse_on_bottom_border(e, rect) && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_left_bottom_corner = true;
                     
@@ -836,7 +859,7 @@ class RectManager{
                     $("#myCanvas").css({ cursor: "nesw-resize" });
                 }
 
-                else if (this.is_mouse_on_left_border(e, rect))
+                else if (this.is_mouse_on_left_border(e, rect) && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_left_border = true;
                     
@@ -864,7 +887,7 @@ class RectManager{
                     $("#myCanvas").css({ cursor: "ew-resize" });
                 }
                          
-                else if (this.is_mouse_on_top_border(e, rect))
+                else if (this.is_mouse_on_top_border(e, rect) && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_top_border = true;
                     this.mouse_is_on_left_border = false;
@@ -892,7 +915,7 @@ class RectManager{
                     $("#myCanvas").css({ cursor: " ns-resize" });
                 }
       
-                else if (this.is_mouse_on_right_border(e, rect))
+                else if (this.is_mouse_on_right_border(e, rect) && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_right_border = true;
                     
@@ -922,7 +945,7 @@ class RectManager{
                     //#QApplication.setOverrideCursor(Qt.SizeHorCursor)
                 }
          
-                else if (this.is_mouse_on_bottom_border(e, rect))
+                else if (this.is_mouse_on_bottom_border(e, rect) && this.show_autocontoured_rects == false)
                 {
                     this.mouse_is_on_bottom_border = true;
                     this.mouse_is_on_left_border = false;

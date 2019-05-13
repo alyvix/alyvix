@@ -1,0 +1,1 @@
+call python "C:\ProgramData\python36\Lib\site-packages\alyvix\ide\AlyvixIde.py" 

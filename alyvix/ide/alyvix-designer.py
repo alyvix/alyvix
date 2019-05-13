@@ -10,17 +10,26 @@ from datetime import datetime
 import argparse
 
 
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 # "alyvix-" + datetime.now().strftime("%H%M%S%Y") + ".json"
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--filename', '-f', help="dummy description for help", type=str, default=None)
 parser.add_argument('--delay', '-d', help="dummy description for help", type=int, default=0)
 parser.add_argument('--object', '-o', help="dummy description for help", type=str, default=None)
-parser.add_argument('--window', '-w', help="dummy description for help", type=bool, default=True)
+parser.add_argument('--window', '-w', help="dummy description for help", type=str2bool, default=True)
 
 #print(parser.format_help())
 
 args = parser.parse_args()
+
 
 
 def run_server(port, background_image, scaling_factor):
@@ -44,9 +53,13 @@ if __name__ == '__main__':
             seconds = args.delay #// 1
             #milliseconds = args.delay - seconds
 
+            print("delay:")
+
             for i in range(seconds):
                 print(str(seconds - i))
                 time.sleep(1)
+
+        print("grab desktop")
 
         screen_manager = ScreenManager()
 
@@ -88,9 +101,12 @@ if __name__ == '__main__':
         url = "http://127.0.0.1:" + str(server_port) + "/drawing"
 
         viewer_manager = ViewerManager()
-        #viewer_manager.run(url, fullscreen=True)
-        while True:
-            pass
+
+        if args.window is True:
+            viewer_manager.run(url, fullscreen=True)
+        else:
+            while True:
+                pass
 
         http_process.terminate()
         http_process.join()
