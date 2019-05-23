@@ -1,38 +1,42 @@
 import json
 import time
+import sys
 import os.path
 from datetime import datetime
 from socket import gethostname
 from alyvix.core.engine import EngineManager
 from alyvix.tools.library import LibraryManager
 
-import argparse
+
+index_filename_arg = -1
+index_object_name_arg = -1
+index_arguments_arg = -1
+
+engine_arguments = []
+
+for i in range(0, len(sys.argv)):
+    if sys.argv[i] == "-f" or sys.argv[i] == "--filename":
+        filename = sys.argv[i+1]
+        index_filename_arg = i
+    elif sys.argv[i] == "-o" or sys.argv[i] == "--object":
+        objects_names = sys.argv[i+1].split(' ')
+        index_object_name_arg = i
+    elif sys.argv[i] == "-a" or sys.argv == "--args":
+        index_arguments_arg = i
+
+if index_arguments_arg != -1:
+    for i in range(index_arguments_arg+1, len(sys.argv)):
+            if sys.argv[i] == "-o" or sys.argv[i] == "--object" or sys.argv[i] == "-f" or sys.argv[i] == "-filename":
+                break
+            engine_arguments.append(sys.argv[i])
 
 
-def str2bool(v):
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-
-# "alyvix-" + datetime.now().strftime("%H%M%S%Y") + ".json"
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--filename', '-f', help="dummy description for help", type=str, default=None)
-parser.add_argument('--object', '-o', help="dummy description for help", type=str, default=None)
-parser.add_argument('--args', '-a', help="dummy description for help", type=str, default=None)
-
-args = parser.parse_args()
-arguments =  args.args
-
-if args.filename is not None:
+if filename is not None:
     lm = LibraryManager()
 
-    lm.load_file(args.filename)
+    lm.load_file(filename)
 
-    filename = os.path.basename(args.filename)
+    filename = os.path.basename(filename)
     filename = os.path.splitext(filename)[0]
 
     username = os.environ['username']
@@ -65,10 +69,10 @@ if args.filename is not None:
     except:
         pass
 
-    json_plus = lm.add_chunk(args.object, {"host": hostname, "user": username, "test": filename, "code": code})
+    engine_manager = EngineManager()
 
-    em = EngineManager(json_plus)
-
-    em.find()
+    for object_name in objects_names:
+        object_json = lm.add_chunk(object_name, {"host": hostname, "user": username, "test": filename, "code": code})
+        engine_manager.execute(object_json, args=engine_arguments)
 
     aaa = None

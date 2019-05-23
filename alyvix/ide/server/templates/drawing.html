@@ -927,6 +927,19 @@
             }
         }
         
+        function regexp_change()
+        {
+            //console.log(event.target.value)
+            let value = event.target.value;
+            
+            //console.log(value);
+            
+            text_box = boxes[selected_box];
+            var text_features = text_box.features["T"];
+            text_features["regexp"] = value;
+            
+        }
+        
         function interaction_change(element)
         {
             var interaction_type = element.value;
@@ -1151,12 +1164,15 @@
                     if (rect_features["type"] == "detection")
                     {
                         $('input[name="text_match_type"][value="detect"]').prop("checked", true);
+                                                                
+                        $('#input_box_regexp').val(rect_features["regexp"]);
                     }
                     else if (rect_features["type"] == "scraper")
                     {
                         $('input[name="text_match_type"][value="scrap"]').prop("checked", true);
                     }
                 }
+
             }
             
             adjust_win_size();
@@ -1916,9 +1932,9 @@
                 
                 var keyboard_string = boxes[i].keyboard['string'];
                 
-                var box_features = boxes[i].features["I"];
-                box_features["colors"] = true;
-                box_features["likelihood"] = 0.9;
+                //var box_features = boxes[i].features["I"];
+                //box_features["colors"] = true;
+                //box_features["likelihood"] = 0.9;
                 
                 
                 
@@ -3001,7 +3017,7 @@
                                     "R":{"width": {"min": 5, "max": 5}, "height": { "min": 15, "max": 15}},
                                     "T":{"regexp": "", "whitelist": "", "dictionary": "en"}};*/
                                     
-                this.features = {"I":{},
+                this.features = {"I":{"colors": true, "likelihood": 0.9},
                                     "R":{},
                                     "T":{}};
                                     
@@ -3624,7 +3640,7 @@
                                  <td> {{text.label_scrap}}<br/><input type="text" name="scraped" readonly></td>
                             </tr>   
                             <tr>
-                                <td colspan="2"> {{text.label_regexp}}<br/><input type="text" name="regexp" ></td><td><div style="background-color: #00ff00; width: 20px; height:20px; border-radius: 50%;"></div></td>
+                                <td colspan="2"> {{text.label_regexp}}<br/><input id="input_box_regexp" type="text" name="regexp" onInput="regexp_change(event)"></td><td><div style="background-color: #00ff00; width: 20px; height:20px; border-radius: 50%;"></div></td>
                                 
                             </tr>   
                         </tbody>

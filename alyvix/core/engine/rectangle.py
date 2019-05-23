@@ -29,6 +29,12 @@ class Result():
         self.w = None
         self.h = None
         self.type = "R"
+        self.group = 0
+        self.is_main = False
+        self.index_in_tree = 0
+        self.index_in_group = 0
+        self.mouse = {}
+        self.keyboard = {}
 
 class RectangleManager():
 

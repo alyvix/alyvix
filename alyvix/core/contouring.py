@@ -95,6 +95,9 @@ class ContouringManager:
                                 minLineLength=self.hough_minLineLength,
                                 maxLineGap=self.hough_maxLineGap) # PARAM 4, 5, 6: arg4, arg5, arg6 # indentificazione linee
 
+        if lines is None:
+            lines = []
+
         for x in range(0, len(lines)):
             for x1, y1, x2, y2 in lines[x]:
                 angle = np.arctan2(y2 - y1, x2 - x1) * 180. / np.pi

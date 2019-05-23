@@ -126,13 +126,14 @@ class LibraryManager:
         except:
             return {}
 
-        resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
+        resolution_string = resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
 
         try:
             object_dict = alyvix_json["objects"][object_name]["components"][resolution_string]
         except:
             return {}
 
+        index_in_tree = 0
         group = 0
         for group_dict in object_dict["groups"]:
 
@@ -190,8 +191,14 @@ class LibraryManager:
 
                 box["is_main"] = True
 
+                box["index_in_tree"] = index_in_tree
+                index_in_tree += 1
+
+                box["index_in_group"] = 0
+
                 self.boxes.append(box)
 
+            index_in_group = 1
             for box_dict in group_dict["subs"]:
 
                 if box_dict != {}:
@@ -254,6 +261,9 @@ class LibraryManager:
 
                     box["is_main"] = False
 
+                    index_in_group += 1
+                    index_in_tree += 1
+
                     self.boxes.append(box)
 
             group += 1
@@ -271,6 +281,25 @@ class LibraryManager:
 
         return {"detection": detection_dict, "boxes": self.boxes, "screen": background_string,
                 "scaling_factor": scaling_factor, "img_h": h, "img_w": w, "object_name": object_name}
+
+
+    def get_detection_from_string(self, json_string):
+        self.boxes = []
+
+        object_name = list(json_string.keys())[0]
+
+        sm = ScreenManager()
+        w, h = sm.get_resolution()
+        scaling_factor = sm.get_scaling_factor()
+
+        alyvix_json = json_string
+
+        try:
+            detection_dict = alyvix_json[object_name]["detection"]
+            return detection_dict
+        except:
+            return {}
+
 
     def build_objects_from_string(self, json_string):
 
@@ -298,6 +327,7 @@ class LibraryManager:
 
         run_dict = alyvix_json[object_name]["run"]
 
+        index_in_tree = 0
         group = 0
         for group_dict in object_dict["groups"]:
 
@@ -344,8 +374,8 @@ class LibraryManager:
                     if (mouse_dict["features"]["point"]["dx"] != 0 or
                             mouse_dict["features"]["point"]["dy"] != 0):
                         mouse_dict["features"]["point"] = \
-                            {"dx": mouse_dict["features"]["point"]["dx"] + box["x"],
-                             "dy": mouse_dict["features"]["point"]["dy"] + box["y"]}
+                            {"dx": mouse_dict["features"]["point"]["dx"],
+                             "dy": mouse_dict["features"]["point"]["dy"]}
                 except:
                     pass
 
@@ -355,8 +385,15 @@ class LibraryManager:
 
                 box["is_main"] = True
 
+
+                box["index_in_tree"] = index_in_tree
+                index_in_tree += 1
+
+                box["index_in_group"] = 0
+
                 self.boxes.append(box)
 
+            index_in_group = 1
             for box_dict in group_dict["subs"]:
 
                 if box_dict != {}:
@@ -413,8 +450,8 @@ class LibraryManager:
                         if (mouse_dict["features"]["point"]["dx"] != 0 or
                                 mouse_dict["features"]["point"]["dy"] != 0):
                             mouse_dict["features"]["point"] = \
-                                {"dx": mouse_dict["features"]["point"]["dx"] + box["x"],
-                                 "dy": mouse_dict["features"]["point"]["dy"] + box["y"]}
+                                {"dx": mouse_dict["features"]["point"]["dx"],
+                                 "dy": mouse_dict["features"]["point"]["dy"]}
                     except Exception as ex:
                         print(ex)
 
@@ -423,6 +460,15 @@ class LibraryManager:
                     box["keyboard"] = sub_dict["interactions"]["keyboard"]
 
                     box["is_main"] = False
+                    box["is_main"] = False
+
+                    box["index_in_tree"] = index_in_tree
+                    box["index_in_group"] = index_in_group
+
+                    index_in_group += 1
+                    index_in_tree += 1
+
+
 
                     self.boxes.append(box)
 
