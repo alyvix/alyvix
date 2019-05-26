@@ -48,16 +48,26 @@ class Roi:
         self.unlimited_down = 0
 
 class Result():
+
     def __init__(self):
-        self.main = None
-        self.subs = []
-        self.group = None
-        self._scraped_text = None
+        self.object_name = None
+        self.detection_type = None
+        self.has_to_break = None
+        self.timestamp = None
+        self.performance_ms = None
+        self.accuracy_ms = None
+        self.screenshot = None
+        self.annotation = None
+        self.records = {"text":"", "image":""}
 
 
 class EngineManager(object):
 
-    def __init__(self):
+    def __init__(self, object_json, args=None):
+
+        self._result = Result()
+
+        self._result.object_name = list(object_json.keys())[0]
 
         self._mouse_manager = MouseManager()
         self._keyboard_manager = KeyboardManager()
@@ -67,15 +77,33 @@ class EngineManager(object):
         self._screen_manager = ScreenManager()
         self._scaling_factor = self._screen_manager.get_scaling_factor()
 
-        self._object_json = None
+        self._object_json = object_json
         self._object_definition = None
         self._detection = None
 
-        self._screen = None
+        self._object_definition = self._library_manager.build_objects_from_string(self._object_json)
+        self._detection = self._library_manager.get_detection_from_string(self._object_json)
+
+        self._result.detection_type = self._detection["type"]
+        self._result.has_to_break = self._detection["break"]
+
+        np_screen_array = np.fromstring(base64.b64decode(self._object_definition["screen"]), np.uint8)
+
+        self._screen = cv2.imdecode(np_screen_array, cv2.IMREAD_COLOR)
 
         self._group_0 = []
         self._group_1 = []
         self._group_2 = []
+
+        for box in self._object_definition['boxes']:
+            if box['group'] == 0:
+                self._group_0.append(box)
+
+            elif box['group'] == 1:
+                self._group_1.append(box)
+
+            elif box['group'] == 2:
+                self._group_2.append(box)
 
         self._screens = []
 
@@ -88,6 +116,7 @@ class EngineManager(object):
 
         self._last_screen = None
         self._screen_with_objects = None
+        self._annotation_screen = None
 
         self._appear_time = -1
         self._appear_accuracy = -1
@@ -97,7 +126,7 @@ class EngineManager(object):
 
         self._disappear_mode = False
 
-        self._arguments = None
+        self._arguments = args
 
         self.lock = threading.Lock()
 
@@ -114,7 +143,7 @@ class EngineManager(object):
 
         gray_screen = cv2.cvtColor(color_screen, cv2.COLOR_BGR2GRAY)
 
-        for result_box in self._components_found:
+        for result_box in self._components_to_return:
             template = cv2.cvtColor(self._last_screen[result_box.y:result_box.y + result_box.h,
                                     result_box.x:result_box.x + result_box.w], cv2.COLOR_BGR2GRAY)
 
@@ -149,7 +178,7 @@ class EngineManager(object):
             if len(points) > 0:
                 cnt_found += 1
 
-        if cnt_found == len(self._components_found):
+        if cnt_found == len(self._components_to_return):
             return True
         else:
             return False #cnt_found == len(self._components_found)
@@ -345,7 +374,7 @@ class EngineManager(object):
                         time = tn + ((tn_1 - tn) / 2) - t0 - ((t1 - t0) / 2)
                         accuracy = ((tn_1 - tn) / 2) + ((t1 - t0) / 2)
 
-                    return (time, accuracy)
+                    return (time, accuracy, i)
 
     def _exec_interactions(self):
 
@@ -358,6 +387,8 @@ class EngineManager(object):
 
             if mouse_dict["type"] is None:
                 continue
+
+            time.sleep(0.2)
 
             point_dx = 0
             point_dy = 0
@@ -378,7 +409,12 @@ class EngineManager(object):
 
             mouse_type = mouse_dict["type"]
 
-            if mouse_type == "click":
+            if mouse_type == "move":
+
+
+                self._mouse_manager.move(position_x, position_y)
+
+            elif mouse_type == "click":
                 click_amount = mouse_dict["features"]["amount"]
 
                 click_button = self._mouse_manager.left_button
@@ -386,8 +422,8 @@ class EngineManager(object):
                 if mouse_dict["features"]["button"] == "right":
                     click_button = self._mouse_manager.right_button
 
-                    self._mouse_manager.click(position_x, position_y, click_button, click_amount,
-                                              mouse_dict["features"]["delays_ms"])
+                self._mouse_manager.click(position_x, position_y, click_button, click_amount,
+                                          mouse_dict["features"]["delays_ms"])
 
             elif mouse_type == "scroll":
                 scroll_amount = mouse_dict["features"]["amount"]
@@ -435,13 +471,12 @@ class EngineManager(object):
                 except:
                     self._mouse_manager.release(position_x, position_y)
 
-            time.sleep(0.5)
             keyboard_dict = component.keyboard
 
             keyboard_string = keyboard_dict["string"]
 
             if keyboard_string != "":
-
+                time.sleep(0.2)
                 keyboard_duration = keyboard_dict["durations_ms"]
                 keyboard_delay = keyboard_dict["delays_ms"]
 
@@ -470,6 +505,7 @@ class EngineManager(object):
         return_group_1 = []
         return_group_2 = []
         mains_found = []
+        scraped_text = ""
 
         for cnt_g in range(3):
 
@@ -528,6 +564,7 @@ class EngineManager(object):
                 main.mouse = box["mouse"]
                 main.keyboard = box["keyboard"]
                 main.group = box["group"]
+                main.is_main = box["is_main"]
 
             subs_found = []
 
@@ -591,6 +628,7 @@ class EngineManager(object):
                                 sub_results = tm.find(box["features"]["T"], roi=roi)
                             elif box["features"]["T"]["type"] == "scraper":
                                 sub_results = tm.scrape(roi=roi)
+                                scraped_text += sub_results[0].scraped_text + " "
 
                         if len(sub_results) > 0:
                             sub_results[0].index_in_tree = box["index_in_tree"]
@@ -598,6 +636,8 @@ class EngineManager(object):
                             sub_results[0].mouse = box["mouse"]
                             sub_results[0].keyboard = box["keyboard"]
                             sub_results[0].group = box["group"]
+                            sub_results[0].is_main = box["is_main"]
+                            sub_results[0].roi = roi
 
                             subs_found.append(sub_results[0])
 
@@ -615,19 +655,23 @@ class EngineManager(object):
 
 
         self.lock.acquire()
-        if self._disappear_mode is False and self.stop_threads is False and (len(return_group_0) == len(self._group_0))\
-                and (len(return_group_1) == len(self._group_1)) and (len(return_group_2) == len(self._group_2)):
 
-            self.stop_threads = True
-
+        #don't corrupt object if threads are running
+        if self.stop_threads is False:
             self._components_found = []
             self._components_found.extend(return_group_0)
             self._components_found.extend(return_group_1)
             self._components_found.extend(return_group_2)
 
+        if self._disappear_mode is False and self.stop_threads is False and (len(return_group_0) == len(self._group_0))\
+                and (len(return_group_1) == len(self._group_1)) and (len(return_group_2) == len(self._group_2)):
+
+            self.stop_threads = True
+
             self._components_to_return = []
             self._components_to_return = copy.deepcopy(self._components_found)
             self._last_screen = current_color_screen
+            self._result.records["text"] = scraped_text
 
         elif self._disappear_mode is True and self.stop_threads is False and ((len(return_group_0) != len(self._group_0))\
             or (len(return_group_1) != len(self._group_1)) \
@@ -643,42 +687,155 @@ class EngineManager(object):
         self.total_threads -= 1
         self.lock.release()
 
-    def _get_annotation_screen(self):
-        pass
+    def _get_annotation_screen(self, index=None):
+        if index is not None:
+            last_screen = self._uncompress(self._screens[index][0])
+        else:
+            last_screen = self._uncompress(self._screens[-1][0])
+
+        source_img_h, source_img_w, _ = last_screen.shape
+
+        overlay = last_screen.copy()
+        image = last_screen
+
+        self.lock.acquire()
+        components_found = copy.deepcopy(self._components_found)
+        self.lock.release()
+
+
+        #print("comp found:" + str(len(self._components_found)))
+        for component in components_found:
+            if component.group == 0:
+                color_stroke = (0, 0, 255)
+                color_fill = (255, 0, 255)
+            elif component.group == 1:
+                color_stroke = (0, 149, 0)
+                color_fill = (0, 188, 0)
+            elif component.group == 2:
+                color_stroke = (255, 0, 0)
+                color_fill = (255, 114, 0)
+
+            if component.is_main is True:
+
+                x1 = component.x
+                y1 = component.y
+                x2 = component.x + component.w
+                y2 = component.y + component.h
+
+                cv2.rectangle(overlay, (x1, y1), (x2, y2), color_fill, -1)
+
+                alpha = 0.5
+                cv2.addWeighted(overlay[y1:y2, x1:x2], alpha, image[y1:y2, x1:x2], 1 - alpha,
+                                0, image[y1:y2, x1:x2])
+
+                cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
+
+                text = "M_" + str(component.group + 1)
+                cv2.putText(image, text, (x2+1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+                            lineType=cv2.LINE_AA)
+
+            else:
+
+                roi = component.roi
+
+                y1 = roi.y
+                y2 = y1 + roi.h
+
+                x1 = roi.x
+                x2 = x1 + roi.w
+
+                if roi.unlimited_up is True:
+                    y1 = 0
+                    y2 = roi.y + roi.h
+
+                if roi.unlimited_down is True:
+                    y2 = source_img_h
+
+                if roi.unlimited_left is True:
+                    x1 = 0
+                    x2 = roi.x + roi.w
+
+                if roi.unlimited_right is True:
+                    x2 = source_img_w
+
+                if y1 < 0:
+                    y1 = 0
+                elif y1 > source_img_h:
+                    y1 = source_img_h
+
+                if y2 < 0:
+                    y2 = 0
+                elif y2 > source_img_h:
+                    y2 = source_img_h
+
+                if x1 < 0:
+                    x1 = 0
+                elif x1 > source_img_w:
+                    x1 = source_img_w
+
+                if x2 < 0:
+                    x2 = 0
+                elif x2 > source_img_w:
+                    x2 = source_img_w
+
+                cv2.rectangle(overlay, (x1, y1), (x2, y2), color_fill, -1)
+
+                alpha = 0.2
+                cv2.addWeighted(overlay[y1:y2, x1:x2], alpha, image[y1:y2, x1:x2], 1 - alpha,
+                                0, image[y1:y2, x1:x2])
+
+                cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
+
+                text = "s_" + str(component.index_in_group)
+                cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+                            lineType=cv2.LINE_AA)
+
+                x1 = component.x
+                y1 = component.y
+                x2 = component.x + component.w
+                y2 = component.y + component.h
+
+                cv2.rectangle(overlay, (x1, y1), (x2, y2), color_fill, -1)
+
+
+
+                alpha = 0.3
+                cv2.addWeighted(overlay[y1:y2, x1:x2], alpha, image[y1:y2, x1:x2], 1 - alpha,
+                                0, image[y1:y2, x1:x2])
+
+                cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
+
+
+        """
+        text = "s_" + str(component.index_in_group)
+        cv2.putText(image, text, (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_fill, 1,
+                    lineType=cv2.LINE_AA)
+        
+
+        cv2.rectangle(image, (component.x, component.y), (component.x + component.w, component.y + component.h),
+                      color_stroke, 1)
+                      
+                alpha = 0.7
+                cv2.addWeighted(overlay, alpha, image, 1 - alpha,
+                                0, image)
+        """
+
+        return image
 
     def _get_output_json(self):
         pass
 
-    def execute(self, object_json, args=None):
+    def execute(self):
 
-        self._object_json = object_json
-        self._object_definition = self._library_manager.build_objects_from_string(object_json)
-        self._detection = self._library_manager.get_detection_from_string(object_json)
+        self._result.timestamp = time.time()
 
-        np_screen_array = np.fromstring(base64.b64decode(self._object_definition["screen"]), np.uint8)
+        while self.total_threads != 0:
+            continue
 
-        self._screen = cv2.imdecode(np_screen_array, cv2.IMREAD_COLOR)
-
-        self._arguments = args
-
-        self._group_0 = []
-        self._group_1 = []
-        self._group_2 = []
-
-        for box in self._object_definition['boxes']:
-            if box['group'] == 0:
-                self._group_0.append(box)
-
-            elif box['group'] == 1:
-                self._group_1.append(box)
-
-            elif box['group'] == 2:
-                self._group_2.append(box)
 
         self._screens = []
 
         self._t0 = 0
-        self.total_threads = 0
         self.stop_threads = False
         self._components_found = []
         self._components_to_return = []
@@ -686,6 +843,7 @@ class EngineManager(object):
 
         self._last_screen = None
         self._screen_with_objects = None
+        self._annotation_screen = None
 
         self._appear_time = -1
         self._appear_accuracy = -1
@@ -696,13 +854,14 @@ class EngineManager(object):
 
         self._disappear_mode = False
 
-        print("start")
+
+        print("start " + self._result.object_name)
 
         #sm = ScreenManager()
 
         MAX_THREADS = 3
 
-        timeout = 100 #self._detection["timeout_s"]
+        timeout = self._detection["timeout_s"]
         has_to_break = self._detection["break"]
         detection_type = self._detection["type"]
 
@@ -743,11 +902,16 @@ class EngineManager(object):
 
                     self._screen_with_objects = self._uncompress(self._screens[first_index_found][0])
 
-                    time.sleep(0.5)
+                    self._annotation_screen = self._get_annotation_screen(first_index_found)
 
                     self._exec_interactions()
 
-                    return
+                    self._result.performance_ms = self._appear_time * 1000
+                    self._result.accuracy_ms = self._appear_accuracy * 1000
+                    self._result.screenshot = self._screen_with_objects
+                    self._result.annotation = self._annotation_screen
+
+                    return self._result
 
                     #return (appear_time, appear_accuracy)
                 else:
@@ -769,17 +933,38 @@ class EngineManager(object):
                     and disappear_mode is True:
 
                 if detection_type == 'appear+disappear':
-                    self._disappear_time, self._disappear_accuracy =\
+                    self._disappear_time, self._disappear_accuracy, first_index_not_found =\
                         self._get_disappear_time(first_index_found, appear_disappear=True)
                 elif detection_type == 'disappear':
-                    self._disappear_time, self._disappear_accuracy =\
+                    self._disappear_time, self._disappear_accuracy, first_index_not_found =\
                         self._get_disappear_time(first_index_found, appear_disappear=False)
 
+                self._screen_with_objects = self._uncompress(self._screens[first_index_not_found][0])
+
+                self._annotation_screen = self._get_annotation_screen(first_index_not_found)
+
+                self._result.performance_ms = self._disappear_time * 1000
+                self._result.accuracy_ms = self._disappear_accuracy * 1000
+                self._result.screenshot = self._screen_with_objects
+                self._result.annotation = self._annotation_screen
+
+                return self._result
+
             if time.time() - self._t0 > timeout:
-                if has_to_break:
-                    raise Exception('timedout occurred')
-                else:
-                    return []
+                self.lock.acquire()
+
+                self.stop_threads = True
+                self.lock.release()
+
+                self._screen_with_objects = self._uncompress(self._screens[-1][0])
+                self._annotation_screen = self._get_annotation_screen()
+
+                self._result.performance_ms = -1
+                self._result.accuracy_ms = -1
+                self._result.screenshot = self._screen_with_objects
+                self._result.annotation = self._annotation_screen
+
+                return self._result
 
 
             if time.time() - t_thread > 0.5 and total_threads < MAX_THREADS and stop_threads is False:

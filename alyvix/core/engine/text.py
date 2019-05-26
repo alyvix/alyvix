@@ -43,6 +43,7 @@ class Result():
         self.index_in_group = 0
         self.mouse = {}
         self.keyboard = {}
+        self.roi = None
 
 class TextManager():
 
@@ -58,7 +59,7 @@ class TextManager():
 
         self._arguments = None
 
-        self._tessdata_path = os.path.dirname(__file__) + os.sep + "tessdata400"
+        self._tessdata_path = os.path.dirname(__file__) + os.sep + "tessdata"
 
     def set_color_screen(self, screen):
         self._color_screen = screen
@@ -311,6 +312,7 @@ class TextManager():
         offset_y = 0
 
         objects_found = []
+        scraped_words = []
 
         source_img_h, source_img_w = self._gray_screen.shape
 
@@ -371,6 +373,8 @@ class TextManager():
         # with PyTessBaseAPI(path='D:\\python\\tessdata\\tessdata400', lang='eng') as api:
         image_pil = Image.fromarray(cv2.cvtColor(bigger_image, cv2.COLOR_BGR2RGB).astype('uint8'))
 
+        text = ""
+
         # with PyTessBaseAPI(path='C:\\ProgramData\\python36\\tessdata', lang='eng') as api:
         with tesserocr.PyTessBaseAPI(path=self._tessdata_path, lang='eng') as api:
 
@@ -380,7 +384,7 @@ class TextManager():
 
             text_list = []
             results = []
-            text = ""
+
 
             api.Recognize()
             ri = api.GetIterator()
@@ -393,14 +397,20 @@ class TextManager():
             for r in tesserocr.iterate_level(ri, level):
                 try:
                     symbol = r.GetUTF8Text(level)
+                    #print(symbol)
                 except:
                     continue
 
                 conf = r.Confidence(level)
+                #print(str(conf))
+
+                """
                 if conf > 45:
                     pass #print('Word: {}'.format(symbol))
                 else:
                     continue
+                """
+
                 bbox = r.BoundingBoxInternal(level)
                 # im = Image.fromarray(img[bbox[1]:bbox[3], bbox[0]:bbox[2]])
                 # im.save("../out/" + str(i) + ".tif")
@@ -439,8 +449,8 @@ class TextManager():
                                 return_value = Result()
                                 return_value.x = offset_x + bounding_box[0]
                                 return_value.y = offset_y + bounding_box[1]
-                                return_value.w = bounding_box[2]
-                                return_value.h = bounding_box[3]
+                                return_value.w = bounding_box[2] - bounding_box[0]
+                                return_value.h = bounding_box[3] - bounding_box[1]
 
                                 objects_found.append(return_value)
 
@@ -449,6 +459,8 @@ class TextManager():
                         a = "bb"
                         pass
 
+                else:
+                    scraped_words.append(bbox)
                 i += 1
             # print(ocrResult)
             cnt += 1
@@ -457,15 +469,38 @@ class TextManager():
 
 
         if scrape is True:
+            x1 = 999999999
+            y1 = 999999999
+            x2 = 0
+            y2 = 0
+
+            for word in scraped_words:
+
+                if word[2] + 5 > roi.w and word[3] + 5 > roi.h and word[0] - 5 < roi.x and word[1] - 5 < roi.y:
+                    continue
+
+                if word[0] < x1:
+                    x1 = word[0]
+
+                if word[1] < y1:
+                    y1 = word[1]
+
+                if word[2] > x2:
+                    x2 = word[2]
+
+                if word[3] > y2:
+                    y2 = word[3]
+
             return_value = Result()
-            return_value.x = x1
-            return_value.y = y1
+            return_value.x = offset_x + x1
+            return_value.y = offset_y + y1
             return_value.w = x2 - x1
             return_value.h = y2 - y1
             return_value.scraped_text = text
+            #print (text)
 
             objects_found.append(return_value)
 
-            return  objects_found
+            return objects_found
         else:
             return objects_found

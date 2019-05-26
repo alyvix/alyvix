@@ -35,6 +35,7 @@ class Result():
         self.index_in_group = 0
         self.mouse = {}
         self.keyboard = {}
+        self.roi = None
 
 class RectangleManager():
 
