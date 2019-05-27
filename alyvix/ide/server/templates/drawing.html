@@ -74,7 +74,13 @@
                 type: "POST",
                 data: jsonData,
                 contentType: "application/json; charset=utf-8",
-                success: function(dat) { alert("JSON SAVED");}
+                success: function(dat) { //alert("JSON SAVED");
+                        $.ajax({
+                            url: "/cancel_event",
+                            type: "GET",
+                            success: function(dat) { alert("JSON SAVED");}
+                        });
+                }
             });
         }
         

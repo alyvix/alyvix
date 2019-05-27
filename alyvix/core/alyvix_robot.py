@@ -108,6 +108,8 @@ if filename is not None:
 
                 objects_result.append(result)
             cnt+=1
+    elif len(objects_result) == len(objects_names) and objects_result[0].performance_ms == -1:
+        state = 2
 
     om = OutputManager()
     json_string = om.build_json(chunk, objects_result)
