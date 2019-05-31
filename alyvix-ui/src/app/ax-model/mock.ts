@@ -14,7 +14,8 @@ export class AxModelMock {
 
     static _flags:GroupsFlag = {
         created: [true,true,true],
-        count: [3,3,4]
+        count: [3,3,4],
+        main: [true,true,true]
     }
     static _model = {
         "object_name": "test",

@@ -7,8 +7,8 @@
 - scroll on drag
 
 
-- inibire il drag di un elemento singolo
 
+- inibire il drag di un elemento singolo
 
 
 
@@ -27,3 +27,4 @@ DONE
 - remove point
 - draw
 - default features
+

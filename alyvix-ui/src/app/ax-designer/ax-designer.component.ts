@@ -41,6 +41,7 @@ export class AxDesignerComponent implements OnInit {
   }
 
   treeResize(event:ResizedEvent) {
+    console.log(event)
     var i = this.axDesignerService.indexSelectedNode(this.selectedNode);
     if(i*this.treeElementHeight > (event.newHeight + this.treeContainer.nativeElement.scrollTop)) {
       this.treeContainer.nativeElement.scrollTop = i*this.treeElementHeight + 50;

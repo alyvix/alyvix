@@ -3,11 +3,11 @@
     <ax-tree-node [node]="root"></ax-tree-node>
     <ul class="tree primary-group" cdkDropList (cdkDropListDropped)="dropPrimary(root.children,$event)">
       <li [contextMenu]="mainContextMenu" [contextMenuSubject]="node" (contextmenu)="onContextMenu($event, node)" *ngFor="let node of root.children" cdkDrag
-        (cdkDragStarted)="startDrag(root.children,node,$event)" [ngClass]="{'last': node.last}">
+        (cdkDragStarted)="startDrag(root.children,node,$event)" [cdkDragDisabled]="false" [ngClass]="{'last': node.last}">
         <ax-tree-node [node]="node"></ax-tree-node>
         <ul class="secondary-group" cdkDropList (cdkDropListDropped)="drop(node.children,$event)">
           <li [contextMenu]="childContextMenu" [contextMenuSubject]="subnode" (contextmenu)="onContextMenu($event, subnode)" *ngFor="let subnode of node.children" cdkDrag
-            (cdkDragStarted)="startDrag(node.children,subnode,$event)" [ngClass]="{'last': subnode.last}">
+            (cdkDragStarted)="startDrag(node.children,subnode,$event)" [cdkDragDisabled]="false" [ngClass]="{'last': subnode.last}">
             <div class="custom-placeholder" *cdkDragPlaceholder></div>
             <ax-tree-node [node]="subnode"></ax-tree-node>
           </li>

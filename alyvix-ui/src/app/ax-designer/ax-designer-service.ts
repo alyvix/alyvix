@@ -42,9 +42,9 @@ export class AxDesignerService {
 
         var selectedNode:TreeNode = null;
         
-        if(iSelectedNode) {
+        if(iSelectedNode >= 0) {
             var node = this.axModel.box_list[iSelectedNode];
-            if(node.is_main) {
+            if(node && node.is_main) {
                 selectedNode = this._root.value.children.find(x => x.box == node)
             } else {
                 var zero:TreeNode[] = []
@@ -128,17 +128,33 @@ export class AxDesignerService {
 
     private _dragging:BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    public indexSelectedNode(box:TreeNode):number {
+    private flatBoxes():TreeNode[] {
+        var nodes:TreeNode[] = [];
+        nodes.push(this._root.value);
+        if(this._root.value.children) {
+            this._root.value.children.forEach(n => {
+                nodes.push(n);
+                if(n.children) {
+                    n.children.forEach(sb => nodes.push(sb));
+                }
+            })
+        }
+        return nodes;
+    }
+ 
+    public indexSelectedNode(node:TreeNode):number {
+        if(node.box) {
+            this.flatBoxes().indexOf(node);
+        } else return 0
+    }
+
+    public setSelectedNode(box:TreeNode) {
         var selectedNode = null;
         if(box.box) {
             selectedNode = this.axModel.box_list.indexOf(box.box)
         }
-        return selectedNode;
-    }
-
-    public setSelectedNode(box:TreeNode) {
         this._selectedNode.next(box);
-        this.global.nativeGlobal().setSelectedNode(this.indexSelectedNode(box));
+        this.global.nativeGlobal().setSelectedNode(selectedNode);
     }
 
     public getSelectedNode():Observable<TreeNode> {
@@ -223,7 +239,9 @@ export class AxDesignerService {
         [0,1,2].forEach(i => {
             this.flags.count[i] = this.groupCount(i)
             this.flags.created[i] = this.flags.count[i] > 0
+            this.flags.main[i] = this.axModel.box_list.filter(x => x.group == i && x.is_main).length > 0;
         });
+        this.global.nativeGlobal().setGroupFlags(this.flags);
     }
 
     groupCount(group:number):number {
@@ -264,6 +282,7 @@ export class AxDesignerService {
         }
     }
     removeGroup(node:TreeNode) {
+        console.log("remove Group")
         this.axModel.box_list = this.axModel.box_list.filter(n => n.group != node.box.group)
         for(var i = node.box.group; i < 3; i++) {
             this.axModel.box_list.filter(x => x.group - 1 == i).forEach(n => n.group = i);

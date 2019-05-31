@@ -4,6 +4,7 @@ import { AxModelMock } from "./mock";
 export interface GroupsFlag{
     created:boolean[]
     count:number[]
+    main:boolean[]
 }
 
 //define here methods and variables that are defined in the global scope of alyvix
@@ -18,12 +19,16 @@ export interface AxGlobal{
     cancel():any
 
     getGroupsFlag():GroupsFlag
+    setGroupFlags(flags:GroupsFlag)
 
     getSelectedNode():number
     setSelectedNode(i:number)
 }
 
 export class MockGlobal implements AxGlobal{
+    setGroupFlags(flags: GroupsFlag) {
+
+    }
     getGroupsFlag(): GroupsFlag {
         return AxModelMock.flags();
     }

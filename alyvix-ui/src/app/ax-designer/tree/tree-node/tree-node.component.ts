@@ -3,6 +3,12 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { AxDesignerService, TreeNode } from '../../ax-designer-service';
 import { environment } from 'src/environments/environment';
 
+export interface GroupColors{
+  main:string
+  selected:string
+  thumbnail:string
+}
+
 @Component({
   selector: 'ax-tree-node',
   templateUrl: './tree-node.component.html',
@@ -31,11 +37,24 @@ export class TreeNodeComponent implements OnInit {
       var image = new Image();
       var self = this;
       image.onload = function() {
+
+        //TODO use https://github.com/waveinch/alyvix/blob/bd2f1527aadc9a6892afd00be54546d6a5536ff4/alyvix/ide/server/templates/drawing.html#L1788
+        var dpi = window.devicePixelRatio || 1;
         ctx.drawImage(image, 0, 0);
         var t = self.node.box.thumbnail;
         ctx.rect(t.x, t.y, t.w, t.h);
         ctx.strokeStyle = self.groupColor(self.node.box.group);
+        ctx.translate(0.5,0.5);
+        ctx.lineWidth = 1;
         ctx.stroke();
+
+
+        ctx.scale(dpi, dpi);
+        ctx.translate(0.5, 0.5);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = self.groupColor(self.node.box.group).thumbnail;
+        ctx.strokeRect(t.x, t.y, t.w, t.h);
+
         
       };
       image.src = this.node.image;
@@ -48,11 +67,11 @@ export class TreeNodeComponent implements OnInit {
 
 
 
-  groupColor(group:number) {
+  groupColor(group:number):GroupColors {
     switch(group) {
-      case 0: return "#ff00ff"
-      case 1: return "#00bc00"
-      case 2: return "#0072ff"
+      case 0: return {main: "#ff00ff", thumbnail: "#ff0000", selected: "#85008E"}
+      case 1: return {main: "#00bc00", thumbnail: "#009500", selected: "#005000"}
+      case 2: return {main: "#0072ff", thumbnail: "#0000ff", selected: "#001D8E"}
     }
   }
 
@@ -66,13 +85,9 @@ export class TreeNodeComponent implements OnInit {
   setBackground() {
     if(this.node.box) {
       if(this.isSelected()) {
-        switch(this.node.box.group) {
-          case 0: return {"background-color": "#85008E"}
-          case 1: return {"background-color": "#005000"}
-          case 2: return {"background-color": "#001D8E"}
-        }
+        return {"background-color": this.groupColor(this.node.box.group).selected}
       } else {
-         return {"background-color": this.groupColor(this.node.box.group)}
+         return {"background-color": this.groupColor(this.node.box.group).main}
       }
     }
   }

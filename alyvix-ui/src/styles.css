@@ -246,7 +246,7 @@ hr {
   .ngx-contextmenu li {
       min-width: 200px;
     display: block;
-    padding: 5px 20px;
+    padding: 0;
     color: #333;
     font-weight: bold;
   }
@@ -259,6 +259,7 @@ hr {
     border-top:none;
   }
   .ngx-contextmenu a {
+    padding: 5px 20px;
     color: #333;
     display: block;
     text-align: left;

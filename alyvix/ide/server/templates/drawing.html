@@ -108,7 +108,23 @@
         function getGroupsFlag() {
             return {
                 created: [rectManager.main_g0_created,rectManager.main_g1_created,rectManager.main_g2_created],
-                count: [rectManager.g0_elements_cnt,rectManager.g1_elements_cnt,rectManager.g2_elements_cnt]
+                count: [rectManager.g0_elements_cnt,rectManager.g1_elements_cnt,rectManager.g2_elements_cnt],
+                main: [rectManager.main_g0_created,rectManager.main_g1_created,rectManager.main_g2_created]
+            }
+        }
+
+        function setGroupFlags(flags) {
+            console.log(flags);
+            if(flags && rectManager) {
+                rectManager.main_g0_created = flags.main[0];
+                rectManager.main_g1_created = flags.main[1];
+                rectManager.main_g2_created = flags.main[2];
+                rectManager.g0_elements_cnt = flags.count[0];
+                rectManager.g1_elements_cnt = flags.count[1];
+                rectManager.g2_elements_cnt = flags.count[2];
+                rectManager.main_g0_created = flags.created[0];
+                rectManager.main_g1_created = flags.created[1];
+                rectManager.main_g2_created = flags.created[2];
             }
         }
 
