@@ -3,7 +3,7 @@
 
 
 
-- Scrolling tree su elemento selezionato
+
 - scroll on drag
 
 
@@ -23,7 +23,7 @@ DONE
 - Mantenimento elemento selezionato uscendo/rientrando dal designer
 - rettangolo nella preview del tree
 
-
+- Scrolling tree su elemento selezionato
 - remove point
 - draw
 - default features

@@ -21,6 +21,7 @@ export class AxDesignerComponent implements OnInit {
 
   bottomWithoutOptions = 72;
   totalHeight = 590;
+  treeElementHeight = 43;
 
   treeHeight() {
 
@@ -39,6 +40,13 @@ export class AxDesignerComponent implements OnInit {
     this.totalHeight = event.newHeight;
   }
 
+  treeResize(event:ResizedEvent) {
+    var i = this.axDesignerService.indexSelectedNode(this.selectedNode);
+    if(i*this.treeElementHeight > (event.newHeight + this.treeContainer.nativeElement.scrollTop)) {
+      this.treeContainer.nativeElement.scrollTop = i*this.treeElementHeight + 50;
+    }
+  }
+
   hideOptionsOnDrag():boolean {
     return this.dragging && (this.selectedNode.box && this.selectedNode.box.is_main)
   }
@@ -47,7 +55,6 @@ export class AxDesignerComponent implements OnInit {
   dragging:boolean = false;
 
   selectNode(n:TreeNode) {
-
     this.selectedNode = n;
   }
 

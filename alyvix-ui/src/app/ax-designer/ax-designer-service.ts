@@ -128,13 +128,17 @@ export class AxDesignerService {
 
     private _dragging:BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    public setSelectedNode(box:TreeNode) {
-        this._selectedNode.next(box);
+    public indexSelectedNode(box:TreeNode):number {
         var selectedNode = null;
         if(box.box) {
             selectedNode = this.axModel.box_list.indexOf(box.box)
         }
-        this.global.nativeGlobal().setSelectedNode(selectedNode);
+        return selectedNode;
+    }
+
+    public setSelectedNode(box:TreeNode) {
+        this._selectedNode.next(box);
+        this.global.nativeGlobal().setSelectedNode(this.indexSelectedNode(box));
     }
 
     public getSelectedNode():Observable<TreeNode> {
