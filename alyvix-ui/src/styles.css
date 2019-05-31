@@ -282,3 +282,7 @@ hr {
       font-size: 80%;
       font-weight: normal;
   }
+
+  li.cdk-drag-preview div.interaction{
+    display: none !important;
+}

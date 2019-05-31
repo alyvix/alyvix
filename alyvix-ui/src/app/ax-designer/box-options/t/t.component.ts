@@ -14,6 +14,9 @@ export class TComponent implements OnInit {
   node: TreeNode
 
   ngOnInit() {
+    if(!this.node.box.features.T.type) {
+      this.node.box.features.T.type = "detection";
+    }
   }
 
 }

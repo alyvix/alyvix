@@ -26,12 +26,22 @@ export class AxDesignerService {
 
     constructor( @Inject('GlobalRef') private global: GlobalRef, private _hotkeysService: HotkeysService) {
         this.axModel = this.global.nativeGlobal().axModel();
+        if(this.axModel.box_list) {
+            this.axModel.box_list.forEach(box => {
+                if(!box.features.I.likelihood) {
+                    box.features.I = {'colors': true, 'likelihood': 0.9}
+                }
+            })
+        }
+
         this.flags = this.global.nativeGlobal().getGroupsFlag();
+
+        var iSelectedNode = this.global.nativeGlobal().getSelectedNode() //needs to be done before loadNodes because loadNodes call setSelectedNode
 
         this._loadNodes();
 
         var selectedNode:TreeNode = null;
-        var iSelectedNode = this.global.nativeGlobal().getSelectedNode()
+        
         if(iSelectedNode) {
             var node = this.axModel.box_list[iSelectedNode];
             if(node.is_main) {
@@ -120,6 +130,11 @@ export class AxDesignerService {
 
     public setSelectedNode(box:TreeNode) {
         this._selectedNode.next(box);
+        var selectedNode = null;
+        if(box.box) {
+            selectedNode = this.axModel.box_list.indexOf(box.box)
+        }
+        this.global.nativeGlobal().setSelectedNode(selectedNode);
     }
 
     public getSelectedNode():Observable<TreeNode> {

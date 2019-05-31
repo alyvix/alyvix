@@ -7,7 +7,8 @@
   </div>
   <div class="pure-u-6-24 form-group" [hidden]="!node.box.mouse.type || node.box.mouse.type== 'none'">
       <label>&nbsp;</label>
-      <button class="pure-button" (click)="setPoint()">Set Point</button>
+      <button *ngIf="!isPointAlreadySelected()" class="pure-button" (click)="setPoint()">Set Point</button>
+      <button *ngIf="isPointAlreadySelected()" class="pure-button" (click)="removePoint()">Remove Point</button>
     </div>
   <div class="pure-u-5-24 form-group" *ngIf="node.box.mouse.type == 'click'">
       <label>Button</label>

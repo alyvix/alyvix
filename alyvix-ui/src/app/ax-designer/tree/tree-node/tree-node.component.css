@@ -3,7 +3,6 @@
     border: solid 1px #383838;
     padding: 0;
     height: 32px;
-    width: 71px;
     line-height: 30px;
     display: inline-block;
 }
@@ -21,7 +20,7 @@
     color: white;
 }
 
-.boxEntity img {
+.boxEntity canvas,img {
     float: right;
     height: 30px;
 }
@@ -30,14 +29,13 @@
     display: inline-block;
     padding: 0 ;
     margin-left: -25px;
+    width: 120px;
 }
 
 
-li.cdk-drag-preview .boxEntityContainer .interaction{
-    display: none !important;
-}
 
-.boxEntityContainer .interaction {
+
+ .interaction {
     float: right;
     display: inline-block;
     width: 35px;
@@ -46,18 +44,12 @@ li.cdk-drag-preview .boxEntityContainer .interaction{
     margin-top: 3px;
 }
 
-.boxEntityContainer .interaction-keyboard {
- 
-}
 
-.boxEntityContainer .interaction-mouse {
-   margin-left: 50px;
-}
-.boxEntityContainer .interaction-mouse.primary {
-    margin-left: 95px;
+ .interaction-keyboard.primary {
+    margin-right: 15px;
  }
 
-.boxEntityContainer .interaction img {
+ .interaction img {
     height: 32px;
 }
 

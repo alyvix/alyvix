@@ -27,7 +27,17 @@ export class InteractionComponent implements OnInit {
   }
 
   setPoint() {
-    this.axDesignerService.setPoint(this.node)
+    this.axDesignerService.setPoint(this.node);
+  }
+
+  isPointAlreadySelected():boolean {
+    return this.node.box.mouse.features.point.dx > 0 && this.node.box.mouse.features.point.dy > 0;
+  }
+
+  removePoint() {
+    this.node.box.mouse.features.point.dx = 0;
+    this.node.box.mouse.features.point.dy = 0;
+    this.axDesignerService.updateAx();
   }
 
   setDefaults() {

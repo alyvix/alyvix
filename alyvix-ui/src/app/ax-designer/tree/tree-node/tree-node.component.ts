@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AxDesignerService, TreeNode } from '../../ax-designer-service';
 import { environment } from 'src/environments/environment';
@@ -12,8 +12,48 @@ export class TreeNodeComponent implements OnInit {
 
   constructor(private _sanitizer: DomSanitizer, private axDesignerService:AxDesignerService) { }
 
+  @Input()
+  node:TreeNode;
+
+  selectedNode:TreeNode;
+
+  thumbnailWidth:number = 0;
+
+  @ViewChild("canvas") canvas: ElementRef;
+
   ngOnInit() {
+
+    console.log("Init component TreeNode")
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectedNode = n);
+    if(this.node.box) {
+      this.thumbnailWidth = this.node.box.thumbnail.image_w;
+      var ctx = this.canvas.nativeElement.getContext("2d");
+      var image = new Image();
+      var self = this;
+      image.onload = function() {
+        ctx.drawImage(image, 0, 0);
+        var t = self.node.box.thumbnail;
+        ctx.rect(t.x, t.y, t.w, t.h);
+        ctx.strokeStyle = self.groupColor(self.node.box.group);
+        ctx.stroke();
+        
+      };
+      image.src = this.node.image;
+    }
+  }
+
+  imageFor() {
+    return this._sanitizer.bypassSecurityTrustResourceUrl(this.node.image);
+  }
+
+
+
+  groupColor(group:number) {
+    switch(group) {
+      case 0: return "#ff00ff"
+      case 1: return "#00bc00"
+      case 2: return "#0072ff"
+    }
   }
 
 
@@ -21,14 +61,7 @@ export class TreeNodeComponent implements OnInit {
     return this.node == this.selectedNode;
   }
 
-  @Input()
-  node:TreeNode;
-
-  selectedNode:TreeNode;
-
-  imageFor() {
-    return this._sanitizer.bypassSecurityTrustResourceUrl(this.node.image);
-  }
+  
 
   setBackground() {
     if(this.node.box) {
@@ -39,11 +72,7 @@ export class TreeNodeComponent implements OnInit {
           case 2: return {"background-color": "#001D8E"}
         }
       } else {
-        switch(this.node.box.group) {
-          case 0: return {"background-color": "#ff00ff"}
-          case 1: return {"background-color": "#00bc00"}
-          case 2: return {"background-color": "#0072ff"}
-        }
+         return {"background-color": this.groupColor(this.node.box.group)}
       }
     }
   }

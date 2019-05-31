@@ -34,6 +34,10 @@ export class IComponent implements OnInit {
 
   ngOnInit() {
     this.mode = this.modes.find(x => _.isEqual(x,this.node.box.features.I))
+    if(!this.mode) {
+      this.mode = this.match;
+      this.node.box.features.I = this.match;
+    }
     console.log(this.mode)
   }
 

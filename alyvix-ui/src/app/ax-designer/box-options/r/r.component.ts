@@ -32,7 +32,10 @@ export class RComponent implements OnInit {
     this.button = {width: widths[2], height: heights[2]}
     var modes = [this.box,this.window,this.button]
     this.mode = modes.find(x => _.isEqual(x,this.node.box.features.R))
-    if(!this.mode) this.mode = modes[2]; //default to button
+    if(!this.mode) {
+      this.mode = modes[2]; //default to button
+      this.node.box.features.R = modes[2];
+    }
   }
 
   updateMode(event:R) {

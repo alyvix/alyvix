@@ -10,13 +10,13 @@
     <div class="pure-u-1-2" *ngIf="node.box.features.T.type == 'scraper'">
         <div class="form-group">
           <label>Scrap</label>
-          <input type="text" disabled>
+          <input  type="text" disabled>
         </div>
       </div>
       <div class="pure-u-1-1">
           <div class="form-group">
             <label>Reg Exp</label>
-            <input type="text">
+            <input [(ngModel)]="node.box.features.T.regexp"  type="text">
           </div>
         </div>
         <div class="pure-u-1-1">

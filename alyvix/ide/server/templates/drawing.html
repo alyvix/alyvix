@@ -116,6 +116,7 @@
             return selected_box;
         }
         function setSelectedNode(i) {
+            console.log("set selected box: " + i)
             selected_box = i;
         }
 
@@ -175,7 +176,7 @@
             ttWIndow_isOpen = true;
             draw(rectManager.last_mouse_event);
         
-            selected_box = null;
+            //selected_box = null;
                     
             $("#myCanvas").unbind("mousemove");
             

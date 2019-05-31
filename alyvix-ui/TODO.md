@@ -5,9 +5,13 @@
 
 - Scrolling tree su elemento selezionato
 - scroll on drag
-- rettangolo nella preview del tree
+
 
 - inibire il drag di un elemento singolo
+
+
+
+
 
 
 DONE
@@ -17,5 +21,9 @@ DONE
 - disabilitare voci di menu non applicabili
 - Selezione alla duplicazione
 - Mantenimento elemento selezionato uscendo/rientrando dal designer
+- rettangolo nella preview del tree
 
 
+- remove point
+- draw
+- default features

@@ -61,6 +61,7 @@ export interface AxModel {
 
   export interface T {
     type?: string | null;
+    regexp?: string
   }
   export interface Mouse {
     features: Features1;
