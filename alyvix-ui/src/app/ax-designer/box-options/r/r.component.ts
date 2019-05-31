@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { TreeNode } from '../../ax-designer-service';
-import { R, WidthOrHeight } from 'src/app/ax-model/model';
+import { R, WidthOrHeight, BoxListEntity } from 'src/app/ax-model/model';
 
 import * as _ from 'lodash';
 
@@ -23,6 +23,7 @@ export class RComponent implements OnInit {
   
 
   mode:R
+  modes:R[]
 
   ngOnInit() {
     var widths = this.widths(this.node.box.w)
@@ -33,14 +34,25 @@ export class RComponent implements OnInit {
     var modes = [this.box,this.window,this.button]
     this.mode = modes.find(x => _.isEqual(x,this.node.box.features.R))
     if(!this.mode) {
-      this.mode = modes[2]; //default to button
-      this.node.box.features.R = modes[2];
+      var m = this.default(this.node.box)
+      this.mode = m;
+      this.node.box.features.R = m;
     }
   }
 
   updateMode(event:R) {
     this.mode = event;
     this.node.box.features.R = event;
+  }
+
+  default(rect:BoxListEntity):R {
+    if(rect.w >= rect.h * 8 && rect.h >= 15 && rect.h <= 50) {
+      return this.box
+    } else if (rect.w >= 120 && rect.h >= 120) {
+      return this.window
+    } else {
+      return this.button
+    }
   }
 
 
