@@ -1,0 +1,53 @@
+<div class="container" (resized)="onResized($event)">
+  <div class="pure-g">
+    <div class="pure-u-1-1">
+      <div class="form-group">
+        <label>Object name</label>
+        <input type="text" [(ngModel)]="axModel.object_name" />
+      </div>
+    </div>
+    <div class="pure-u-14-24">
+      <div class="form-group">
+          <label>&nbsp;</label>
+          <input [(ngModel)]="axModel.detection.type" type="radio" value="appear" name="detection" id="detectionA" /> <label for="detectionA">Appear</label>
+          <input type="radio" [(ngModel)]="axModel.detection.type" value="appear+disappear" name="detection" id="detectionAD"/> <label for="detectionAD">A+D</label>
+          <input type="radio" [(ngModel)]="axModel.detection.type" value="disappear" name="detection" id="detectionD"/> <label for="detectionD">Disappear</label>
+      </div>
+    </div>
+    <div class="pure-u-5-24">
+      <div class="form-group">
+        <label>Timeout [s]</label>
+        <input [(ngModel)]="axModel.detection.timeout_s" type="number" />
+      </div>
+    </div>
+    <div class="pure-u-5-24">
+      <div class="form-group" style="text-align:right">
+        <label>&nbsp;</label>
+        Break <input [(ngModel)]="axModel.detection.break" type="checkbox" />
+      </div>
+    </div>
+    <div class="pure-u-1-1">
+      <hr>
+    </div>
+  </div>
+  <div class="pure-g">
+    <div class="pure-u-1-1">
+      <div #treeContainer [ngStyle]="treeHeight()">
+        <ax-designer-tree></ax-designer-tree>
+      </div>
+    </div>
+  </div>
+  <div class="pull-down pure-g" #pullDown>
+      <div class="pure-u-1-1" *ngIf="showAdd()">
+            <button (click)="add()" class="button-small pure-button">Add</button>
+        </div>
+    <div class="pure-u-1-1">
+      <hr>
+    </div>
+    <ax-box-options *ngIf="!hideOptionsOnDrag()" [node]="selectedNode"></ax-box-options>
+    <div class="pure-u-1-1">
+        <button (click)="save()" class="pure-button pure-button-primary">OK</button>&nbsp;<button (click)="cancel()" class="pure-button">Cancel</button>
+    </div>
+
+  </div>
+</div>

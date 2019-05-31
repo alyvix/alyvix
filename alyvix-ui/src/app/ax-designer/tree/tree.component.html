@@ -1,0 +1,41 @@
+<ul >
+  <li [contextMenu]="rootContextMenu" (contextmenu)="onContextMenu($event, root)" [contextMenuSubject]="root" class="last">
+    <ax-tree-node [node]="root"></ax-tree-node>
+    <ul class="tree primary-group" cdkDropList (cdkDropListDropped)="dropPrimary(root.children,$event)">
+      <li [contextMenu]="mainContextMenu" [contextMenuSubject]="node" (contextmenu)="onContextMenu($event, node)" *ngFor="let node of root.children" cdkDrag
+        (cdkDragStarted)="startDrag(root.children,node,$event)" [ngClass]="{'last': node.last}">
+        <ax-tree-node [node]="node"></ax-tree-node>
+        <ul class="secondary-group" cdkDropList (cdkDropListDropped)="drop(node.children,$event)">
+          <li [contextMenu]="childContextMenu" [contextMenuSubject]="subnode" (contextmenu)="onContextMenu($event, subnode)" *ngFor="let subnode of node.children" cdkDrag
+            (cdkDragStarted)="startDrag(node.children,subnode,$event)" [ngClass]="{'last': subnode.last}">
+            <div class="custom-placeholder" *cdkDragPlaceholder></div>
+            <ax-tree-node [node]="subnode"></ax-tree-node>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<context-menu #rootContextMenu>
+    <ng-template contextMenuItem (execute)="axDesignerService.removeAll()">Remove All <span class="key-shortcut">Ctrl-X</span></ng-template>
+    <ng-template contextMenuItem [enabled]="!axDesignerService.full()" (execute)="axDesignerService.newComponent($event.item)">New component <span class="key-shortcut">Ctrl-N</span></ng-template>
+</context-menu>
+
+<context-menu #mainContextMenu>
+  <ng-template contextMenuItem (execute)="axDesignerService.removeGroup($event.item)">Remove Group <span class="key-shortcut">Ctrl-X</span></ng-template>
+  <ng-template contextMenuItem [enabled]="axDesignerService.availableGroups()" (execute)="axDesignerService.duplicateGroup($event.item)">Duplicate Group <span class="key-shortcut">Ctrl-D</span></ng-template>
+  <ng-template contextMenuItem (execute)="axDesignerService.detectAs('I',$event.item)">Detect as Image <span class="key-shortcut">Ctrl-I</span></ng-template>
+  <ng-template contextMenuItem (execute)="axDesignerService.detectAs('R',$event.item)">Detect as Rect <span class="key-shortcut">Ctrl-R</span></ng-template>
+  <ng-template contextMenuItem [enabled]="enableNewGroupComponent(axDesignerService)" (execute)="axDesignerService.newComponent($event.item)">New component <span class="key-shortcut">Ctrl-N</span></ng-template>
+</context-menu>
+
+<context-menu #childContextMenu>
+    <ng-template contextMenuItem (execute)="axDesignerService.removeComponent($event.item)">Remove Component <span class="key-shortcut">Ctrl-X</span></ng-template>
+    <ng-template contextMenuItem [enabled]="enableNewGroupComponent(axDesignerService)" (execute)="axDesignerService.duplicateComponent($event.item)">Duplicate Component <span class="key-shortcut">Ctrl-D</span></ng-template>
+    <ng-template contextMenuItem (execute)="axDesignerService.detectAs('I',$event.item)">Detect as Image <span class="key-shortcut">Ctrl-I</span></ng-template>
+    <ng-template contextMenuItem (execute)="axDesignerService.detectAs('R',$event.item)">Detect as Rect <span class="key-shortcut">Ctrl-R</span></ng-template>
+    <ng-template contextMenuItem (execute)="axDesignerService.detectAs('T',$event.item)">Detect as Text <span class="key-shortcut">Ctrl-T</span></ng-template>
+    <ng-template contextMenuItem (execute)="axDesignerService.setAsMain($event.item)">Set as Main <span class="key-shortcut">Ctrl-M</span></ng-template>
+    <ng-template contextMenuItem [enabled]="enableNewGroupComponent(axDesignerService)" (execute)="axDesignerService.newComponent($event.item)">New component <span class="key-shortcut">Ctrl-N</span></ng-template>
+</context-menu>

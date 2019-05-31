@@ -1,0 +1,63 @@
+.boxEntity {
+    background-color: #808080;
+    border: solid 1px #383838;
+    padding: 0;
+    height: 32px;
+    width: 71px;
+    line-height: 30px;
+    display: inline-block;
+}
+
+
+.boxEntity span {
+    width: 20px;
+    color: white;
+    display: inline-block;
+    text-align: center;
+    margin-right: 1px;
+}
+
+.active .boxEntity span {
+    color: white;
+}
+
+.boxEntity img {
+    float: right;
+    height: 30px;
+}
+
+.boxEntityContainer {
+    display: inline-block;
+    padding: 0 ;
+    margin-left: -25px;
+}
+
+
+li.cdk-drag-preview .boxEntityContainer .interaction{
+    display: none !important;
+}
+
+.boxEntityContainer .interaction {
+    float: right;
+    display: inline-block;
+    width: 35px;
+    height: 31px;
+    line-height: 31px;
+    margin-top: 3px;
+}
+
+.boxEntityContainer .interaction-keyboard {
+ 
+}
+
+.boxEntityContainer .interaction-mouse {
+   margin-left: 50px;
+}
+.boxEntityContainer .interaction-mouse.primary {
+    margin-left: 95px;
+ }
+
+.boxEntityContainer .interaction img {
+    height: 32px;
+}
+

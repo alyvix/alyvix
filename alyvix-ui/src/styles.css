@@ -1,0 +1,284 @@
+/* You can add global styles to this file, and also import other style files */
+
+
+* {
+    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;
+}
+
+body{
+    font-size: 12px;
+}
+
+input[type='number'] {
+    -moz-appearance:textfield;
+}
+
+
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+.form-group {
+    margin: 5px 0;
+    min-height: 33px;
+}
+
+.form-group.small {
+    margin: 5px 0;
+    min-height: 10px;
+}
+
+.form-group input[type=date],
+.form-group input[type=datetime],
+.form-group input[type=datetime-local],
+.form-group input[type=email],
+.form-group input[type=month],
+.form-group input[type=number],
+.form-group input[type=password],
+.form-group input[type=range],
+.form-group input[type=search],
+.form-group input[type=tel],
+.form-group input[type=text],
+.form-group input[type=time],
+.form-group input[type=url],
+.form-group input[type=week]
+{
+    border-radius: 2px;
+    border: #aaa 1px solid;
+    padding: 2px 5px;
+    width: 100%;
+}
+
+
+input.std-width {
+    width: 160px;
+}
+
+.form-group select.std {
+    width: 170px;
+}
+
+.form-group select.small {
+    width: 71px;
+}
+
+select {
+
+    background-color: white;
+    border: 1px solid #aaa;
+    border-radius: 2px;
+    padding: 1px 2px;
+}
+
+select:disabled {
+    background-color: rgb(235, 235, 228);
+}
+
+select::-ms-expand {
+    display: none;
+}
+
+input[type=checkbox]{
+    vertical-align: middle;
+}
+
+input[type='radio'] {
+    vertical-align: middle;
+}
+
+.form-group label {
+    min-width: 100px;
+    margin-right: 10px;
+    font-weight: bold;
+    margin-bottom: 0px;
+    font-size: 11px;
+    display: block;
+}
+
+.pure-button{
+    font-size: 12px;
+    padding: 2px 8px;
+    border: 1px solid #aaa;
+    line-height: 13px;
+}
+
+.pure-button-primary{
+   border: 1px solid #0078e7;
+}
+
+
+
+.container{
+    padding: 10px;
+    height: 100%;
+    position: absolute;
+}
+
+.pull-down {
+    padding: 10px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #aaa;
+}
+
+.node-content-wrapper, .tree-children {
+    position: relative;
+  }
+  
+  .node-content-wrapper::before, .tree-children::after {
+    content: "";
+    position: absolute;
+  }
+  
+  .node-content-wrapper::before {
+    border-bottom: 1px solid lightgrey;
+    border-left: 1px solid lightgrey;
+    height: 28px;
+    top: -17px;
+    width: 20px;
+    left: -28px;
+  }
+  
+  .tree-node-level-1 > tree-node-wrapper > .node-wrapper > .node-content-wrapper::before {
+    display: none;
+  }
+  
+  .tree-node-leaf > .node-wrapper > .node-content-wrapper::before {
+    width: 25px;
+  }
+  
+  .tree-children::after {
+    border-left: 1px solid lightgrey;
+    height: 100%;
+    top: -15px;
+    left: -15px;
+  }
+  
+  tree-node:last-child > .tree-node > .tree-children::after {
+    border-left: none;
+  }
+  
+  .toggle-children {
+    z-index: 1;
+  }
+
+ 
+
+  [type="radio"]:checked,
+  [type="radio"]:not(:checked) {
+      position: absolute;
+      left: -9999px;
+  }
+  [type="radio"]:checked + label,
+  [type="radio"]:not(:checked) + label
+  {
+      position: relative;
+      padding-left: 23px;
+      cursor: pointer;
+      line-height: 17px;
+      display: inline-block;
+      color: #666;
+      min-width: 0px;
+      margin-right: 10px;
+  }
+  [type="radio"]:checked + label:before,
+  [type="radio"]:not(:checked) + label:before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 13px;
+      height: 13px;
+      border: 1px solid #ddd;
+      border-radius: 100%;
+      background: #fff;
+  }
+  [type="radio"]:checked + label:before{
+    border: 1px solid #0078e7;
+  }
+  [type="radio"]:checked + label:after,
+  [type="radio"]:not(:checked) + label:after {
+      content: '';
+      width: 9px;
+      height: 9px;
+      background: #0078e7;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      border-radius: 100%;
+      -webkit-transition: all 0.2s ease;
+      transition: all 0.2s ease;
+  }
+  [type="radio"]:not(:checked) + label:after {
+      opacity: 0;
+      -webkit-transform: scale(0);
+      transform: scale(0);
+  }
+  [type="radio"]:checked + label:after {
+      opacity: 1;
+      -webkit-transform: scale(1);
+      transform: scale(1);
+  }
+
+
+  .ngx-contextmenu {
+      background-color: #f3f3f3;
+      box-shadow: 2px 2px 4px #aaa;
+  }
+
+  .ngx-contextmenu ul {
+    margin: 0;  
+  }
+
+  .ngx-contextmenu .dropdown-menu {
+    padding: 0;
+  }
+  .ngx-contextmenu li {
+      min-width: 200px;
+    display: block;
+    padding: 5px 20px;
+    color: #333;
+    font-weight: bold;
+  }
+
+  .ngx-contextmenu li.disabled {
+    color: #999;
+  }
+
+  .ngx-contextmenu li:first-child {
+    border-top:none;
+  }
+  .ngx-contextmenu a {
+    color: #333;
+    display: block;
+    text-align: left;
+    text-decoration: none;
+  }
+
+  .ngx-contextmenu li.disabled a {
+    color: #999;
+  }
+  
+  .ngx-contextmenu li:hover {
+    background-color:#ccc;
+  }
+
+  .ngx-contextmenu li.disabled:hover {
+    background-color:#f3f3f3;
+  }
+
+  .ngx-contextmenu .key-shortcut{
+      float: right;
+      font-size: 80%;
+      font-weight: normal;
+  }

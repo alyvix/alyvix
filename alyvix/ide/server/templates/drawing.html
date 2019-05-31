@@ -67,8 +67,10 @@
             return copy;
         }
 
-        //Interface to alyvix-ui project
+
         var model = {}
+
+        //Interface to alyvix-ui project
         function axModel() {
             if(!model.box_list) {
                 model = {object_name:object_name, detection: detection, box_list:boxes, background: background_base64_string} 
@@ -95,6 +97,28 @@
             dhxWins.forEachWindow(function(win){win.close();});
         }
 
+        function setRectangles() {
+            boxes = model.box_list;
+            rectManager.set_rectangles(model.box_list);
+            draw(rectManager.last_mouse_event);
+            console.log("update rectangles")
+            console.log(boxes);
+        }
+
+        function getGroupsFlag() {
+            return {
+                created: [rectManager.main_g0_created,rectManager.main_g1_created,rectManager.main_g2_created],
+                count: [rectManager.g0_elements_cnt,rectManager.g1_elements_cnt,rectManager.g2_elements_cnt]
+            }
+        }
+
+        function getSelectedNode() {
+            return selected_box;
+        }
+        function setSelectedNode(i) {
+            selected_box = i;
+        }
+
         
         function save()
         {
@@ -119,6 +143,8 @@
             });
             window.history.back();
         }
+
+        /// END API FOR Alyvix-ui
 		
         var idPrefix = 1;
         
