@@ -3,6 +3,7 @@ html, body {
   height: 100%;
   /* remove the extra whites around */
   margin: 0;
+  overflow: hidden;
 }
 
 body{
@@ -17,6 +18,13 @@ canvas
     height: 100%;
     display: block;
 }
+
+#myDiv{
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
 
 *:focus {
 outline: none;

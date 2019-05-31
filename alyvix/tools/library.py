@@ -64,12 +64,42 @@ class LibraryManager:
         super(LibraryManager, self).__init__()
 
         self.screen = None
-        self.filename = None
         self.boxes = []
+        self._json_object = None
 
     def load_file(self, filename):
 
-        self.filename = filename
+        try:
+            with open(filename) as f:
+                self._json_object = json.load(f)
+        except:
+            self._json_object = {}
+    def get_json(self):
+        return self._json_object
+
+    def check_if_exist(self, object_name):
+
+        if object_name is None:
+            return
+
+        sm = ScreenManager()
+        w, h = sm.get_resolution()
+        scaling_factor = sm.get_scaling_factor()
+
+
+        try:
+            detection_dict = self._json_object["objects"][object_name]["detection"]
+        except:
+            return False
+
+        resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
+
+        try:
+            object_dict = self._json_object["objects"][object_name]["components"][resolution_string]
+        except:
+            return False
+
+        return True
 
     def add_chunk(self, object_name, chunk):
 
@@ -82,19 +112,14 @@ class LibraryManager:
         w, h = sm.get_resolution()
         scaling_factor = sm.get_scaling_factor()
 
-        alyvix_json = None
-
         resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
-
-        with open(self.filename) as f:
-            alyvix_json = json.load(f)
 
         try:
             #detection_dict[object_name] = alyvix_json["objects"][object_name]
-            detection_dict = {object_name: {"components": {resolution_string:alyvix_json["objects"][object_name]
+            detection_dict = {object_name: {"components": {resolution_string:self._json_object["objects"][object_name]
                                                             ["components"][resolution_string]},
-                                            "date-modified": alyvix_json["objects"][object_name]["date-modified"],
-                                            "detection": alyvix_json["objects"][object_name]["detection"]}}
+                                            "date-modified": self._json_object["objects"][object_name]["date-modified"],
+                                            "detection": self._json_object["objects"][object_name]["detection"]}}
         except:
             return {}
 
@@ -102,11 +127,11 @@ class LibraryManager:
 
         return detection_dict
 
-    def build_objects(self, object_name):
+    def build_objects_for_ide(self, object_name):
 
         self.boxes = []
 
-        if self.filename is None:
+        if self._json_object is None:
             return
 
         if object_name is None:
@@ -116,24 +141,18 @@ class LibraryManager:
         w, h = sm.get_resolution()
         scaling_factor = sm.get_scaling_factor()
 
-        alyvix_json = None
-
-        with open(self.filename) as f:
-            alyvix_json = json.load(f)
-
         try:
-            detection_dict = alyvix_json["objects"][object_name]["detection"]
+            detection_dict = self._json_object["objects"][object_name]["detection"]
         except:
             return {}
 
-        resolution_string = resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
+        resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
 
         try:
-            object_dict = alyvix_json["objects"][object_name]["components"][resolution_string]
+            object_dict = self._json_object["objects"][object_name]["components"][resolution_string]
         except:
             return {}
 
-        index_in_tree = 0
         group = 0
         for group_dict in object_dict["groups"]:
 
@@ -191,14 +210,8 @@ class LibraryManager:
 
                 box["is_main"] = True
 
-                box["index_in_tree"] = index_in_tree
-                index_in_tree += 1
-
-                box["index_in_group"] = 0
-
                 self.boxes.append(box)
 
-            index_in_group = 1
             for box_dict in group_dict["subs"]:
 
                 if box_dict != {}:
@@ -261,9 +274,6 @@ class LibraryManager:
 
                     box["is_main"] = False
 
-                    index_in_group += 1
-                    index_in_tree += 1
-
                     self.boxes.append(box)
 
             group += 1
@@ -281,6 +291,7 @@ class LibraryManager:
 
         return {"detection": detection_dict, "boxes": self.boxes, "screen": background_string,
                 "scaling_factor": scaling_factor, "img_h": h, "img_w": w, "object_name": object_name}
+
 
 
     def get_detection_from_string(self, json_string):
@@ -301,7 +312,7 @@ class LibraryManager:
             return {}
 
 
-    def build_objects_from_string(self, json_string):
+    def build_objects_for_engine(self, json_string):
 
         self.boxes = []
 
@@ -311,21 +322,19 @@ class LibraryManager:
         w, h = sm.get_resolution()
         scaling_factor = sm.get_scaling_factor()
 
-        alyvix_json = json_string
-
         try:
-            detection_dict = alyvix_json[object_name]["detection"]
+            detection_dict = json_string[object_name]["detection"]
         except:
             return {}
 
         resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
 
         try:
-            object_dict = alyvix_json[object_name]["components"][resolution_string]
+            object_dict = json_string[object_name]["components"][resolution_string]
         except:
             return {}
 
-        run_dict = alyvix_json[object_name]["run"]
+        run_dict = json_string[object_name]["run"]
 
         index_in_tree = 0
         group = 0

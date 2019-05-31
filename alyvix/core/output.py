@@ -3,69 +3,85 @@ import json
 import base64
 import copy
 import os
+from datetime import datetime
+from alyvix.tools.screen import ScreenManager
 
 class OutputManager:
     def __init__(self):
         pass
 
-    def build_json(self, chunk, object_list):
+    def _build_json(self, json_object, chunk, object_list):
 
 
         objects = []
 
-        for object in object_list:
-            dict = {object.object_name:{}}
+        sm = ScreenManager()
+        w, h = sm.get_resolution()
+        scaling_factor = sm.get_scaling_factor()
 
-            dict[object.object_name]["perfomance_ms"] = int(object.performance_ms)
-            dict[object.object_name]["accuracy_ms"] = int(object.accuracy_ms)
-            dict[object.object_name]["timestamp"] = object.timestamp
-            #dict[object.object_name]["screenshot"] = object.screenshot
-            #dict[object.object_name]["annotation"] = object.annotation
-            dict[object.object_name]["records"] = object.records
+        for object in object_list:
+
+
+
+            resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
+
+            object_dict = json_object["objects"][object.object_name]["components"][resolution_string]
+
+            object_dict["measurement"] = {"perfomance_ms": int(object.performance_ms),
+                                          "accuracy_ms": int(object.accuracy_ms),
+                                          "timestamp": object.timestamp, "records": object.records}
 
             if object.screenshot is not None:
                 png_image = cv2.imencode('.png', object.screenshot)
 
-                dict[object.object_name]["screenshot"] = base64.b64encode(png_image[1]).decode('ascii')
+                object_dict["measurement"]["screenshot"] = base64.b64encode(png_image[1]).decode('ascii')
 
             else:
-                dict[object.object_name]["screenshot"] = None
+                object_dict["measurement"]["screenshot"] = None
 
             if object.annotation is not None:
                 png_image = cv2.imencode('.png', object.annotation)
 
-                dict[object.object_name]["annotation"] = base64.b64encode(png_image[1]).decode('ascii')
+                object_dict["measurement"]["annotation"] = base64.b64encode(png_image[1]).decode('ascii')
             else:
-                dict[object.object_name]["annotation"] = None
+                object_dict["measurement"]["annotation"] = None
 
-            objects.append(dict)
+            json_object["objects"][object.object_name]["components"][resolution_string] = object_dict
+            json_object["run"] = {"host": chunk["host"], "user": chunk["user"],
+                                  "test": chunk["test"], "code": chunk["code"]}
 
-        return_dict = copy.deepcopy(chunk)
-        return_dict["objects"] = objects
-
-        return return_dict
+        return json_object
 
     def save_screenshots(self, file_path, object_list, prefix=None):
         for object in object_list:
 
 
             if object.screenshot is not None:
-                filename = object.object_name + "_" + str(object.timestamp) + "_screenshot.png"
+                date_from_ts = datetime.fromtimestamp(object.timestamp)
+                date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S")
+
                 if prefix is not None:
-                    filename = prefix + "_" + filename
+                    filename =  date_formatted + "_" + prefix + "_" + object.object_name + "_screenshot.png"
+                else:
+                    filename = date_formatted + "_" + object.object_name + "_screenshot.png"
 
                 cv2.imwrite(file_path + os.sep + filename, object.screenshot)
 
-
             if object.annotation is not None:
-                filename = object.object_name + "_" + str(object.timestamp) + "_annotation.png"
+                date_from_ts = datetime.fromtimestamp(object.timestamp)
+                date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S")
+
+
                 if prefix is not None:
-                    filename = prefix + "_" + filename
+                    filename =  date_formatted + "_" + prefix + "_" + object.object_name + "_annotation.png"
+                else:
+                    filename = date_formatted + "_" + object.object_name + "_annotation.png"
 
                 cv2.imwrite(file_path + os.sep + filename, object.annotation)
 
 
-    def save(self, json_string, filename):
+    def save(self, filename, json_object, chunk, object_list):
 
         with open(filename, 'w') as f:
-            json.dump(json_string, f, indent=4, sort_keys=True, ensure_ascii=False)
+            json.dump(self._build_json(json_object, chunk, object_list), f, indent=4,
+                      sort_keys=True, ensure_ascii=False)

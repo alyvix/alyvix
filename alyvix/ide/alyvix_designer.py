@@ -2,12 +2,16 @@ from alyvix.ide.server import ServerManager
 from alyvix.ide.viewer import ViewerManager
 from alyvix.ide.server.utilities.alyvixfile import AlyvixFileManager
 from alyvix.tools.screen import ScreenManager
+from alyvix.tools.library import LibraryManager
 import socket
 from multiprocessing import Process
 import time
 import os.path
 from datetime import datetime
 import argparse
+import base64
+import cv2
+import numpy as np
 
 
 def str2bool(v):
@@ -21,10 +25,14 @@ def str2bool(v):
 # "alyvix-" + datetime.now().strftime("%H%M%S%Y") + ".json"
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--filename', '-f', help="dummy description for help", type=str, default=None)
+
+requiredNamed = parser.add_argument_group('required named arguments')
+requiredNamed.add_argument('--filename', '-f', help="dummy description for help", type=str, default=None, required=True)
+requiredNamed.add_argument('--object', '-o', help="dummy description for help", type=str, default=None, required=True)
+
 parser.add_argument('--delay', '-d', help="dummy description for help", type=int, default=0)
-parser.add_argument('--object', '-o', help="dummy description for help", type=str, default=None)
 parser.add_argument('--window', '-w', help="dummy description for help", type=str2bool, default=True)
+
 
 #print(parser.format_help())
 
@@ -48,22 +56,38 @@ def run_server(port, background_image, scaling_factor):
 if __name__ == '__main__':
     if args.filename is not None and args.object is not None:
 
-        if args.delay != 0:
+        lm = LibraryManager()
+        lm.load_file(args.filename)
+
+        screen_manager = ScreenManager()
+
+        if args.delay != 0 and lm.check_if_exist(args.object) is False:
 
             seconds = args.delay #// 1
             #milliseconds = args.delay - seconds
 
-            print("delay:")
+            print("Counting down")
 
             for i in range(seconds):
                 print(str(seconds - i))
                 time.sleep(1)
 
-        print("grab desktop")
+            print("Frame grabbing!")
 
-        screen_manager = ScreenManager()
+            background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+        elif args.delay == 0 and lm.check_if_exist(args.object) is False:
+            print("Frame grabbing!")
 
-        background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+            background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+        elif lm.check_if_exist(args.object) == True:
+            alyvix_file_dict = lm.build_objects_for_ide(args.object)
+
+            np_array = np.fromstring(base64.b64decode(alyvix_file_dict["screen"]), np.uint8)
+
+            background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+            print("Opening object")
+
         scaling_factor = screen_manager.get_scaling_factor()
 
 

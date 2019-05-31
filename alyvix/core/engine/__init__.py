@@ -81,7 +81,7 @@ class EngineManager(object):
         self._object_definition = None
         self._detection = None
 
-        self._object_definition = self._library_manager.build_objects_from_string(self._object_json)
+        self._object_definition = self._library_manager.build_objects_for_engine(self._object_json)
         self._detection = self._library_manager.get_detection_from_string(self._object_json)
 
         self._result.detection_type = self._detection["type"]
@@ -111,7 +111,7 @@ class EngineManager(object):
         self.total_threads = 0
         self.stop_threads = False
         self._components_found = []
-        self._components_to_return = []
+        self._components_appeared = []
         self._return_values = []
 
         self._last_screen = None
@@ -143,7 +143,11 @@ class EngineManager(object):
 
         gray_screen = cv2.cvtColor(color_screen, cv2.COLOR_BGR2GRAY)
 
-        for result_box in self._components_to_return:
+        for result_box in self._components_appeared:
+            if result_box.type == "T" and result_box.scraped_text is not None:
+                cnt_found += 1
+                continue
+
             template = cv2.cvtColor(self._last_screen[result_box.y:result_box.y + result_box.h,
                                     result_box.x:result_box.x + result_box.w], cv2.COLOR_BGR2GRAY)
 
@@ -178,7 +182,7 @@ class EngineManager(object):
             if len(points) > 0:
                 cnt_found += 1
 
-        if cnt_found == len(self._components_to_return):
+        if cnt_found == len(self._components_appeared):
             return True
         else:
             return False #cnt_found == len(self._components_found)
@@ -227,10 +231,18 @@ class EngineManager(object):
             else:
                 last_notfound_index = index
                 break
+        #print("last_found_index" + str(last_found_index))
+        #print("last_notfound_index" + str(last_notfound_index))
+        #print("len screen" + str(len(self._screens)))
 
-        for i in range(last_found_index):
-            if i > last_notfound_index:
+        for i in range(last_found_index+1):
+            #cv2.imwrite("D:\\programdata\\log\\" + str(i) + "_searching.png", self._uncompress(self._screens[i][0]))
+
+            if i > last_notfound_index and i < len(self._screens):
                 if self._check_object_presence(self._uncompress(self._screens[i][0])) is True:
+
+                    #cv2.imwrite("D:\\programdata\\log\\" + str(i) + "_searching.png", self._uncompress(self._screens[i][0]))
+
                     """
                         ###########################################
                         APPEAR
@@ -293,13 +305,16 @@ class EngineManager(object):
             loop_step = 1
 
         #last_found_index = i
-        last_found_index = 0
+        last_found_index = first_found_index
         last_notfound_index = len(self._screens) - 1
 
         for i in range(loop_step):
 
             if i == 0:
                 continue
+
+            if i <= first_found_index:
+                break
 
             index = (len(self._screens) - (frame_step * i))
 
@@ -309,8 +324,15 @@ class EngineManager(object):
                 last_found_index = index
                 break
 
-        for i in range(last_notfound_index):
-            if i > last_found_index:
+        if last_notfound_index <= last_found_index:
+            last_notfound_index = last_found_index + 1
+
+        #print("first_found_index " + str(first_found_index))
+        #print("last_found_index " + str(last_found_index))
+        #print("last_notfound_index " + str(last_notfound_index))
+
+        for i in range(last_notfound_index+1):
+            if i > last_found_index and i < len(self._screens):
                 if self._check_object_presence(self._uncompress(self._screens[i][0])) is False:
                     """
                         ###########################################
@@ -668,8 +690,12 @@ class EngineManager(object):
 
             self.stop_threads = True
 
-            self._components_to_return = []
-            self._components_to_return = copy.deepcopy(self._components_found)
+            self._components_appeared = []
+            self._components_appeared = copy.deepcopy(self._components_found)
+
+            self._components_disappeared = []
+            self._components_disappeared = copy.deepcopy(self._components_found)
+
             self._last_screen = current_color_screen
             self._result.records["text"] = scraped_text
 
@@ -678,11 +704,6 @@ class EngineManager(object):
             or (len(return_group_2) != len(self._group_2))):
 
             self.stop_threads = True
-
-            self._components_to_return = []
-            self._components_to_return.extend(return_group_0)
-            self._components_to_return.extend(return_group_1)
-            self._components_to_return.extend(return_group_2)
 
         self.total_threads -= 1
         self.lock.release()
@@ -786,7 +807,7 @@ class EngineManager(object):
 
                 cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
 
-                text = "s_" + str(component.index_in_group)
+                text = "s_" + str(component.group + 1) + "_" + str(component.index_in_group)
                 cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
                             lineType=cv2.LINE_AA)
 
@@ -804,6 +825,40 @@ class EngineManager(object):
                                 0, image[y1:y2, x1:x2])
 
                 cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
+
+            if component.type == "T" and component.scraped_text is not None:
+                continue
+
+            mouse_dict = component.mouse
+
+            if mouse_dict["type"] is not None and self._disappear_mode is False and \
+                    len(self._components_found) == (len(self._group_0) + len(self._group_1) + len(self._group_2)):
+
+                point_dx = 0
+                point_dy = 0
+
+                try:
+                    if (mouse_dict["features"]["point"]["dx"] != 0 or mouse_dict["features"]["point"]["dy"] != 0):
+                        point_dx = mouse_dict["features"]["point"]["dx"]
+                        point_dy = mouse_dict["features"]["point"]["dy"]
+                except:
+                    pass
+
+                position_x = int(component.x + (component.w / 2))
+                position_y = int(component.y + (component.h / 2))
+
+                if point_dx != 0 or point_dy != 0:
+                    new_position_x = component.x + point_dx
+                    new_position_y = component.y + point_dy
+
+                    cv2.line(image, (position_x, position_y), (new_position_x, new_position_y), color_stroke,
+                             int(1*self._scaling_factor), lineType=cv2.LINE_AA)
+                else:
+                    new_position_x = position_x
+                    new_position_y = position_y
+
+                cv2.circle(image, (new_position_x, new_position_y), int(4*self._scaling_factor), color_stroke,-1,
+                           lineType=cv2.LINE_AA)
 
 
         """
@@ -838,7 +893,7 @@ class EngineManager(object):
         self._t0 = 0
         self.stop_threads = False
         self._components_found = []
-        self._components_to_return = []
+        self._components_appeared = []
         self._return_values = []
 
         self._last_screen = None
@@ -855,7 +910,7 @@ class EngineManager(object):
         self._disappear_mode = False
 
 
-        print("start " + self._result.object_name)
+        print(self._result.object_name + " starts")
 
         #sm = ScreenManager()
 
@@ -890,14 +945,16 @@ class EngineManager(object):
             self._screens.append((self._compress(current_color_screen), t_after_grab))
 
             self.lock.acquire()
-            result = self._components_to_return
+            components_appeared = self._components_appeared
+            components_found = self._components_found
             stop_threads = self.stop_threads
             total_threads = self.total_threads
             self.lock.release()
 
-            if len(result) == (len(self._group_0) + len(self._group_1) + len(self._group_2)) \
+            if len(components_appeared) == (len(self._group_0) + len(self._group_1) + len(self._group_2)) \
                     and disappear_mode is False:
                 if detection_type =='appear':
+                    #cv2.imwrite("D:\\programdata\\log\\" + str(time.time()) + "_find.png", self._uncompress(self._screens[-2][0]))
                     self._appear_time, self._appear_accuracy, first_index_found = self._get_appear_time()
 
                     self._screen_with_objects = self._uncompress(self._screens[first_index_found][0])
@@ -929,7 +986,7 @@ class EngineManager(object):
                     self._appear_time, self._appear_accuracy, first_index_found = self._get_appear_time()
                     last_found_index = len(self._screens) -2
 
-            elif len(result) != (len(self._group_0) + len(self._group_1) + len(self._group_2)) \
+            elif len(components_found) != (len(self._group_0) + len(self._group_1) + len(self._group_2)) \
                     and disappear_mode is True:
 
                 if detection_type == 'appear+disappear':

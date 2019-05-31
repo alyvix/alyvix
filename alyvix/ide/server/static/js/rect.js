@@ -103,6 +103,7 @@ class RectManager{
     
     keydown(e)
     {   
+
         
         if (e.key == " " && this.capturing_rect == false && this.show_autocontoured_rects == false){ 
             this.show_autocontoured_rects = true
@@ -264,7 +265,7 @@ class RectManager{
                 type: "POST",
                 data: jsonData,
                 contentType: "application/json; charset=utf-8",
-                success: function(dat) { console.log(dat); createTreeTable(dat); }
+                success: function(dat) { console.log(dat); update_thumbnails(dat); }
             });
         
         }

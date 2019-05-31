@@ -472,6 +472,10 @@ def save_json():
 
         current_json["objects"][object_name]["components"] = curr_components
 
+
+        if object_name != current_objectname:
+            del current_json["objects"][current_objectname]
+
         current_json["objects"][object_name]["date-modified"] = datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
 
 

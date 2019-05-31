@@ -474,32 +474,39 @@ class TextManager():
             x2 = 0
             y2 = 0
 
-            for word in scraped_words:
+            if len(scraped_words) == 0:
+                return_value = Result()
+                return_value.x = 0 #offset_x + 0
+                return_value.y = 0 #offset_y + 0
+                return_value.w = 0 #roi.w - 0
+                return_value.h = 0 #roi.h - 0
+                return_value.scraped_text = text
+                objects_found.append(return_value)
+            else:
+                for word in scraped_words:
 
-                if word[2] + 5 > roi.w and word[3] + 5 > roi.h and word[0] - 5 < roi.x and word[1] - 5 < roi.y:
-                    continue
+                    if word[2] + 5 > roi.w and word[3] + 5 > roi.h and word[0] - 5 < roi.x and word[1] - 5 < roi.y:
+                        continue
 
-                if word[0] < x1:
-                    x1 = word[0]
+                    if word[0] < x1:
+                        x1 = word[0]
 
-                if word[1] < y1:
-                    y1 = word[1]
+                    if word[1] < y1:
+                        y1 = word[1]
 
-                if word[2] > x2:
-                    x2 = word[2]
+                    if word[2] > x2:
+                        x2 = word[2]
 
-                if word[3] > y2:
-                    y2 = word[3]
+                    if word[3] > y2:
+                        y2 = word[3]
 
-            return_value = Result()
-            return_value.x = offset_x + x1
-            return_value.y = offset_y + y1
-            return_value.w = x2 - x1
-            return_value.h = y2 - y1
-            return_value.scraped_text = text
-            #print (text)
-
-            objects_found.append(return_value)
+                return_value = Result()
+                return_value.x = offset_x + x1
+                return_value.y = offset_y + y1
+                return_value.w = x2 - x1
+                return_value.h = y2 - y1
+                return_value.scraped_text = text
+                objects_found.append(return_value)
 
             return objects_found
         else:
