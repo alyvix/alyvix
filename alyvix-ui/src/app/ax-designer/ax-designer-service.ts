@@ -141,6 +141,10 @@ export class AxDesignerService {
         }
         return nodes;
     }
+
+    private flatBoxList():BoxListEntity[] {
+        return this.flatBoxes().filter(x => x.box).map(x => x.box)
+    }
  
     public indexSelectedNode(node:TreeNode):number {
         if(node.box) {
@@ -349,6 +353,7 @@ export class AxDesignerService {
     }
 
     updateAx() {
+        this.axModel.box_list = this.flatBoxList();
         this.global.nativeGlobal().setRectangles();
     }
 
@@ -360,7 +365,6 @@ export class AxDesignerService {
 
     cancel() {
         this.global.nativeGlobal().cancel();
-
     }
 
 
