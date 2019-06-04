@@ -14,7 +14,7 @@ export class InteractionComponent implements OnInit {
   node: TreeNode
   
   interactionTypes = [
-    {name: "None", value: "none"},
+    {name: "None", value: null},
     {name: "Move", value: "move"},
     {name: "Click", value: "click"},
     {name: "Scroll", value: "scroll"},
