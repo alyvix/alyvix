@@ -244,41 +244,18 @@ class EngineManager(object):
                     #cv2.imwrite("D:\\programdata\\log\\" + str(i) + "_searching.png", self._uncompress(self._screens[i][0]))
 
                     """
-                        ###########################################
-                        APPEAR
-                        ###########################################
-                        s = t0 + (t1 - t0)/2 +/- (t1 - t0)/2
-                        A = t2 + (t3 - t2)/2 +/- (t3 - t2)/2
-                        |   s   |   .   |   A   |
-                        t0  *   t1      t2  *   t3
-                            |<------------->| THIS ONE!
-                        |<----------------->| NOT that one!!
-                        Ap = t2 + (t3 - t2)/2 - t0 - (t1 - t0)/2
-                        Aa = +/- ((t3 - t2)/2 + (t1 - t0)/2)
-                        
-                        
-                        ###########################################
-                        APPEAR-DISAPPEAR
-                        ###########################################
-                        A = t2 + (t3 - t2)/2 +/- (t3 - t2)/2
-                        D = t4 + (t5 - t4)/2 +/- (t5 - t4)/2
-                        |   s   |   .   |   A   |   A   |   D   |
-                        t0      t1      t2  *   t3      t4  *   t5
-                                            |<------------->| THIS ONE!
-                        ADp = t4 + (t5 - t4)/2 - t2 - (t3 - t2)/2
-                        ADa = +/- ((t5 - t4)/2 + (t3 - t2)/2)
-                        
-                        
-                        ###########################################
-                        DISAPPEAR
-                        ###########################################
-                        s = t0 + (t1 - t0)/2 +/- (t1 - t0)/2
-                        D = t4 + (t5 - t4)/2 +/- (t5 - t4)/2
-                        |   s   |   .   |   A   |   A   |   D   |
-                        t0  *   t1      t2      t3      t4  *   t5
-                            |<----------------------------->| THIS ONE!
-                        Dp = t4 + (t5 - t4)/2 - t0 - (t1 - t0)/2
-                        Da = +/- ((t5 - t4)/2 + (t1 - t0)/2)
+                       ###########################################
+                       APPEAR
+                       ###########################################
+                       s = t0 + (t1 - t0)/2 +/- (t1 - t0)/2
+                       A = t2 + (t3 - t2)/2 +/- (t3 - t2)/2
+                       |   s   |   .   |   A   |
+                       t0  *   t1      t2  *   t3
+                           |<------------->| THIS ONE!
+                       |<----------------->| NOT that one!!
+                       Ap = t2 + (t3 - t2)/2 - t0 - (t1 - t0)/2
+                       Aa = +/- ((t3 - t2)/2 + (t1 - t0)/2)
+    
                     """
                     t0 = self._t0
                     t1 = self._screens[0][1]
@@ -292,7 +269,7 @@ class EngineManager(object):
 
                     return (time, accuracy, i)
 
-    def _get_disappear_time(self, first_found_index, appear_disappear = False):
+    def _get_disappear_time(self, first_found_index, appear_disappear = True):
 
         #first found index need to calc A+D
         #last found index need to speedup loop
@@ -335,33 +312,9 @@ class EngineManager(object):
             if i > last_found_index and i < len(self._screens):
                 if self._check_object_presence(self._uncompress(self._screens[i][0])) is False:
                     """
-                        ###########################################
-                        APPEAR
-                        ###########################################
-                        s = t0 + (t1 - t0)/2 +/- (t1 - t0)/2
-                        A = t2 + (t3 - t2)/2 +/- (t3 - t2)/2
-                        |   s   |   .   |   A   |
-                        t0  *   t1      t2  *   t3
-                            |<------------->| THIS ONE!
-                        |<----------------->| NOT that one!!
-                        Ap = t2 + (t3 - t2)/2 - t0 - (t1 - t0)/2
-                        Aa = +/- ((t3 - t2)/2 + (t1 - t0)/2)
-    
     
                         ###########################################
-                        APPEAR-DISAPPEAR
-                        ###########################################
-                        A = t2 + (t3 - t2)/2 +/- (t3 - t2)/2
-                        D = t4 + (t5 - t4)/2 +/- (t5 - t4)/2
-                        |   s   |   .   |   A   |   A   |   D   |
-                        t0      t1      t2  *   t3      t4  *   t5
-                                            |<------------->| THIS ONE!
-                        ADp = t4 + (t5 - t4)/2 - t2 - (t3 - t2)/2
-                        ADa = +/- ((t5 - t4)/2 + (t3 - t2)/2)
-    
-    
-                        ###########################################
-                        DISAPPEAR
+                        APPEAR+DISAPPEAR
                         ###########################################
                         s = t0 + (t1 - t0)/2 +/- (t1 - t0)/2
                         D = t4 + (t5 - t4)/2 +/- (t5 - t4)/2
@@ -370,6 +323,18 @@ class EngineManager(object):
                             |<----------------------------->| THIS ONE!
                         Dp = t4 + (t5 - t4)/2 - t0 - (t1 - t0)/2
                         Da = +/- ((t5 - t4)/2 + (t1 - t0)/2)
+    
+    
+                        ###########################################
+                        DISAPPEAR
+                        ###########################################
+                        A = t2 + (t3 - t2)/2 +/- (t3 - t2)/2
+                        D = t4 + (t5 - t4)/2 +/- (t5 - t4)/2
+                        |   s   |   .   |   A   |   A   |   D   |
+                        t0      t1      t2  *   t3      t4  *   t5
+                                            |<------------->| THIS ONE!
+                        ADp = t4 + (t5 - t4)/2 - t2 - (t3 - t2)/2
+                        ADa = +/- ((t5 - t4)/2 + (t3 - t2)/2)
                     """
                     t0 = self._t0
                     t1 = self._screens[0][1]
@@ -388,13 +353,13 @@ class EngineManager(object):
                     #da = tn_a - ((tn_a_1 - tn_a) / 2)
 
                     if appear_disappear == True:
-
-                        time = tn + ((tn_1 - tn) / 2) - tn_a - ((tn_a_1 - tn_a) / 2)
-                        accuracy = ((tn_1 - tn) / 2) + ((tn_a_1 - tn_a) / 2)
-                    else:
                         # t4 + (t5 - t4)/2 - t0 - (t1 - t0)/2
                         time = tn + ((tn_1 - tn) / 2) - t0 - ((t1 - t0) / 2)
                         accuracy = ((tn_1 - tn) / 2) + ((t1 - t0) / 2)
+
+                    else:
+                        time = tn + ((tn_1 - tn) / 2) - tn_a - ((tn_a_1 - tn_a) / 2)
+                        accuracy = ((tn_1 - tn) / 2) + ((tn_a_1 - tn_a) / 2)
 
                     return (time, accuracy, i)
 
@@ -988,6 +953,7 @@ class EngineManager(object):
 
             elif len(components_found) != (len(self._group_0) + len(self._group_1) + len(self._group_2)) \
                     and disappear_mode is True:
+
 
                 if detection_type == 'appear+disappear':
                     self._disappear_time, self._disappear_accuracy, first_index_not_found =\
