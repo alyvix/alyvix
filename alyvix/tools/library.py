@@ -290,7 +290,7 @@ class LibraryManager:
         # background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
         return {"detection": detection_dict, "boxes": self.boxes, "screen": background_string,
-                "scaling_factor": scaling_factor, "img_h": h, "img_w": w, "object_name": object_name}
+                "scaling_factor": scaling_factor, "img_h": int(h/scaling_factor), "img_w": int(w/scaling_factor), "object_name": object_name}
 
 
 

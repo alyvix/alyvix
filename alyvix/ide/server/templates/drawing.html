@@ -50,6 +50,7 @@
         var old_win_w = 0;
         var old_win_x = 0;
         var old_win_y = 0;
+        var old_win_maximized = false;
         
         var sorting_rows_dict = [];
         
@@ -209,7 +210,7 @@
             $("#myCanvas").mousedown(function(e){
              
                              
-                dhxWins.forEachWindow(function(win){win.close();});
+                dhxWins.forEachWindow(function(win){win_park(win);});
              
             });
             
@@ -252,8 +253,13 @@
             
 			//
 			dhxWins.createWindow(id, x, y, w, h);
+
+            
             dhxWins.attachViewportTo("myDiv");
             dhxWins.window(id).attachEvent('onClose', closeWinEvent);
+            dhxWins.window(id).attachEvent('onMaximize', maximize_event);
+            dhxWins.window(id).attachEvent('onMinimize', minimize_event);
+            dhxWins.window(id).attachEvent('onMoveFinish', win_move_finish);
             dhxWins.window(id).button("close").attachEvent('onClick', win_confirm_exit);
             dhxWins.window(id).button("park").attachEvent('onClick', win_park);
             //dhxWins.window(id).button("minmax").attachEvent('onClick', win_min_max);
@@ -271,17 +277,33 @@
                 
 
             });
-            
+                        
             dhxWins.window(id).attachEvent("onBeforeResizeStart", function(win){
                 return true; // allow window resizing to be started
             });
             
-            dhxWins.window(id).setMaxDimension(w, screen_h + 20000);
+            dhxWins.window(id).setMaxDimension(w, screen_h);
             dhxWins.window(id).setMinDimension(400, 550);
+            
+            if(old_win_maximized)
+            {
+                dhxWins.window(id).maximize();
+            }
 
             
 	
 		}
+
+        
+        function win_move_finish(win)
+        {
+            if (old_win_maximized == true)
+            {
+                var position = win.getPosition();
+            
+                win.setPosition(position[0], 0);
+            }
+        }
         
         function win_confirm_exit(win)
         {
@@ -296,12 +318,45 @@
         
         function win_park(win)
         {
-            dhxWins.forEachWindow(function(win){win.close();});
+            if (old_win_maximized == true)
+            {
+                win.minimize();
+                old_win_maximized = true;
+            }
+            else
+            {
+                win.minimize();
+            }
+
+            win.close();
         }
         
-        function win_min_max(win)
+        function maximize_event(win)
         {
+            win.maximize();
+            var dimension = win.getDimension();
+            
+            var position = win.getPosition();
+            
+            if (position[0] == 0)
+            {
+                win.setPosition(old_win_x, 0);
+            }
+            else
+            {
+                win.setPosition(position[0], 0);
+            }
+
+            //win.setDimension(dimension[0], screen_h);
+            //dhxWins.window(id).setMinDimension(400, 550);
+            //win.stick();
+            
+            old_win_maximized = true;
+        }
         
+        function minimize_event(win)
+        {
+            old_win_maximized = false;
         }
         
         function closeWinEvent(win)

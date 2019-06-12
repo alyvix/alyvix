@@ -933,6 +933,9 @@ class EngineManager(object):
                     self._result.screenshot = self._screen_with_objects
                     self._result.annotation = self._annotation_screen
 
+                    if self._result.performance_ms < 0:
+                        self._result.performance_ms *= -1
+
                     return self._result
 
                     #return (appear_time, appear_accuracy)
@@ -971,6 +974,9 @@ class EngineManager(object):
                 self._result.screenshot = self._screen_with_objects
                 self._result.annotation = self._annotation_screen
 
+                if self._result.performance_ms < 0:
+                    self._result.performance_ms *= -1
+
                 return self._result
 
             if time.time() - self._t0 > timeout:
@@ -998,5 +1004,5 @@ class EngineManager(object):
                 self.total_threads += 1
                 self.lock.release()
 
-            time.sleep(0.1) #delay 100 ms
+            time.sleep(0.01) #delay 100 ms
 

@@ -61,6 +61,7 @@ current_filename = None
 #current_json = {}
 current_boxes = []
 win32_window = None
+server_process = None
 
 @app.route("/table", methods=['GET', 'POST'])
 def index():
@@ -83,59 +84,66 @@ def load_objects():
 
     alyvix_file_dict = afm.build_objects(current_objectname)
 
-    np_array = np.fromstring(base64.b64decode(alyvix_file_dict["screen"]), np.uint8)
+    try:
+        np_array = np.fromstring(base64.b64decode(alyvix_file_dict["screen"]), np.uint8)
 
-    background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+        background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-    contouring_manager = ContouringManager(
-        canny_threshold1=250 * 0.2,
-        canny_threshold2=250 * 0.3,
-        canny_apertureSize=3,
-        hough_threshold=10,
-        hough_minLineLength=30,
-        hough_maxLineGap=1,
-        line_angle_tolerance=0,
-        ellipse_width=2,
-        ellipse_height=2,
-        text_roi_emptiness=0.45,
-        text_roi_proportion=1.3,
-        image_roi_emptiness=0.1,
-        vline_hw_proportion=2,
-        vline_w_maxsize=10,
-        hline_wh_proportion=2,
-        hline_h_maxsize=10,
-        rect_w_minsize=5,
-        rect_h_minsize=5,
-        rect_w_maxsize_01=800,
-        rect_h_maxsize_01=100,
-        rect_w_maxsize_02=100,
-        rect_h_maxsize_02=800,
-        rect_hw_proportion=2,
-        rect_hw_w_maxsize=10,
-        rect_wh_proportion=2,
-        rect_wh_h_maxsize=10,
-        hrect_proximity=10,
-        vrect_proximity=10,
-        vrect_others_proximity=40,
-        hrect_others_proximity=80)
+        contouring_manager = ContouringManager(
+            canny_threshold1=250 * 0.2,
+            canny_threshold2=250 * 0.3,
+            canny_apertureSize=3,
+            hough_threshold=10,
+            hough_minLineLength=30,
+            hough_maxLineGap=1,
+            line_angle_tolerance=0,
+            ellipse_width=2,
+            ellipse_height=2,
+            text_roi_emptiness=0.45,
+            text_roi_proportion=1.3,
+            image_roi_emptiness=0.1,
+            vline_hw_proportion=2,
+            vline_w_maxsize=10,
+            hline_wh_proportion=2,
+            hline_h_maxsize=10,
+            rect_w_minsize=5,
+            rect_h_minsize=5,
+            rect_w_maxsize_01=800,
+            rect_h_maxsize_01=100,
+            rect_w_maxsize_02=100,
+            rect_h_maxsize_02=800,
+            rect_hw_proportion=2,
+            rect_hw_w_maxsize=10,
+            rect_wh_proportion=2,
+            rect_wh_h_maxsize=10,
+            hrect_proximity=10,
+            vrect_proximity=10,
+            vrect_others_proximity=40,
+            hrect_others_proximity=80)
 
-    contouring_manager.auto_contouring(background_image)
+        contouring_manager.auto_contouring(background_image, scaling_factor)
 
-    autocontoured_rects = []
-    autocontoured_rects.extend(contouring_manager.getImageBoxes())
-    autocontoured_rects.extend(contouring_manager.getRectBoxes())
-    autocontoured_rects.extend(contouring_manager.getTextBoxes())
+        autocontoured_rects = []
+        autocontoured_rects.extend(contouring_manager.getImageBoxes())
+        autocontoured_rects.extend(contouring_manager.getRectBoxes())
+        autocontoured_rects.extend(contouring_manager.getTextBoxes())
 
-    return_dict = {"file_dict":alyvix_file_dict, "autocontoured_rects": autocontoured_rects}
 
-    return jsonify(return_dict)
+        return_dict = {"file_dict":alyvix_file_dict, "autocontoured_rects": autocontoured_rects}
+
+        return jsonify(return_dict)
+    except:
+        return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
 
 @app.route("/cancel_event", methods=['GET'])
 def cancel_event():
     func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
+    if func is not None:
+        func()
+    else:
+        #raise RuntimeError('Not running with the Werkzeug Server')
+        server_process.close()
+
 
     windows_found = []
 
@@ -184,7 +192,7 @@ def save_json():
 
         curr_components = curr_object_dict.get("components", {})
 
-        resolution_string = str(img_w) + "*" + str(img_h) + "@" + str(int(scaling_factor*100))
+        resolution_string = str(int(img_w*scaling_factor)) + "*" + str(int(img_h*scaling_factor)) + "@" + str(int(scaling_factor*100))
 
         curr_components[resolution_string] = {}
 
