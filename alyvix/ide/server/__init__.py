@@ -70,6 +70,8 @@ class ServerManager():
         views.img_h = int(background_image.shape[0] / scaling_factor)
         views.img_w = int(background_image.shape[1] / scaling_factor)
 
+        views.background_image = background_image
+
         views.autocontoured_rects = self.auto_contouring(background_image, scaling_factor)
         #cv2.imwrite("d:\\autocc.png",autocimg)
 

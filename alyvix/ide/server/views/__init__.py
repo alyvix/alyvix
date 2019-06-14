@@ -20,10 +20,10 @@
 
 # -*- coding: utf-8 -*-
 import os
-#import boto3
 import time
 import hmac
 import json
+import re
 from flask import jsonify
 
 import shutil
@@ -45,6 +45,8 @@ import base64
 import numpy as np
 import cv2
 from alyvix.core.contouring import ContouringManager
+from alyvix.core.engine import Roi
+from alyvix.core.engine.text import TextManager
 from operator import itemgetter
 
 import win32gui
@@ -53,6 +55,7 @@ import win32com.client
 
 autocontoured_rects = []
 base64png = None
+background_image = None
 scaling_factor = 1
 img_h = 0
 img_w = 0
@@ -183,6 +186,9 @@ def save_json():
         background = json_data['background']
 
         box_list = json_data['box_list']
+
+
+        curr_script = current_json.get("script", {})
 
         curr_object_list_dict = current_json.get("objects", {})
 
@@ -474,6 +480,8 @@ def save_json():
         curr_components[resolution_string]["groups"].append({"main": main_1, "subs": subs_1})
         curr_components[resolution_string]["groups"].append({"main": main_2, "subs": subs_2})
 
+        current_json["script"] = curr_script
+
         current_json["objects"] = curr_object_list_dict
 
         current_json["objects"][object_name] = curr_object_dict
@@ -484,7 +492,8 @@ def save_json():
         if object_name != current_objectname:
             del current_json["objects"][current_objectname]
 
-        current_json["objects"][object_name]["date-modified"] = datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        current_json["objects"][object_name]["date-modified"] = \
+            datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
 
 
@@ -493,6 +502,54 @@ def save_json():
 
         aaa = "asas"
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route("/get_scraped_txt", methods=['GET', 'POST'])
+def get_scraped_txt():
+    if request.method == 'POST':
+
+        json_data = json.loads(request.data)
+
+        roi = Roi()
+        roi.x = json_data["roi_x"]
+        roi.y = json_data["roi_y"]
+        roi.w = json_data["roi_w"]
+        roi.h = json_data["roi_h"]
+        roi.unlimited_left = json_data["roi_unlimited_left"]
+        roi.unlimited_up = json_data["roi_unlimited_up"]
+        roi.unlimited_right = json_data["roi_unlimited_right"]
+        roi.unlimited_down = json_data["roi_unlimited_down"]
+
+        tm = TextManager()
+        tm.set_color_screen(background_image)
+        tm.set_gray_screen(cv2.cvtColor(background_image, cv2.COLOR_BGR2GRAY))
+        tm.set_scaling_factor(scaling_factor)
+
+        results = tm.scrape(roi=roi)
+        scraped_text = results[0].scraped_text
+
+        ret_dict = {'scraped_text': scraped_text}
+
+        return jsonify(ret_dict)
+
+@app.route("/test_txt_regexp", methods=['GET', 'POST'])
+def test_txt_regexp():
+    if request.method == 'POST':
+
+        json_data = json.loads(request.data)
+
+        regexp = json_data["regexp"]
+        scraped_text = json_data["scraped_text"]
+
+        result = re.match(".*" + regexp + ".*", scraped_text, re.DOTALL | re.IGNORECASE)
+
+        if result is  None:
+
+            ret_dict = {'match': False}
+        else:
+            ret_dict = {'match': True}
+
+        return jsonify(ret_dict)
+
 
 @app.route("/create_thumbnail", methods=['POST'])
 def create_thumbnail():

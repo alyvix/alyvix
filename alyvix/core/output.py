@@ -27,24 +27,24 @@ class OutputManager:
 
             object_dict = json_object["objects"][object.object_name]["components"][resolution_string]
 
-            object_dict["measurement"] = {"perfomance_ms": int(object.performance_ms),
+            object_dict["measure"] = {"perfomance_ms": int(object.performance_ms),
                                           "accuracy_ms": int(object.accuracy_ms),
                                           "timestamp": object.timestamp, "records": object.records}
 
             if object.screenshot is not None:
                 png_image = cv2.imencode('.png', object.screenshot)
 
-                object_dict["measurement"]["screenshot"] = base64.b64encode(png_image[1]).decode('ascii')
+                object_dict["measure"]["screenshot"] = base64.b64encode(png_image[1]).decode('ascii')
 
             else:
-                object_dict["measurement"]["screenshot"] = None
+                object_dict["measure"]["screenshot"] = None
 
             if object.annotation is not None:
                 png_image = cv2.imencode('.png', object.annotation)
 
-                object_dict["measurement"]["annotation"] = base64.b64encode(png_image[1]).decode('ascii')
+                object_dict["measure"]["annotation"] = base64.b64encode(png_image[1]).decode('ascii')
             else:
-                object_dict["measurement"]["annotation"] = None
+                object_dict["measure"]["annotation"] = None
 
             json_object["objects"][object.object_name]["components"][resolution_string] = object_dict
             json_object["run"] = {"host": chunk["host"], "user": chunk["user"],

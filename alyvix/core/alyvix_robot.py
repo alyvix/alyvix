@@ -128,8 +128,11 @@ if filename is not None:
     #< host > _ < user > _ < test > _ < YYYYMMDD_hhmmss_lll >
 
     date_from_ts = datetime.fromtimestamp(timestamp)
-    millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
-    date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts)
+    try:
+        millis_from_ts = date_from_ts.strftime("%f")[: -3]
+    except:
+        millis_from_ts = "000"
+    date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) + "_UTC" + time.strftime("%z")
 
     code = hostname + "_" + username + "_" + filename_no_extension + "_" + date_formatted
 
@@ -175,9 +178,9 @@ if filename is not None:
     om.save_screenshots(filename_path, objects_result, prefix=filename_no_extension)
 
     date_from_ts = datetime.fromtimestamp(timestamp)
-    date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S")
+    date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_UTC" + time.strftime("%z")
 
-    filename = filename_path + os.sep + date_formatted + "_" + filename_no_extension + ".alyvix"
+    filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
     om.save(filename, lm.get_json(), chunk, objects_result)
 
 
@@ -191,8 +194,14 @@ if filename is not None:
         #YYYYMMDD_hhmmss_lll : <object_name> measures <performance_ms> (+/-<accuracy>)
         if result.timestamp != -1:
             date_from_ts = datetime.fromtimestamp(result.timestamp)
-            millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
-            date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts)
+            #millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
+            try:
+                millis_from_ts = date_from_ts.strftime("%f")[: -3]
+            except:
+                millis_from_ts = "000"
+
+            date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts)\
+                             + "_UTC" + time.strftime("%z")
         else:
             date_formatted = "not executed"
 

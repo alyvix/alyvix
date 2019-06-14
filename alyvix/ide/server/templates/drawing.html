@@ -814,44 +814,48 @@
                 
                 if(e != null && rectManager.capturing_rect == true)
                 {
-                            
-                    var mouseX=parseInt(e.clientX);
-                    var mouseY=parseInt(e.clientY);
-                    
-                    //ctx.strokeStyle = '#00ff00';
-                    
+                    if ((rectManager.group == 0 && rectManager.g0_elements_cnt < 5) || (rectManager.group == 1 && rectManager.g1_elements_cnt < 5) || 
+                        (rectManager.group == 2 && rectManager.g2_elements_cnt < 5))
+                    {
+                        var mouseX=parseInt(e.clientX);
+                        var mouseY=parseInt(e.clientY);
+                        
+                        //ctx.strokeStyle = '#00ff00';
+                        
 
-                                    
-                    ctx.globalAlpha=0.3;
-                    //ctx.fillStyle="#20b2aa"; 
-                    
-                    
-                    if(rectManager.group == 0)
-                    {
-                        ctx.strokeStyle = '#ff0000';
-                        ctx.fillStyle = '#ff00ff';
-                    }
-                    else if (rectManager.group == 1)
-                    {
-                        ctx.strokeStyle = '#009500';
-                        ctx.fillStyle = '#00bc00';
-                    }
-                    else if (rectManager.group == 2)
-                    {
+                                        
+                        ctx.globalAlpha=0.3;
+                        //ctx.fillStyle="#20b2aa"; 
+                        
+                        
+                        if(rectManager.group == 0)
+                        {
+                            ctx.strokeStyle = '#ff0000';
+                            ctx.fillStyle = '#ff00ff';
+                        }
+                        else if (rectManager.group == 1)
+                        {
+                            ctx.strokeStyle = '#009500';
+                            ctx.fillStyle = '#00bc00';
+                        }
+                        else if (rectManager.group == 2)
+                        {
 
-                        ctx.strokeStyle = '#0000ff';
-                        ctx.fillStyle = '#0072ff';
-                    }
+                            ctx.strokeStyle = '#0000ff';
+                            ctx.fillStyle = '#0072ff';
+                        }
+                        
+                        
+                        
+                        ctx.fillRect(rectManager.click_position_x, rectManager.click_position_y,
+                                        mouseX - rectManager.click_position_x, mouseY - rectManager.click_position_y);
+                                        
+                        ctx.globalAlpha=1;
+                                        
+                        ctx.strokeRect(rectManager.click_position_x, rectManager.click_position_y,
+                                        mouseX - rectManager.click_position_x, mouseY - rectManager.click_position_y);
+                    }                    
                     
-                    
-                    
-                    ctx.fillRect(rectManager.click_position_x, rectManager.click_position_y,
-                                    mouseX - rectManager.click_position_x, mouseY - rectManager.click_position_y);
-                                    
-                    ctx.globalAlpha=1;
-                                    
-                    ctx.strokeRect(rectManager.click_position_x, rectManager.click_position_y,
-                                    mouseX - rectManager.click_position_x, mouseY - rectManager.click_position_y);
                 }
                     
                 
@@ -859,59 +863,64 @@
                     rectManager.mouse_is_on_border == null && rectManager.mouse_is_inside_rectangle == null && ttWIndow_isOpen == false)
                 {
                 
-                    mouseX=parseInt(e.clientX);
-                    mouseY=parseInt(e.clientY);
-                    
-                    //ctx.fillStyle = '#AC60F6';
-                    
-                    if (rectManager.group == 0)
+                    if ((rectManager.group == 0 && rectManager.g0_elements_cnt < 5) || (rectManager.group == 1 && rectManager.g1_elements_cnt < 5) || 
+                        (rectManager.group == 2 && rectManager.g2_elements_cnt < 5))
                     {
-                        ctx.strokeStyle = '#ff00ff';
-                        ctx.globalAlpha=0.7;
+                        mouseX=parseInt(e.clientX);
+                        mouseY=parseInt(e.clientY);
+                        
+                        //ctx.fillStyle = '#AC60F6';
+                        
+                        if (rectManager.group == 0)
+                        {
+                            ctx.strokeStyle = '#ff00ff';
+                            ctx.globalAlpha=0.7;
+                        }
+                        
+                        if (rectManager.group == 1)
+                        {
+                            ctx.strokeStyle = '#00bc00';
+                            ctx.globalAlpha=0.7;
+                        }
+                        
+                        if (rectManager.group == 2)
+                        {
+
+                            ctx.strokeStyle = '#0072ff';
+                            ctx.globalAlpha=0.7;
+                        }
+                        
+
+                        
+
+                        //draw line
+                        ctx.beginPath();
+                            //ctx.lineWidth = 0.5;
+                            //vertical top
+                            //ctx.lineDashOffset = 2;
+                            
+                                                
+                            //ctx.moveTo(0, mouseY -5);
+                            //ctx.lineTo(+getComputedStyle(canvas).getPropertyValue('width').slice(0,-2) - 900, mouseY -5);
+                            //ctx.stroke();
+                            
+                            //ctx.setLineDash([0.5,1.5]); //larghezza dot, larghezza spazio
+                            
+                            ctx.moveTo(mouseX, 0);
+                            ctx.lineTo(mouseX, +getComputedStyle(canvas).getPropertyValue('height').slice(0,-2));
+
+                            ctx.moveTo(0, mouseY);
+                            ctx.lineTo(+getComputedStyle(canvas).getPropertyValue('width').slice(0,-2), mouseY);
+
+
+
+                            //ctx.strokeStyle = '#000000';
+                            ctx.stroke();
+                        
+                        ctx.closePath();
+                        //ctx.translate(-0.5, -0.5);
                     }
                     
-                    if (rectManager.group == 1)
-                    {
-                        ctx.strokeStyle = '#00bc00';
-                        ctx.globalAlpha=0.7;
-                    }
-                    
-                    if (rectManager.group == 2)
-                    {
-
-                        ctx.strokeStyle = '#0072ff';
-                        ctx.globalAlpha=0.7;
-                    }
-                    
-
-                    
-
-                    //draw line
-                    ctx.beginPath();
-                        //ctx.lineWidth = 0.5;
-                        //vertical top
-                        //ctx.lineDashOffset = 2;
-                        
-                                            
-                        //ctx.moveTo(0, mouseY -5);
-                        //ctx.lineTo(+getComputedStyle(canvas).getPropertyValue('width').slice(0,-2) - 900, mouseY -5);
-                        //ctx.stroke();
-                        
-                        //ctx.setLineDash([0.5,1.5]); //larghezza dot, larghezza spazio
-                        
-                        ctx.moveTo(mouseX, 0);
-                        ctx.lineTo(mouseX, +getComputedStyle(canvas).getPropertyValue('height').slice(0,-2));
-
-                        ctx.moveTo(0, mouseY);
-                        ctx.lineTo(+getComputedStyle(canvas).getPropertyValue('width').slice(0,-2), mouseY);
-
-
-
-                        //ctx.strokeStyle = '#000000';
-                        ctx.stroke();
-                    
-                    ctx.closePath();
-                    //ctx.translate(-0.5, -0.5);
                     
                 }
             }
