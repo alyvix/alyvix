@@ -1,0 +1,55 @@
+.boxEntity {
+    background-color: #808080;
+    border: solid 1px #383838;
+    padding: 0;
+    height: 32px;
+    line-height: 30px;
+    display: inline-block;
+}
+
+
+.boxEntity span {
+    width: 20px;
+    color: white;
+    display: inline-block;
+    text-align: center;
+    margin-right: 1px;
+}
+
+.active .boxEntity span {
+    color: white;
+}
+
+.boxEntity canvas,img {
+    float: right;
+    height: 30px;
+}
+
+.boxEntityContainer {
+    display: inline-block;
+    padding: 0 ;
+    margin-left: -25px;
+    width: 120px;
+}
+
+
+
+
+ .interaction {
+    float: right;
+    display: inline-block;
+    width: 35px;
+    height: 31px;
+    line-height: 31px;
+    margin-top: 3px;
+}
+
+
+ .interaction-keyboard.primary {
+    margin-right: 15px;
+ }
+
+ .interaction img {
+    height: 32px;
+}
+

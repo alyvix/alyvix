@@ -1,0 +1,45 @@
+<div class="pure-g">
+  <div class="pure-u-6-24 form-group">
+      <label>Interaction Type</label>
+      <select [(ngModel)]="node.box.mouse.type" (change)="setDefaults()">
+        <option *ngFor="let it of interactionTypes" [ngValue]="it.value">{{it.name}}</option>
+      </select>
+  </div>
+  <div class="pure-u-6-24 form-group" [hidden]="!node.box.mouse.type || node.box.mouse.type== 'none'">
+      <label>&nbsp;</label>
+      <button *ngIf="!isPointAlreadySelected()" class="pure-button" (click)="setPoint()">Set Point</button>
+      <button *ngIf="isPointAlreadySelected()" class="pure-button" (click)="removePoint()">Remove Point</button>
+    </div>
+  <div class="pure-u-5-24 form-group" *ngIf="node.box.mouse.type == 'click'">
+      <label>Button</label>
+      <select [(ngModel)]="node.box.mouse.features.button">
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+     </div>
+  <div class="pure-u-6-24 form-group" *ngIf="node.box.mouse.type== 'scroll' || node.box.mouse.type== 'release'">
+    <label>Direction</label>
+    <select [(ngModel)]="node.box.mouse.features.direction">
+      <option value="none">None</option>
+      <option value="up">Up</option>
+      <option value="down">Down</option>
+      <option value="left">Left</option>
+      <option value="right">Right</option>
+    </select>
+  </div>
+  <div class="pure-u-3-24 form-group" *ngIf="node.box.mouse.type== 'scroll' || node.box.mouse.type== 'click'">
+    <label>Units</label>
+    <input [(ngModel)]="node.box.mouse.features.amount" type="number">
+  </div>
+  <div class="pure-u-1-24" *ngIf="node.box.mouse.features.amount > 1 && node.box.mouse.type== 'click'"></div>
+  <div class="pure-u-3-24 form-group" *ngIf="node.box.mouse.features.amount > 1 && node.box.mouse.type== 'click'">
+      <label>Delay [ms]</label>
+      <input [(ngModel)]="node.box.mouse.features.delays_ms" type="number">
+    </div>
+  <div class="pure-u-6-24 form-group" *ngIf="node.box.mouse.type== 'release'">
+    <label>Pixels[px]</label>
+    <input  [(ngModel)]="node.box.mouse.features.pixels" type="number">
+  </div>
+  
+
+</div>
