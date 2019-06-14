@@ -20,10 +20,10 @@
 
 # -*- coding: utf-8 -*-
 import os
-#import boto3
 import time
 import hmac
 import json
+import re
 from flask import jsonify
 
 import shutil
@@ -45,6 +45,8 @@ import base64
 import numpy as np
 import cv2
 from alyvix.core.contouring import ContouringManager
+from alyvix.core.engine import Roi
+from alyvix.core.engine.text import TextManager
 from operator import itemgetter
 
 import win32gui
@@ -53,6 +55,7 @@ import win32com.client
 
 autocontoured_rects = []
 base64png = None
+background_image = None
 scaling_factor = 1
 img_h = 0
 img_w = 0
@@ -61,6 +64,7 @@ current_filename = None
 #current_json = {}
 current_boxes = []
 win32_window = None
+server_process = None
 
 @app.route("/table", methods=['GET', 'POST'])
 def index():
@@ -83,59 +87,66 @@ def load_objects():
 
     alyvix_file_dict = afm.build_objects(current_objectname)
 
-    np_array = np.fromstring(base64.b64decode(alyvix_file_dict["screen"]), np.uint8)
+    try:
+        np_array = np.fromstring(base64.b64decode(alyvix_file_dict["screen"]), np.uint8)
 
-    background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+        background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-    contouring_manager = ContouringManager(
-        canny_threshold1=250 * 0.2,
-        canny_threshold2=250 * 0.3,
-        canny_apertureSize=3,
-        hough_threshold=10,
-        hough_minLineLength=30,
-        hough_maxLineGap=1,
-        line_angle_tolerance=0,
-        ellipse_width=2,
-        ellipse_height=2,
-        text_roi_emptiness=0.45,
-        text_roi_proportion=1.3,
-        image_roi_emptiness=0.1,
-        vline_hw_proportion=2,
-        vline_w_maxsize=10,
-        hline_wh_proportion=2,
-        hline_h_maxsize=10,
-        rect_w_minsize=5,
-        rect_h_minsize=5,
-        rect_w_maxsize_01=800,
-        rect_h_maxsize_01=100,
-        rect_w_maxsize_02=100,
-        rect_h_maxsize_02=800,
-        rect_hw_proportion=2,
-        rect_hw_w_maxsize=10,
-        rect_wh_proportion=2,
-        rect_wh_h_maxsize=10,
-        hrect_proximity=10,
-        vrect_proximity=10,
-        vrect_others_proximity=40,
-        hrect_others_proximity=80)
+        contouring_manager = ContouringManager(
+            canny_threshold1=250 * 0.2,
+            canny_threshold2=250 * 0.3,
+            canny_apertureSize=3,
+            hough_threshold=10,
+            hough_minLineLength=30,
+            hough_maxLineGap=1,
+            line_angle_tolerance=0,
+            ellipse_width=2,
+            ellipse_height=2,
+            text_roi_emptiness=0.45,
+            text_roi_proportion=1.3,
+            image_roi_emptiness=0.1,
+            vline_hw_proportion=2,
+            vline_w_maxsize=10,
+            hline_wh_proportion=2,
+            hline_h_maxsize=10,
+            rect_w_minsize=5,
+            rect_h_minsize=5,
+            rect_w_maxsize_01=800,
+            rect_h_maxsize_01=100,
+            rect_w_maxsize_02=100,
+            rect_h_maxsize_02=800,
+            rect_hw_proportion=2,
+            rect_hw_w_maxsize=10,
+            rect_wh_proportion=2,
+            rect_wh_h_maxsize=10,
+            hrect_proximity=10,
+            vrect_proximity=10,
+            vrect_others_proximity=40,
+            hrect_others_proximity=80)
 
-    contouring_manager.auto_contouring(background_image)
+        contouring_manager.auto_contouring(background_image, scaling_factor)
 
-    autocontoured_rects = []
-    autocontoured_rects.extend(contouring_manager.getImageBoxes())
-    autocontoured_rects.extend(contouring_manager.getRectBoxes())
-    autocontoured_rects.extend(contouring_manager.getTextBoxes())
+        autocontoured_rects = []
+        autocontoured_rects.extend(contouring_manager.getImageBoxes())
+        autocontoured_rects.extend(contouring_manager.getRectBoxes())
+        autocontoured_rects.extend(contouring_manager.getTextBoxes())
 
-    return_dict = {"file_dict":alyvix_file_dict, "autocontoured_rects": autocontoured_rects}
 
-    return jsonify(return_dict)
+        return_dict = {"file_dict":alyvix_file_dict, "autocontoured_rects": autocontoured_rects}
+
+        return jsonify(return_dict)
+    except:
+        return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
 
 @app.route("/cancel_event", methods=['GET'])
 def cancel_event():
     func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
+    if func is not None:
+        func()
+    else:
+        #raise RuntimeError('Not running with the Werkzeug Server')
+        server_process.close()
+
 
     windows_found = []
 
@@ -176,6 +187,9 @@ def save_json():
 
         box_list = json_data['box_list']
 
+
+        curr_script = current_json.get("script", {})
+
         curr_object_list_dict = current_json.get("objects", {})
 
         curr_object_dict = curr_object_list_dict.get(object_name, {})
@@ -184,7 +198,7 @@ def save_json():
 
         curr_components = curr_object_dict.get("components", {})
 
-        resolution_string = str(img_w) + "*" + str(img_h) + "@" + str(int(scaling_factor*100))
+        resolution_string = str(int(img_w*scaling_factor)) + "*" + str(int(img_h*scaling_factor)) + "@" + str(int(scaling_factor*100))
 
         curr_components[resolution_string] = {}
 
@@ -466,13 +480,20 @@ def save_json():
         curr_components[resolution_string]["groups"].append({"main": main_1, "subs": subs_1})
         curr_components[resolution_string]["groups"].append({"main": main_2, "subs": subs_2})
 
+        current_json["script"] = curr_script
+
         current_json["objects"] = curr_object_list_dict
 
         current_json["objects"][object_name] = curr_object_dict
 
         current_json["objects"][object_name]["components"] = curr_components
 
-        current_json["objects"][object_name]["date-modified"] = datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+
+        if object_name != current_objectname:
+            del current_json["objects"][current_objectname]
+
+        current_json["objects"][object_name]["date-modified"] = \
+            datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
 
 
@@ -481,6 +502,54 @@ def save_json():
 
         aaa = "asas"
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route("/get_scraped_txt", methods=['GET', 'POST'])
+def get_scraped_txt():
+    if request.method == 'POST':
+
+        json_data = json.loads(request.data)
+
+        roi = Roi()
+        roi.x = json_data["roi_x"]
+        roi.y = json_data["roi_y"]
+        roi.w = json_data["roi_w"]
+        roi.h = json_data["roi_h"]
+        roi.unlimited_left = json_data["roi_unlimited_left"]
+        roi.unlimited_up = json_data["roi_unlimited_up"]
+        roi.unlimited_right = json_data["roi_unlimited_right"]
+        roi.unlimited_down = json_data["roi_unlimited_down"]
+
+        tm = TextManager()
+        tm.set_color_screen(background_image)
+        tm.set_gray_screen(cv2.cvtColor(background_image, cv2.COLOR_BGR2GRAY))
+        tm.set_scaling_factor(scaling_factor)
+
+        results = tm.scrape(roi=roi)
+        scraped_text = results[0].scraped_text
+
+        ret_dict = {'scraped_text': scraped_text}
+
+        return jsonify(ret_dict)
+
+@app.route("/test_txt_regexp", methods=['GET', 'POST'])
+def test_txt_regexp():
+    if request.method == 'POST':
+
+        json_data = json.loads(request.data)
+
+        regexp = json_data["regexp"]
+        scraped_text = json_data["scraped_text"]
+
+        result = re.match(".*" + regexp + ".*", scraped_text, re.DOTALL | re.IGNORECASE)
+
+        if result is  None:
+
+            ret_dict = {'match': False}
+        else:
+            ret_dict = {'match': True}
+
+        return jsonify(ret_dict)
+
 
 @app.route("/create_thumbnail", methods=['POST'])
 def create_thumbnail():

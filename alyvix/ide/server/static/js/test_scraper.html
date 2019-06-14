@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TEST</title>
+</head>
+<body>
+<script>
+var xhr = new XMLHttpRequest();
+//var url = "http://127.0.0.1:5000/get_scraped_txt";
+var url = "http://127.0.0.1:5000/test_txt_regexp";
+xhr.open("POST", url, true);
+xhr.setRequestHeader("Content-Type", "application/json");
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+        var json = JSON.parse(xhr.responseText);
+        console.log(json);
+    }
+};
+//var data = JSON.stringify({roi_x: 493, roi_y: 264, roi_w: 76, roi_h: 30, roi_unlimited_left: false, roi_unlimited_right: false, roi_unlimited_down: false, roi_unlimited_up: false});
+var data = JSON.stringify({regexp:"np.*arr",scraped_text:"    np_array"});
+
+xhr.send(data);
+
+</script>
+</body>
+</html> 

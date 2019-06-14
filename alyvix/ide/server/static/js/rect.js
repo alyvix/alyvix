@@ -138,18 +138,24 @@ class RectManager{
                     if (box.is_main) this.main_g0_created = false;
                     
                     this.g0_elements_cnt -= 1;
+                    
+                    this.group = 0;
                 }
                 else if (box.group == 1)
                 {
                     if (box.is_main) this.main_g1_created = false;
                     
                     this.g1_elements_cnt -= 1;
+                    
+                    this.group = 1;
                 }
                 else if (box.group == 2)
                 {
                     if (box.is_main) this.main_g2_created = false;
                     
                     this.g2_elements_cnt -= 1;
+                    
+                    this.group = 2;
                 }
                 
                 this.deleted_rects.push(boxes[boxes.length-1]);
@@ -272,6 +278,7 @@ class RectManager{
         
         if (e.key == "1" || e.key == "2" || e.key == "3")
         {
+            if(this.intent["type"] == "set_interaction_point") return;
             if(e.key == "1") this.group = 0;
             
             if(e.key == "2") this.group = 1;
@@ -425,6 +432,8 @@ class RectManager{
                     }
                     
                     this.g0_elements_cnt -= 1;
+                    
+                    this.group = 0;
                 }
                 else if (box.group == 1)
                 {
@@ -436,6 +445,8 @@ class RectManager{
                     }
                     
                     this.g1_elements_cnt -= 1;
+                    
+                    this.group = 1;
                 }
                 else if (box.group == 2)
                 {
@@ -447,6 +458,8 @@ class RectManager{
                     }
                     
                     this.g2_elements_cnt -= 1;
+                    
+                    this.group = 2;
                 }
 
                 boxes.splice(inside_index, 1);

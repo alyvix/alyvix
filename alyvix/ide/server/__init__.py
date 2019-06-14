@@ -21,9 +21,11 @@
 import cv2
 import base64
 from flask import Flask, request
+import logging
 import threading
 from multiprocessing import Process
 from alyvix.core.contouring import ContouringManager
+from gevent.pywsgi import WSGIServer
 
 app = Flask(__name__)
 
@@ -34,9 +36,27 @@ class ServerManager():
     def __init__(self):
         super(ServerManager, self).__init__()
 
-    def run(self, port):
+    def run(self, port, log_level=0):
         global app
-        app.run(port=port)
+
+        if log_level == 0:
+            #app.logger.disabled = True
+
+            #log = logging.getLogger('werkzeug')
+
+            #log.disabled = True
+
+            server_log = None
+
+        elif log_level == 1:
+            server_log = 'default'
+
+            print("Serving on http://127.0.0.1:" + str(port))
+
+        #app.run(port=port)
+        http_server = WSGIServer(('127.0.0.1', port), app, log=server_log)
+        views.server_process = http_server
+        http_server.serve_forever()
 
     def set_window(self, window):
         views.win32_window = window
@@ -50,7 +70,9 @@ class ServerManager():
         views.img_h = int(background_image.shape[0] / scaling_factor)
         views.img_w = int(background_image.shape[1] / scaling_factor)
 
-        views.autocontoured_rects = self.auto_contouring(background_image)
+        views.background_image = background_image
+
+        views.autocontoured_rects = self.auto_contouring(background_image, scaling_factor)
         #cv2.imwrite("d:\\autocc.png",autocimg)
 
     def set_scaling_factor(self, scaling_factor):
@@ -65,7 +87,7 @@ class ServerManager():
         views.current_objectname = objectname
 
 
-    def auto_contouring(self, image):
+    def auto_contouring(self, image, scaling_factor=1):
         contouring_manager = ContouringManager(
             canny_threshold1=250*0.2,
             canny_threshold2=250*0.3,
@@ -98,7 +120,7 @@ class ServerManager():
             vrect_others_proximity=40,
             hrect_others_proximity=80)
 
-        contouring_manager.auto_contouring(image)
+        contouring_manager.auto_contouring(image, scaling_factor)
 
         autocontoured_rects = []
         autocontoured_rects.extend(contouring_manager.getImageBoxes())

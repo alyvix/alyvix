@@ -84,9 +84,12 @@ class ViewerManager(ViewerManagerBase):
 
         settings = {
             "multi_threaded_message_loop": g_multi_threaded,
+            "log_severity":cef.LOGSEVERITY_DISABLE,
 
         }
-        cef.Initialize(settings=settings)
+
+        switches = {} #{"disable-extension":True,}
+        cef.Initialize(settings=settings, switches=switches)
 
         window_proc = {
             win32con.WM_CLOSE: self.close_window,
@@ -122,7 +125,7 @@ class ViewerManager(ViewerManagerBase):
 
         else:
             self.create_browser(window_info=window_info,
-                           settings={},
+                           settings={"plugins_disabled":True},
                            url=url,
                            fullscreen=fullscreen)
 
@@ -157,11 +160,12 @@ class ViewerManager(ViewerManagerBase):
         global g_multi_threaded
         if "--multi-threaded" in sys.argv:
             sys.argv.remove("--multi-threaded")
-            print("[pywin32.py] Message loop mode: CEF multi-threaded"
-                  " (best performance)")
+            #print("[pywin32.py] Message loop mode: CEF multi-threaded"
+            #      " (best performance)")
             g_multi_threaded = True
         else:
-            print("[pywin32.py] Message loop mode: CEF single-threaded")
+            #print("[pywin32.py] Message loop mode: CEF single-threaded")
+            pass
 
         """
         if len(sys.argv) > 1:
@@ -173,18 +177,18 @@ class ViewerManager(ViewerManagerBase):
 
     def check_versions(self):
         if platform.system() != "Windows":
-            print("ERROR: This example is for Windows platform only")
+            #print("ERROR: This example is for Windows platform only")
             sys.exit(1)
 
-        print("[pywin32.py] CEF Python {ver}".format(ver=cef.__version__))
-        print("[pywin32.py] Python {ver} {arch}".format(
-            ver=platform.python_version(), arch=platform.architecture()[0]))
+        #print("[pywin32.py] CEF Python {ver}".format(ver=cef.__version__))
+        #print("[pywin32.py] Python {ver} {arch}".format(
+        #    ver=platform.python_version(), arch=platform.architecture()[0]))
 
         # PyWin32 version
         python_lib = distutils.sysconfig.get_python_lib(plat_specific=1)
         with open(os.path.join(python_lib, "pywin32.version.txt")) as fp:
             pywin32_version = fp.read().strip()
-        print("[pywin32.py] pywin32 {ver}".format(ver=pywin32_version))
+        #print("[pywin32.py] pywin32 {ver}".format(ver=pywin32_version))
 
         assert cef.__version__ >= "57.0", "CEF Python v57.0+ required to run this"
 

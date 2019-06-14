@@ -29,6 +29,13 @@ class Result():
         self.w = None
         self.h = None
         self.type = "I"
+        self.group = 0
+        self.is_main = False
+        self.index_in_tree = 0
+        self.index_in_group = 0
+        self.mouse = {}
+        self.keyboard = {}
+        self.roi = None
 
 class ImageManager():
 
@@ -130,8 +137,8 @@ class ImageManager():
         #recalc source image
         source_img_h, source_img_w = source_image.shape
 
-        cv2.imwrite("d:\\aa_tmpl.png", template)
-        cv2.imwrite("d:\\aa_source.png", source_image)
+        #cv2.imwrite("d:\\aa_tmpl.png", template)
+        #cv2.imwrite("d:\\aa_source.png", source_image)
 
         if source_img_h <= template_h or source_img_w <= template_w:
             return []
