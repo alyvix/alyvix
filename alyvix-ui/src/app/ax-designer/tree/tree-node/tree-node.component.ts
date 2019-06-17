@@ -12,7 +12,7 @@ export interface GroupColors{
 @Component({
   selector: 'ax-tree-node',
   templateUrl: './tree-node.component.html',
-  styleUrls: ['./tree-node.component.css']
+  styleUrls: ['./tree-node.component.scss']
 })
 export class TreeNodeComponent implements OnInit {
 

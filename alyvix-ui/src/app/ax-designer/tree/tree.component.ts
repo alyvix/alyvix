@@ -9,7 +9,7 @@ import { ContextMenuComponent } from 'ngx-contextmenu';
 @Component({
   selector: 'ax-designer-tree',
   templateUrl: './tree.component.html',
-  styleUrls: ['./tree.component.css']
+  styleUrls: ['./tree.component.scss']
 })
 export class TreeComponent implements OnInit {
 
@@ -23,10 +23,10 @@ export class TreeComponent implements OnInit {
 
 
 
-  
+  node:TreeNode;  
 
   ngOnInit() {
-
+    this.axDesignerService.getSelectedNode().subscribe(n => this.node = n);
     this.axDesignerService.getRoot().subscribe(r => {
       this.root = r
       console.log("new root")
@@ -96,6 +96,10 @@ export class TreeComponent implements OnInit {
 
   onContextMenu($event: MouseEvent, item: TreeNode): void {
     this.axDesignerService.setSelectedNode(item);
+  }
+
+  isSelected(node):boolean {
+    return this.node == node;
   }
 
 

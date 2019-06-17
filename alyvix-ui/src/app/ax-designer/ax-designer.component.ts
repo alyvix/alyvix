@@ -68,6 +68,11 @@ export class AxDesignerComponent implements OnInit {
 
   showAdd():boolean {
 
+    //#166602599
+    //`Add` button enable when screen component is selected (and disabled if the 3 groups already exist)
+    if(!this.selectedNode.box) { //screen
+      return this.selectedNode.children && this.selectedNode.children.length < 3;
+    }
 
     if(this.selectedNode && this.selectedNode.box) {
       return !this.axDesignerService.isGroupFull(this.selectedNode.box.group)
@@ -90,6 +95,10 @@ export class AxDesignerComponent implements OnInit {
 
   cancel() {
     this.axDesignerService.cancel()
+  }
+
+  onContextMenu() { //#166602599
+    return false;
   }
 
 }

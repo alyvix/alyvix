@@ -1,4 +1,7 @@
+
 <div class="boxEntityContainer" (click)="nodeClick()" (dblclick)="doubleClick()" [ngClass]="{active: isSelected()}" >
+    
+
   <div class="boxEntity" [ngStyle]="setBackground()">
     <span *ngIf="node.box"><i [ngClass]="icon(node.box.type)"></i></span>
     <span *ngIf="!node.box">S</span>
@@ -6,7 +9,8 @@
     <img *ngIf="!node.box" [src]="imageFor()">
   </div>
  
- 
 </div>
+
+
 <div class="interaction interaction-keyboard" *ngIf="node.box" [ngClass]="{'primary': node.box.is_main}"><img *ngIf="interactionKeyboardIcon()" src="{{interactionKeyboardIcon()}}">&nbsp;</div>
 <div class="interaction interaction-mouse" *ngIf="node.box" [ngClass]="{'primary': node.box.is_main}"> <img *ngIf="interactionMouseIcon()" src="{{interactionMouseIcon()}}">&nbsp;</div>
