@@ -40,41 +40,42 @@ export class InteractionComponent implements OnInit {
     this.axDesignerService.updateAx();
   }
 
-  setDefaults() {
+  
 
-    if(!this.node.box.mouse.features.delays_ms) {
-      this.node.box.mouse.features.delays_ms = 100;
-    }
+  interactionChange() {
+
+    //Pivotal #166603801 - `Delays [ms]`settings for `Click` and `Scroll` are different (i.e. toggle different last values)
+    this.node.box.mouse.features.delays_ms = 100;
+    
 
     switch(this.node.box.mouse.type) {
       case 'click': {
         if(!this.node.box.mouse.features.button) {
           this.node.box.mouse.features.button = "left"
         }
-        if(!this.node.box.mouse.features.amount) {
-          this.node.box.mouse.features.amount = 1
-        }
+        //Pivotal #166603801 - Discussion with AP always to default
+        this.node.box.mouse.features.amount = 1
+        
         break;
       }
       case 'scroll': {
-        if(!this.node.box.mouse.features.direction) {
-          this.node.box.mouse.features.direction = "down"
-        }
-        if(!this.node.box.mouse.features.amount) {
-          this.node.box.mouse.features.amount = 1
-        }
+        //Pivotal #166603801 - Discussion with AP always to default
+        this.node.box.mouse.features.direction = "down"
+        this.node.box.mouse.features.amount = 1
         break;
       }
       case 'release': {
-        if(!this.node.box.mouse.features.direction) {
-          this.node.box.mouse.features.direction = "down"
-        }
+        //Pivotal #166603801 - Discussion with AP always to default
+        this.node.box.mouse.features.direction = "down"
         if(!this.node.box.mouse.features.pixels) {
           this.node.box.mouse.features.pixels = 100
         }
         break;
       }
     }
+
+    this.axDesignerService.updateAx();
+
   }
 
 }

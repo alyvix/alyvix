@@ -1,5 +1,6 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { TreeNode } from '../../ax-designer-service';
+import { FormControl } from '@angular/forms';
 
 @Component({
   selector: 'ax-designer-t',
@@ -13,7 +14,25 @@ export class TComponent implements OnInit {
   @Input()
   node: TreeNode
 
+  regex:FormControl = new FormControl('', this.checkRegex);
+
+  checkRegex(control: FormControl) {
+    console.log("check")
+    let regexp = control.value;
+    try {
+        new RegExp(regexp);
+    } catch(e) {
+        return {
+          regexp: {
+            invalidRegexp: regexp
+          }
+        }
+    }
+    return null;
+  }
+
   ngOnInit() {
+
     if(!this.node.box.features.T.type) {
       this.node.box.features.T.type = "detection";
     }

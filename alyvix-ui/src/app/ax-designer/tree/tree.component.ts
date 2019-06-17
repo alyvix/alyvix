@@ -79,6 +79,21 @@ export class TreeComponent implements OnInit {
     return false;
   }}
 
+  showType(type:string){ return function(item) {
+    if(item) {
+      return type != item.box.type;
+    }
+    return false;
+  }}
+
+  enableSetAsMain(){ return function(item) {
+    if(item) {
+      return 'T' != item.box.type;
+    }
+    return false;
+  }}
+  
+
   onContextMenu($event: MouseEvent, item: TreeNode): void {
     this.axDesignerService.setSelectedNode(item);
   }

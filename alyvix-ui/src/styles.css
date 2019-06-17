@@ -8,7 +8,7 @@
 }
 
 body{
-    font-size: 12px;
+    font-size: 14px;
 }
 
 input[type='number'] {
@@ -66,6 +66,11 @@ input.std-width {
     width: 71px;
 }
 
+.ng-invalid {
+  border: 1px solid red !important;
+  background-color: lightpink;
+}
+
 select {
 
     background-color: white;
@@ -95,7 +100,7 @@ input[type='radio'] {
     margin-right: 10px;
     font-weight: bold;
     margin-bottom: 0px;
-    font-size: 11px;
+    font-size: 12px;
     display: block;
 }
 

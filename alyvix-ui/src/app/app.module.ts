@@ -1,12 +1,13 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { AngularResizedEventModule } from 'angular-resize-event';
 import { ContextMenuModule } from 'ngx-contextmenu';
 import {HotkeyModule} from 'angular2-hotkeys';
+import { CustomFormsModule } from 'ng2-validation'
 
 
 import { AppComponent } from './app.component';
@@ -38,7 +39,9 @@ import { TreeNodeComponent } from './ax-designer/tree/tree-node/tree-node.compon
     DragDropModule,
     AngularResizedEventModule,
     ContextMenuModule.forRoot(),
-    HotkeyModule.forRoot()
+    HotkeyModule.forRoot(),
+    CustomFormsModule,
+    ReactiveFormsModule
   ],
   providers: [{provide: 'GlobalRef', useClass: environment.globalType}],
   bootstrap: [AppComponent]

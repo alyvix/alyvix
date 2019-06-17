@@ -19,23 +19,23 @@
 
 <context-menu #rootContextMenu>
     <ng-template contextMenuItem (execute)="axDesignerService.removeAll()">Remove All <span class="key-shortcut">Ctrl-X</span></ng-template>
-    <ng-template contextMenuItem [enabled]="!axDesignerService.full()" (execute)="axDesignerService.newComponent($event.item)">New component <span class="key-shortcut">Ctrl-N</span></ng-template>
+    <ng-template contextMenuItem [visible]="!axDesignerService.full()" (execute)="axDesignerService.newComponent($event.item)">New component <span class="key-shortcut">Ctrl-N</span></ng-template>
 </context-menu>
 
 <context-menu #mainContextMenu>
   <ng-template contextMenuItem (execute)="axDesignerService.removeGroup($event.item)">Remove Group <span class="key-shortcut">Ctrl-X</span></ng-template>
-  <ng-template contextMenuItem [enabled]="axDesignerService.availableGroups()" (execute)="axDesignerService.duplicateGroup($event.item)">Duplicate Group <span class="key-shortcut">Ctrl-D</span></ng-template>
-  <ng-template contextMenuItem (execute)="axDesignerService.detectAs('I',$event.item)">Detect as Image <span class="key-shortcut">Ctrl-I</span></ng-template>
-  <ng-template contextMenuItem (execute)="axDesignerService.detectAs('R',$event.item)">Detect as Rect <span class="key-shortcut">Ctrl-R</span></ng-template>
-  <ng-template contextMenuItem [enabled]="enableNewGroupComponent(axDesignerService)" (execute)="axDesignerService.newComponent($event.item)">New component <span class="key-shortcut">Ctrl-N</span></ng-template>
+  <ng-template contextMenuItem [visible]="axDesignerService.availableGroups()" (execute)="axDesignerService.duplicateGroup($event.item)">Duplicate Group <span class="key-shortcut">Ctrl-D</span></ng-template>
+  <ng-template contextMenuItem [visible]="showType('I')" (execute)="axDesignerService.detectAs('I',$event.item)">Detect as Image <span class="key-shortcut">Ctrl-I</span></ng-template>
+  <ng-template contextMenuItem [visible]="showType('R')" (execute)="axDesignerService.detectAs('R',$event.item)">Detect as Rect <span class="key-shortcut">Ctrl-R</span></ng-template>
+  <ng-template contextMenuItem [visible]="enableNewGroupComponent(axDesignerService)" (execute)="axDesignerService.newComponent($event.item)">New component <span class="key-shortcut">Ctrl-N</span></ng-template>
 </context-menu>
 
 <context-menu #childContextMenu>
     <ng-template contextMenuItem (execute)="axDesignerService.removeComponent($event.item)">Remove Component <span class="key-shortcut">Ctrl-X</span></ng-template>
-    <ng-template contextMenuItem [enabled]="enableNewGroupComponent(axDesignerService)" (execute)="axDesignerService.duplicateComponent($event.item)">Duplicate Component <span class="key-shortcut">Ctrl-D</span></ng-template>
-    <ng-template contextMenuItem (execute)="axDesignerService.detectAs('I',$event.item)">Detect as Image <span class="key-shortcut">Ctrl-I</span></ng-template>
-    <ng-template contextMenuItem (execute)="axDesignerService.detectAs('R',$event.item)">Detect as Rect <span class="key-shortcut">Ctrl-R</span></ng-template>
-    <ng-template contextMenuItem (execute)="axDesignerService.detectAs('T',$event.item)">Detect as Text <span class="key-shortcut">Ctrl-T</span></ng-template>
-    <ng-template contextMenuItem (execute)="axDesignerService.setAsMain($event.item)">Set as Main <span class="key-shortcut">Ctrl-M</span></ng-template>
-    <ng-template contextMenuItem [enabled]="enableNewGroupComponent(axDesignerService)" (execute)="axDesignerService.newComponent($event.item)">New component <span class="key-shortcut">Ctrl-N</span></ng-template>
+    <ng-template contextMenuItem [visible]="enableNewGroupComponent(axDesignerService)" (execute)="axDesignerService.duplicateComponent($event.item)">Duplicate Component <span class="key-shortcut">Ctrl-D</span></ng-template>
+    <ng-template contextMenuItem [visible]="showType('I')" (execute)="axDesignerService.detectAs('I',$event.item)">Detect as Image <span class="key-shortcut">Ctrl-I</span></ng-template>
+    <ng-template contextMenuItem [visible]="showType('R')" (execute)="axDesignerService.detectAs('R',$event.item)">Detect as Rect <span class="key-shortcut">Ctrl-R</span></ng-template>
+    <ng-template contextMenuItem [visible]="showType('T')" (execute)="axDesignerService.detectAs('T',$event.item)">Detect as Text <span class="key-shortcut">Ctrl-T</span></ng-template>
+    <ng-template contextMenuItem [visible]="enableSetAsMain()" (execute)="axDesignerService.setAsMain($event.item)">Set as Main <span class="key-shortcut">Ctrl-M</span></ng-template>
+    <ng-template contextMenuItem [visible]="enableNewGroupComponent(axDesignerService)" (execute)="axDesignerService.newComponent($event.item)">New component <span class="key-shortcut">Ctrl-N</span></ng-template>
 </context-menu>
