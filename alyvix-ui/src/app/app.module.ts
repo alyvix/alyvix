@@ -20,6 +20,7 @@ import { InteractionComponent } from './ax-designer/box-options/interaction/inte
 import { BoxOptionsComponent } from './ax-designer/box-options/box-options.component';
 import { environment } from 'src/environments/environment';
 import { TreeNodeComponent } from './ax-designer/tree/tree-node/tree-node.component';
+import { SelectTypeComponent } from './ax-designer/box-options/select-type/select-type.component';
 
 @NgModule({
   declarations: [
@@ -32,6 +33,7 @@ import { TreeNodeComponent } from './ax-designer/tree/tree-node/tree-node.compon
     InteractionComponent,
     BoxOptionsComponent,
     TreeNodeComponent,
+    SelectTypeComponent,
   ],
   imports: [
     BrowserModule,

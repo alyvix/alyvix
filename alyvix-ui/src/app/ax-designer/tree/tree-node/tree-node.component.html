@@ -1,6 +1,6 @@
 <div class="boxEntityContainer" (click)="nodeClick()" (dblclick)="doubleClick()" [ngClass]="{active: isSelected()}" >
   <div class="boxEntity" [ngStyle]="setBackground()">
-    <span *ngIf="node.box">{{ node.box.type }}</span>
+    <span *ngIf="node.box"><i [ngClass]="icon(node.box.type)"></i></span>
     <span *ngIf="!node.box">S</span>
     <canvas height="30" width="{{thumbnailWidth}}" [hidden]="!node.box" [ngStyle]="{'width.px':thumbnailWidth}" #canvas></canvas>
     <img *ngIf="!node.box" [src]="imageFor()">

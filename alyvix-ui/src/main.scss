@@ -1,10 +1,18 @@
 /* You can add global styles to this file, and also import other style files */
 
 
+$blue: #0078e7;
+$darkblue: darken( $blue, 30%);
+$lightblue: lighten( $blue, 50% );
+$textcolor: #333;
+
 * {
     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
     -moz-box-sizing: border-box;    /* Firefox, other Gecko */
     box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;  
+    -webkit-font-smoothing: antialiased;
+    color: $textcolor;
 }
 
 body{
@@ -24,13 +32,13 @@ input::-webkit-inner-spin-button {
 
 .form-group {
     margin: 5px 0;
-    min-height: 33px;
 }
 
 .form-group.small {
     margin: 5px 0;
     min-height: 10px;
 }
+
 
 .form-group input[type=date],
 .form-group input[type=datetime],
@@ -47,15 +55,36 @@ input::-webkit-inner-spin-button {
 .form-group input[type=url],
 .form-group input[type=week]
 {
-    border-radius: 2px;
-    border: #aaa 1px solid;
+
+    border: 0;
+    border-bottom: #555 1px solid;
     padding: 2px 5px;
     width: 100%;
+    height: 20px;
+
+    &.small {
+      width: 40px;
+    }
+
+    &:focus{
+      outline: none;
+      border-bottom: 1px solid $blue;
+      background: $lightblue;
+    }
+
+    &.ng-invalid {
+      border-bottom: 1px solid red !important;
+      background-color: lightpink;
+    }
 }
 
 
 input.std-width {
     width: 160px;
+}
+
+.form-group input[type=number] {
+  text-align: right;
 }
 
 .form-group select.std {
@@ -66,17 +95,19 @@ input.std-width {
     width: 71px;
 }
 
-.ng-invalid {
-  border: 1px solid red !important;
-  background-color: lightpink;
-}
+
 
 select {
-
-    background-color: white;
-    border: 1px solid #aaa;
-    border-radius: 2px;
+    height: 20px;
+    border: 0;
+    border-bottom: #555 1px solid;
     padding: 1px 2px;
+
+    &:focus{
+      outline: none;
+      border-bottom: 1px solid $blue;
+      background: $lightblue;
+    }
 }
 
 select:disabled {
@@ -89,6 +120,7 @@ select::-ms-expand {
 
 input[type=checkbox]{
     vertical-align: middle;
+    height: 20px;
 }
 
 input[type='radio'] {
@@ -104,15 +136,53 @@ input[type='radio'] {
     display: block;
 }
 
-.pure-button{
-    font-size: 12px;
-    padding: 2px 8px;
-    border: 1px solid #aaa;
-    line-height: 13px;
+.inline-label {
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 20px;
 }
 
-.pure-button-primary{
-   border: 1px solid #0078e7;
+.btn{
+    min-width: 50px;
+    text-align: center;
+    font-family: 'Roboto';
+    letter-spacing: 1px;
+    border-radius: 0;
+    background: white;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 2px 8px;
+    border: 0;
+    line-height: 13px;
+    padding: 6px 8px;
+    vertical-align: baseline;
+
+    &:hover{
+      background: $lightblue;
+      color: $darkblue;
+    }
+}
+
+.btn-primary{
+  color: white;
+  background: $blue;
+  box-shadow: 1px 1px 3px  #888888;
+
+  &:hover {
+    color: $lightblue;
+    background: $darkblue;
+  }
+}
+
+.btn-secondary{
+  border: 1px $blue solid;
+  color:  $blue;
+
+  &:hover {
+    color: white;
+    background: $blue;
+  }
 }
 
 
@@ -192,10 +262,40 @@ hr {
       cursor: pointer;
       line-height: 17px;
       display: inline-block;
-      color: #666;
+      color: $textcolor;
+      letter-spacing: 1px;
       min-width: 0px;
       margin-right: 10px;
+      text-transform: uppercase;
   }
+
+
+  .detect-type{
+
+    [type="radio"]:checked + label,
+    [type="radio"]:not(:checked) + label {
+      padding-left: 0;
+    }
+
+    [type="radio"]:checked + label:before,
+    [type="radio"]:not(:checked) + label:before {
+      display: none;
+    }
+
+    [type="radio"]:checked + label:after,
+    [type="radio"]:not(:checked) + label:after {
+      display: none;
+    }
+
+    i {
+      font-size: 150%;
+
+    }
+    [type="radio"]:checked + label i {
+      color: $blue;
+    }
+  }
+
   [type="radio"]:checked + label:before,
   [type="radio"]:not(:checked) + label:before {
       content: '';
@@ -209,14 +309,14 @@ hr {
       background: #fff;
   }
   [type="radio"]:checked + label:before{
-    border: 1px solid #0078e7;
+    border: 1px solid $blue;
   }
   [type="radio"]:checked + label:after,
   [type="radio"]:not(:checked) + label:after {
       content: '';
       width: 9px;
       height: 9px;
-      background: #0078e7;
+      background: $blue;
       position: absolute;
       top: 3px;
       left: 3px;
@@ -230,6 +330,7 @@ hr {
       transform: scale(0);
   }
   [type="radio"]:checked + label:after {
+      color: $blue;
       opacity: 1;
       -webkit-transform: scale(1);
       transform: scale(1);
@@ -252,7 +353,7 @@ hr {
       min-width: 200px;
     display: block;
     padding: 0;
-    color: #333;
+    color: $textcolor;
     font-weight: bold;
   }
 
@@ -265,7 +366,7 @@ hr {
   }
   .ngx-contextmenu a {
     padding: 5px 20px;
-    color: #333;
+    color: $textcolor;
     display: block;
     text-align: left;
     text-decoration: none;
@@ -291,4 +392,10 @@ hr {
 
   li.cdk-drag-preview div.interaction{
     display: none !important;
+}
+
+.distribute{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }

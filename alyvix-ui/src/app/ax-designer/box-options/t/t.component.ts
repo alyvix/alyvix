@@ -31,6 +31,10 @@ export class TComponent implements OnInit {
     return null;
   }
 
+  isScraper():boolean {
+    return this.node.box.features.T.type == 'scraper'
+  }
+
   ngOnInit() {
 
     if(!this.node.box.features.T.type) {

@@ -1,7 +1,9 @@
 <div class="pure-g">
-  <div class="pure-u-1-1">
-    <div class="form-group">
-          <label>&nbsp;</label>
+  <div class="pure-u-1-4">
+    <app-select-type [node]="node"></app-select-type>
+  </div>
+  <div class="pure-u-3-4">
+    <div class="form-group distribute">
           <input [ngModel]="mode" (ngModelChange)="updateMode($event)" type="radio" id="Imatch" name="Iradio" [value]="match"> <label for="Imatch">Match&nbsp;</label>
           <input [ngModel]="mode" (ngModelChange)="updateMode($event)" type="radio" id="Icolor" name="Iradio" [value]="color"> <label for="Icolor">Color&nbsp;</label>
           <input [ngModel]="mode" (ngModelChange)="updateMode($event)" type="radio" id="Ishape" name="Iradio" [value]="shape"> <label for="Ishape">Shape</label>

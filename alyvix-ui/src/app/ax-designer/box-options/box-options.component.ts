@@ -5,17 +5,12 @@ import { TreeNode } from '../ax-designer-service';
 @Component({
   selector: 'ax-box-options',
   templateUrl: './box-options.component.html',
-  styleUrls: ['./box-options.component.css']
+  styleUrls: ['./box-options.component.scss']
 })
 export class BoxOptionsComponent implements OnInit {
 
   @Input()
   node: TreeNode
-
-  changeType(event) {
-    console.log(event.srcElement.value);
-    this.node.box.type = event.srcElement.value;
-  }
 
   constructor() { }
 

@@ -4,7 +4,7 @@ import { TreeNode, AxDesignerService } from '../../ax-designer-service';
 @Component({
   selector: 'ax-interaction',
   templateUrl: './interaction.component.html',
-  styleUrls: ['./interaction.component.css']
+  styleUrls: ['./interaction.component.scss']
 })
 export class InteractionComponent implements OnInit {
 

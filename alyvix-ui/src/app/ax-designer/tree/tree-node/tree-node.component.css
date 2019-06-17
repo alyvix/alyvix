@@ -16,6 +16,10 @@
     margin-right: 1px;
 }
 
+.boxEntity i {
+    color: white;
+}
+
 .active .boxEntity span {
     color: white;
 }

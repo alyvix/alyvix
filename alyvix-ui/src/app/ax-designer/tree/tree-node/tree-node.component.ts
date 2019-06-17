@@ -27,6 +27,14 @@ export class TreeNodeComponent implements OnInit {
 
   @ViewChild("canvas") canvas: ElementRef;
 
+  icon(type) {
+    switch(type) {
+      case 'I': return ['far','fa-image'] 
+      case 'R': return ['fas','fa-expand'] 
+      case 'T': return ['fas','fa-font'] 
+    }
+  }
+
   ngOnInit() {
 
     console.log("Init component TreeNode")

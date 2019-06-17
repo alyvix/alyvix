@@ -8,7 +8,7 @@ import { TouchSequence } from 'selenium-webdriver';
 @Component({
   selector: 'ax-designer',
   templateUrl: './ax-designer.component.html',
-  styleUrls: ['./ax-designer.component.css']
+  styleUrls: ['./ax-designer.component.scss']
 })
 export class AxDesignerComponent implements OnInit {
 
