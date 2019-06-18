@@ -1,0 +1,20 @@
+<div class="pure-g">
+    <div class="pure-u-1-1">
+      <div class="form-group">
+            <label>&nbsp;</label>
+            <input [ngModel]="mode" (ngModelChange)="updateMode($event)" [value]="button" type="radio" name="Rradio" id="Rbutton"> <label for="Rbutton">Button</label>
+            <input [ngModel]="mode" (ngModelChange)="updateMode($event)" [value]="box" type="radio" name="Rradio" id="Rbox"> <label for="Rbox">Box</label>
+            <input [ngModel]="mode" (ngModelChange)="updateMode($event)" [value]="window" type="radio" name="Rradio" id="Rwindow"> <label for="Rwindow">Window</label>
+         
+      </div>
+    </div>
+    <div class="pure-u-1-1">
+        <ax-interaction [node]="node"></ax-interaction>
+      </div>
+      <div class="pure-u-1-1">
+        <div class="form-group">
+          <label>String</label>
+          <input [(ngModel)]="node.box.keyboard.string" type="text">
+        </div>
+      </div>
+  </div>
