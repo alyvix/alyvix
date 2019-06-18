@@ -4,6 +4,7 @@ import { AxDesignerService, TreeNode } from './ax-designer-service';
 import { GlobalRef } from '../ax-model/ax-global';
 import { ResizedEvent } from 'angular-resize-event';
 import { TouchSequence } from 'selenium-webdriver';
+import { KeyShortcutsService } from '../key-shortcuts.service';
 
 @Component({
   selector: 'ax-designer',
@@ -12,7 +13,7 @@ import { TouchSequence } from 'selenium-webdriver';
 })
 export class AxDesignerComponent implements OnInit {
 
-  constructor(private axDesignerService:AxDesignerService) { }
+  constructor(private axDesignerService:AxDesignerService, private keyShortcuts:KeyShortcutsService) { }
 
   axModel:AxModel;
 
@@ -60,6 +61,7 @@ export class AxDesignerComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.keyShortcuts.loadShortcuts()
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectNode(n));
     this.axDesignerService.getDragging().subscribe(d => this.dragging = d);
     this.axModel = this.axDesignerService.getModel();
