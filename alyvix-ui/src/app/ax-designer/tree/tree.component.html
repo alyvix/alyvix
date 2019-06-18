@@ -45,7 +45,7 @@
     </div>
   </div>
 
-  <div class="selection-tree">
+  <div class="selection-tree" [ngClass]="{'is-dragging': dragging}">
     <div class="selected-placeholder" [ngClass]="{'is-selected': isSelected(root)}"></div>
     <div *ngFor="let node of root.children">
       <div class="selected-placeholder" [ngClass]="{'is-selected': isSelected(node)}"></div>

@@ -52,6 +52,7 @@ export class TreeComponent implements OnInit {
     this.axDesignerService.updateAx()
   }
 
+  dragging:boolean = false;
 
   drop(list:TreeNode[],event: CdkDragDrop<TreeNode>) {
     console.log(event);
@@ -59,7 +60,8 @@ export class TreeComponent implements OnInit {
     list.forEach(x => x.last = false);
     list[list.length - 1].last = true;
     this.axDesignerService.setDragging(false);
-    this.axDesignerService.updateAx()
+    this.axDesignerService.updateAx();
+    this.dragging = false;
   }
 
   startDrag(list:TreeNode[],node:TreeNode,event:CdkDragStart) {
@@ -70,6 +72,7 @@ export class TreeComponent implements OnInit {
     if(last) last.last = true;
     this.axDesignerService.setSelectedNode(node);
     this.axDesignerService.setDragging(true);
+    this.dragging = true;
   }
 
   enableNewGroupComponent(axDesignerService){ return function(item) {

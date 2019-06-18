@@ -5,24 +5,25 @@ $branchColor: #d9d9d9;
 
 
 
-li.cdk-drag-preview {
-    margin-left: 50px;
-}
 
 
-li.cdk-drag-preview ul.secondary-group {
-    margin-top: -34px;
-    margin-left: -18px;
-}
+.cdk-drag-preview { 
+    
+    .vertical-branch {
+        display: none;
+    }
 
-li.cdk-drag-preview ul.secondary-group li {
-    display: none;
+    .branch{
+        display: none;
+    }
 }
 
 
 
 .custom-placeholder {
     margin-left: 10px;
+    margin-top: -4px;
+    margin-bottom: 3px;
     background: #eee;
     border: dashed 1px #999;
     height: 40px;
@@ -32,20 +33,31 @@ li.cdk-drag-preview ul.secondary-group li {
 
 
 
-.selected-placeholder{
-    height: 40px;
-    width: 100%;
 
-    &.is-selected{
-        background-color: #eee;
-    }
-}
 
 .selection-tree{
     position: absolute;
     left: 0;
     z-index: 0;
     width: 100%;
+
+    .selected-placeholder{
+        height: 40px;
+        width: 100%;
+    
+        &.is-selected{
+            background-color: #eee;
+        }
+    }
+
+    &.is-dragging{
+        .selected-placeholder{
+            &.is-selected{
+                background-color: #fff;
+            }
+        }
+    }
+
 }
 
 .tree{
