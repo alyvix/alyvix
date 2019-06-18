@@ -2,6 +2,7 @@ import cv2
 import json
 import base64
 import copy
+import time
 import os
 from datetime import datetime
 from alyvix.tools.screen import ScreenManager
@@ -55,10 +56,17 @@ class OutputManager:
     def save_screenshots(self, file_path, object_list, prefix=None):
         for object in object_list:
 
+            date_from_ts = datetime.fromtimestamp(object.timestamp)
+
+            try:
+                millis_from_ts = date_from_ts.strftime("%f")[: -3]
+            except:
+                millis_from_ts = "000"
 
             if object.screenshot is not None:
-                date_from_ts = datetime.fromtimestamp(object.timestamp)
-                date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S")
+
+                date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) \
+                                 + "_UTC" + time.strftime("%z")
 
                 if prefix is not None:
                     filename =  date_formatted + "_" + prefix + "_" + object.object_name + "_screenshot.png"
@@ -68,9 +76,9 @@ class OutputManager:
                 cv2.imwrite(file_path + os.sep + filename, object.screenshot)
 
             if object.annotation is not None:
-                date_from_ts = datetime.fromtimestamp(object.timestamp)
-                date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S")
 
+                date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) \
+                                 + "_UTC" + time.strftime("%z")
 
                 if prefix is not None:
                     filename =  date_formatted + "_" + prefix + "_" + object.object_name + "_annotation.png"

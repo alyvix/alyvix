@@ -566,6 +566,7 @@ class EngineManager(object):
             if len(mains_found) > 0:
                 for main_found in mains_found:
                     sub_results = []
+
                     for box in sub_boxes:
 
                         roi = Roi()
@@ -628,17 +629,19 @@ class EngineManager(object):
 
                             subs_found.append(sub_results[0])
 
+                    if cnt_g == 0:
+                        return_group_0.append(main_found)
+                        return_group_0.extend(subs_found)
+                    elif cnt_g == 1:
+                        return_group_1.append(main_found)
+                        return_group_1.extend(subs_found)
+                    elif cnt_g == 2:
+                        return_group_2.append(main_found)
+                        return_group_2.extend(subs_found)
+
                     if len(subs_found) == len(sub_boxes):
-                        if cnt_g == 0:
-                            return_group_0.append(main_found)
-                            return_group_0.extend(subs_found)
-                        elif cnt_g == 1:
-                            return_group_1.append(main_found)
-                            return_group_1.extend(subs_found)
-                        elif cnt_g == 2:
-                            return_group_2.append(main_found)
-                            return_group_2.extend(subs_found)
                         break
+
 
 
         self.lock.acquire()
@@ -690,7 +693,107 @@ class EngineManager(object):
 
 
         #print("comp found:" + str(len(self._components_found)))
-        for component in components_found:
+        #for component in components_found:
+        m0_found = False
+        m1_found = False
+        m2_found = False
+
+        has_to_find_m0 = False
+        has_to_find_m1 = False
+        has_to_find_m2 = False
+
+
+        m0_xy = None
+        m1_xy = None
+        m2_xy = None
+
+        for box in self._object_definition['boxes']:
+
+            if box["group"] == 0:
+                has_to_find_m0 = True
+            elif box["group"] == 1:
+                has_to_find_m1 = True
+            elif box["group"] == 2:
+                has_to_find_m2 = True
+
+            component_found = False
+
+            if self._disappear_mode is True and len(self._components_appeared) > 0:
+                for component in self._components_appeared:
+                    if component.index_in_tree == box["index_in_tree"]:
+                        component_found = True
+                        break
+            else:
+                for component in self._components_found:
+                    if component.index_in_tree == box["index_in_tree"]:
+                        component_found = True
+                        break
+
+            if component_found is False:
+
+                if box["is_main"] == True:
+                    continue
+
+                class DummyResult:
+                    def __init__(self):
+                        self.x = None
+                        self.y = None
+                        self.w = None
+                        self.h = None
+                        self.type = None
+                        self.scraped_text = None
+                        self.group = 0
+                        self.is_main = False
+                        self.index_in_tree = 0
+                        self.index_in_group = 0
+                        self.mouse = {}
+                        self.keyboard = {}
+                        self.roi = None
+
+                component = DummyResult()
+                component.type = box["type"]
+                component.group = box["group"]
+                component.index_in_tree = box["index_in_tree"]
+                component.index_in_group = box["index_in_group"]
+                component.is_main = False
+
+                if component.group == 0 and m0_found == False and component.is_main == False:
+                    continue
+                elif component.group == 1 and m1_found == False and component.is_main == False:
+                    continue
+                elif component.group == 2 and m2_found == False and component.is_main == False:
+                    continue
+
+                if component.group == 0:
+                    m_xy = m0_xy
+                elif component.group == 1:
+                    m_xy = m1_xy
+                elif component.group == 2:
+                    m_xy = m2_xy
+
+                roi = Roi()
+                roi.x = box["roi_x"] + m_xy[0]
+                roi.y = box["roi_y"] + m_xy[1]
+                roi.w = box["roi_w"]
+                roi.h = box["roi_h"]
+                roi.unlimited_left = box["roi_unlimited_left"]
+                roi.unlimited_up = box["roi_unlimited_up"]
+                roi.unlimited_right = box["roi_unlimited_right"]
+                roi.unlimited_down = box["roi_unlimited_down"]
+
+                component.roi = roi
+
+            else:
+                if component.group == 0 and component.is_main == True:
+                    m0_found = True
+                    m0_xy = (component.x, component.y)
+                elif component.group == 1 and component.is_main == True:
+                    m1_found = True
+                    m1_xy = (component.x, component.y)
+                elif component.group == 2 and component.is_main == True:
+                    m2_found = True
+                    m2_xy = (component.x, component.y)
+
             if component.group == 0:
                 color_stroke = (0, 0, 255)
                 color_fill = (255, 0, 255)
@@ -701,7 +804,7 @@ class EngineManager(object):
                 color_stroke = (255, 0, 0)
                 color_fill = (255, 114, 0)
 
-            if component.is_main is True:
+            if component.is_main:
 
                 x1 = component.x
                 y1 = component.y
@@ -772,24 +875,47 @@ class EngineManager(object):
 
                 cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
 
-                text = "s_" + str(component.group + 1) + "_" + str(component.index_in_group)
-                cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
-                            lineType=cv2.LINE_AA)
-
-                x1 = component.x
-                y1 = component.y
-                x2 = component.x + component.w
-                y2 = component.y + component.h
-
-                cv2.rectangle(overlay, (x1, y1), (x2, y2), color_fill, -1)
 
 
+                if component_found:
 
-                alpha = 0.3
-                cv2.addWeighted(overlay[y1:y2, x1:x2], alpha, image[y1:y2, x1:x2], 1 - alpha,
-                                0, image[y1:y2, x1:x2])
+                    text = "s_" + str(component.group + 1) + "_" + str(component.index_in_group)
+                    cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+                                lineType=cv2.LINE_AA)
 
-                cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
+                    x1 = component.x
+                    y1 = component.y
+                    x2 = component.x + component.w
+                    y2 = component.y + component.h
+
+                    cv2.rectangle(overlay, (x1, y1), (x2, y2), color_fill, -1)
+
+
+
+                    alpha = 0.3
+                    cv2.addWeighted(overlay[y1:y2, x1:x2], alpha, image[y1:y2, x1:x2], 1 - alpha,
+                                    0, image[y1:y2, x1:x2])
+
+                    cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
+                else:
+
+                    text = "s_" + str(component.group + 1) + "_" + str(component.index_in_group) + "!"
+                    cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+                                lineType=cv2.LINE_AA)
+
+                    scale = 1  # this value can be from 0 to 1 (0,1] to change the size of the text relative to the image
+                    fontScale = min(roi.w, roi.h) / (25 / scale)
+
+                    text_box_size = cv2.getTextSize("!", cv2.FONT_HERSHEY_SIMPLEX, fontScale, 2)
+                    text_x = int(roi.x + (roi.w / 2)) - int(text_box_size[0][0]/2)
+                    text_y = int(roi.y + (roi.h / 2)) + int(text_box_size[0][1]/2)
+
+
+                    cv2.putText(image, "!", (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color_stroke, 2,
+                                lineType=cv2.LINE_AA)
+
+            if component_found is False:
+                continue
 
             if component.type == "T" and component.scraped_text is not None:
                 continue
@@ -839,6 +965,49 @@ class EngineManager(object):
                 cv2.addWeighted(overlay, alpha, image, 1 - alpha,
                                 0, image)
         """
+        main_notfound_banner_size = 0
+
+        if m2_found is False and has_to_find_m2 is True:
+
+            color_stroke = (255, 0, 0)
+
+            text_box_size = cv2.getTextSize(" (M_3)", cv2.FONT_HERSHEY_SIMPLEX, 0.4, 1)
+            text_w = text_box_size[0][0]
+            text_h = text_box_size[0][1]
+
+            cv2.putText(image, " (M_3)", (image.shape[1] - text_w - 1, 2 + text_h), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+                        lineType=cv2.LINE_AA)
+
+            main_notfound_banner_size += text_box_size[0][0]
+
+        if m1_found is False and has_to_find_m1 is True:
+            color_stroke = (0, 149, 0)
+
+            text_box_size = cv2.getTextSize(" (M_2)", cv2.FONT_HERSHEY_SIMPLEX, 0.4, 1)
+            text_w = text_box_size[0][0]
+            text_h = text_box_size[0][1]
+
+            cv2.putText(image, " (M_2)", (image.shape[1] - text_w - 1 - main_notfound_banner_size, 2 + text_h),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.4,
+                        color_stroke, 1,
+                        lineType=cv2.LINE_AA)
+
+            main_notfound_banner_size += text_box_size[0][0]
+
+        if m0_found is False and has_to_find_m0 is True:
+            color_stroke = (0, 0, 255)
+
+            text_box_size = cv2.getTextSize(" (M_1)", cv2.FONT_HERSHEY_SIMPLEX, 0.4, 1)
+            text_w = text_box_size[0][0]
+            text_h = text_box_size[0][1]
+
+            cv2.putText(image, " (M_1)", (image.shape[1] - text_w - 1 - main_notfound_banner_size, 2 + text_h),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.4,
+                        color_stroke, 1,
+                        lineType=cv2.LINE_AA)
+
+            main_notfound_banner_size += text_box_size[0][0]
+
 
         return image
 
@@ -967,7 +1136,8 @@ class EngineManager(object):
 
                 self._screen_with_objects = self._uncompress(self._screens[first_index_not_found][0])
 
-                self._annotation_screen = self._get_annotation_screen(first_index_not_found)
+                self._annotation_screen = self._get_annotation_screen(first_index_found)
+                #self._annotation_screen  = self._get_annotation_screen(first_index_not_found)
 
                 self._result.performance_ms = self._disappear_time * 1000
                 self._result.accuracy_ms = self._disappear_accuracy * 1000

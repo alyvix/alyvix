@@ -202,7 +202,7 @@ class RectManager{
             }
         }
         
-        if (e.keyCode === 27)
+        /*if (e.keyCode === 27)
         {
             if (boxes.length == 0)
             {
@@ -212,9 +212,9 @@ class RectManager{
                 });
                 return;
             }
-        }
+        }*/
         
-        if(e.key == "o" && this.key_ctrl_pressed == true){
+        if((e.key == "o" && this.key_ctrl_pressed == true) || e.keyCode === 27){
         
             e.preventDefault();
             /*var resp = null;
@@ -1362,7 +1362,7 @@ class RectManager{
         var mouse_point = mouse_features["point"];
             
         
-        if (mouse_type === "click" || mouse_type ===  "move" || mouse_type ===  "scroll" || mouse_type ===  "release")
+        if (mouse_type === "click" || mouse_type ===  "move" || mouse_type ===  "scroll" || mouse_type ===  "release" || mouse_type ===  "hold")
         {
             var rect_center_x = rect.x + parseInt(rect.w/2);
             var rect_center_y = rect.y + parseInt(rect.h/2);
