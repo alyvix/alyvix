@@ -187,7 +187,7 @@ export class TreeNodeComponent implements OnInit {
   private _interactionKeyboardIcon():string {
     if(this.node.box) {
       if(this.node.box.keyboard) {
-        if(this.node.box.keyboard.string.match("\{arg(.*)\}")) {
+        if(this.node.box.keyboard.string.match(/\{(\d+)\}/)) {
           return "Keyboard_32px6"
         }
         if(this.node.box.keyboard.string) {
