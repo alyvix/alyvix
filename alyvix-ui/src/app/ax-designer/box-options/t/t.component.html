@@ -15,14 +15,14 @@
   <div class="pure-u-11-24" [hidden]="node.box.features.T.type == 'scraper'">
       <div class="form-group">
         <label>Regex</label>
-        <input [formControl]="regex" [(ngModel)]="node.box.features.T.regexp" type="text">
+        <input class="regex-input" [formControl]="regex" [(ngModel)]="node.box.features.T.regexp" type="text">
       </div>
     </div>
   <div class="pure-u-2-24" [hidden]="node.box.features.T.type == 'scraper'"></div>
   <div [ngClass]="{'pure-u-11-24': !isScraper(), 'pure-u-1-1': isScraper()}">
       <div class="form-group">
         <label>Scrap</label>
-        <input type="text" disabled>
+        <input [(ngModel)]="scraped" type="text" disabled>
       </div>
     </div>
   <div class="pure-u-1-1">

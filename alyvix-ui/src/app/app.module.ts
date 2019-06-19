@@ -1,6 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
@@ -37,6 +38,7 @@ import { SelectTypeComponent } from './ax-designer/box-options/select-type/selec
   ],
   imports: [
     BrowserModule,
+    HttpClientModule,
     FormsModule,
     DragDropModule,
     AngularResizedEventModule,
