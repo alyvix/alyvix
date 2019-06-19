@@ -2,6 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter, ViewChild, ElementRef }
 import { DomSanitizer } from '@angular/platform-browser';
 import { AxDesignerService, TreeNode } from '../../ax-designer-service';
 import { environment } from 'src/environments/environment';
+import { AxModel } from 'src/app/ax-model/model';
 
 export interface GroupColors{
   main:string
@@ -23,6 +24,7 @@ export class TreeNodeComponent implements OnInit {
 
   selectedNode:TreeNode;
 
+
   thumbnailWidth:number = 0;
 
   @ViewChild("canvas") canvas: ElementRef;
@@ -33,6 +35,10 @@ export class TreeNodeComponent implements OnInit {
       case 'R': return ['fas','fa-expand'] 
       case 'T': return ['fas','fa-font'] 
     }
+  }
+
+  noInteraction():boolean {
+    return this.axDesignerService.getModel().detection.type != "appear";
   }
 
   ngOnInit() {
