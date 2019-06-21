@@ -24,7 +24,7 @@ export interface TreeNode{
 export class AxDesignerService {
 
 
-    constructor( @Inject('GlobalRef') private global: GlobalRef, private _hotkeysService: HotkeysService) {
+    constructor( @Inject('GlobalRef') private global: GlobalRef,) {
         this.axModel = this.global.nativeGlobal().axModel();
         if(this.axModel.box_list) {
             this.axModel.box_list.forEach(box => {
@@ -57,69 +57,7 @@ export class AxDesignerService {
         
 
 
-        this._hotkeysService.add(new Hotkey('ctrl+x', (event: KeyboardEvent): boolean => {
-            var node = this._selectedNode.getValue()
-            if(!node) return false;
-            if(!node.box) {
-                this.removeAll()
-            } else if(node.box.is_main) {
-                this.removeGroup(node)
-            } else {
-                this.removeComponent(node)
-            }
-            return false; // Prevent bubbling
-        },undefined,'Remove elements/group/component'));
-
-        this._hotkeysService.add(new Hotkey('ctrl+d', (event: KeyboardEvent): boolean => {
-            var node = this._selectedNode.getValue()
-            if(node && node.box) {
-                if(node.box.is_main) {
-                    this.duplicateGroup(node)
-                } else {
-                    this.duplicateComponent(node)
-                }
-            }
-            return false; // Prevent bubbling
-        },undefined,'Duplicate selected group/component'));
-
-        this._hotkeysService.add(new Hotkey('ctrl+i', (event: KeyboardEvent): boolean => {
-            var node = this._selectedNode.getValue()
-            if(node && node.box) {
-                this.detectAs('I',node)
-            }
-            return false; // Prevent bubbling
-        },undefined,'Detect as Image'));
-
-        this._hotkeysService.add(new Hotkey('ctrl+r', (event: KeyboardEvent): boolean => {
-            var node = this._selectedNode.getValue()
-            if(node && node.box) {
-                this.detectAs('R',node)
-            }
-            return false; // Prevent bubbling
-        },undefined,'Detect as Rectangle'));
-
-        this._hotkeysService.add(new Hotkey('ctrl+t', (event: KeyboardEvent): boolean => {
-            var node = this._selectedNode.getValue()
-            if(node && node.box && !node.box.is_main) {
-                this.detectAs('T',node)
-            }
-            return false; // Prevent bubbling
-        },undefined,'Detect as Text'));
-
-        this._hotkeysService.add(new Hotkey('ctrl+m', (event: KeyboardEvent): boolean => {
-            var node = this._selectedNode.getValue()
-            if(node && node.box && !node.box.is_main) {
-                this.setAsMain(node)
-            }
-            return false; // Prevent bubbling
-        },undefined,'Set as main'));
-
-        this._hotkeysService.add(new Hotkey('ctrl+n', (event: KeyboardEvent): boolean => {
-            var node = this._selectedNode.getValue()
-            if(node) 
-                this.newComponent(node)
-            return false; // Prevent bubbling
-        },undefined,'New component'));
+        
 
     }
 

@@ -58,16 +58,19 @@ class Result():
         self.accuracy_ms = None
         self.screenshot = None
         self.annotation = None
+        self.timeout = None
         self.records = {"text":"", "image":""}
 
 
 class EngineManager(object):
 
-    def __init__(self, object_json, args=None):
+    def __init__(self, object_json, args=None, verbose=0):
 
         self._result = Result()
 
         self._result.object_name = list(object_json.keys())[0]
+
+        self._verbose = verbose
 
         self._mouse_manager = MouseManager()
         self._keyboard_manager = KeyboardManager()
@@ -1043,8 +1046,8 @@ class EngineManager(object):
 
         self._disappear_mode = False
 
-
-        print(self._result.object_name + " starts")
+        if self._verbose == 1:
+            print("Alyvix looks for " + self._result.object_name)
 
         #sm = ScreenManager()
 
@@ -1087,6 +1090,10 @@ class EngineManager(object):
 
             if len(components_appeared) == (len(self._group_0) + len(self._group_1) + len(self._group_2)) \
                     and disappear_mode is False:
+
+                if self._verbose == 1:
+                    print("Alyvix detected " + self._result.object_name)
+
                 if detection_type =='appear':
                     #cv2.imwrite("D:\\programdata\\log\\" + str(time.time()) + "_find.png", self._uncompress(self._screens[-2][0]))
                     self._appear_time, self._appear_accuracy, first_index_found = self._get_appear_time()
@@ -1150,6 +1157,7 @@ class EngineManager(object):
                 return self._result
 
             if time.time() - self._t0 > timeout:
+
                 self.lock.acquire()
 
                 self.stop_threads = True
@@ -1162,6 +1170,7 @@ class EngineManager(object):
                 self._result.accuracy_ms = -1
                 self._result.screenshot = self._screen_with_objects
                 self._result.annotation = self._annotation_screen
+                self._result.timeout = timeout
 
                 return self._result
 

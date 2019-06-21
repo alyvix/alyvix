@@ -1,0 +1,81 @@
+.tree-node{
+    height: 32px;
+    width: 200px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    &.primary{
+        width: 232px;
+    }
+}
+.boxEntity {
+    background-color: #808080;
+    border: solid 1px #383838;
+    padding: 0;
+    height: 32px;
+    line-height: 30px;
+    display: inline-block;
+}
+
+
+.boxEntity span {
+    width: 20px;
+    color: white;
+    display: inline-block;
+    text-align: center;
+    margin-right: 1px;
+}
+
+.boxEntity i {
+    color: white;
+}
+
+.active .boxEntity span {
+    color: white;
+}
+
+.boxEntity canvas,img {
+    float: right;
+    height: 30px;
+}
+
+.boxEntityContainer {
+    padding: 0 ;
+    width: 120px;
+}
+
+.interaction-container{
+    display: flex;
+
+
+
+    $red: #db5960;
+    .interaction {
+        
+        width: 35px;
+        height: 31px;
+        line-height: 31px;
+        position: relative;
+
+        img {
+            height: 32px;
+        }
+
+
+        .fa-ban {
+            color:rgba(red,.6);
+            position: absolute;
+            font-size: 27px;
+            top: 3px;
+            left: 3px;
+        }
+
+        &.interaction-mouse{
+            .fa-ban{
+                left: 5px;
+            }
+        }
+    }
+
+}

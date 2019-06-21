@@ -91,6 +91,11 @@ class RectManager{
         this.rectangles = rectangles;
     }
     
+    /*set_selected(index)
+    {
+        this.selected = index;
+    }*/
+    
     get_rectangles()
     {
         return this.rectangles;
@@ -1312,7 +1317,7 @@ class RectManager{
         ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
     }
         
-    draw_rect(ctx, rect){
+    draw_rect(ctx, rect, index){
     
         
         var roi_x =  rect.roi_x;
@@ -1340,22 +1345,76 @@ class RectManager{
             else roi_w = screen_w - ( rect.roi_x + 1);
         }
         
-        
-        if(rect.is_main == false)
+        if (rect.type === "R" && selected_box == index && ttWIndow_isOpen == true)
         {
+            var rect_center_x = rect.x + parseInt(rect.w/2);
+            var rect_center_y = rect.y + parseInt(rect.h/2);
             
-            ctx.globalAlpha=0.2;
-            ctx.fillRect(roi_x, roi_y, roi_w, roi_h);
-            ctx.globalAlpha=1;
-            ctx.strokeRect(roi_x, roi_y, roi_w, roi_h);
-        }
-        
-        if(rect.is_main == false) ctx.globalAlpha=0.3;
-        else  ctx.globalAlpha=0.5;
+            var min_height = rect.features["R"]["height"]["min"];
+            var max_height = rect.features["R"]["height"]["max"];
+            
+            var min_width = rect.features["R"]["width"]["min"];
+            var max_width = rect.features["R"]["width"]["max"];
+            
+            if (min_width < 0) min_width = 2;
+            
+            if (min_height < 0) min_height = 2;
+            
+            
+            var x_min =  rect_center_x - parseInt(min_width/2);
+            var y_min = rect_center_y - parseInt(min_height/2);
+            
+            var x_max =  rect_center_x - parseInt(max_width/2);
+            var y_max = rect_center_y - parseInt(max_height/2);
+            
+            if(rect.is_main == false)
+            {
+                if (x_max < roi_x) x_max = roi_x;
+                
+                if (y_max < roi_y) y_max = roi_y;
+                
+                if (x_max + max_width > roi_x + roi_w) max_width = max_width - ((x_max + max_width) - (roi_x + roi_w));
+                
+                if (y_max + max_height > roi_y + roi_h) max_height = max_height - ((y_max + max_height) - (roi_y + roi_h));
+                
+            }
+            
+            if(rect.is_main == false) ctx.globalAlpha=0.3;
+            else  ctx.globalAlpha=0.5;
+            
+            ctx.rect(x_max, y_max, max_width, max_height);
+            
+            ctx.moveTo(x_min, y_min);
+            ctx.rect(x_min, y_min, min_width, min_height);
+            
+            ctx.fill('evenodd');
 
-        ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
-        ctx.globalAlpha=1;
-        ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+            ctx.globalAlpha=1;
+            
+            
+            ctx.strokeRect(x_min, y_min, min_width, min_height);
+            ctx.strokeRect(x_max, y_max, max_width, max_height);
+            
+        }
+        else
+        {
+            if(rect.is_main == false)
+            {
+                
+                ctx.globalAlpha=0.2;
+                ctx.fillRect(roi_x, roi_y, roi_w, roi_h);
+                ctx.globalAlpha=1;
+                ctx.strokeRect(roi_x, roi_y, roi_w, roi_h);
+            }
+            
+            if(rect.is_main == false) ctx.globalAlpha=0.3;
+            else  ctx.globalAlpha=0.5;
+
+            ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+            ctx.globalAlpha=1;
+            ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+        }
+
         
         var mouse_type = rect.mouse['type'];
         var mouse_features = rect.mouse['features'];

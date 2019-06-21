@@ -26,11 +26,18 @@ class OutputManager:
 
             resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
 
-            object_dict = json_object["objects"][object.object_name]["components"][resolution_string]
+            # json_object["objects"][object.object_name] ["components"][resolution_string]
+            object_dict = json_object["objects"][object.object_name]
 
             object_dict["measure"] = {"perfomance_ms": int(object.performance_ms),
-                                          "accuracy_ms": int(object.accuracy_ms),
-                                          "timestamp": object.timestamp, "records": object.records}
+                                      "accuracy_ms": int(object.accuracy_ms),
+                                      "timestamp": object.timestamp, "records": object.records,
+                                      "resolution": {
+                                            "width": w,
+                                            "height": h
+                                            },
+                                      "scaling_factor": int(scaling_factor*100)
+                                      }
 
             if object.screenshot is not None:
                 png_image = cv2.imencode('.png', object.screenshot)
@@ -47,7 +54,7 @@ class OutputManager:
             else:
                 object_dict["measure"]["annotation"] = None
 
-            json_object["objects"][object.object_name]["components"][resolution_string] = object_dict
+            json_object["objects"][object.object_name] = object_dict
             json_object["run"] = {"host": chunk["host"], "user": chunk["user"],
                                   "test": chunk["test"], "code": chunk["code"]}
 

@@ -1,0 +1,142 @@
+$branchColor: #d9d9d9;
+//$branchColor: black;
+
+
+
+
+
+
+
+.cdk-drag-preview { 
+    
+    .vertical-branch {
+        display: none;
+    }
+
+    .branch{
+        display: none;
+    }
+
+}
+
+
+
+.custom-placeholder {
+    margin-left: 10px;
+    margin-top: -4px;
+    margin-bottom: 3px;
+    background: #eee;
+    border: dashed 1px #999;
+    height: 40px;
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+
+
+
+
+
+.selection-tree{
+    position: absolute;
+    left: 0;
+    z-index: 0;
+    width: 100%;
+
+    .selected-placeholder{
+        height: 40px;
+        width: 100%;
+    
+        &.is-selected{
+            background-color: #eee;
+        }
+    }
+
+    &.is-dragging{
+        .selected-placeholder{
+            &.is-selected{
+                background-color: #fff;
+            }
+        }
+    }
+
+}
+
+.tree{
+    margin-top: 4px;
+    position: relative;
+    text-align: left;
+}
+
+.tree-content{
+    height: 40px;
+    width: 100%;
+    display: block;
+}
+
+.tree-level{
+    margin-left: 12px;
+}
+
+div.tree-container{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    width: 100%;
+}
+
+.leaf{
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    height: 34px;
+}
+
+.branch{
+    display: flex;
+    flex-direction: column;
+    width: 22px;
+    height: 34px;
+}
+
+.branch:before {
+    margin-top: -8px;
+    height:24px;
+    color:white;
+    border-bottom:1px solid $branchColor;
+    content:"";
+    border-left:1px solid $branchColor;
+}
+
+.branch:after {
+    height:15px;
+    width:34px;
+    color:white;
+    content:"";
+    border-left:1px solid $branchColor;
+}
+
+.last.branch:after {
+    border-left:0;
+}
+
+.vertical-branch {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-left:-12px;
+    width:100%;
+}
+
+.vertical-branch:before {
+    content: "";
+    border-left:1px solid $branchColor;
+    width: 20px;
+    margin-top: -8px;
+    margin-left: 12px;
+}
+
+.last.vertical-branch:before {
+    border: 0;
+    width: 21px;
+}

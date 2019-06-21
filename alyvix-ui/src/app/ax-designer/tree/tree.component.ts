@@ -9,7 +9,7 @@ import { ContextMenuComponent } from 'ngx-contextmenu';
 @Component({
   selector: 'ax-designer-tree',
   templateUrl: './tree.component.html',
-  styleUrls: ['./tree.component.css']
+  styleUrls: ['./tree.component.scss']
 })
 export class TreeComponent implements OnInit {
 
@@ -23,10 +23,10 @@ export class TreeComponent implements OnInit {
 
 
 
-  
+  node:TreeNode;  
 
   ngOnInit() {
-
+    this.axDesignerService.getSelectedNode().subscribe(n => this.node = n);
     this.axDesignerService.getRoot().subscribe(r => {
       this.root = r
       console.log("new root")
@@ -52,6 +52,7 @@ export class TreeComponent implements OnInit {
     this.axDesignerService.updateAx()
   }
 
+  dragging:boolean = false;
 
   drop(list:TreeNode[],event: CdkDragDrop<TreeNode>) {
     console.log(event);
@@ -59,7 +60,8 @@ export class TreeComponent implements OnInit {
     list.forEach(x => x.last = false);
     list[list.length - 1].last = true;
     this.axDesignerService.setDragging(false);
-    this.axDesignerService.updateAx()
+    this.axDesignerService.updateAx();
+    this.dragging = false;
   }
 
   startDrag(list:TreeNode[],node:TreeNode,event:CdkDragStart) {
@@ -70,6 +72,7 @@ export class TreeComponent implements OnInit {
     if(last) last.last = true;
     this.axDesignerService.setSelectedNode(node);
     this.axDesignerService.setDragging(true);
+    this.dragging = true;
   }
 
   enableNewGroupComponent(axDesignerService){ return function(item) {
@@ -79,8 +82,27 @@ export class TreeComponent implements OnInit {
     return false;
   }}
 
+  showType(type:string){ return function(item) {
+    if(item) {
+      return type != item.box.type;
+    }
+    return false;
+  }}
+
+  enableSetAsMain(){ return function(item) {
+    if(item) {
+      return 'T' != item.box.type;
+    }
+    return false;
+  }}
+  
+
   onContextMenu($event: MouseEvent, item: TreeNode): void {
     this.axDesignerService.setSelectedNode(item);
+  }
+
+  isSelected(node):boolean {
+    return this.node == node;
   }
 
 

@@ -8,7 +8,11 @@
       "sourceRoot": "src",
       "projectType": "application",
       "prefix": "app",
-      "schematics": {},
+      "schematics": {
+        "@schematics/angular:component": {
+          "styleext": "scss"
+        }
+      },
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
@@ -24,7 +28,9 @@
             ],
             "styles": [
               "node_modules/purecss/build/pure-min.css",
-              "src/styles.css"
+              "node_modules/typeface-roboto/index.css",
+              "node_modules/@fortawesome/fontawesome-free/css/all.css",
+              "src/main.scss"
             ],
             "scripts": []
           },
@@ -124,5 +130,10 @@
       }
     }
   },
-  "defaultProject": "alyvix-ui"
+  "defaultProject": "alyvix-ui",
+  "schematics": {
+    "@schematics/angular:component": {
+      "styleext": "scss"
+    }
+  }
 }

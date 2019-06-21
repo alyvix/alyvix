@@ -4,15 +4,16 @@ import { AxDesignerService, TreeNode } from './ax-designer-service';
 import { GlobalRef } from '../ax-model/ax-global';
 import { ResizedEvent } from 'angular-resize-event';
 import { TouchSequence } from 'selenium-webdriver';
+import { KeyShortcutsService } from '../key-shortcuts.service';
 
 @Component({
   selector: 'ax-designer',
   templateUrl: './ax-designer.component.html',
-  styleUrls: ['./ax-designer.component.css']
+  styleUrls: ['./ax-designer.component.scss']
 })
 export class AxDesignerComponent implements OnInit {
 
-  constructor(private axDesignerService:AxDesignerService) { }
+  constructor(private axDesignerService:AxDesignerService, private keyShortcuts:KeyShortcutsService) { }
 
   axModel:AxModel;
 
@@ -60,6 +61,7 @@ export class AxDesignerComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.keyShortcuts.loadShortcuts()
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectNode(n));
     this.axDesignerService.getDragging().subscribe(d => this.dragging = d);
     this.axModel = this.axDesignerService.getModel();
@@ -68,6 +70,11 @@ export class AxDesignerComponent implements OnInit {
 
   showAdd():boolean {
 
+    //#166602599
+    //`Add` button enable when screen component is selected (and disabled if the 3 groups already exist)
+    if(!this.selectedNode.box) { //screen
+      return this.selectedNode.children && this.selectedNode.children.length < 3;
+    }
 
     if(this.selectedNode && this.selectedNode.box) {
       return !this.axDesignerService.isGroupFull(this.selectedNode.box.group)
@@ -90,6 +97,10 @@ export class AxDesignerComponent implements OnInit {
 
   cancel() {
     this.axDesignerService.cancel()
+  }
+
+  onContextMenu() { //#166602599
+    return false;
   }
 
 }

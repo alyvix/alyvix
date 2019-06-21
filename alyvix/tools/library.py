@@ -266,7 +266,7 @@ class LibraryManager:
                                 {"dx": mouse_dict["features"]["point"]["dx"] + box["x"],
                                  "dy": mouse_dict["features"]["point"]["dy"] + box["y"]}
                     except Exception as ex:
-                        print(ex)
+                        pass #print(ex)
 
                     box["mouse"] = mouse_dict
 
@@ -462,7 +462,7 @@ class LibraryManager:
                                 {"dx": mouse_dict["features"]["point"]["dx"],
                                  "dy": mouse_dict["features"]["point"]["dy"]}
                     except Exception as ex:
-                        print(ex)
+                        pass #print(ex)
 
                     box["mouse"] = mouse_dict
 

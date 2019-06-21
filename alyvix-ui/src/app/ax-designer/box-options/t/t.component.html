@@ -1,31 +1,37 @@
 <div class="pure-g">
-    <div class="pure-u-1-2">
+  <div class="pure-u-1-2">
+    <app-select-type [node]="node"></app-select-type>
+  </div>
+  <div class="pure-u-1-2">
+    <div class="form-group distribute">
+      <input [(ngModel)]="node.box.features.T.type" type="radio" name="Tradio" id="Tdetect" value="detection"> <label
+        for="Tdetect">Detect</label>
+      <input [(ngModel)]="node.box.features.T.type" type="radio" name="Tradio" id="Tscrap" value="scraper"> <label
+        for="Tscrap">Scrap</label>
+    </div>
+  </div>
+
+  
+  <div class="pure-u-11-24" [hidden]="node.box.features.T.type == 'scraper'">
       <div class="form-group">
-            <label>&nbsp;</label>
-            <input [(ngModel)]="node.box.features.T.type" type="radio" name="Tradio" id="Tdetect" value="detection"> <label for="Tdetect">Detect</label>
-            <input [(ngModel)]="node.box.features.T.type" type="radio" name="Tradio" id="Tscrap" value="scraper"> <label for="Tscrap">Scrap</label>
-         
+        <label>Regex</label>
+        <input class="regex-input" [formControl]="regex" [(ngModel)]="node.box.features.T.regexp" type="text">
       </div>
     </div>
-    <div class="pure-u-1-2" *ngIf="node.box.features.T.type == 'scraper'">
-        <div class="form-group">
-          <label>Scrap</label>
-          <input  type="text" disabled>
-        </div>
+  <div class="pure-u-2-24" [hidden]="node.box.features.T.type == 'scraper'"></div>
+  <div [ngClass]="{'pure-u-11-24': !isScraper(), 'pure-u-1-1': isScraper()}">
+      <div class="form-group">
+        <label>Scrap</label>
+        <input [(ngModel)]="scraped" type="text" disabled>
       </div>
-      <div class="pure-u-1-1">
-          <div class="form-group">
-            <label>Reg Exp</label>
-            <input [(ngModel)]="node.box.features.T.regexp"  type="text">
-          </div>
-        </div>
-        <div class="pure-u-1-1">
-            <ax-interaction [node]="node"></ax-interaction>
-          </div>
-          <div class="pure-u-1-1">
-        <div class="form-group">
-          <label>String</label>
-          <input [(ngModel)]="node.box.keyboard.string" type="text">
-        </div>
-      </div>
+    </div>
+  <div class="pure-u-1-1">
+    <ax-interaction [node]="node"></ax-interaction>
   </div>
+  <div class="pure-u-1-1">
+    <div class="form-group">
+      <label>String</label>
+      <input [(ngModel)]="node.box.keyboard.string" type="text">
+    </div>
+  </div>
+</div>

@@ -62,6 +62,10 @@ outline: none;
   width: 100%;
 }
 
+.dhxwin_text_inside{
+    color: #ffffff;
+}
+
 .border_bottom {
   border-bottom:1pt solid black;
 }

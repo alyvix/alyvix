@@ -1,14 +1,13 @@
-<div class="pure-g">
-  <div class="pure-u-6-24 form-group">
-      <label>Interaction Type</label>
-      <select [(ngModel)]="node.box.mouse.type" (change)="setDefaults()">
+<div class="interaction pure-g">
+  <div class="pure-u-5-24 form-group">
+      <label>Interaction</label>
+      <select [(ngModel)]="node.box.mouse.type" (change)="interactionChange()">
         <option *ngFor="let it of interactionTypes" [ngValue]="it.value">{{it.name}}</option>
       </select>
   </div>
   <div class="pure-u-6-24 form-group" [hidden]="!node.box.mouse.type || node.box.mouse.type== 'none'">
-      <label>&nbsp;</label>
-      <button *ngIf="!isPointAlreadySelected()" class="pure-button" (click)="setPoint()">Set Point</button>
-      <button *ngIf="isPointAlreadySelected()" class="pure-button" (click)="removePoint()">Remove Point</button>
+      <button style="height:100%; width:100%" *ngIf="!isPointAlreadySelected()" class="btn" (click)="setPoint()">Set<br>point</button>
+      <button style="height:100%; width:100%" *ngIf="isPointAlreadySelected()" class="btn" (click)="removePoint()" >Remove point</button>
     </div>
   <div class="pure-u-5-24 form-group" *ngIf="node.box.mouse.type == 'click'">
       <label>Button</label>
@@ -17,10 +16,10 @@
           <option value="right">Right</option>
         </select>
      </div>
-  <div class="pure-u-6-24 form-group" *ngIf="node.box.mouse.type== 'scroll' || node.box.mouse.type== 'release'">
+  <div class="pure-u-5-24 form-group" *ngIf="node.box.mouse.type== 'scroll' || node.box.mouse.type== 'release'">
     <label>Direction</label>
     <select [(ngModel)]="node.box.mouse.features.direction">
-      <option value="none">None</option>
+      <option *ngIf="node.box.mouse.type== 'release'" value="none">None</option>
       <option value="up">Up</option>
       <option value="down">Down</option>
       <option value="left">Left</option>
@@ -29,16 +28,16 @@
   </div>
   <div class="pure-u-3-24 form-group" *ngIf="node.box.mouse.type== 'scroll' || node.box.mouse.type== 'click'">
     <label>Units</label>
-    <input [(ngModel)]="node.box.mouse.features.amount" type="number">
+    <input [(ngModel)]="node.box.mouse.features.amount" type="number" [min]="1">
   </div>
   <div class="pure-u-1-24" *ngIf="node.box.mouse.features.amount > 1 && node.box.mouse.type== 'click'"></div>
-  <div class="pure-u-3-24 form-group" *ngIf="node.box.mouse.features.amount > 1 && node.box.mouse.type== 'click'">
-      <label>Delay [ms]</label>
-      <input [(ngModel)]="node.box.mouse.features.delays_ms" type="number">
+  <div class="pure-u-3-24 form-group" *ngIf="(node.box.mouse.features.amount > 1 && node.box.mouse.type== 'click') || node.box.mouse.type== 'scroll'">
+      <label>Delays [ms]</label>
+      <input [(ngModel)]="node.box.mouse.features.delays_ms" type="number" [min]="1">
     </div>
-  <div class="pure-u-6-24 form-group" *ngIf="node.box.mouse.type== 'release'">
-    <label>Pixels[px]</label>
-    <input  [(ngModel)]="node.box.mouse.features.pixels" type="number">
+  <div class="pure-u-3-24 form-group" *ngIf="node.box.mouse.type== 'release' && node.box.mouse.features.direction != 'none'">
+    <label>Pixels [px]</label>
+    <input  [(ngModel)]="node.box.mouse.features.pixels" type="number" [min]="1">
   </div>
   
 

@@ -1,12 +1,14 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { AngularResizedEventModule } from 'angular-resize-event';
 import { ContextMenuModule } from 'ngx-contextmenu';
 import {HotkeyModule} from 'angular2-hotkeys';
+import { CustomFormsModule } from 'ng2-validation'
 
 
 import { AppComponent } from './app.component';
@@ -19,6 +21,7 @@ import { InteractionComponent } from './ax-designer/box-options/interaction/inte
 import { BoxOptionsComponent } from './ax-designer/box-options/box-options.component';
 import { environment } from 'src/environments/environment';
 import { TreeNodeComponent } from './ax-designer/tree/tree-node/tree-node.component';
+import { SelectTypeComponent } from './ax-designer/box-options/select-type/select-type.component';
 
 @NgModule({
   declarations: [
@@ -31,14 +34,18 @@ import { TreeNodeComponent } from './ax-designer/tree/tree-node/tree-node.compon
     InteractionComponent,
     BoxOptionsComponent,
     TreeNodeComponent,
+    SelectTypeComponent,
   ],
   imports: [
     BrowserModule,
+    HttpClientModule,
     FormsModule,
     DragDropModule,
     AngularResizedEventModule,
     ContextMenuModule.forRoot(),
-    HotkeyModule.forRoot()
+    HotkeyModule.forRoot(),
+    CustomFormsModule,
+    ReactiveFormsModule
   ],
   providers: [{provide: 'GlobalRef', useClass: environment.globalType}],
   bootstrap: [AppComponent]

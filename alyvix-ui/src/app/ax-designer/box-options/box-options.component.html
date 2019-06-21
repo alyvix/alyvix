@@ -1,13 +1,4 @@
-<div class="pure-g" *ngIf="node && node.box">
-  <div class="pure-u-1-1">
-    <div class="form-group">
-      <label>Type</label>
-      <input name="boxType" [ngModel]="node.box.type" (change)="changeType($event)" value="I" type="radio" id="Iradio" /> <label for="Iradio">Image</label>
-      <input name="boxType" [ngModel]="node.box.type" (change)="changeType($event)" value="R" type="radio" id="Rradio"/> <label for="Rradio">Rectangle</label>
-      <input *ngIf="!node.box.is_main"  name="boxType" [ngModel]="node.box.type" (change)="changeType($event)" value="T" type="radio" id="Tradio"/> <label  *ngIf="!node.box.is_main"  for="Tradio">Text</label>
-      
-    </div>
-  </div>
+<div class="pure-g box-options" *ngIf="node && node.box">
   <div class="pure-u-1-1" [ngSwitch]="node.box.type">
     <div *ngSwitchCase="'I'">
       <ax-designer-i [node]="node"></ax-designer-i>
@@ -19,7 +10,5 @@
       <ax-designer-t [node]="node"></ax-designer-t>
     </div>
   </div>
-  <div class="pure-u-1-1">
-      <hr>
-  </div>
+
 </div>

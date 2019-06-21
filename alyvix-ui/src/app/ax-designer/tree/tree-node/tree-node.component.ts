@@ -2,6 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter, ViewChild, ElementRef }
 import { DomSanitizer } from '@angular/platform-browser';
 import { AxDesignerService, TreeNode } from '../../ax-designer-service';
 import { environment } from 'src/environments/environment';
+import { AxModel } from 'src/app/ax-model/model';
 
 export interface GroupColors{
   main:string
@@ -12,7 +13,7 @@ export interface GroupColors{
 @Component({
   selector: 'ax-tree-node',
   templateUrl: './tree-node.component.html',
-  styleUrls: ['./tree-node.component.css']
+  styleUrls: ['./tree-node.component.scss']
 })
 export class TreeNodeComponent implements OnInit {
 
@@ -23,9 +24,22 @@ export class TreeNodeComponent implements OnInit {
 
   selectedNode:TreeNode;
 
+
   thumbnailWidth:number = 0;
 
   @ViewChild("canvas") canvas: ElementRef;
+
+  icon(type) {
+    switch(type) {
+      case 'I': return ['far','fa-image'] 
+      case 'R': return ['fas','fa-expand'] 
+      case 'T': return ['fas','fa-font'] 
+    }
+  }
+
+  noInteraction():boolean {
+    return this.axDesignerService.getModel().detection.type != "appear";
+  }
 
   ngOnInit() {
 
@@ -179,7 +193,7 @@ export class TreeNodeComponent implements OnInit {
   private _interactionKeyboardIcon():string {
     if(this.node.box) {
       if(this.node.box.keyboard) {
-        if(this.node.box.keyboard.string.match("\{arg(.*)\}")) {
+        if(this.node.box.keyboard.string.match(/\{(\d+)\}/)) {
           return "Keyboard_32px6"
         }
         if(this.node.box.keyboard.string) {
