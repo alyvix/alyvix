@@ -28,16 +28,16 @@
   </div>
   <div class="pure-u-3-24 form-group" *ngIf="node.box.mouse.type== 'scroll' || node.box.mouse.type== 'click'">
     <label>Units</label>
-    <input [(ngModel)]="node.box.mouse.features.amount" type="number" [min]="1">
+    <input [(ngModel)]="node.box.mouse.features.amount" (change)="amountChange()" type="number" >
   </div>
   <div class="pure-u-1-24" *ngIf="node.box.mouse.features.amount > 1 && node.box.mouse.type== 'click'"></div>
   <div class="pure-u-3-24 form-group" *ngIf="(node.box.mouse.features.amount > 1 && node.box.mouse.type== 'click') || node.box.mouse.type== 'scroll'">
       <label>Delays [ms]</label>
-      <input [(ngModel)]="node.box.mouse.features.delays_ms" type="number" [min]="1">
+      <input [(ngModel)]="node.box.mouse.features.delays_ms" (change)="delayChange()" type="number" >
     </div>
   <div class="pure-u-3-24 form-group" *ngIf="node.box.mouse.type== 'release' && node.box.mouse.features.direction != 'none'">
     <label>Pixels [px]</label>
-    <input  [(ngModel)]="node.box.mouse.features.pixels" type="number" [min]="1">
+    <input  [(ngModel)]="node.box.mouse.features.pixels" (change)="pixelsChange()"  type="number" >
   </div>
   
 

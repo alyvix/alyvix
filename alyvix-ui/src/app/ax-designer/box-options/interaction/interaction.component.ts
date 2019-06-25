@@ -40,7 +40,21 @@ export class InteractionComponent implements OnInit {
     this.axDesignerService.updateAx();
   }
 
+  pixelsChange() {
+    if(this.node.box.mouse.features.pixels < 1)
+      this.node.box.mouse.features.pixels = 1;
+  }
   
+  delayChange() {
+    if(this.node.box.mouse.features.delays_ms < 1)
+      this.node.box.mouse.features.delays_ms = 1;
+  }
+
+  amountChange() {
+    console.log("amount change")
+    if(this.node.box.mouse.features.amount < 1)
+      this.node.box.mouse.features.amount = 1;
+  }
 
   interactionChange() {
 
