@@ -37,7 +37,6 @@ export class TreeNodeComponent implements OnInit,DoCheck {
       var ctx = this.canvas.nativeElement.getContext("2d");
 
 
-      console.log(this.canvas.nativeElement.width)
       ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
 
       var image = new Image();
@@ -96,7 +95,6 @@ export class TreeNodeComponent implements OnInit,DoCheck {
     if(this.node.box)
       this.group = this.node.box.group
 
-    console.log("Init component TreeNode")
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectedNode = n);
     this.drawCanvas();
   }

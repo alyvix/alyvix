@@ -43,10 +43,17 @@ export class AxDesignerComponent implements OnInit {
     this.totalHeight = event.newHeight;
   }
 
+
   treeResize(event:ResizedEvent) {
-    console.log(event)
+    this.scrollToNode()
+  }
+
+  scrollToNode() {
     var i = this.axDesignerService.indexSelectedNode(this.selectedNode);
-    if(i*this.treeElementHeight > (event.newHeight + this.treeContainer.nativeElement.scrollTop)) {
+
+    var visibleUntil = this.treeContainer.nativeElement.offsetHeight  + this.treeContainer.nativeElement.scrollTop
+
+    if(i*this.treeElementHeight > visibleUntil) {
       this.treeContainer.nativeElement.scrollTop = i*this.treeElementHeight + 50;
     }
   }
@@ -68,6 +75,7 @@ export class AxDesignerComponent implements OnInit {
     this.axDesignerService.getDragging().subscribe(d => this.dragging = d);
     this.axModel = this.axDesignerService.getModel();
     this.first.nativeElement.focus();
+    this.scrollToNode();
   }
 
 
