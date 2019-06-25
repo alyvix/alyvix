@@ -103,4 +103,10 @@ export class AxDesignerComponent implements OnInit {
     return false;
   }
 
+  changeTimeout() {
+    if(this.axModel.detection.timeout_s < 1) {
+      this.axModel.detection.timeout_s = 1
+    }
+  }
+
 }

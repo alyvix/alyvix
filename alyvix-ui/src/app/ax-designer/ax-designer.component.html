@@ -16,7 +16,7 @@
         
      
         <span class="inline-label">Timeout [s]</span>
-        <input [(ngModel)]="axModel.detection.timeout_s" type="number" [min]="1" class="small"/>
+        <input [(ngModel)]="axModel.detection.timeout_s" type="number" (change)="changeTimeout()" class="small"/>
       
         <span class="inline-label">Break</span> <input [(ngModel)]="axModel.detection.break" type="checkbox" />
       </div>
