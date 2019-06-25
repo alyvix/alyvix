@@ -1,6 +1,7 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Injectable, Inject  } from '@angular/core';
 import { TreeNode } from '../../ax-designer-service';
 import { I } from 'src/app/ax-model/model';
+import { GlobalRef, GroupsFlag } from "src/app/ax-model/ax-global";
 
 import * as _ from 'lodash';
 
@@ -13,7 +14,7 @@ import * as _ from 'lodash';
 })
 export class IComponent implements OnInit {
 
-  constructor() { }
+  constructor(@Inject('GlobalRef') private global: GlobalRef,) { }
 
   @Input()
   node: TreeNode
@@ -37,7 +38,8 @@ export class IComponent implements OnInit {
     if(!this.mode) {
       this.mode = this.match;
       this.node.box.features.I = this.match;
-    }
+	}
+	this.global.nativeGlobal().setTypeNode("I");
     console.log(this.mode)
   }
 

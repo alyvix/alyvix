@@ -1,6 +1,7 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Injectable, Inject  } from '@angular/core';
 import { TreeNode } from '../../ax-designer-service';
 import { R, WidthOrHeight, BoxListEntity } from 'src/app/ax-model/model';
+import { GlobalRef, GroupsFlag } from "src/app/ax-model/ax-global";
 
 import * as _ from 'lodash';
 
@@ -12,10 +13,11 @@ import * as _ from 'lodash';
 })
 export class RComponent implements OnInit {
 
-  constructor() { }
+  constructor(@Inject('GlobalRef') private global: GlobalRef,) { }
 
   @Input()
   node: TreeNode
+
 
   box:R
   window:R
@@ -37,7 +39,9 @@ export class RComponent implements OnInit {
       var m = this.default(this.node.box)
       this.mode = m;
       this.node.box.features.R = m;
-    }
+	}
+	
+	this.global.nativeGlobal().setTypeNode("R");
   }
 
   updateMode(event:R) {

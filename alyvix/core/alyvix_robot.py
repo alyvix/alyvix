@@ -102,8 +102,7 @@ if filename is not None:
     if filename_path == '':
         filename_path = os.getcwd()
 
-    if verbose == 1:
-        print(filename_no_extension + " starts")
+    print(filename_no_extension + " starts")
 
     username = os.environ['username']
 
@@ -183,11 +182,6 @@ if filename is not None:
     om.save(filename, lm.get_json(), chunk, objects_result)
 
 
-    if state == 0:
-        print (filename_no_extension + " ends ok")
-    else:
-        print (filename_no_extension + " ends TIMEDOUT")
-
     not_executed_ts = time.time()
     for result in objects_result:
         #YYYYMMDD_hhmmss_lll : <object_name> measures <performance_ms> (+/-<accuracy>)
@@ -199,8 +193,7 @@ if filename is not None:
             except:
                 millis_from_ts = "000"
 
-            date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts)\
-                             + "_UTC" + time.strftime("%z")
+            date_formatted = date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts)
         else:
             date_formatted = "not executed"
 
@@ -211,8 +204,13 @@ if filename is not None:
             accuracy = round(result.accuracy_ms/1000, 3)
 
             print(date_formatted + ": " + result.object_name + " measures " + str(performance) + "s " +
-                  "(+/-" + str(accuracy) + ") OK")
+                  "(+/-" + '{:.3f}'.format(accuracy) + ") OK")
         else:
             print(date_formatted + ": " + result.object_name + " timed out after " + str(result.timeout) + "s")
+
+    if state == 0:
+        print (filename_no_extension + " ends ok")
+    else:
+        print (filename_no_extension + " TIMEDOUT")
 
     aaa = None

@@ -1183,5 +1183,5 @@ class EngineManager(object):
                 self.total_threads += 1
                 self.lock.release()
 
-            time.sleep(0.01) #delay 100 ms
+            time.sleep(0.01) #delay 10 ms
 

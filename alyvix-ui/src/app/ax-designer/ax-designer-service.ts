@@ -43,6 +43,7 @@ export class AxDesignerService {
         var selectedNode:TreeNode = null;
         
         if(iSelectedNode >= 0) {
+			this.global.nativeGlobal().setSelectedNode(iSelectedNode); 
             var node = this.axModel.box_list[iSelectedNode];
             if(node && node.is_main) {
                 selectedNode = this._root.value.children.find(x => x.box == node)
