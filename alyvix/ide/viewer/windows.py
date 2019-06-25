@@ -40,7 +40,7 @@ from multiprocessing import Process
 
 
 # Globals
-# cef.DpiAware.EnableHighDpiSupport()
+#cef.DpiAware.EnableHighDpiSupport()
 WindowUtils = cef.WindowUtils()
 g_multi_threaded = False
 

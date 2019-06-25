@@ -22,7 +22,9 @@ export interface AxGlobal{
     setGroupFlags(flags:GroupsFlag)
 
     getSelectedNode():number
-    setSelectedNode(i:number)
+	setSelectedNode(i:number)
+	
+	setTypeNode(s:string)
 }
 
 export class MockGlobal implements AxGlobal{
@@ -54,7 +56,11 @@ export class MockGlobal implements AxGlobal{
 
     setSelectedNode(i:number) {
 
-    }
+	}
+	
+	setTypeNode(s:string){
+
+	}
 
 
 

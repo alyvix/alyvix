@@ -135,6 +135,12 @@
         function setSelectedNode(i) {
             console.log("set selected box: " + i)
             selected_box = i;
+            draw(rectManager.last_mouse_event);
+        }
+        
+        function setTypeNode() {
+
+            draw(rectManager.last_mouse_event);
         }
 
         
@@ -264,7 +270,7 @@
             dhxWins.window(id).button("park").attachEvent('onClick', win_park);
             //dhxWins.window(id).button("minmax").attachEvent('onClick', win_min_max);
             
-			dhxWins.window(id).setText("ALYVIX DESIGNER");
+			dhxWins.window(id).setText("Alyvix Designer");
             dhxWins.window(id).attachHTMLString('<div style=" position: relative; width:100%; height: 100%; overflow: hidden"><app-root></app-root></div>');
             
             window.loadAlyvixDesigner();
@@ -806,7 +812,7 @@
                         else ctx.fillStyle = '#0072ff'; //'#50a5d6';
                     }
                     
-                    rectManager.draw_rect(ctx, box);
+                    rectManager.draw_rect(ctx, box, i);
                     
                     
                     ctx.fillStyle = '#AC60F6';

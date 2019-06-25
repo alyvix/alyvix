@@ -44,8 +44,10 @@ def print_error_help(string):
 index_filename_arg = -1
 index_object_name_arg = -1
 index_arguments_arg = -1
+index_verbose_arg = -1
 
 engine_arguments = []
+verbose = 0
 
 for i in range(0, len(sys.argv)):
     if sys.argv[i] == "-f" or sys.argv[i] == "--filename":
@@ -56,6 +58,8 @@ for i in range(0, len(sys.argv)):
         index_object_name_arg = i
     elif sys.argv[i] == "-a" or sys.argv == "--args":
         index_arguments_arg = i
+    elif sys.argv[i] == "-v" or sys.argv == "--verbose":
+        index_verbose_arg = i
     elif sys.argv[i] == "-h" or sys.argv == "--help":
         print_help()
 
@@ -76,9 +80,18 @@ if index_arguments_arg != -1:
                 break
             engine_arguments.append(sys.argv[i])
 
+if index_verbose_arg != -1:
+    try:
+        verbose = int(sys.argv[index_verbose_arg + 1])
+    except:
+        pass
 
 if filename is not None:
     lm = LibraryManager()
+
+    if os.path.isfile(filename) is False:
+        print(filename + " does NOT exist")
+        sys.exit(2)
 
     lm.load_file(filename)
 
@@ -89,6 +102,8 @@ if filename is not None:
     if filename_path == '':
         filename_path = os.getcwd()
 
+    print(filename_no_extension + " starts")
+
     username = os.environ['username']
 
     hostname = gethostname()
@@ -96,32 +111,6 @@ if filename is not None:
     objects_result = []
 
     code = ""
-
-    """
-    try:
-        code += hostname[0]
-        code += hostname[1]
-        code += hostname[-2]
-        code += hostname[-1]
-    except:
-        pass
-
-    try:
-        code += username[0]
-        code += username[1]
-        code += username[-2]
-        code += username[-1]
-    except:
-        pass
-
-    try:
-        code += filename_no_extension[0]
-        code += filename_no_extension[1]
-        code += filename_no_extension[-2]
-        code += filename_no_extension[-1]
-    except:
-        pass
-    """
 
     timestamp = time.time()
 
@@ -142,15 +131,24 @@ if filename is not None:
 
     for object_name in objects_names:
 
+        if lm.check_if_exist(object_name) is False:
+            print(object_name + " does NOT exist")
+            sys.exit(2)
+
         object_json = lm.add_chunk(object_name, chunk)
 
-        engine_manager = EngineManager(object_json, args=engine_arguments)
+        engine_manager = EngineManager(object_json, args=engine_arguments, verbose=verbose)
         result = engine_manager.execute()
 
         objects_result.append(result)
 
         if result.performance_ms == -1 and result.has_to_break is True:
+            if verbose == 1:
+                print("Alyvix breaks " + result.object_name + " after " + str(result.timeout) + "s")
             break
+        elif result.performance_ms == -1 and result.has_to_break is False:
+            if verbose == 1:
+                print("Alyvix skips " + result.object_name + " after " + str(result.timeout) + "s")
 
 
     if len(objects_result) < len(objects_names):
@@ -184,11 +182,6 @@ if filename is not None:
     om.save(filename, lm.get_json(), chunk, objects_result)
 
 
-    if state == 0:
-        print ("All transactions are ok.")
-    else:
-        print("One or more transactions are in critical state.")
-
     not_executed_ts = time.time()
     for result in objects_result:
         #YYYYMMDD_hhmmss_lll : <object_name> measures <performance_ms> (+/-<accuracy>)
@@ -200,8 +193,7 @@ if filename is not None:
             except:
                 millis_from_ts = "000"
 
-            date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts)\
-                             + "_UTC" + time.strftime("%z")
+            date_formatted = date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts)
         else:
             date_formatted = "not executed"
 
@@ -212,8 +204,13 @@ if filename is not None:
             accuracy = round(result.accuracy_ms/1000, 3)
 
             print(date_formatted + ": " + result.object_name + " measures " + str(performance) + "s " +
-                  "(+/-" + str(accuracy) + ")")
+                  "(+/-" + '{:.3f}'.format(accuracy) + ") OK")
         else:
-            print(date_formatted + ": " + result.object_name + " measures null")
+            print(date_formatted + ": " + result.object_name + " timed out after " + str(result.timeout) + "s")
+
+    if state == 0:
+        print (filename_no_extension + " ends ok")
+    else:
+        print (filename_no_extension + " TIMEDOUT")
 
     aaa = None

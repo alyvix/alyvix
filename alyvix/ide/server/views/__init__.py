@@ -35,7 +35,8 @@ from hashlib import sha1
 from flask import Flask, request, redirect, make_response, render_template, current_app, Markup, g, send_file
 from alyvix.ide.server import app
 from alyvix.ide.server.lang import en
-from alyvix.ide.server.utilities.alyvixfile import AlyvixFileManager
+#from alyvix.ide.server.utilities.alyvixfile import AlyvixFileManager
+from alyvix.tools.library import LibraryManager
 import logging
 import urllib
 import time
@@ -81,14 +82,15 @@ def drawing():
 
 @app.route("/load_objects", methods=['GET'])
 def load_objects():
-    afm = AlyvixFileManager()
+    lm = LibraryManager()
 
-    afm.load_file(current_filename)
+    lm.load_file(current_filename)
 
-    alyvix_file_dict = afm.build_objects(current_objectname)
+    alyvix_file_dict = lm.build_objects_for_ide(current_objectname)
 
-    try:
-        np_array = np.fromstring(base64.b64decode(alyvix_file_dict["screen"]), np.uint8)
+    if bool(alyvix_file_dict):
+
+        np_array = np.frombuffer(base64.b64decode(alyvix_file_dict["screen"]), np.uint8)
 
         background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
@@ -135,7 +137,8 @@ def load_objects():
         return_dict = {"file_dict":alyvix_file_dict, "autocontoured_rects": autocontoured_rects}
 
         return jsonify(return_dict)
-    except:
+
+    else:
         return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
 
 @app.route("/cancel_event", methods=['GET'])
@@ -302,7 +305,7 @@ def save_json():
                              "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
-                    interaction_dict["mouse"]["features"]["button"] = box["mouse"]["features"]["button"]
+                    interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
 
                 elif box["mouse"]["type"] == "release":
                     interaction_dict["mouse"]["type"] = "release"
@@ -312,7 +315,7 @@ def save_json():
                              "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
-                    interaction_dict["mouse"]["features"]["button"] = box["mouse"]["features"]["button"]
+                    interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
                     interaction_dict["mouse"]["features"]["direction"] = box["mouse"]["features"]["direction"]
                     interaction_dict["mouse"]["features"]["pixels"] = box["mouse"]["features"]["pixels"]
 
@@ -433,7 +436,7 @@ def save_json():
                              "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
-                    interaction_dict["mouse"]["features"]["button"] = box["mouse"]["features"]["button"]
+                    interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
 
                 elif box["mouse"]["type"] == "release":
                     interaction_dict["mouse"]["type"] = "release"
@@ -443,7 +446,7 @@ def save_json():
                              "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
-                    interaction_dict["mouse"]["features"]["button"] = box["mouse"]["features"]["button"]
+                    interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
                     interaction_dict["mouse"]["features"]["direction"] = box["mouse"]["features"]["direction"]
                     interaction_dict["mouse"]["features"]["pixels"] = box["mouse"]["features"]["pixels"]
 
@@ -565,7 +568,7 @@ def create_thumbnail():
         background_string = json_data["background"]
         background_string = background_string[22:]
 
-        np_array = np.fromstring(base64.b64decode(background_string), np.uint8)
+        np_array = np.frombuffer(base64.b64decode(background_string), np.uint8)
 
         background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
