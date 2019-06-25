@@ -20,6 +20,8 @@ export class AxDesignerComponent implements OnInit {
   @ViewChild('pullDown') pullDown: ElementRef;
   @ViewChild('treeContainer') treeContainer: ElementRef;
 
+  @ViewChild("first") first: ElementRef;
+
   bottomWithoutOptions = 72;
   totalHeight = 590;
   treeElementHeight = 43;
@@ -65,6 +67,7 @@ export class AxDesignerComponent implements OnInit {
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectNode(n));
     this.axDesignerService.getDragging().subscribe(d => this.dragging = d);
     this.axModel = this.axDesignerService.getModel();
+    this.first.nativeElement.focus();
   }
 
 

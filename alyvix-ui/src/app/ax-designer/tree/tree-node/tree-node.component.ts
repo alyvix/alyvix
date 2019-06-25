@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, ViewChild, ElementRef, DoCheck } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AxDesignerService, TreeNode } from '../../ax-designer-service';
 import { environment } from 'src/environments/environment';
@@ -15,7 +15,57 @@ export interface GroupColors{
   templateUrl: './tree-node.component.html',
   styleUrls: ['./tree-node.component.scss']
 })
-export class TreeNodeComponent implements OnInit {
+export class TreeNodeComponent implements OnInit,DoCheck {
+  
+  group = 0
+  
+  ngDoCheck(): void {
+    if(this.node.box && this.group != this.node.box.group) {
+      this.groupChanged()
+    }
+  }
+
+  groupChanged() {
+    if(this.node.box)
+      this.group = this.node.box.group
+    this.drawCanvas()
+  }
+
+  drawCanvas() {
+    if(this.node.box) {
+      this.thumbnailWidth = this.node.box.thumbnail.image_w;
+      var ctx = this.canvas.nativeElement.getContext("2d");
+
+
+      console.log(this.canvas.nativeElement.width)
+      ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
+
+      var image = new Image();
+      var self = this;
+      image.onload = function() {
+
+        //TODO use https://github.com/waveinch/alyvix/blob/bd2f1527aadc9a6892afd00be54546d6a5536ff4/alyvix/ide/server/templates/drawing.html#L1788
+        var dpi = window.devicePixelRatio || 1;
+        ctx.drawImage(image, 0, 0);
+        var t = self.node.box.thumbnail;
+        // ctx.rect(t.x, t.y, t.w, t.h);
+        // ctx.strokeStyle = self.groupColor(self.node.box.group);
+        // ctx.translate(0.5,0.5);
+        // ctx.lineWidth = 1;
+        // ctx.stroke();
+
+
+        ctx.scale(dpi, dpi);
+        ctx.translate(0.5, 0.5);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = self.groupColor(self.node.box.group).thumbnail;
+        ctx.strokeRect(t.x, t.y, t.w, t.h);
+
+        
+      };
+      image.src = this.node.image;
+    }
+  }
 
   constructor(private _sanitizer: DomSanitizer, private axDesignerService:AxDesignerService) { }
 
@@ -43,36 +93,12 @@ export class TreeNodeComponent implements OnInit {
 
   ngOnInit() {
 
+    if(this.node.box)
+      this.group = this.node.box.group
+
     console.log("Init component TreeNode")
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectedNode = n);
-    if(this.node.box) {
-      this.thumbnailWidth = this.node.box.thumbnail.image_w;
-      var ctx = this.canvas.nativeElement.getContext("2d");
-      var image = new Image();
-      var self = this;
-      image.onload = function() {
-
-        //TODO use https://github.com/waveinch/alyvix/blob/bd2f1527aadc9a6892afd00be54546d6a5536ff4/alyvix/ide/server/templates/drawing.html#L1788
-        var dpi = window.devicePixelRatio || 1;
-        ctx.drawImage(image, 0, 0);
-        var t = self.node.box.thumbnail;
-        ctx.rect(t.x, t.y, t.w, t.h);
-        ctx.strokeStyle = self.groupColor(self.node.box.group);
-        ctx.translate(0.5,0.5);
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-
-        ctx.scale(dpi, dpi);
-        ctx.translate(0.5, 0.5);
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = self.groupColor(self.node.box.group).thumbnail;
-        ctx.strokeRect(t.x, t.y, t.w, t.h);
-
-        
-      };
-      image.src = this.node.image;
-    }
+    this.drawCanvas();
   }
 
   imageFor() {
