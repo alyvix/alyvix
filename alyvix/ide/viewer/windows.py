@@ -103,8 +103,8 @@ class ViewerManager(ViewerManagerBase):
             width = dimension[0]
             height = dimension[1]
         else:
-            width = 450,
-            height = 600,
+            width = 450
+            height = 600
 
         if title is not None:
             win_title = title
