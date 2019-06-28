@@ -46,7 +46,8 @@ export class RComponent implements OnInit {
 
   updateMode(event:R) {
     this.mode = event;
-    this.node.box.features.R = event;
+	this.node.box.features.R = event;
+	this.global.nativeGlobal().setTypeNode("R");
   }
 
   default(rect:BoxListEntity):R {

@@ -14,53 +14,53 @@ import { GlobalRef, GroupsFlag } from "src/app/ax-model/ax-global";
 })
 export class TComponent implements OnInit {
 
-  constructor(private alyvixApi:AlyvixApiService, @Inject('GlobalRef') private global: GlobalRef,) { }
+  constructor(private alyvixApi: AlyvixApiService, @Inject('GlobalRef') private global: GlobalRef, ) { }
 
   @Input()
   node: TreeNode
 
 
-	regexpValidation = Validation.debouncedAsyncValidator<string>( v => {
-    return this.alyvixApi.testScrapedText({regexp: v, scraped_text:this.scraped}).pipe(map(res => {
-        return res ? null : { regexp: { invalidRegexp: v }}
-      }))
-    })
+  regexpValidation = Validation.debouncedAsyncValidator<string>(v => {
+    return this.alyvixApi.testScrapedText({ regexp: v, scraped_text: this.scraped }).pipe(map(res => {
+      return res ? null : { regexp: { invalidRegexp: v } }
+    }))
+  })
 
-  regex:FormControl = new FormControl('', null,this.regexpValidation);
+  regex: FormControl = new FormControl('', null, this.regexpValidation);
 
 
 
-  isScraper():boolean {
+  isScraper(): boolean {
     return this.node.box.features.T.type == 'scraper'
   }
 
-  scraped:string = ""
+  scraped: string = ""
 
   ngOnInit() {
 
-    if(!this.node.box.features.T.type) {
+    if (!this.node.box.features.T.type) {
       this.node.box.features.T.type = "detection";
     }
-    if(this.node && this.node.box) {
+    if (this.node && this.node.box) {
       this.alyvixApi.getScrapedText(this.node.box).subscribe(x => {
         this.scraped = x.scraped_text;
-        if(!this.node.box.features.T.regexp) {
-		  this.node.box.features.T.regexp = x.scraped_text
+        if (!this.node.box.features.T.regexp) {
+          this.node.box.features.T.regexp = x.scraped_text
 
-		  
-		}
-		
-		this.regexpValidation = Validation.debouncedAsyncValidator<string>( v => {
-		return this.alyvixApi.testScrapedText({regexp: v, scraped_text:this.scraped}).pipe(map(res => {
-			return res ? null : { regexp: { invalidRegexp: v }}
-		}))
-		})
 
-		this.regex = new FormControl(this.node.box.features.T.regexp, null,this.regexpValidation);
+        }
+
+        this.regexpValidation = Validation.debouncedAsyncValidator<string>(v => {
+          return this.alyvixApi.testScrapedText({ regexp: v, scraped_text: this.scraped }).pipe(map(res => {
+            return res ? null : { regexp: { invalidRegexp: v } }
+          }))
+        })
+
+        this.regex = new FormControl(this.node.box.features.T.regexp, null, this.regexpValidation);
       })
-	}
-	
-	this.global.nativeGlobal().setTypeNode("T");
+    }
+
+    this.global.nativeGlobal().setTypeNode("T");
   }
 
 }

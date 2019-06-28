@@ -7,6 +7,7 @@ import {  moveItemInArray } from '@angular/cdk/drag-drop';
 
 
 import * as _ from 'lodash';
+import * as fastDeepEqual from 'fast-deep-equal';
 import { HotkeysService, Hotkey } from "angular2-hotkeys";
 
 
@@ -87,7 +88,13 @@ export class AxDesignerService {
  
     public indexSelectedNode(node:TreeNode):number {
         if(node.box) {
-            this.flatBoxes().indexOf(node);
+            var result = 0;
+            this.flatBoxes().forEach((n,i) => {
+                if(n.box && fastDeepEqual(n.box,node.box)) {
+                    result = i
+                }
+            });
+            return result;
         } else return 0
     }
 

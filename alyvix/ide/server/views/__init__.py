@@ -80,6 +80,12 @@ def drawing():
                            object_name=current_objectname,
                            loaded_boxes=current_boxes)
 
+@app.route("/selector", methods=['GET', 'POST'])
+def selector():
+    text = en.drawing
+
+    return render_template('selector.html')
+
 @app.route("/load_objects", methods=['GET'])
 def load_objects():
     lm = LibraryManager()
@@ -229,14 +235,15 @@ def save_json():
                 main["visuals"] = {}
 
                 main["visuals"]["roi"] = \
-                    {"screen_x": box["roi_x"], "screen_y": box["roi_y"],
-                     "width": box["roi_w"], "height": box["roi_h"],
+                    {"screen_x": int(box["roi_x"]*scaling_factor), "screen_y": int(box["roi_y"]*scaling_factor),
+                     "width": int(box["roi_w"]*scaling_factor), "height": int(box["roi_h"]*scaling_factor),
                      "unlimited_left": box["roi_unlimited_left"], "unlimited_up": box["roi_unlimited_up"],
                      "unlimited_right": box["roi_unlimited_right"], "unlimited_down": box["roi_unlimited_down"]}
 
                 main["visuals"]["selection"] = \
-                    {"roi_dx":  box["x"] - box["roi_x"], "roi_dy": box["y"] - box["roi_y"],
-                     "width": box["w"], "height": box["h"]}
+                    {"roi_dx":  int((box["x"] - box["roi_x"])*scaling_factor),
+                     "roi_dy": int((box["y"] - box["roi_y"])*scaling_factor),
+                     "width": int(box["w"]*scaling_factor), "height": int(box["h"]*scaling_factor)}
 
 
                 #main["visuals"]["detection"] = {}
@@ -266,8 +273,8 @@ def save_json():
 
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
 
@@ -276,8 +283,8 @@ def save_json():
 
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
 
@@ -289,8 +296,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "scroll"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["amount"] = box["mouse"]["features"]["amount"]
@@ -301,8 +308,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "hold"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
@@ -311,8 +318,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "release"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
@@ -343,34 +350,35 @@ def save_json():
                 main_dy = 0
 
                 if box["group"] == 0:
-                    main_dx = box["roi_x"] - (main_0["visuals"]["roi"]["screen_x"] +
-                               main_0["visuals"]["selection"]["roi_dx"])
+                    main_dx = int(box["roi_x"]*scaling_factor) - (main_0["visuals"]["roi"]["screen_x"] +
+                                              main_0["visuals"]["selection"]["roi_dx"])
                 elif box["group"] == 1:
-                    main_dx = box["roi_x"] - (main_1["visuals"]["roi"]["screen_x"] +
-                               main_1["visuals"]["selection"]["roi_dx"])
+                    main_dx = int(box["roi_x"]*scaling_factor) - (main_1["visuals"]["roi"]["screen_x"] +
+                                              main_1["visuals"]["selection"]["roi_dx"])
                 elif box["group"] == 2:
-                    main_dx = box["roi_x"] - (main_2["visuals"]["roi"]["screen_x"] +
-                               main_2["visuals"]["selection"]["roi_dx"])
+                    main_dx = int(box["roi_x"]*scaling_factor) - (main_2["visuals"]["roi"]["screen_x"] +
+                                              main_2["visuals"]["selection"]["roi_dx"])
 
                 if box["group"] == 0:
-                    main_dy = box["roi_y"] - (main_0["visuals"]["roi"]["screen_y"] +
+                    main_dy = int(box["roi_y"]*scaling_factor) - (main_0["visuals"]["roi"]["screen_y"] +
                                               main_0["visuals"]["selection"]["roi_dy"])
                 elif box["group"] == 1:
-                    main_dy = box["roi_y"] - (main_1["visuals"]["roi"]["screen_y"] +
+                    main_dy = int(box["roi_y"]*scaling_factor) - (main_1["visuals"]["roi"]["screen_y"] +
                                               main_1["visuals"]["selection"]["roi_dy"])
                 elif box["group"] == 2:
-                    main_dy = box["roi_y"] - (main_2["visuals"]["roi"]["screen_y"] +
+                    main_dy = int(box["roi_y"]*scaling_factor) - (main_2["visuals"]["roi"]["screen_y"] +
                                               main_2["visuals"]["selection"]["roi_dy"])
 
                 sub["visuals"]["roi"] = \
                     {"main_dx": main_dx, "main_dy": main_dy,
-                     "width": box["roi_w"], "height": box["roi_h"],
+                     "width": int(box["roi_w"]*scaling_factor), "height": int(box["roi_h"]*scaling_factor),
                      "unlimited_left": box["roi_unlimited_left"], "unlimited_up": box["roi_unlimited_up"],
                      "unlimited_right": box["roi_unlimited_right"], "unlimited_down": box["roi_unlimited_down"]}
 
                 sub["visuals"]["selection"] = \
-                    {"roi_dx": box["x"] - box["roi_x"], "roi_dy": box["y"] - box["roi_y"],
-                     "width": box["w"], "height": box["h"]}
+                    {"roi_dx": int((box["x"] - box["roi_x"])*scaling_factor),
+                     "roi_dy": int(box["y"]*scaling_factor) - int(box["roi_y"]*scaling_factor),
+                     "width": int(box["w"]*scaling_factor), "height": int(box["h"]*scaling_factor)}
 
                 # sub["visuals"]["detection"] = {}
                 detection_dict = {}
@@ -399,8 +407,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "move"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
 
@@ -408,8 +416,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "click"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["button"] = box["mouse"]["features"]["button"]
@@ -420,8 +428,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "scroll"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["amount"] = box["mouse"]["features"]["amount"]
@@ -432,8 +440,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "hold"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
@@ -442,8 +450,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "release"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
@@ -558,6 +566,9 @@ def test_txt_regexp():
 def create_thumbnail():
     if request.method == 'POST':
 
+        #thumbnail_fixed_height = int(30 * scaling_factor)
+        #border = int(4*scaling_factor)
+
         thumbnail_fixed_height = 30
         border = 4
 
@@ -570,7 +581,14 @@ def create_thumbnail():
 
         np_array = np.frombuffer(base64.b64decode(background_string), np.uint8)
 
-        background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+        ori_background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+        new_width = int(ori_background_image.shape[1] /scaling_factor)
+        new_height = int(ori_background_image.shape[0]/ scaling_factor)
+        dim = (new_width, new_height)
+
+        # resize image
+        background_image = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
 
         background_h = background_image.shape[0]
         background_w = background_image.shape[1]
@@ -711,9 +729,15 @@ def create_thumbnail():
                 thumbnail_y = 0
                 new_y = offset
 
-            thumbnail = background_image[thumbnail_y:thumbnail_y + thumbnail_h, thumbnail_x:thumbnail_x + thumbnail_w]
+            thumbnail_x = int(thumbnail_x * scaling_factor)
+            thumbnail_y = int(thumbnail_y * scaling_factor)
+            thumbnail_w = int(thumbnail_w * scaling_factor)
+            thumbnail_h = int(thumbnail_h * scaling_factor)
 
-            dim = (thumbnail_fixed_width, thumbnail_fixed_height)
+            thumbnail = ori_background_image[thumbnail_y:thumbnail_y + thumbnail_h,thumbnail_x:thumbnail_x + thumbnail_w]
+
+            #dim = (int(thumbnail_fixed_width/scaling_factor), int(thumbnail_fixed_height/scaling_factor))
+            dim = (int(thumbnail_fixed_width*scaling_factor), int(thumbnail_fixed_height*scaling_factor))
 
             # resize image
             if do_resize:
@@ -735,7 +759,8 @@ def create_thumbnail():
 
             base64png = base64.b64encode(png_image[1]).decode('ascii')
 
-            thumbnail_dict = {'image':base64png, 'image_w':thumbnail_fixed_width, 'image_h': thumbnail_fixed_height, 'x': x, 'y': y,
+            thumbnail_dict = {'image':base64png, 'image_w':int(thumbnail_fixed_width*scaling_factor),
+                              'image_h': int(thumbnail_fixed_height*scaling_factor), 'x': x, 'y': y,
                               'w': w, 'h': h, 'group': element["group"],
                               'is_main': element["is_main"]}
 
@@ -746,10 +771,11 @@ def create_thumbnail():
 
         #result_list = sorted(result_list, key=itemgetter('group'))
 
-        resized = cv2.resize(background_image, dim, interpolation=cv2.INTER_CUBIC)
+        resized = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
         png_image = cv2.imencode('.png', resized)
         base64png = base64.b64encode(png_image[1]).decode('ascii')
-        thumbnail_dict_screen = {'image': base64png, 'image_w': thumbnail_fixed_width, 'image_h': thumbnail_fixed_height}
+        thumbnail_dict_screen = {'image': base64png, 'image_w': int(thumbnail_fixed_width*scaling_factor),
+                                 'image_h': int(thumbnail_fixed_height*scaling_factor)}
 
         thumbnails_dict = {'thumbnails': result_list, 'screen':  thumbnail_dict_screen}
 

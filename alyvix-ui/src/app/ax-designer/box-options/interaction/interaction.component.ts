@@ -40,7 +40,21 @@ export class InteractionComponent implements OnInit {
     this.axDesignerService.updateAx();
   }
 
+  pixelsChange() {
+    if(this.node.box.mouse.features.pixels < 1)
+      this.node.box.mouse.features.pixels = 1;
+  }
   
+  delayChange() {
+    if(this.node.box.mouse.features.delays_ms < 1)
+      this.node.box.mouse.features.delays_ms = 1;
+  }
+
+  amountChange() {
+    console.log("amount change")
+    if(this.node.box.mouse.features.amount < 1)
+      this.node.box.mouse.features.amount = 1;
+  }
 
   interactionChange() {
 
@@ -66,7 +80,7 @@ export class InteractionComponent implements OnInit {
       }
       case 'release': {
         //Pivotal #166603801 - Discussion with AP always to default
-        this.node.box.mouse.features.direction = "down"
+        this.node.box.mouse.features.direction = "none"
         if(!this.node.box.mouse.features.pixels) {
           this.node.box.mouse.features.pixels = 100
         }

@@ -74,7 +74,7 @@ class ViewerManager(ViewerManagerBase):
     def close(self):
         win32gui.PostMessage(self.window_handle, win32con.WM_CLOSE, 0, 0)
 
-    def run(self, url, fullscreen=False):
+    def run(self, url, fullscreen=False, dimension=None, title=None):
         global WindowUtils
         global g_multi_threaded
 
@@ -98,10 +98,23 @@ class ViewerManager(ViewerManagerBase):
             win32con.WM_SETFOCUS: WindowUtils.OnSetFocus,
             win32con.WM_ERASEBKGND: WindowUtils.OnEraseBackground
         }
-        window_handle = self.create_window(title="Alyvix Editor",
+
+        if dimension is not None:
+            width = dimension[0]
+            height = dimension[1]
+        else:
+            width = 450,
+            height = 600,
+
+        if title is not None:
+            win_title = title
+        else:
+            win_title = "Alyvix Editor"
+
+        window_handle = self.create_window(title=win_title,
                                       class_name="pywin32.example",
-                                      width=450,
-                                      height=600,
+                                      width=width,
+                                      height=height,
                                       window_proc=window_proc,
                                       icon="resources/chromium.ico",
                                       fullscreen=fullscreen)

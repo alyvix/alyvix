@@ -21,10 +21,10 @@ export class KeyShortcutsService {
       return false; // Prevent bubbling
     }, undefined, 'Save and close'));
 
-    this._hotkeysService.add(new Hotkey('esc', (event: KeyboardEvent): boolean => { //#166602167
+    /*this._hotkeysService.add(new Hotkey('esc', (event: KeyboardEvent): boolean => { //#166602167
       this.axDesignerService.cancel()
       return false; // Prevent bubbling
-    }, undefined, 'Cancel'));
+    }, undefined, 'Cancel'));*/
 
     this._hotkeysService.add(new Hotkey('ctrl+x', (event: KeyboardEvent): boolean => {
       if (!this.node) return false;

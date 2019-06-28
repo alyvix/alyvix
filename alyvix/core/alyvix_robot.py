@@ -89,18 +89,37 @@ if index_verbose_arg != -1:
 if filename is not None:
     lm = LibraryManager()
 
+    filename = lm.get_correct_filename(filename)
+
+    invalid_chars = lm.get_invalid_filename_chars()
+
+    filename_invalid_chars = []
+
+    filename_path = os.path.dirname(filename)
+    filename_no_path = os.path.basename(filename)
+    filename_no_extension = os.path.splitext(filename_no_path)[0]
+    file_extension = os.path.splitext(filename_no_path)[1]
+
+    for char in filename_no_extension:
+        for invalid_char in invalid_chars:
+            if char == str(invalid_char):
+                filename_invalid_chars.append(char)
+
+    if len(filename_invalid_chars) > 0:
+        invalid_char_str = filename_invalid_chars[0]
+        for char in filename_invalid_chars[1:]:
+            invalid_char_str = invalid_char_str + " " + char
+        print("Invalid file name (" + filename_no_extension + "), the following characters are not valid: " +
+              invalid_char_str)
+        sys.exit(2)
+
+
     if os.path.isfile(filename) is False:
         print(filename + " does NOT exist")
         sys.exit(2)
 
     lm.load_file(filename)
 
-    filename_path = os.path.dirname(filename)
-    filename_no_extension = os.path.basename(filename)
-    filename_no_extension = os.path.splitext(filename_no_extension)[0]
-
-    if filename_path == '':
-        filename_path = os.getcwd()
 
     print(filename_no_extension + " starts")
 
@@ -143,11 +162,11 @@ if filename is not None:
         objects_result.append(result)
 
         if result.performance_ms == -1 and result.has_to_break is True:
-            if verbose == 1:
+            if verbose >= 1:
                 print("Alyvix breaks " + result.object_name + " after " + str(result.timeout) + "s")
             break
         elif result.performance_ms == -1 and result.has_to_break is False:
-            if verbose == 1:
+            if verbose >= 1:
                 print("Alyvix skips " + result.object_name + " after " + str(result.timeout) + "s")
 
 
@@ -173,7 +192,8 @@ if filename is not None:
     om = OutputManager()
     #json_output = om.build_json(chunk, objects_result)
 
-    om.save_screenshots(filename_path, objects_result, prefix=filename_no_extension)
+    if verbose >= 2:
+        om.save_screenshots(filename_path, objects_result, prefix=filename_no_extension)
 
     date_from_ts = datetime.fromtimestamp(timestamp)
     date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_UTC" + time.strftime("%z")

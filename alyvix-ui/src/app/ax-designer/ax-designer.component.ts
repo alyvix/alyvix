@@ -20,6 +20,8 @@ export class AxDesignerComponent implements OnInit {
   @ViewChild('pullDown') pullDown: ElementRef;
   @ViewChild('treeContainer') treeContainer: ElementRef;
 
+  @ViewChild("first") first: ElementRef;
+
   bottomWithoutOptions = 72;
   totalHeight = 590;
   treeElementHeight = 43;
@@ -41,10 +43,17 @@ export class AxDesignerComponent implements OnInit {
     this.totalHeight = event.newHeight;
   }
 
+
   treeResize(event:ResizedEvent) {
-    console.log(event)
+    this.scrollToNode()
+  }
+
+  scrollToNode() {
     var i = this.axDesignerService.indexSelectedNode(this.selectedNode);
-    if(i*this.treeElementHeight > (event.newHeight + this.treeContainer.nativeElement.scrollTop)) {
+
+    var visibleUntil = this.treeContainer.nativeElement.offsetHeight  + this.treeContainer.nativeElement.scrollTop
+
+    if(i*this.treeElementHeight > visibleUntil) {
       this.treeContainer.nativeElement.scrollTop = i*this.treeElementHeight + 50;
     }
   }
@@ -65,6 +74,8 @@ export class AxDesignerComponent implements OnInit {
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectNode(n));
     this.axDesignerService.getDragging().subscribe(d => this.dragging = d);
     this.axModel = this.axDesignerService.getModel();
+    this.first.nativeElement.focus();
+    this.scrollToNode();
   }
 
 
@@ -101,6 +112,12 @@ export class AxDesignerComponent implements OnInit {
 
   onContextMenu() { //#166602599
     return false;
+  }
+
+  changeTimeout() {
+    if(this.axModel.detection.timeout_s < 1) {
+      this.axModel.detection.timeout_s = 1
+    }
   }
 
 }

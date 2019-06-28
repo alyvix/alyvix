@@ -3,7 +3,7 @@
     <div class="pure-u-1-1">
       <div class="form-group">
         <label>Object name</label>
-        <input type="text" [(ngModel)]="axModel.object_name" />
+        <input type="text" [(ngModel)]="axModel.object_name" #first />
       </div>
     </div>
     <div class="pure-u-1-1">
@@ -16,7 +16,7 @@
         
      
         <span class="inline-label">Timeout [s]</span>
-        <input [(ngModel)]="axModel.detection.timeout_s" type="number" [min]="1" class="small"/>
+        <input [(ngModel)]="axModel.detection.timeout_s" type="number" (change)="changeTimeout()" class="small"/>
       
         <span class="inline-label">Break</span> <input [(ngModel)]="axModel.detection.break" type="checkbox" />
       </div>
