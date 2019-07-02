@@ -168,6 +168,7 @@ if __name__ == '__main__':
 
     sock.close()
 
+    viewer_manager = ViewerManager()
 
     http_process = Process(target=run_server, args=(server_port, background_image, scaling_factor, object,
                                                     filename, args.verbose))
@@ -187,7 +188,6 @@ if __name__ == '__main__':
 
     url = "http://127.0.0.1:" + str(server_port) + "/drawing"
 
-    viewer_manager = ViewerManager()
 
     if args.window is True:
         # open 2 fds

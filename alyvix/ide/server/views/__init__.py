@@ -45,10 +45,13 @@ import io
 import base64
 import numpy as np
 import cv2
+from alyvix.ide.viewer import ViewerManager
 from alyvix.core.contouring import ContouringManager
 from alyvix.core.engine import Roi
 from alyvix.core.engine.text import TextManager
+from alyvix.tools.screen import ScreenManager
 from operator import itemgetter
+import threading
 
 import win32gui
 import win32con
@@ -66,6 +69,42 @@ current_filename = None
 current_boxes = []
 win32_window = None
 server_process = None
+viewer_handler_selector = None
+viewer_handler_designer = None
+current_port = None
+
+viewer_process = None
+
+def detachedProcessFunction(wait_time):
+    i=0
+    while i<wait_time:
+        i = i+1
+        print("loop running %d" % i)
+        time.sleep(1)
+
+def process_viewer(server_port):
+
+    vm = ViewerManager()
+
+    url = "http://127.0.0.1:" + str(server_port) + "/drawing"
+
+    # open 2 fds
+    null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
+    # save the current file descriptors to a tuple
+    save = os.dup(1), os.dup(2)
+    # put /dev/null fds on 1 and 2
+    #os.dup2(null_fds[0], 1)
+    #os.dup2(null_fds[1], 2)
+
+    vm.run(url, fullscreen=True)
+
+    # restore file descriptors so I can print the results
+    os.dup2(save[0], 1)
+    os.dup2(save[1], 2)
+    # close the temporary fds
+    os.close(null_fds[0])
+    os.close(null_fds[1])
+
 
 @app.route("/table", methods=['GET', 'POST'])
 def index():
@@ -84,7 +123,98 @@ def drawing():
 def selector():
     text = en.drawing
 
-    return render_template('selector.html')
+    return render_template('selector.html', new_url_api='http://127.0.0.1:' + str(current_port) + '/selector_button_new_api',
+                           cancel_url_api='http://127.0.0.1:' + str(current_port) + '/selector_button_cancel_api')
+
+@app.route("/selector_button_new_api", methods=['GET', 'POST'])
+def selector_button_new_api():
+
+    global background_image
+    global base64png
+    global img_h
+    global img_w
+    global viewer_process
+
+
+    vm = ViewerManager()
+    vm.set_win_handler(viewer_handler_selector)
+    vm.hide()
+
+    while True:
+        if vm.IsWindowVisible(viewer_handler_selector) is False and vm.IsIconic(viewer_handler_selector) is False:
+            break
+
+    delay = int(request.args.get('delay'))
+
+    screen_manager = ScreenManager()
+
+    scaling_factor = screen_manager.get_scaling_factor()
+
+    if delay != 0: #and lm.check_if_exist(object) is False:
+
+        seconds = delay #// 1
+        #milliseconds = args.delay - seconds
+
+        print("Counting down")
+
+        for i in range(seconds):
+            print(str(seconds - i))
+            time.sleep(1)
+
+        print("Frame grabbing!")
+
+        background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+    elif delay == 0: #and lm.check_if_exist(object) is False:
+        print("Frame grabbing!")
+
+        background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+
+    png_image = cv2.imencode('.png', background_image)
+
+    base64png = base64.b64encode(png_image[1]).decode('ascii')
+    img_h = int(background_image.shape[0] / scaling_factor)
+    img_w = int(background_image.shape[1] / scaling_factor)
+
+    viewer_process = threading.Thread(target=process_viewer, args=(current_port,))
+    viewer_process.start()
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route("/selector_button_cancel_api", methods=['GET'])
+def selector_button_cancel_api():
+
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is not None:
+        func()
+    else:
+        # raise RuntimeError('Not running with the Werkzeug Server')
+        server_process.close()
+
+    vm = ViewerManager()
+    vm.set_win_handler(viewer_handler_selector)
+    vm.close()
+
+@app.route("/set_viewer_handler_api", methods=['GET'])
+def set_viewer_handler_api():
+    global viewer_handler_selector
+    global viewer_handler_designer
+
+    handler = request.args.get('handler')
+    type = request.args.get('type')
+
+    if type == 'designer':
+        viewer_handler_designer = int(handler)
+    elif type == 'selector':
+        viewer_handler_selector = int(handler)
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route("/close_viewer_handler_api", methods=['GET'])
+def close_viewer_handler_api():
+    vm = ViewerManager()
+    vm.close_2(int(viewer_handler))
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route("/load_objects", methods=['GET'])
 def load_objects():
@@ -149,29 +279,23 @@ def load_objects():
 
 @app.route("/cancel_event", methods=['GET'])
 def cancel_event():
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is not None:
-        func()
-    else:
-        #raise RuntimeError('Not running with the Werkzeug Server')
-        server_process.close()
+
+    if viewer_handler_selector is None:
+        func = request.environ.get('werkzeug.server.shutdown')
+        if func is not None:
+            func()
+        else:
+            #raise RuntimeError('Not running with the Werkzeug Server')
+            server_process.close()
 
 
-    windows_found = []
+    vm = ViewerManager()
+    vm.set_win_handler(viewer_handler_designer)
+    vm.close()
 
-    win32gui.EnumWindows(__window_enumeration_handler, windows_found)
-
-
-    for hwnd_found, title_found in windows_found:
-
-        if re.match(".*Alyvix Editor.*", title_found, re.DOTALL | re.IGNORECASE) is not None and \
-                (win32gui.IsWindowVisible(hwnd_found) != 0 or win32gui.GetWindowTextLength(hwnd_found) > 0):
-
-            try:
-                win32gui.PostMessage(hwnd_found, win32con.WM_CLOSE, 0, 0)
-            except:
-                pass
-
+    if viewer_handler_selector is not None:
+        vm.set_win_handler(viewer_handler_selector)
+        vm.show()
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -791,6 +915,3 @@ def build_screen():
 
 def __window_enumeration_handler(hwnd, windows):
     windows.append((hwnd, win32gui.GetWindowText(hwnd)))
-
-class ViewerManager():
-    pass

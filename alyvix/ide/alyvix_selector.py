@@ -130,6 +130,7 @@ if __name__ == '__main__':
 
     sock.close()
 
+    viewer_manager = ViewerManager()
 
     http_process = Process(target=run_server, args=(server_port, scaling_factor, filename, args.verbose))
     http_process.start()
@@ -148,19 +149,19 @@ if __name__ == '__main__':
 
     url = "http://127.0.0.1:" + str(server_port) + "/selector"
 
-    viewer_manager = ViewerManager()
-
     if args.window is True:
         # open 2 fds
         null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
         # save the current file descriptors to a tuple
         save = os.dup(1), os.dup(2)
         # put /dev/null fds on 1 and 2
-        os.dup2(null_fds[0], 1)
-        os.dup2(null_fds[1], 2)
+        #os.dup2(null_fds[0], 1)
+        #os.dup2(null_fds[1], 2)
 
         viewer_manager.run(url, fullscreen=False, dimension=(int(800*scaling_factor),int(460*scaling_factor)),
                            title="Alyvix Selector")
+
+
 
         # restore file descriptors so I can print the results
         os.dup2(save[0], 1)
