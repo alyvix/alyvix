@@ -223,12 +223,13 @@ export class AxDesignerService {
         if(node.box && !this.isGroupFull(node.box.group)) {
             console.log("create new component")
             this.global.nativeGlobal().newComponent(node.box.group)
-        }
-        var availableGroup = [0,1,2].find(i => !this.isGroupFull(i));
-        console.log(availableGroup);
-        if(availableGroup >= 0) {
-            console.log("create new component")
-            this.global.nativeGlobal().newComponent(availableGroup);
+        } else {
+            var availableGroup = [0,1,2].find(i => !this.isGroupFull(i));
+            console.log(availableGroup);
+            if(availableGroup >= 0) {
+                console.log("create new component")
+                this.global.nativeGlobal().newComponent(availableGroup);
+            }
         }
     }
     removeGroup(node:TreeNode) {
