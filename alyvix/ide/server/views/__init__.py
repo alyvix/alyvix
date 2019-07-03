@@ -45,10 +45,13 @@ import io
 import base64
 import numpy as np
 import cv2
+from alyvix.ide.viewer import ViewerManager
 from alyvix.core.contouring import ContouringManager
 from alyvix.core.engine import Roi
 from alyvix.core.engine.text import TextManager
+from alyvix.tools.screen import ScreenManager
 from operator import itemgetter
+import threading
 
 import win32gui
 import win32con
@@ -66,6 +69,42 @@ current_filename = None
 current_boxes = []
 win32_window = None
 server_process = None
+viewer_handler_selector = None
+viewer_handler_designer = None
+current_port = None
+
+viewer_process = None
+
+def detachedProcessFunction(wait_time):
+    i=0
+    while i<wait_time:
+        i = i+1
+        print("loop running %d" % i)
+        time.sleep(1)
+
+def process_viewer(server_port):
+
+    vm = ViewerManager()
+
+    url = "http://127.0.0.1:" + str(server_port) + "/drawing"
+
+    # open 2 fds
+    null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
+    # save the current file descriptors to a tuple
+    save = os.dup(1), os.dup(2)
+    # put /dev/null fds on 1 and 2
+    #os.dup2(null_fds[0], 1)
+    #os.dup2(null_fds[1], 2)
+
+    vm.run(url, fullscreen=True)
+
+    # restore file descriptors so I can print the results
+    os.dup2(save[0], 1)
+    os.dup2(save[1], 2)
+    # close the temporary fds
+    os.close(null_fds[0])
+    os.close(null_fds[1])
+
 
 @app.route("/table", methods=['GET', 'POST'])
 def index():
@@ -79,6 +118,103 @@ def drawing():
                            autocontoured_rects=autocontoured_rects, text=en.drawing,
                            object_name=current_objectname,
                            loaded_boxes=current_boxes)
+
+@app.route("/selector", methods=['GET', 'POST'])
+def selector():
+    text = en.drawing
+
+    return render_template('selector.html', new_url_api='http://127.0.0.1:' + str(current_port) + '/selector_button_new_api',
+                           cancel_url_api='http://127.0.0.1:' + str(current_port) + '/selector_button_cancel_api')
+
+@app.route("/selector_button_new_api", methods=['GET', 'POST'])
+def selector_button_new_api():
+
+    global background_image
+    global base64png
+    global img_h
+    global img_w
+    global viewer_process
+
+
+    vm = ViewerManager()
+    vm.set_win_handler(viewer_handler_selector)
+    vm.hide()
+
+    while True:
+        if vm.IsWindowVisible(viewer_handler_selector) is False and vm.IsIconic(viewer_handler_selector) is False:
+            break
+
+    delay = int(request.args.get('delay'))
+
+    screen_manager = ScreenManager()
+
+    scaling_factor = screen_manager.get_scaling_factor()
+
+    if delay != 0: #and lm.check_if_exist(object) is False:
+
+        seconds = delay #// 1
+        #milliseconds = args.delay - seconds
+
+        print("Counting down")
+
+        for i in range(seconds):
+            print(str(seconds - i))
+            time.sleep(1)
+
+        print("Frame grabbing!")
+
+        background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+    elif delay == 0: #and lm.check_if_exist(object) is False:
+        print("Frame grabbing!")
+
+        background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+
+    png_image = cv2.imencode('.png', background_image)
+
+    base64png = base64.b64encode(png_image[1]).decode('ascii')
+    img_h = int(background_image.shape[0] / scaling_factor)
+    img_w = int(background_image.shape[1] / scaling_factor)
+
+    viewer_process = threading.Thread(target=process_viewer, args=(current_port,))
+    viewer_process.start()
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route("/selector_button_cancel_api", methods=['GET'])
+def selector_button_cancel_api():
+
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is not None:
+        func()
+    else:
+        # raise RuntimeError('Not running with the Werkzeug Server')
+        server_process.close()
+
+    vm = ViewerManager()
+    vm.set_win_handler(viewer_handler_selector)
+    vm.close()
+
+@app.route("/set_viewer_handler_api", methods=['GET'])
+def set_viewer_handler_api():
+    global viewer_handler_selector
+    global viewer_handler_designer
+
+    handler = request.args.get('handler')
+    type = request.args.get('type')
+
+    if type == 'designer':
+        viewer_handler_designer = int(handler)
+    elif type == 'selector':
+        viewer_handler_selector = int(handler)
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route("/close_viewer_handler_api", methods=['GET'])
+def close_viewer_handler_api():
+    vm = ViewerManager()
+    vm.close_2(int(viewer_handler))
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route("/load_objects", methods=['GET'])
 def load_objects():
@@ -143,29 +279,23 @@ def load_objects():
 
 @app.route("/cancel_event", methods=['GET'])
 def cancel_event():
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is not None:
-        func()
-    else:
-        #raise RuntimeError('Not running with the Werkzeug Server')
-        server_process.close()
+
+    if viewer_handler_selector is None:
+        func = request.environ.get('werkzeug.server.shutdown')
+        if func is not None:
+            func()
+        else:
+            #raise RuntimeError('Not running with the Werkzeug Server')
+            server_process.close()
 
 
-    windows_found = []
+    vm = ViewerManager()
+    vm.set_win_handler(viewer_handler_designer)
+    vm.close()
 
-    win32gui.EnumWindows(__window_enumeration_handler, windows_found)
-
-
-    for hwnd_found, title_found in windows_found:
-
-        if re.match(".*Alyvix Editor.*", title_found, re.DOTALL | re.IGNORECASE) is not None and \
-                (win32gui.IsWindowVisible(hwnd_found) != 0 or win32gui.GetWindowTextLength(hwnd_found) > 0):
-
-            try:
-                win32gui.PostMessage(hwnd_found, win32con.WM_CLOSE, 0, 0)
-            except:
-                pass
-
+    if viewer_handler_selector is not None:
+        vm.set_win_handler(viewer_handler_selector)
+        vm.show()
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -229,14 +359,15 @@ def save_json():
                 main["visuals"] = {}
 
                 main["visuals"]["roi"] = \
-                    {"screen_x": box["roi_x"], "screen_y": box["roi_y"],
-                     "width": box["roi_w"], "height": box["roi_h"],
+                    {"screen_x": int(box["roi_x"]*scaling_factor), "screen_y": int(box["roi_y"]*scaling_factor),
+                     "width": int(box["roi_w"]*scaling_factor), "height": int(box["roi_h"]*scaling_factor),
                      "unlimited_left": box["roi_unlimited_left"], "unlimited_up": box["roi_unlimited_up"],
                      "unlimited_right": box["roi_unlimited_right"], "unlimited_down": box["roi_unlimited_down"]}
 
                 main["visuals"]["selection"] = \
-                    {"roi_dx":  box["x"] - box["roi_x"], "roi_dy": box["y"] - box["roi_y"],
-                     "width": box["w"], "height": box["h"]}
+                    {"roi_dx":  int((box["x"] - box["roi_x"])*scaling_factor),
+                     "roi_dy": int((box["y"] - box["roi_y"])*scaling_factor),
+                     "width": int(box["w"]*scaling_factor), "height": int(box["h"]*scaling_factor)}
 
 
                 #main["visuals"]["detection"] = {}
@@ -266,8 +397,8 @@ def save_json():
 
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
 
@@ -276,8 +407,8 @@ def save_json():
 
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
 
@@ -289,8 +420,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "scroll"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["amount"] = box["mouse"]["features"]["amount"]
@@ -301,8 +432,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "hold"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
@@ -311,8 +442,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "release"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
@@ -343,34 +474,35 @@ def save_json():
                 main_dy = 0
 
                 if box["group"] == 0:
-                    main_dx = box["roi_x"] - (main_0["visuals"]["roi"]["screen_x"] +
-                               main_0["visuals"]["selection"]["roi_dx"])
+                    main_dx = int(box["roi_x"]*scaling_factor) - (main_0["visuals"]["roi"]["screen_x"] +
+                                              main_0["visuals"]["selection"]["roi_dx"])
                 elif box["group"] == 1:
-                    main_dx = box["roi_x"] - (main_1["visuals"]["roi"]["screen_x"] +
-                               main_1["visuals"]["selection"]["roi_dx"])
+                    main_dx = int(box["roi_x"]*scaling_factor) - (main_1["visuals"]["roi"]["screen_x"] +
+                                              main_1["visuals"]["selection"]["roi_dx"])
                 elif box["group"] == 2:
-                    main_dx = box["roi_x"] - (main_2["visuals"]["roi"]["screen_x"] +
-                               main_2["visuals"]["selection"]["roi_dx"])
+                    main_dx = int(box["roi_x"]*scaling_factor) - (main_2["visuals"]["roi"]["screen_x"] +
+                                              main_2["visuals"]["selection"]["roi_dx"])
 
                 if box["group"] == 0:
-                    main_dy = box["roi_y"] - (main_0["visuals"]["roi"]["screen_y"] +
+                    main_dy = int(box["roi_y"]*scaling_factor) - (main_0["visuals"]["roi"]["screen_y"] +
                                               main_0["visuals"]["selection"]["roi_dy"])
                 elif box["group"] == 1:
-                    main_dy = box["roi_y"] - (main_1["visuals"]["roi"]["screen_y"] +
+                    main_dy = int(box["roi_y"]*scaling_factor) - (main_1["visuals"]["roi"]["screen_y"] +
                                               main_1["visuals"]["selection"]["roi_dy"])
                 elif box["group"] == 2:
-                    main_dy = box["roi_y"] - (main_2["visuals"]["roi"]["screen_y"] +
+                    main_dy = int(box["roi_y"]*scaling_factor) - (main_2["visuals"]["roi"]["screen_y"] +
                                               main_2["visuals"]["selection"]["roi_dy"])
 
                 sub["visuals"]["roi"] = \
                     {"main_dx": main_dx, "main_dy": main_dy,
-                     "width": box["roi_w"], "height": box["roi_h"],
+                     "width": int(box["roi_w"]*scaling_factor), "height": int(box["roi_h"]*scaling_factor),
                      "unlimited_left": box["roi_unlimited_left"], "unlimited_up": box["roi_unlimited_up"],
                      "unlimited_right": box["roi_unlimited_right"], "unlimited_down": box["roi_unlimited_down"]}
 
                 sub["visuals"]["selection"] = \
-                    {"roi_dx": box["x"] - box["roi_x"], "roi_dy": box["y"] - box["roi_y"],
-                     "width": box["w"], "height": box["h"]}
+                    {"roi_dx": int((box["x"] - box["roi_x"])*scaling_factor),
+                     "roi_dy": int(box["y"]*scaling_factor) - int(box["roi_y"]*scaling_factor),
+                     "width": int(box["w"]*scaling_factor), "height": int(box["h"]*scaling_factor)}
 
                 # sub["visuals"]["detection"] = {}
                 detection_dict = {}
@@ -399,8 +531,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "move"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
 
@@ -408,8 +540,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "click"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["button"] = box["mouse"]["features"]["button"]
@@ -420,8 +552,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "scroll"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["amount"] = box["mouse"]["features"]["amount"]
@@ -432,8 +564,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "hold"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
@@ -442,8 +574,8 @@ def save_json():
                     interaction_dict["mouse"]["type"] = "release"
                     if box["mouse"]["features"]["point"]["dx"] != 0 or box["mouse"]["features"]["point"]["dy"] != 0:
                         interaction_dict["mouse"]["features"]["point"] = \
-                            {"dx": box["mouse"]["features"]["point"]["dx"] - box["x"],
-                             "dy": box["mouse"]["features"]["point"]["dy"] - box["y"]}
+                            {"dx": int((box["mouse"]["features"]["point"]["dx"] - box["x"])*scaling_factor),
+                             "dy": int((box["mouse"]["features"]["point"]["dy"] - box["y"])*scaling_factor)}
                     else:
                         interaction_dict["mouse"]["features"]["point"] = {"dx": 0, "dy": 0}
                     interaction_dict["mouse"]["features"]["button"] = "left" #box["mouse"]["features"]["button"]
@@ -558,6 +690,9 @@ def test_txt_regexp():
 def create_thumbnail():
     if request.method == 'POST':
 
+        #thumbnail_fixed_height = int(30 * scaling_factor)
+        #border = int(4*scaling_factor)
+
         thumbnail_fixed_height = 30
         border = 4
 
@@ -570,7 +705,14 @@ def create_thumbnail():
 
         np_array = np.frombuffer(base64.b64decode(background_string), np.uint8)
 
-        background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+        ori_background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+        new_width = int(ori_background_image.shape[1] /scaling_factor)
+        new_height = int(ori_background_image.shape[0]/ scaling_factor)
+        dim = (new_width, new_height)
+
+        # resize image
+        background_image = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
 
         background_h = background_image.shape[0]
         background_w = background_image.shape[1]
@@ -711,9 +853,15 @@ def create_thumbnail():
                 thumbnail_y = 0
                 new_y = offset
 
-            thumbnail = background_image[thumbnail_y:thumbnail_y + thumbnail_h, thumbnail_x:thumbnail_x + thumbnail_w]
+            thumbnail_x = int(thumbnail_x * scaling_factor)
+            thumbnail_y = int(thumbnail_y * scaling_factor)
+            thumbnail_w = int(thumbnail_w * scaling_factor)
+            thumbnail_h = int(thumbnail_h * scaling_factor)
 
-            dim = (thumbnail_fixed_width, thumbnail_fixed_height)
+            thumbnail = ori_background_image[thumbnail_y:thumbnail_y + thumbnail_h,thumbnail_x:thumbnail_x + thumbnail_w]
+
+            #dim = (int(thumbnail_fixed_width/scaling_factor), int(thumbnail_fixed_height/scaling_factor))
+            dim = (int(thumbnail_fixed_width*scaling_factor), int(thumbnail_fixed_height*scaling_factor))
 
             # resize image
             if do_resize:
@@ -735,7 +883,8 @@ def create_thumbnail():
 
             base64png = base64.b64encode(png_image[1]).decode('ascii')
 
-            thumbnail_dict = {'image':base64png, 'image_w':thumbnail_fixed_width, 'image_h': thumbnail_fixed_height, 'x': x, 'y': y,
+            thumbnail_dict = {'image':base64png, 'image_w':int(thumbnail_fixed_width*scaling_factor),
+                              'image_h': int(thumbnail_fixed_height*scaling_factor), 'x': x, 'y': y,
                               'w': w, 'h': h, 'group': element["group"],
                               'is_main': element["is_main"]}
 
@@ -746,10 +895,11 @@ def create_thumbnail():
 
         #result_list = sorted(result_list, key=itemgetter('group'))
 
-        resized = cv2.resize(background_image, dim, interpolation=cv2.INTER_CUBIC)
+        resized = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
         png_image = cv2.imencode('.png', resized)
         base64png = base64.b64encode(png_image[1]).decode('ascii')
-        thumbnail_dict_screen = {'image': base64png, 'image_w': thumbnail_fixed_width, 'image_h': thumbnail_fixed_height}
+        thumbnail_dict_screen = {'image': base64png, 'image_w': int(thumbnail_fixed_width*scaling_factor),
+                                 'image_h': int(thumbnail_fixed_height*scaling_factor)}
 
         thumbnails_dict = {'thumbnails': result_list, 'screen':  thumbnail_dict_screen}
 
@@ -765,6 +915,3 @@ def build_screen():
 
 def __window_enumeration_handler(hwnd, windows):
     windows.append((hwnd, win32gui.GetWindowText(hwnd)))
-
-class ViewerManager():
-    pass

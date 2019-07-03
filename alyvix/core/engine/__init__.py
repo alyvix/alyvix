@@ -116,6 +116,7 @@ class EngineManager(object):
         self._components_found = []
         self._components_appeared = []
         self._return_values = []
+        self._timedout = False
 
         self._last_screen = None
         self._screen_with_objects = None
@@ -807,8 +808,8 @@ class EngineManager(object):
                 color_stroke = (255, 0, 0)
                 color_fill = (255, 114, 0)
 
+            # if timeout is true and main is found than we are in disappear mode
             if component.is_main:
-
                 x1 = component.x
                 y1 = component.y
                 x2 = component.x + component.w
@@ -822,10 +823,27 @@ class EngineManager(object):
 
                 cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
 
-                text = "M_" + str(component.group + 1)
-                cv2.putText(image, text, (x2+1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
-                            lineType=cv2.LINE_AA)
+                if (self._disappear_mode is True and self._timedout is False) or (self._disappear_mode is False):
 
+
+
+                    text = "M_" + str(component.group + 1)
+                    cv2.putText(image, text, (x2+1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+                                lineType=cv2.LINE_AA)
+                elif (self._disappear_mode is True and self._timedout is True):
+                    text = "M_" + str(component.group + 1) + "!"
+                    cv2.putText(image, text, (x2+1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+                                lineType=cv2.LINE_AA)
+
+                    scale = 1  # this value can be from 0 to 1 (0,1] to change the size of the text relative to the image
+                    fontScale = min(component.w, component.h) / (25 / scale)
+
+                    text_box_size = cv2.getTextSize("!", cv2.FONT_HERSHEY_SIMPLEX, fontScale, 2)
+                    text_x = int(component.x + (component.w / 2)) - int(text_box_size[0][0] / 2)
+                    text_y = int(component.y + (component.h / 2)) + int(text_box_size[0][1] / 2)
+
+                    cv2.putText(image, "!", (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color_stroke, 2,
+                                lineType=cv2.LINE_AA)
             else:
 
                 roi = component.roi
@@ -882,10 +900,6 @@ class EngineManager(object):
 
                 if component_found:
 
-                    text = "s_" + str(component.group + 1) + "_" + str(component.index_in_group)
-                    cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
-                                lineType=cv2.LINE_AA)
-
                     x1 = component.x
                     y1 = component.y
                     x2 = component.x + component.w
@@ -900,6 +914,27 @@ class EngineManager(object):
                                     0, image[y1:y2, x1:x2])
 
                     cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
+
+                    if (self._disappear_mode is True and self._timedout is False) or (self._disappear_mode is False):
+
+                        text = "s_" + str(component.group + 1) + "_" + str(component.index_in_group)
+                        cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+                                    lineType=cv2.LINE_AA)
+                    elif (self._disappear_mode is True and self._timedout is True):
+
+                        text = "s_" + str(component.group + 1) + "_" + str(component.index_in_group) + "!"
+                        cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+                                    lineType=cv2.LINE_AA)
+
+                        scale = 1  # this value can be from 0 to 1 (0,1] to change the size of the text relative to the image
+                        fontScale = min(component.w, component.h) / (25 / scale)
+
+                        text_box_size = cv2.getTextSize("!", cv2.FONT_HERSHEY_SIMPLEX, fontScale, 2)
+                        text_x = int(component.x + (component.w / 2)) - int(text_box_size[0][0] / 2)
+                        text_y = int(component.y + (component.h / 2)) + int(text_box_size[0][1] / 2)
+
+                        cv2.putText(image, "!", (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color_stroke, 2,
+                                    lineType=cv2.LINE_AA)
                 else:
 
                     text = "s_" + str(component.group + 1) + "_" + str(component.index_in_group) + "!"
@@ -1027,6 +1062,8 @@ class EngineManager(object):
 
         self._screens = []
 
+        self._timedout = False
+
         self._t0 = 0
         self.stop_threads = False
         self._components_found = []
@@ -1046,7 +1083,7 @@ class EngineManager(object):
 
         self._disappear_mode = False
 
-        if self._verbose == 1:
+        if self._verbose >= 1:
             print("Alyvix looks for " + self._result.object_name)
 
         #sm = ScreenManager()
@@ -1091,7 +1128,7 @@ class EngineManager(object):
             if len(components_appeared) == (len(self._group_0) + len(self._group_1) + len(self._group_2)) \
                     and disappear_mode is False:
 
-                if self._verbose == 1:
+                if self._verbose >= 1:
                     print("Alyvix detected " + self._result.object_name)
 
                 if detection_type =='appear':
@@ -1157,6 +1194,8 @@ class EngineManager(object):
                 return self._result
 
             if time.time() - self._t0 > timeout:
+
+                self._timedout = True
 
                 self.lock.acquire()
 

@@ -8,8 +8,11 @@ from datetime import datetime
 from alyvix.tools.screen import ScreenManager
 
 class OutputManager:
-    def __init__(self):
-        pass
+    def __init__(self, verbose=0):
+        self._verbose = verbose
+
+    def set_verbose(self, verbose):
+        self._verbose = verbose
 
     def _build_json(self, json_object, chunk, object_list):
 
@@ -76,9 +79,9 @@ class OutputManager:
                                  + "_UTC" + time.strftime("%z")
 
                 if prefix is not None:
-                    filename =  date_formatted + "_" + prefix + "_" + object.object_name + "_screenshot.png"
+                    filename =  prefix + "_" + object.object_name + "_screenshot_" + date_formatted + ".png"
                 else:
-                    filename = date_formatted + "_" + object.object_name + "_screenshot.png"
+                    filename = object.object_name + "_screenshot_" + date_formatted + ".png"
 
                 cv2.imwrite(file_path + os.sep + filename, object.screenshot)
 
@@ -88,9 +91,9 @@ class OutputManager:
                                  + "_UTC" + time.strftime("%z")
 
                 if prefix is not None:
-                    filename =  date_formatted + "_" + prefix + "_" + object.object_name + "_annotation.png"
+                    filename =  prefix + "_" + object.object_name + "_annotation_" + date_formatted + ".png"
                 else:
-                    filename = date_formatted + "_" + object.object_name + "_annotation.png"
+                    filename = object.object_name + "_annotation_" + date_formatted + ".png"
 
                 cv2.imwrite(file_path + os.sep + filename, object.annotation)
 

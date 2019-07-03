@@ -38,6 +38,8 @@ import win32com.client
 
 from multiprocessing import Process
 
+import urllib.request
+
 
 # Globals
 #cef.DpiAware.EnableHighDpiSupport()
@@ -72,9 +74,35 @@ class ViewerManager(ViewerManagerBase):
         self.window_handle = None
 
     def close(self):
+        cef.Shutdown()
         win32gui.PostMessage(self.window_handle, win32con.WM_CLOSE, 0, 0)
 
-    def run(self, url, fullscreen=False):
+    def hide(self):
+        win32gui.ShowWindow(self.window_handle, win32con.SW_HIDE)
+
+    def show(self):
+        win32gui.ShowWindow(self.window_handle, win32con.SW_SHOW)
+
+    def set_win_handler(self, handler):
+        self.window_handle = handler
+
+    def IsWindowVisible(self, handler):
+        visible = win32gui.IsWindowVisible(handler)
+
+        if visible == 1:
+            return True
+        elif visible == 0:
+            return False
+
+    def IsIconic(self, handler):
+        iconic =  win32gui.IsIconic(handler)
+
+        if iconic == 1:
+            return True
+        elif iconic == 0:
+            return False
+
+    def run(self, url, fullscreen=False, dimension=None, title=None):
         global WindowUtils
         global g_multi_threaded
 
@@ -98,15 +126,38 @@ class ViewerManager(ViewerManagerBase):
             win32con.WM_SETFOCUS: WindowUtils.OnSetFocus,
             win32con.WM_ERASEBKGND: WindowUtils.OnEraseBackground
         }
-        window_handle = self.create_window(title="Alyvix Editor",
+
+        if dimension is not None:
+            width = dimension[0]
+            height = dimension[1]
+        else:
+            width = 450
+            height = 600
+
+        if title is not None:
+            win_title = title
+        else:
+            win_title = "Alyvix Designer"
+
+        window_handle = self.create_window(title=win_title,
                                       class_name="pywin32.example",
-                                      width=450,
-                                      height=600,
+                                      width=width,
+                                      height=height,
                                       window_proc=window_proc,
                                       icon="resources/chromium.ico",
                                       fullscreen=fullscreen)
 
-        self.window_handle = window_handle
+        base_url = url.rsplit('/',1)[0]
+
+        handler_type = None
+
+        if win_title == "Alyvix Designer":
+            handler_type = "designer"
+        elif win_title == "Alyvix Selector":
+            handler_type = "selector"
+
+        aa = urllib.request.urlopen(base_url + "/set_viewer_handler_api?handler=" + str(window_handle) +
+                                    "&type=" + handler_type).read()
 
         window_info = cef.WindowInfo()
         window_info.SetAsChild(window_handle)

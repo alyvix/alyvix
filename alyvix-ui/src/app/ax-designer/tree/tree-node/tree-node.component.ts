@@ -3,6 +3,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { AxDesignerService, TreeNode } from '../../ax-designer-service';
 import { environment } from 'src/environments/environment';
 import { AxModel } from 'src/app/ax-model/model';
+import { stringify } from '@angular/core/src/util';
 
 export interface GroupColors{
   main:string
@@ -28,24 +29,42 @@ export class TreeNodeComponent implements OnInit,DoCheck {
   groupChanged() {
     if(this.node.box)
       this.group = this.node.box.group
-    this.drawCanvas()
+    this.drawCanvas(false)
   }
 
-  drawCanvas() {
+  drawCanvas(initCanvas:boolean) {
+	var ctx = this.canvas.nativeElement.getContext("2d");
+	var dpi = window.devicePixelRatio || 1;
+
+	//ctx.scale(dpi, dpi);
+	//ctx.translate(0.5, 0.5);
+
     if(this.node.box) {
-      this.thumbnailWidth = this.node.box.thumbnail.image_w;
-      var ctx = this.canvas.nativeElement.getContext("2d");
+
+		if (initCanvas)
+		{
+			ctx.scale(dpi, dpi);
+			ctx.translate(0.5, 0.5);
+			this.thumbnailWidth = Math.floor(this.node.box.thumbnail.image_w/dpi);
+			this.thumbnailHeight =  Math.floor(this.node.box.thumbnail.image_h/dpi);
+		}
 
 
-      ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
+
+
+	console.log("dpi" + dpi.toString())
+
+	var canvas_w = this.canvas.nativeElement.width;
+	var canvas_h = this.canvas.nativeElement.height;
+
 
       var image = new Image();
       var self = this;
       image.onload = function() {
 
         //TODO use https://github.com/waveinch/alyvix/blob/bd2f1527aadc9a6892afd00be54546d6a5536ff4/alyvix/ide/server/templates/drawing.html#L1788
-        var dpi = window.devicePixelRatio || 1;
-        ctx.drawImage(image, 0, 0);
+        //var dpi = window.devicePixelRatio || 1;
+
         var t = self.node.box.thumbnail;
         // ctx.rect(t.x, t.y, t.w, t.h);
         // ctx.strokeStyle = self.groupColor(self.node.box.group);
@@ -54,9 +73,13 @@ export class TreeNodeComponent implements OnInit,DoCheck {
         // ctx.stroke();
 
 
-        ctx.scale(dpi, dpi);
-        ctx.translate(0.5, 0.5);
-        ctx.lineWidth = 1;
+		//ctx.scale(dpi, dpi);
+
+		console.log("dpi " + canvas_w.toString() + " " + canvas_h.toString())
+	  	ctx.clearRect(0, 0,canvas_w, canvas_h);
+		ctx.drawImage(image, 0, 0, Math.floor(self.node.box.thumbnail.image_w/dpi), Math.floor(self.node.box.thumbnail.image_h/dpi));
+        //ctx.translate(0.5, 0.5);
+        ctx.lineWidth = 2;
         ctx.strokeStyle = self.groupColor(self.node.box.group).thumbnail;
         ctx.strokeRect(t.x, t.y, t.w, t.h);
 
@@ -74,7 +97,9 @@ export class TreeNodeComponent implements OnInit,DoCheck {
   selectedNode:TreeNode;
 
 
+  canvasesInitialized:number = 0;
   thumbnailWidth:number = 0;
+  thumbnailHeight:number = 0;
 
   @ViewChild("canvas") canvas: ElementRef;
 
@@ -93,10 +118,15 @@ export class TreeNodeComponent implements OnInit,DoCheck {
   ngOnInit() {
 
     if(this.node.box)
-      this.group = this.node.box.group
-
+	  this.group = this.node.box.group
+	  
+	/*var ctx = this.canvas.nativeElement.getContext("2d");
+	var dpi = window.devicePixelRatio || 1;
+	ctx.scale(dpi, dpi);
+	ctx.translate(0.5, 0.5);
+	*/
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectedNode = n);
-    this.drawCanvas();
+    this.drawCanvas(true);
   }
 
   imageFor() {

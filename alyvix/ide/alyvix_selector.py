@@ -38,8 +38,6 @@ default_object_name = "VisualObject"
 #requiredNamed.add_argument('--object', '-o', help="dummy description for help", type=str, default=None, required=True)
 
 parser.add_argument('--filename', '-f', help="dummy description for help", type=str, default=None)
-parser.add_argument('--object', '-o', help="dummy description for help", type=str, default=None)
-parser.add_argument('--delay', '-d', help="dummy description for help", type=int, default=0)
 parser.add_argument('--window', '-w', help="dummy description for help", type=str2bool, default=True)
 parser.add_argument('--verbose', '-v', help="dummy description for help", type=int, default=0)
 
@@ -50,14 +48,11 @@ args = parser.parse_args()
 
 
 
-def run_server(port, background_image, scaling_factor, object, filename, verbose):
+def run_server(port, scaling_factor, filename, verbose):
     #screen_manager = ScreenManager()
     server_manager = ServerManager()
 
-
-    server_manager.set_background(background_image, scaling_factor)
     server_manager.set_scaling_factor(scaling_factor)
-    server_manager.set_object_name(object)
     server_manager.set_file_name(filename)
 
     server_manager.run(port, verbose)
@@ -81,6 +76,7 @@ if __name__ == '__main__':
             filename = default_library_name + str(filename_start_index)
     else:
         filename = args.filename
+
 
     lm = LibraryManager()
 
@@ -108,48 +104,14 @@ if __name__ == '__main__':
               invalid_char_str)
         sys.exit(2)
 
+    if os.path.isfile(filename) is False:
+        print(filename + " does NOT exist")
+        sys.exit(2)
+
     lm.load_file(filename)
 
-    if args.object is None:
-        object = default_object_name + str(object_start_index)
-
-        while True:
-            if lm.check_if_exist(object) is False:
-                break
-
-            object_start_index += 1
-            object = default_object_name + str(object_start_index)
-    else:
-        object = args.object
 
     screen_manager = ScreenManager()
-
-    if args.delay != 0 and lm.check_if_exist(object) is False:
-
-        seconds = args.delay #// 1
-        #milliseconds = args.delay - seconds
-
-        print("Counting down")
-
-        for i in range(seconds):
-            print(str(seconds - i))
-            time.sleep(1)
-
-        print("Frame grabbing!")
-
-        background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
-    elif args.delay == 0 and lm.check_if_exist(object) is False:
-        print("Frame grabbing!")
-
-        background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
-    elif lm.check_if_exist(object) == True:
-        alyvix_file_dict = lm.build_objects_for_ide(object)
-
-        np_array = np.frombuffer(base64.b64decode(alyvix_file_dict["screen"]), np.uint8)
-
-        background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
-
-        print("Opening object")
 
     scaling_factor = screen_manager.get_scaling_factor()
 
@@ -170,8 +132,7 @@ if __name__ == '__main__':
 
     viewer_manager = ViewerManager()
 
-    http_process = Process(target=run_server, args=(server_port, background_image, scaling_factor, object,
-                                                    filename, args.verbose))
+    http_process = Process(target=run_server, args=(server_port, scaling_factor, filename, args.verbose))
     http_process.start()
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -186,8 +147,7 @@ if __name__ == '__main__':
 
     #2 time.sleep(100)
 
-    url = "http://127.0.0.1:" + str(server_port) + "/drawing"
-
+    url = "http://127.0.0.1:" + str(server_port) + "/selector"
 
     if args.window is True:
         # open 2 fds
@@ -195,10 +155,13 @@ if __name__ == '__main__':
         # save the current file descriptors to a tuple
         save = os.dup(1), os.dup(2)
         # put /dev/null fds on 1 and 2
-        os.dup2(null_fds[0], 1)
-        os.dup2(null_fds[1], 2)
+        #os.dup2(null_fds[0], 1)
+        #os.dup2(null_fds[1], 2)
 
-        viewer_manager.run(url, fullscreen=True)
+        viewer_manager.run(url, fullscreen=False, dimension=(int(800*scaling_factor),int(460*scaling_factor)),
+                           title="Alyvix Selector")
+
+
 
         # restore file descriptors so I can print the results
         os.dup2(save[0], 1)

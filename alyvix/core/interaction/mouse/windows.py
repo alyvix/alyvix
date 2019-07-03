@@ -43,6 +43,8 @@ class MouseManager(MouseManagerBase):
         while not self.ahk.ahkReady(): #Wait for the end of the empty script
             time.sleep(0.01)
 
+        self._scaling_factor = 1
+
 
     def click(self, x, y, button=1, n_clicks=1, click_delay=10):
 

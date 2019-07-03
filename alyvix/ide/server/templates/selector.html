@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alyvix Selector</title>
+<script src="static/js/jquery-3.3.1.min.js"></script>
+<script>
+    function new_button()
+    {
+        $.ajax({
+            url: "{{new_url_api}}?delay=" +  $("#delay").val(),
+            type: "GET"
+        });
+    }
+    
+    function cancel_button()
+    {
+        $.ajax({
+            url: "{{cancel_url_api}}",
+            type: "GET"
+        });
+    }
+</script>
+</head>
+<body>
+<form>
+<input type="number" id="delay" min="0" max="20000" step="1" value="0"><br/>
+<input type="button" value="New" onclick="new_button()" />
+<input type="button" value="Ok" onclick="window.location.href='http://www.hyperlinkcode.com/button-links.php'" />
+<input type="button" value="Cancel" onclick="cancel_button()" />
+</form> 
+</body>
+</html> 

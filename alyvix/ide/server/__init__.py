@@ -53,6 +53,8 @@ class ServerManager():
 
             print("Serving on http://127.0.0.1:" + str(port))
 
+        views.current_port = port
+
         #app.run(port=port)
         http_server = WSGIServer(('127.0.0.1', port), app, log=server_log)
         views.server_process = http_server
@@ -85,7 +87,6 @@ class ServerManager():
     def set_object_name(self, objectname):
 
         views.current_objectname = objectname
-
 
     def auto_contouring(self, image, scaling_factor=1):
         contouring_manager = ContouringManager(

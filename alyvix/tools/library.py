@@ -22,6 +22,8 @@ import json
 import base64
 import cv2
 import numpy as np
+import os
+from sys import platform as _platform
 
 from alyvix.tools.screen import ScreenManager
 
@@ -66,6 +68,35 @@ class LibraryManager:
         self.screen = None
         self.boxes = []
         self._json_object = None
+
+    def get_correct_filename(self, filename):
+
+        filename_path = os.path.dirname(filename)
+        filename_no_path = os.path.basename(filename)
+        filename_no_extension = os.path.splitext(filename_no_path)[0]
+        file_extension = os.path.splitext(filename_no_path)[1]
+
+        if filename_path == '':
+            filename_path = os.getcwd()
+            filename = filename_path + os.sep + filename_no_path
+
+        if file_extension != ".alyvix":
+            filename = filename_path + os.sep + filename_no_extension + ".alyvix"
+
+        return filename
+
+    def get_invalid_filename_chars(self):
+        if _platform == "linux" or _platform == "linux2":
+            # linux...
+            pass
+        elif _platform == "darwin":
+            # mac...
+            pass
+        elif _platform == "win32":
+            # window...
+            invalid_char = ["\"", "*", "/", ":", "<", ">", "?", "\\", "|", "+", ",", ".", ";", "=", "[", "]"]
+
+            return invalid_char
 
     def load_file(self, filename):
 
@@ -162,15 +193,15 @@ class LibraryManager:
 
                 box = {}
 
-                box["x"] = main_dict["visuals"]["roi"]["screen_x"] + main_dict["visuals"]["selection"]["roi_dx"]
-                box["y"] = main_dict["visuals"]["roi"]["screen_y"] + main_dict["visuals"]["selection"]["roi_dy"]
-                box["w"] = main_dict["visuals"]["selection"]["width"]
-                box["h"] = main_dict["visuals"]["selection"]["height"]
+                box["x"] = int((main_dict["visuals"]["roi"]["screen_x"] + main_dict["visuals"]["selection"]["roi_dx"])/scaling_factor)
+                box["y"] = int((main_dict["visuals"]["roi"]["screen_y"] + main_dict["visuals"]["selection"]["roi_dy"])/scaling_factor)
+                box["w"] = int(main_dict["visuals"]["selection"]["width"]/scaling_factor)
+                box["h"] = int(main_dict["visuals"]["selection"]["height"]/scaling_factor)
 
-                box["roi_x"] = main_dict["visuals"]["roi"]["screen_x"]
-                box["roi_y"] = main_dict["visuals"]["roi"]["screen_y"]
-                box["roi_w"] = main_dict["visuals"]["roi"]["width"]
-                box["roi_h"] = main_dict["visuals"]["roi"]["height"]
+                box["roi_x"] = int(main_dict["visuals"]["roi"]["screen_x"]/scaling_factor)
+                box["roi_y"] = int(main_dict["visuals"]["roi"]["screen_y"]/scaling_factor)
+                box["roi_w"] = int(main_dict["visuals"]["roi"]["width"]/scaling_factor)
+                box["roi_h"] = int(main_dict["visuals"]["roi"]["height"]/scaling_factor)
 
                 box["roi_unlimited_left"] = main_dict["visuals"]["roi"]["unlimited_left"]
                 box["roi_unlimited_up"] = main_dict["visuals"]["roi"]["unlimited_up"]
@@ -199,8 +230,8 @@ class LibraryManager:
                     if (mouse_dict["features"]["point"]["dx"] != 0 or
                             mouse_dict["features"]["point"]["dy"] != 0):
                         mouse_dict["features"]["point"] = \
-                            {"dx": mouse_dict["features"]["point"]["dx"] + box["x"],
-                             "dy": mouse_dict["features"]["point"]["dy"] + box["y"]}
+                            {"dx": int(mouse_dict["features"]["point"]["dx"]/scaling_factor) + box["x"],
+                             "dy": int(mouse_dict["features"]["point"]["dy"]/scaling_factor) + box["y"]}
                 except:
                     pass
 
@@ -220,22 +251,22 @@ class LibraryManager:
 
                     box = {}  # Box()
 
-                    box["w"] = sub_dict["visuals"]["selection"]["width"]
-                    box["h"] = sub_dict["visuals"]["selection"]["height"]
+                    box["w"] = int(sub_dict["visuals"]["selection"]["width"]/scaling_factor)
+                    box["h"] = int(sub_dict["visuals"]["selection"]["height"]/scaling_factor)
 
-                    box["roi_x"] = main_dict["visuals"]["roi"]["screen_x"] + \
+                    box["roi_x"] = int((main_dict["visuals"]["roi"]["screen_x"] + \
                                    main_dict["visuals"]["selection"]["roi_dx"] + \
-                                   sub_dict["visuals"]["roi"]["main_dx"]
+                                   sub_dict["visuals"]["roi"]["main_dx"])/scaling_factor)
 
-                    box["roi_y"] = main_dict["visuals"]["roi"]["screen_y"] + \
+                    box["roi_y"] = int((main_dict["visuals"]["roi"]["screen_y"] + \
                                    main_dict["visuals"]["selection"]["roi_dy"] + \
-                                   sub_dict["visuals"]["roi"]["main_dy"]
+                                   sub_dict["visuals"]["roi"]["main_dy"])/scaling_factor)
 
-                    box["x"] = box["roi_x"] + sub_dict["visuals"]["selection"]["roi_dx"]
-                    box["y"] = box["roi_y"] + sub_dict["visuals"]["selection"]["roi_dy"]
+                    box["x"] = box["roi_x"] + int(sub_dict["visuals"]["selection"]["roi_dx"]/scaling_factor)
+                    box["y"] = box["roi_y"] + int(sub_dict["visuals"]["selection"]["roi_dy"]/scaling_factor)
 
-                    box["roi_w"] = sub_dict["visuals"]["roi"]["width"]
-                    box["roi_h"] = sub_dict["visuals"]["roi"]["height"]
+                    box["roi_w"] = int(sub_dict["visuals"]["roi"]["width"]/scaling_factor)
+                    box["roi_h"] = int(sub_dict["visuals"]["roi"]["height"]/scaling_factor)
 
                     box["roi_unlimited_left"] = sub_dict["visuals"]["roi"]["unlimited_left"]
                     box["roi_unlimited_up"] = sub_dict["visuals"]["roi"]["unlimited_up"]
@@ -263,8 +294,8 @@ class LibraryManager:
                         if (mouse_dict["features"]["point"]["dx"] != 0 or
                                 mouse_dict["features"]["point"]["dy"] != 0):
                             mouse_dict["features"]["point"] = \
-                                {"dx": mouse_dict["features"]["point"]["dx"] + box["x"],
-                                 "dy": mouse_dict["features"]["point"]["dy"] + box["y"]}
+                                {"dx":int( mouse_dict["features"]["point"]["dx"]/scaling_factor) + box["x"],
+                                 "dy": int(mouse_dict["features"]["point"]["dy"]/scaling_factor) + box["y"]}
                     except Exception as ex:
                         pass #print(ex)
 
