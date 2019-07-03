@@ -10,15 +10,17 @@
       <div class="form-group distribute">
         <select [(ngModel)]="axModel.detection.type">
           <option value="appear">Appear</option>
-          <option value="appear+disappear">A+D</option>
+          <option value="appear+disappear">AppearDisappear</option>
           <option value="disappear">Disappear</option>
         </select>
         
-     
-        <span class="inline-label">Timeout [s]</span>
-        <input [(ngModel)]="axModel.detection.timeout_s" type="number" (change)="changeTimeout()" class="small"/>
-      
-        <span class="inline-label">Break</span> <input [(ngModel)]="axModel.detection.break" type="checkbox" />
+        <div>
+          <span class="inline-label">Timeout [s]</span>
+          <input [(ngModel)]="axModel.detection.timeout_s" type="number" (change)="changeTimeout()" class="small" min="1"/>
+        </div>
+        <div>
+          <span class="inline-label">Break</span> <input [(ngModel)]="axModel.detection.break" type="checkbox" />
+        </div>
       </div>
     </div>
   </div>
