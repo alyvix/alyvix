@@ -1,4 +1,4 @@
-import { AxModel } from "./model";
+import { AxModel, BoxListEntity } from "./model";
 import { AxModelMock } from "./mock";
 
 export interface GroupsFlag{
@@ -10,6 +10,8 @@ export interface GroupsFlag{
 //define here methods and variables that are defined in the global scope of alyvix
 export interface AxGlobal{
     axModel():AxModel;
+
+    lastElement():BoxListEntity;
 
     newComponent(group:number):any 
     setPoint(i:number):any
@@ -28,6 +30,9 @@ export interface AxGlobal{
 }
 
 export class MockGlobal implements AxGlobal{
+    lastElement(): BoxListEntity {
+        return null;
+    }
     setGroupFlags(flags: GroupsFlag) {
 
     }

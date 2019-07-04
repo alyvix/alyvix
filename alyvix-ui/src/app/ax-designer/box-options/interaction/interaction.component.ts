@@ -12,13 +12,12 @@ export class InteractionComponent implements OnInit {
 
   constructor(private axDesignerService:AxDesignerService, private cdRef:ChangeDetectorRef) { }
 
-  private _node:TreeNode
+  _node:TreeNode
 
 
   @Input()
   set node(node: TreeNode) {
     Promise.resolve(null).then(() => { // enqueque after change detection loop to avoid ExpressionChangedAfterItHasBeenCheckedError
-      console.log("interaction init")
     
       if(!node.box.mouse_keep_options) {
         node.box.mouse_keep_options = [];

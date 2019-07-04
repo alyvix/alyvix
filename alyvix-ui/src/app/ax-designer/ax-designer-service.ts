@@ -39,19 +39,21 @@ export class AxDesignerService {
 
         var iSelectedNode = this.global.nativeGlobal().getSelectedNode() //needs to be done before loadNodes because loadNodes call setSelectedNode
 
+        var lastElement = this.global.nativeGlobal().lastElement()
+
+
         this._loadNodes(true);
 
         var selectedNode:TreeNode = null;
-        
-        if(iSelectedNode >= 0) {
+        if(lastElement) {
+
+            selectedNode = this.findNode(lastElement)
+            this.global.nativeGlobal().setSelectedNode(this.indexOfBox(lastElement))
+
+        } else if(iSelectedNode >= 0) {
 			this.global.nativeGlobal().setSelectedNode(iSelectedNode); 
             var node = this.axModel.box_list[iSelectedNode];
-            if(node && node.is_main) {
-                selectedNode = this._root.value.children.find(x => x.box == node)
-            } else {
-                var zero:TreeNode[] = []
-                selectedNode = this._root.value.children.reduce( (a,b) => a.concat(b.children), zero).find(x => x.box == node)
-            }
+            selectedNode = this.findNode(node)
                
         }
         if(selectedNode)    
@@ -85,6 +87,17 @@ export class AxDesignerService {
     private flatBoxList():BoxListEntity[] {
         return this.flatBoxes().filter(x => x.box).map(x => x.box)
     }
+
+    private findNode(box:BoxListEntity):TreeNode {
+        var selectedNode:TreeNode 
+        if(box && box.is_main) {
+            selectedNode = this._root.value.children.find(x => fastDeepEqual(x.box,box))
+        } else {
+            var zero:TreeNode[] = []
+            selectedNode = this._root.value.children.reduce( (a,b) => a.concat(b.children), zero).find(x => fastDeepEqual(x.box,box))
+        }
+        return selectedNode
+    }
  
 
 
@@ -115,11 +128,7 @@ export class AxDesignerService {
     private indexOfBox(box:BoxListEntity):number {
         var index = 0;
         if(box) {
-            this.axModel.box_list.forEach((b,i) => {
-                if(fastDeepEqual(b,box)) {
-                    index = i
-                }
-            });
+            index = this.axModel.box_list.findIndex(b => fastDeepEqual(b,box));
         }
         return index;
     }
