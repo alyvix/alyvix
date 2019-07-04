@@ -52,7 +52,7 @@ export class TreeNodeComponent implements OnInit,DoCheck {
 
 
 
-	console.log("dpi" + dpi.toString())
+	// console.log("dpi" + dpi.toString())
 
 	var canvas_w = this.canvas.nativeElement.width;
 	var canvas_h = this.canvas.nativeElement.height;
@@ -75,7 +75,7 @@ export class TreeNodeComponent implements OnInit,DoCheck {
 
 		//ctx.scale(dpi, dpi);
 
-		console.log("dpi " + canvas_w.toString() + " " + canvas_h.toString())
+		//console.log("dpi " + canvas_w.toString() + " " + canvas_h.toString())
 	  	ctx.clearRect(0, 0,canvas_w, canvas_h);
 		ctx.drawImage(image, 0, 0, Math.floor(self.node.box.thumbnail.image_w/dpi), Math.floor(self.node.box.thumbnail.image_h/dpi));
         //ctx.translate(0.5, 0.5);

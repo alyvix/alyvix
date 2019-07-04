@@ -29,8 +29,7 @@ export class TreeComponent implements OnInit {
     this.axDesignerService.getSelectedNode().subscribe(n => this.node = n);
     this.axDesignerService.getRoot().subscribe(r => {
       this.root = r
-      console.log("new root")
-      console.log(r);
+
     });
 
   }
@@ -55,7 +54,6 @@ export class TreeComponent implements OnInit {
   dragging:boolean = false;
 
   drop(list:TreeNode[],event: CdkDragDrop<TreeNode>) {
-    console.log(event);
     moveItemInArray(list, event.previousIndex, event.currentIndex);
     list.forEach(x => x.last = false);
     list[list.length - 1].last = true;
@@ -66,7 +64,6 @@ export class TreeComponent implements OnInit {
 
   startDrag(list:TreeNode[],node:TreeNode,event:CdkDragStart) {
     var others = list.filter(x => x != node)
-    console.log(others)
     others.forEach(x => x.last = false);
     var last = others.slice(-1)[0];
     if(last) last.last = true;

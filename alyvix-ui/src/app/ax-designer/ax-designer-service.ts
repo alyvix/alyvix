@@ -39,7 +39,7 @@ export class AxDesignerService {
 
         var iSelectedNode = this.global.nativeGlobal().getSelectedNode() //needs to be done before loadNodes because loadNodes call setSelectedNode
 
-        this._loadNodes();
+        this._loadNodes(true);
 
         var selectedNode:TreeNode = null;
         
@@ -86,23 +86,10 @@ export class AxDesignerService {
         return this.flatBoxes().filter(x => x.box).map(x => x.box)
     }
  
-    public indexSelectedNode(node:TreeNode):number {
-        if(node.box) {
-            var result = 0;
-            this.flatBoxes().forEach((n,i) => {
-                if(n.box && fastDeepEqual(n.box,node.box)) {
-                    result = i
-                }
-            });
-            return result;
-        } else return 0
-    }
+
 
     public setSelectedNode(box:TreeNode) {
-        var selectedNode = null;
-        if(box.box) {
-            selectedNode = this.axModel.box_list.indexOf(box.box)
-        }
+        var selectedNode = this.indexOfBox(box.box)
         this._selectedNode.next(box);
         this.global.nativeGlobal().setSelectedNode(selectedNode);
     }
@@ -124,6 +111,32 @@ export class AxDesignerService {
 
     axModel:AxModel
     flags:GroupsFlag
+
+    private indexOfBox(box:BoxListEntity):number {
+        var index = 0;
+        if(box) {
+            this.axModel.box_list.forEach((b,i) => {
+                if(fastDeepEqual(b,box)) {
+                    index = i
+                }
+            });
+        }
+        return index;
+    }
+
+    public indexSelectedNode(node:TreeNode):number {
+        if(node.box) {
+            var result = 0;
+            this.flatBoxes().forEach((n,i) => {
+                if(n.box && fastDeepEqual(n.box,node.box)) {
+                    result = i
+                }
+            });
+            return result;
+        } else return 0
+    }
+
+
   
     private static boxListEntityToNode(box:BoxListEntity):TreeNode {
       var result:TreeNode =  {
@@ -146,7 +159,7 @@ export class AxDesignerService {
         return this.axModel;
     }
   
-    private _loadNodes() {
+    private _loadNodes(selectRoot:boolean) {
   
       var box_list = [];
       if(this.axModel.box_list) {
@@ -176,12 +189,13 @@ export class AxDesignerService {
   
       this._root.next(root);
   
-      this.setSelectedNode(root);
+      if(selectRoot) {
+        this.setSelectedNode(root);
+      }
       this.updateFlags()
 
       this.updateAx();
 
-      console.log("reloaded boxes")
 
     }
 
@@ -216,47 +230,38 @@ export class AxDesignerService {
   
     removeAll() {
         this.axModel.box_list.length = 0;
-        this._loadNodes();
+        this._loadNodes(true);
     }
     newComponent(node:TreeNode) {
         
         if(node.box && !this.isGroupFull(node.box.group)) {
-            console.log("create new component")
             this.global.nativeGlobal().newComponent(node.box.group)
         } else {
             var availableGroup = [0,1,2].find(i => !this.isGroupFull(i));
-            console.log(availableGroup);
             if(availableGroup >= 0) {
-                console.log("create new component")
                 this.global.nativeGlobal().newComponent(availableGroup);
             }
         }
     }
     removeGroup(node:TreeNode) {
-        console.log("remove Group")
         this.axModel.box_list = this.axModel.box_list.filter(n => n.group != node.box.group)
         for(var i = node.box.group; i < 3; i++) {
             this.axModel.box_list.filter(x => x.group - 1 == i).forEach(n => n.group = i);
         }
-        this._loadNodes();
+        this._loadNodes(false);
     }
     duplicateGroup(node:TreeNode) {
-        console.log("Douplicate group");
         var group = node.box.group;
         var nextGroup = _.maxBy(this.axModel.box_list,function(x:BoxListEntity) {return x.group}).group + 1;
-        console.log(nextGroup)
         if(nextGroup < 3) {
             var groupToClone = this.axModel.box_list.filter(x => x.group == group);
-            console.log(groupToClone)
             var newGroup = _.cloneDeep(groupToClone).map(x => {
                 x.group = nextGroup
                 return x;
             })
-            console.log(newGroup)
             this.axModel.box_list = this.axModel.box_list.concat(newGroup);
-            this._loadNodes();
+            this._loadNodes(false);
             var toSelect = this._root.value.children[nextGroup];
-            console.log(toSelect)
             if(toSelect) {
                 this.setSelectedNode(toSelect)
             }
@@ -266,15 +271,15 @@ export class AxDesignerService {
         node.box.type = type;
     }
     removeComponent(node:TreeNode) {
-        this.axModel.box_list = this.axModel.box_list.filter(x => x != node.box);
-        this._loadNodes();
+        this.axModel.box_list = this.axModel.box_list.filter(x => !fastDeepEqual(x,node.box));
+        this._loadNodes(false);
     }
     duplicateComponent(node:TreeNode) {
         if(!this.isGroupFull(node.box.group)) {
-            var i = this.axModel.box_list.indexOf(node.box);
+            var i = this.indexOfBox(node.box);
             var component = _.cloneDeep(node.box);
             this.axModel.box_list.splice(i+1,0,component);
-            this._loadNodes();
+            this._loadNodes(false);
             var toSelect = this._root.value.children[node.box.group].children.find(x => x.box == component)
             if(toSelect) {
                 this.setSelectedNode(toSelect);
@@ -283,18 +288,18 @@ export class AxDesignerService {
     }
     setAsMain(node:TreeNode) {
         var oldmain = this.axModel.box_list.findIndex(x => x.group == node.box.group && x.is_main);
-        var newmain = this.axModel.box_list.indexOf(node.box);
+        var newmain = this.indexOfBox(node.box);
         var temp = this.axModel.box_list[oldmain];
         this.axModel.box_list[oldmain] = this.axModel.box_list[newmain];
         this.axModel.box_list[newmain] = temp;
         this.axModel.box_list[oldmain].is_main = true;
         this.axModel.box_list[newmain].is_main = false;
-        this._loadNodes();
+        this._loadNodes(false);
     }
 
     setPoint(node:TreeNode) {
         if(node.box) {
-            var i = this.axModel.box_list.indexOf(node.box)
+            var i = this.indexOfBox(node.box)
             this.global.nativeGlobal().setPoint(i)
         }
     }

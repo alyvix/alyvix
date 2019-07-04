@@ -70,7 +70,6 @@ export class AxDesignerComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.keyShortcuts.loadShortcuts()
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectNode(n));
     this.axDesignerService.getDragging().subscribe(d => this.dragging = d);
     this.axModel = this.axDesignerService.getModel();
