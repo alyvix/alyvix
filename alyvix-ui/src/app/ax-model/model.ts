@@ -28,6 +28,7 @@ export interface AxModel {
     type: string;
     features?: Features;
     mouse?: Mouse;
+    mouse_keep_options?: Mouse[];
     keyboard?: Keyboard;
   }
   export interface Thumbnail {

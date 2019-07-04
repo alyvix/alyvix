@@ -1,5 +1,7 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
 import { TreeNode, AxDesignerService } from '../../ax-designer-service';
+import { Mouse, Point } from 'src/app/ax-model/model';
+import * as _ from 'lodash';
 
 @Component({
   selector: 'ax-interaction',
@@ -8,10 +10,38 @@ import { TreeNode, AxDesignerService } from '../../ax-designer-service';
 })
 export class InteractionComponent implements OnInit {
 
-  constructor(private axDesignerService:AxDesignerService) { }
+  constructor(private axDesignerService:AxDesignerService, private cdRef:ChangeDetectorRef) { }
+
+  private _node:TreeNode
+
 
   @Input()
-  node: TreeNode
+  set node(node: TreeNode) {
+    Promise.resolve(null).then(() => { // enqueque after change detection loop to avoid ExpressionChangedAfterItHasBeenCheckedError
+      console.log("interaction init")
+    
+      if(!node.box.mouse_keep_options) {
+        node.box.mouse_keep_options = [];
+      }
+      if(!node.box.mouse) {
+        node.box.mouse = {
+          features: {
+            point: {
+              dx: 0, dy:0
+            }
+          }
+        }
+      }
+
+      this.addToKeepOptions(node)
+
+      this._node = node;
+    });
+    
+    
+    
+  }
+
   
   interactionTypes = [
     {name: "None", value: null},
@@ -23,72 +53,93 @@ export class InteractionComponent implements OnInit {
   ]
 
   ngOnInit() {
-    this.node.box.mouse.type
   }
+   
 
   setPoint() {
-    this.axDesignerService.setPoint(this.node);
+    this.axDesignerService.setPoint(this._node);
   }
 
   isPointAlreadySelected():boolean {
-    return this.node.box.mouse.features.point.dx > 0 && this.node.box.mouse.features.point.dy > 0;
+    return this._node.box.mouse.features.point.dx > 0 && this._node.box.mouse.features.point.dy > 0;
   }
 
   removePoint() {
-    this.node.box.mouse.features.point.dx = 0;
-    this.node.box.mouse.features.point.dy = 0;
+    this._node.box.mouse.features.point.dx = 0;
+    this._node.box.mouse.features.point.dy = 0;
     this.axDesignerService.updateAx();
   }
 
   pixelsChange() {
-    if(this.node.box.mouse.features.pixels < 1)
-      this.node.box.mouse.features.pixels = 1;
+    if(this._node.box.mouse.features.pixels < 1)
+      this._node.box.mouse.features.pixels = 1;
   }
   
   delayChange() {
-    if(this.node.box.mouse.features.delays_ms < 1)
-      this.node.box.mouse.features.delays_ms = 1;
+    if(this._node.box.mouse.features.delays_ms < 1)
+      this._node.box.mouse.features.delays_ms = 1;
   }
 
   amountChange() {
     console.log("amount change")
-    if(this.node.box.mouse.features.amount < 1)
-      this.node.box.mouse.features.amount = 1;
+    if(this._node.box.mouse.features.amount < 1)
+      this._node.box.mouse.features.amount = 1;
   }
 
-  interactionChange() {
+  private addToKeepOptions(node:TreeNode) {
+    node.box.mouse_keep_options = node.box.mouse_keep_options.filter(x => x.type != node.box.mouse.type)
+    node.box.mouse_keep_options.push(_.cloneDeep(node.box.mouse))
+  }
 
+  interactionChange(type:string) {
+    this.addToKeepOptions(this._node)
+    var mouse = this._node.box.mouse_keep_options.find(x => x.type == type)
+    if(!mouse) {
+      mouse = this.defaults(type)
+    }
+    this._node.box.mouse = mouse;
+    this.axDesignerService.updateAx();
+  }
+
+  defaults(type:string):Mouse {
+
+    var mouse:Mouse = {
+      type: type,
+      features: {
+        point: {dx: 0, dy:0}
+      }
+    }
     //Pivotal #166603801 - `Delays [ms]`settings for `Click` and `Scroll` are different (i.e. toggle different last values)
-    this.node.box.mouse.features.delays_ms = 100;
+    mouse.features.delays_ms = 100;
     
 
-    switch(this.node.box.mouse.type) {
+    switch(type) {
       case 'click': {
-        if(!this.node.box.mouse.features.button) {
-          this.node.box.mouse.features.button = "left"
+        if(!mouse.features.button) {
+          mouse.features.button = "left"
         }
         //Pivotal #166603801 - Discussion with AP always to default
-        this.node.box.mouse.features.amount = 1
+        mouse.features.amount = 1
         
         break;
       }
       case 'scroll': {
         //Pivotal #166603801 - Discussion with AP always to default
-        this.node.box.mouse.features.direction = "down"
-        this.node.box.mouse.features.amount = 1
+        mouse.features.direction = "down"
+        mouse.features.amount = 1
         break;
       }
       case 'release': {
         //Pivotal #166603801 - Discussion with AP always to default
-        this.node.box.mouse.features.direction = "none"
-        if(!this.node.box.mouse.features.pixels) {
-          this.node.box.mouse.features.pixels = 100
+        mouse.features.direction = "none"
+        if(!this._node.box.mouse.features.pixels) {
+          mouse.features.pixels = 100
         }
         break;
       }
     }
 
-    this.axDesignerService.updateAx();
+    return mouse;
 
   }
 
