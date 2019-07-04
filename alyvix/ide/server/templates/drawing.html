@@ -36,6 +36,8 @@
         
         var object_name = "{{object_name}}";
         
+        var last_element = null;
+        
         key_ctrl_pressed = false;
         
         var detection = {
@@ -136,6 +138,11 @@
             console.log("set selected box: " + i)
             selected_box = i;
             draw(rectManager.last_mouse_event);
+        }
+        
+        function lastElement()
+        {
+            return last_element;
         }
         
         function setTypeNode() {
@@ -393,6 +400,7 @@
             //alert("unload");
             window.unloadAlyvixDesigner();
             win.detachObject();
+            last_element = null;
             return true;
         }
 		

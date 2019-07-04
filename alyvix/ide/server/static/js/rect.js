@@ -1204,6 +1204,8 @@ class RectManager{
             
             boxes.push(box);
             
+            last_element = box;
+            
             //self._main_rect_finder = rect_finder
 
             //self.__deleted_rects = []
@@ -1305,6 +1307,8 @@ class RectManager{
         
         
         boxes.push(box);
+        
+        last_element = box;
 
     }
     
