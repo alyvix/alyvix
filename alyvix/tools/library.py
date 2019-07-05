@@ -23,7 +23,9 @@ import base64
 import cv2
 import numpy as np
 import os
+import sys
 from sys import platform as _platform
+
 
 from alyvix.tools.screen import ScreenManager
 
@@ -73,8 +75,13 @@ class LibraryManager:
 
         filename_path = os.path.dirname(filename)
         filename_no_path = os.path.basename(filename)
-        filename_no_extension = os.path.splitext(filename_no_path)[0]
-        file_extension = os.path.splitext(filename_no_path)[1]
+
+        if filename_no_path.count(".") == 1 and filename_no_path.find(".") == 0:
+            filename_no_extension = ""
+            file_extension = os.path.splitext(filename_no_path)[0]
+        else:
+            filename_no_extension = os.path.splitext(filename_no_path)[0]
+            file_extension = os.path.splitext(filename_no_path)[1]
 
         if filename_path == '':
             filename_path = os.getcwd()
@@ -82,6 +89,10 @@ class LibraryManager:
 
         if file_extension != ".alyvix":
             filename = filename_path + os.sep + filename_no_extension + ".alyvix"
+
+        if filename_no_extension == "":
+            print("A file name can't be empty")
+            sys.exit(2)
 
         return filename
 
@@ -94,7 +105,8 @@ class LibraryManager:
             pass
         elif _platform == "win32":
             # window...
-            invalid_char = ["\"", "*", "/", ":", "<", ">", "?", "\\", "|", "+", ",", ".", ";", "=", "[", "]"]
+            #\ / : * ? " > < |
+            invalid_char = ["\"", "/", ":", "*", "?", "<", ">", "\\", "|"]
 
             return invalid_char
 
@@ -107,6 +119,9 @@ class LibraryManager:
             self._json_object = {}
     def get_json(self):
         return self._json_object
+
+    def set_json(self, json_dict):
+        self._json_object = json_dict
 
     def check_if_exist(self, object_name):
 
@@ -527,3 +542,6 @@ class LibraryManager:
 
         return {"detection": detection_dict, "boxes": self.boxes, "screen": background_string,
                 "scaling_factor": scaling_factor, "img_h": h, "img_w": w, "object_name": object_name, "run": run_dict}
+
+    def save_object(self):
+        pass

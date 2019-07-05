@@ -39,12 +39,13 @@ import win32com.client
 from multiprocessing import Process
 
 import urllib.request
-
+import threading
 
 # Globals
 #cef.DpiAware.EnableHighDpiSupport()
 WindowUtils = cef.WindowUtils()
 g_multi_threaded = False
+
 
 def set_foreground(window_handle):
 
@@ -72,9 +73,17 @@ class ViewerManager(ViewerManagerBase):
     def __init__(self):
         super(ViewerManager, self).__init__()
         self.window_handle = None
+        self._base_url = None
+        self._title = None
 
     def close(self):
-        cef.Shutdown()
+
+        if self._title == "Alyvix Selector":
+            aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
+
+        win32gui.PostMessage(self.window_handle, win32con.WM_CLOSE, 0, 0)
+
+    def close_and_no_shutdown(self):
         win32gui.PostMessage(self.window_handle, win32con.WM_CLOSE, 0, 0)
 
     def hide(self):
@@ -85,6 +94,10 @@ class ViewerManager(ViewerManagerBase):
 
     def set_win_handler(self, handler):
         self.window_handle = handler
+
+    def load_url(self, url):
+        #browser = cef.GetBrowserByWindowHandle(window_handle)
+        self._browser.loadUrl('url')
 
     def IsWindowVisible(self, handler):
         visible = win32gui.IsWindowVisible(handler)
@@ -149,6 +162,8 @@ class ViewerManager(ViewerManagerBase):
 
         base_url = url.rsplit('/',1)[0]
 
+        self._base_url = base_url
+
         handler_type = None
 
         if win_title == "Alyvix Designer":
@@ -156,8 +171,10 @@ class ViewerManager(ViewerManagerBase):
         elif win_title == "Alyvix Selector":
             handler_type = "selector"
 
+        self._title = win_title
+
         aa = urllib.request.urlopen(base_url + "/set_viewer_handler_api?handler=" + str(window_handle) +
-                                    "&type=" + handler_type).read()
+                                        "&type=" + handler_type).read()
 
         window_info = cef.WindowInfo()
         window_info.SetAsChild(window_handle)
@@ -250,6 +267,10 @@ class ViewerManager(ViewerManagerBase):
                                         settings=settings,
                                         url=url)
 
+        #bb = cef.GetBrowserByWindowHandle(window_info.parentWindowHandle)
+
+        #aa = ""
+
         """
         if fullscreen is True:
             browser.ToggleFullscreen()
@@ -264,6 +285,7 @@ class ViewerManager(ViewerManagerBase):
         wndclass.hbrBackground = win32con.COLOR_WINDOW
         wndclass.hCursor = win32gui.LoadCursor(0, win32con.IDC_ARROW)
         wndclass.lpfnWndProc = window_proc
+
         atom_class = win32gui.RegisterClass(wndclass)
         assert (atom_class != 0)
 
@@ -330,7 +352,10 @@ class ViewerManager(ViewerManagerBase):
     def close_window(self, window_handle, message, wparam, lparam):
         browser = cef.GetBrowserByWindowHandle(window_handle)
         browser.CloseBrowser(True)
+        browser = None
         # OFF: win32gui.DestroyWindow(window_handle)
+        #cef.Shutdown()
+
         return win32gui.DefWindowProc(window_handle, message, wparam, lparam)
 
 

@@ -79,9 +79,9 @@ class OutputManager:
                                  + "_UTC" + time.strftime("%z")
 
                 if prefix is not None:
-                    filename =  prefix + "_" + object.object_name + "_screenshot_" + date_formatted + ".png"
+                    filename =  prefix + "_" + object.object_name + "_" + date_formatted + "_screenshot.png"
                 else:
-                    filename = object.object_name + "_screenshot_" + date_formatted + ".png"
+                    filename = object.object_name + "_" + date_formatted + "_screenshot.png"
 
                 cv2.imwrite(file_path + os.sep + filename, object.screenshot)
 
@@ -91,9 +91,9 @@ class OutputManager:
                                  + "_UTC" + time.strftime("%z")
 
                 if prefix is not None:
-                    filename =  prefix + "_" + object.object_name + "_annotation_" + date_formatted + ".png"
+                    filename =  prefix + "_" + object.object_name + "_" + date_formatted + "_annotation.png"
                 else:
-                    filename = object.object_name + "_annotation_" + date_formatted + ".png"
+                    filename = object.object_name + "_" + date_formatted + "_annotation.png"
 
                 cv2.imwrite(file_path + os.sep + filename, object.annotation)
 

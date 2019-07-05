@@ -50,7 +50,7 @@ args = parser.parse_args()
 
 
 
-def run_server(port, background_image, scaling_factor, object, filename, verbose):
+def run_server(port, background_image, scaling_factor, object, filename, verbose, json_dict):
     #screen_manager = ScreenManager()
     server_manager = ServerManager()
 
@@ -59,6 +59,7 @@ def run_server(port, background_image, scaling_factor, object, filename, verbose
     server_manager.set_scaling_factor(scaling_factor)
     server_manager.set_object_name(object)
     server_manager.set_file_name(filename)
+    server_manager.set_json(json_dict)
 
     server_manager.run(port, verbose)
 
@@ -101,11 +102,14 @@ if __name__ == '__main__':
                 filename_invalid_chars.append(char)
 
     if len(filename_invalid_chars) > 0:
+        """
         invalid_char_str = filename_invalid_chars[0]
         for char in filename_invalid_chars[1:]:
             invalid_char_str = invalid_char_str + " " + char
         print("Invalid file name (" + filename_no_extension + "), the following characters are not valid: " +
               invalid_char_str)
+        """
+        print("A file name can't contain any of the following characters: \ / : * ? \" > < |")
         sys.exit(2)
 
     lm.load_file(filename)
@@ -171,7 +175,7 @@ if __name__ == '__main__':
     viewer_manager = ViewerManager()
 
     http_process = Process(target=run_server, args=(server_port, background_image, scaling_factor, object,
-                                                    filename, args.verbose))
+                                                    filename, args.verbose, lm.get_json()))
     http_process.start()
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

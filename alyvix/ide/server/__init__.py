@@ -88,6 +88,9 @@ class ServerManager():
 
         views.current_objectname = objectname
 
+    def set_json(self, json_dict):
+        views.library_dict = json_dict
+
     def auto_contouring(self, image, scaling_factor=1):
         contouring_manager = ContouringManager(
             canny_threshold1=250*0.2,

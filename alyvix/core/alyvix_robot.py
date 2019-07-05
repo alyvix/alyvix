@@ -226,11 +226,11 @@ if filename is not None:
             print(date_formatted + ": " + result.object_name + " measures " + str(performance) + "s " +
                   "(+/-" + '{:.3f}'.format(accuracy) + ") OK")
         else:
-            print(date_formatted + ": " + result.object_name + " timed out after " + str(result.timeout) + "s")
+            print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(result.timeout) + "s")
 
     if state == 0:
         print (filename_no_extension + " ends ok")
     else:
-        print (filename_no_extension + " TIMEDOUT")
+        print (filename_no_extension + " TIMED OUT")
 
     aaa = None

@@ -473,12 +473,13 @@ class EngineManager(object):
 
                 #keyboard_string = "sadfasfdasf asfdf {arg1} dfdfdfd {arg2}"
 
-                args_in_string = re.findall("\\{arg[0-9]+\\}", keyboard_string,re.IGNORECASE)
+                #args_in_string = re.findall("\\{arg[0-9]+\\}", keyboard_string,re.IGNORECASE)
+                args_in_string = re.findall("\\{[0-9]+\\}", keyboard_string, re.IGNORECASE)
 
                 for arg_pattern in args_in_string:
 
                     try:
-                        i = int(arg_pattern.lower().replace("{arg","").replace("}",""))
+                        i = int(arg_pattern.lower().replace("{","").replace("}",""))
 
                         keyboard_string = keyboard_string.replace(arg_pattern, self._arguments[i-1])
                     except:

@@ -1360,9 +1360,9 @@ class RectManager{
             var min_width = rect.features["R"]["width"]["min"];
             var max_width = rect.features["R"]["width"]["max"];
             
-            if (min_width < 0) min_width = 2;
+            if (min_width < 0) min_width = 0;
             
-            if (min_height < 0) min_height = 2;
+            if (min_height < 0) min_height = 0;
             
             
             var x_min =  rect_center_x - parseInt(min_width/2);
@@ -1380,6 +1380,11 @@ class RectManager{
                 if (x_max + max_width > roi_x + roi_w) max_width = max_width - ((x_max + max_width) - (roi_x + roi_w));
                 
                 if (y_max + max_height > roi_y + roi_h) max_height = max_height - ((y_max + max_height) - (roi_y + roi_h));
+                
+                ctx.globalAlpha=0.2;
+                ctx.fillRect(roi_x, roi_y, roi_w, roi_h);
+                ctx.globalAlpha=1;
+                ctx.strokeRect(roi_x, roi_y, roi_w, roi_h);
                 
             }
             

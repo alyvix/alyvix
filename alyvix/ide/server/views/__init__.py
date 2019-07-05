@@ -20,6 +20,7 @@
 
 # -*- coding: utf-8 -*-
 import os
+import sys
 import time
 import hmac
 import json
@@ -52,6 +53,7 @@ from alyvix.core.engine.text import TextManager
 from alyvix.tools.screen import ScreenManager
 from operator import itemgetter
 import threading
+import subprocess
 
 import win32gui
 import win32con
@@ -67,13 +69,22 @@ current_objectname = None
 current_filename = None
 #current_json = {}
 current_boxes = []
+
+
+library_dict = None
+
 win32_window = None
 server_process = None
 viewer_handler_selector = None
 viewer_handler_designer = None
+popen_process = None
 current_port = None
 
+viewer_manager = None
+
 viewer_process = None
+
+default_object_name = "VisualObject"
 
 def detachedProcessFunction(wait_time):
     i=0
@@ -81,29 +92,6 @@ def detachedProcessFunction(wait_time):
         i = i+1
         print("loop running %d" % i)
         time.sleep(1)
-
-def process_viewer(server_port):
-
-    vm = ViewerManager()
-
-    url = "http://127.0.0.1:" + str(server_port) + "/drawing"
-
-    # open 2 fds
-    null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
-    # save the current file descriptors to a tuple
-    save = os.dup(1), os.dup(2)
-    # put /dev/null fds on 1 and 2
-    #os.dup2(null_fds[0], 1)
-    #os.dup2(null_fds[1], 2)
-
-    vm.run(url, fullscreen=True)
-
-    # restore file descriptors so I can print the results
-    os.dup2(save[0], 1)
-    os.dup2(save[1], 2)
-    # close the temporary fds
-    os.close(null_fds[0])
-    os.close(null_fds[1])
 
 
 @app.route("/table", methods=['GET', 'POST'])
@@ -124,25 +112,34 @@ def selector():
     text = en.drawing
 
     return render_template('selector.html', new_url_api='http://127.0.0.1:' + str(current_port) + '/selector_button_new_api',
-                           cancel_url_api='http://127.0.0.1:' + str(current_port) + '/selector_button_cancel_api')
+                           close_url_api='http://127.0.0.1:' + str(
+                               current_port) + '/selector_close_api',
+                           close_and_shutdown_url_api='http://127.0.0.1:' + str(
+                               current_port) + '/selector_shutdown_and_close_api',
+                           selector_save_json_api='http://127.0.0.1:' + str(
+                               current_port) + '/selector_save_json_api')
 
 @app.route("/selector_button_new_api", methods=['GET', 'POST'])
 def selector_button_new_api():
 
+    global current_objectname
     global background_image
     global base64png
     global img_h
     global img_w
-    global viewer_process
-
+    global popen_process
+    global autocontoured_rects
 
     vm = ViewerManager()
     vm.set_win_handler(viewer_handler_selector)
     vm.hide()
 
+
     while True:
         if vm.IsWindowVisible(viewer_handler_selector) is False and vm.IsIconic(viewer_handler_selector) is False:
             break
+
+    time.sleep(0.5)
 
     delay = int(request.args.get('delay'))
 
@@ -175,13 +172,107 @@ def selector_button_new_api():
     img_h = int(background_image.shape[0] / scaling_factor)
     img_w = int(background_image.shape[1] / scaling_factor)
 
-    viewer_process = threading.Thread(target=process_viewer, args=(current_port,))
-    viewer_process.start()
+    contouring_manager = ContouringManager(
+        canny_threshold1=250 * 0.2,
+        canny_threshold2=250 * 0.3,
+        canny_apertureSize=3,
+        hough_threshold=10,
+        hough_minLineLength=30,
+        hough_maxLineGap=1,
+        line_angle_tolerance=0,
+        ellipse_width=2,
+        ellipse_height=2,
+        text_roi_emptiness=0.45,
+        text_roi_proportion=1.3,
+        image_roi_emptiness=0.1,
+        vline_hw_proportion=2,
+        vline_w_maxsize=10,
+        hline_wh_proportion=2,
+        hline_h_maxsize=10,
+        rect_w_minsize=5,
+        rect_h_minsize=5,
+        rect_w_maxsize_01=800,
+        rect_h_maxsize_01=100,
+        rect_w_maxsize_02=100,
+        rect_h_maxsize_02=800,
+        rect_hw_proportion=2,
+        rect_hw_w_maxsize=10,
+        rect_wh_proportion=2,
+        rect_wh_h_maxsize=10,
+        hrect_proximity=10,
+        vrect_proximity=10,
+        vrect_others_proximity=40,
+        hrect_others_proximity=80)
+
+    contouring_manager.auto_contouring(background_image, scaling_factor)
+
+    autocontoured_rects = []
+    autocontoured_rects.extend(contouring_manager.getImageBoxes())
+    autocontoured_rects.extend(contouring_manager.getRectBoxes())
+    autocontoured_rects.extend(contouring_manager.getTextBoxes())
+
+
+    #viewer_process = threading.Thread(target=process_viewer, args=(current_port,))
+    #viewer_process.start()
+
+    object_start_index = 1
+    object = default_object_name + str(object_start_index)
+
+    lm = LibraryManager()
+    lm.set_json(library_dict)
+    while True:
+        if lm.check_if_exist(object) is False:
+            break
+
+        object_start_index += 1
+        object = default_object_name + str(object_start_index)
+
+    current_objectname = object
+
+    url = "http://127.0.0.1:" + str(current_port) + "/drawing"
+
+
+    executable_code = """
+from alyvix.ide.viewer import ViewerManager
+
+if __name__ == '__main__':
+    viewer_manager = ViewerManager()
+    viewer_manager.run('{}', fullscreen=True)
+    """.format(url)
+
+    python_exec = sys.executable
+    python_path = os.path.dirname(python_exec)
+
+    if os.path.isfile(python_path + os.sep + 'pythor.exe') is True:
+        popen_process = subprocess.Popen([python_path + os.sep + 'pythor.exe', '-c', executable_code],
+                                         stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    else:
+        popen_process = subprocess.Popen([python_path + os.sep + 'python.exe', '-c', executable_code],
+                                         stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
-@app.route("/selector_button_cancel_api", methods=['GET'])
-def selector_button_cancel_api():
+@app.route("/selector_close_api", methods=['GET'])
+def selector_close_api():
+
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is not None:
+        func()
+    else:
+        # raise RuntimeError('Not running with the Werkzeug Server')
+        server_process.close()
+
+    #popen_process.kill()
+    #import signal
+    #os.killpg(os.getpgid(popen_process.pid), signal.SIGTERM)
+    #os.kill(popen_process.pid, signal.CTRL_C_EVENT)
+
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route("/selector_shutdown_and_close_api", methods=['GET'])
+def selector_shutdown_and_close_api():
 
     func = request.environ.get('werkzeug.server.shutdown')
     if func is not None:
@@ -192,7 +283,10 @@ def selector_button_cancel_api():
 
     vm = ViewerManager()
     vm.set_win_handler(viewer_handler_selector)
-    vm.close()
+    vm.close_and_no_shutdown()
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
 
 @app.route("/set_viewer_handler_api", methods=['GET'])
 def set_viewer_handler_api():
@@ -209,18 +303,12 @@ def set_viewer_handler_api():
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
-@app.route("/close_viewer_handler_api", methods=['GET'])
-def close_viewer_handler_api():
-    vm = ViewerManager()
-    vm.close_2(int(viewer_handler))
-
-    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
-
 @app.route("/load_objects", methods=['GET'])
 def load_objects():
+    global autocontoured_rects
     lm = LibraryManager()
 
-    lm.load_file(current_filename)
+    lm.set_json(library_dict)
 
     alyvix_file_dict = lm.build_objects_for_ide(current_objectname)
 
@@ -301,15 +389,19 @@ def cancel_event():
 
 @app.route("/save_json", methods=['GET', 'POST'])
 def save_json():
+    global library_dict
     if request.method == 'POST':
 
         current_json = {}
 
-        try:
-            with open(current_filename) as f:
-                current_json = json.load(f)
-        except:
-            pass
+        if viewer_handler_selector is None:
+            try:
+                with open(current_filename) as f:
+                    current_json = json.load(f)
+            except:
+                pass
+        else:
+            current_json = library_dict
 
         json_data = json.loads(request.data)
         object_name = json_data['object_name']
@@ -625,18 +717,37 @@ def save_json():
 
 
         if object_name != current_objectname:
-            del current_json["objects"][current_objectname]
+            if current_objectname in current_json["objects"]:
+                del current_json["objects"][current_objectname]
 
         current_json["objects"][object_name]["date-modified"] = \
             datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
 
-
-        with open(current_filename, 'w') as f:
-            json.dump(current_json, f, indent=4, sort_keys=True, ensure_ascii=False)
+        if viewer_handler_selector is None:
+            with open(current_filename, 'w') as f:
+                json.dump(current_json, f, indent=4, sort_keys=True, ensure_ascii=False)
+        else:
+            vm = ViewerManager()
+            vm.set_win_handler(viewer_handler_selector)
+            vm.show()
 
         aaa = "asas"
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route("/selector_save_json_api", methods=['GET', 'POST'])
+def selector_save_json_api():
+
+    global library_dict
+
+    curr_script = library_dict.get("script", {})
+
+    library_dict["script"] = curr_script
+
+    with open(current_filename, 'w') as f:
+        json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 @app.route("/get_scraped_txt", methods=['GET', 'POST'])
 def get_scraped_txt():
@@ -645,10 +756,10 @@ def get_scraped_txt():
         json_data = json.loads(request.data)
 
         roi = Roi()
-        roi.x = json_data["roi_x"]
-        roi.y = json_data["roi_y"]
-        roi.w = json_data["roi_w"]
-        roi.h = json_data["roi_h"]
+        roi.x = int(json_data["roi_x"]*scaling_factor)
+        roi.y = int(json_data["roi_y"]*scaling_factor)
+        roi.w = int(json_data["roi_w"]*scaling_factor)
+        roi.h = int(json_data["roi_h"]*scaling_factor)
         roi.unlimited_left = json_data["roi_unlimited_left"]
         roi.unlimited_up = json_data["roi_unlimited_up"]
         roi.unlimited_right = json_data["roi_unlimited_right"]

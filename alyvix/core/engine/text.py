@@ -73,12 +73,12 @@ class TextManager():
     def set_regexp(self, regexp, args = None):
         self._regexp = regexp
 
-        args_in_string = re.findall("\\{arg[0-9]+\\}", self._regexp, re.IGNORECASE)
+        args_in_string = re.findall("\\{[0-9]+\\}", self._regexp, re.IGNORECASE)
 
         for arg_pattern in args_in_string:
 
             try:
-                i = int(arg_pattern.lower().replace("{arg", "").replace("}", ""))
+                i = int(arg_pattern.lower().replace("{", "").replace("}", ""))
 
                 self._regexp = self._regexp.replace(arg_pattern, args[i - 1])
             except:

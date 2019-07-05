@@ -48,12 +48,13 @@ args = parser.parse_args()
 
 
 
-def run_server(port, scaling_factor, filename, verbose):
+def run_server(port, scaling_factor, filename, verbose, json_dict):
     #screen_manager = ScreenManager()
     server_manager = ServerManager()
 
     server_manager.set_scaling_factor(scaling_factor)
     server_manager.set_file_name(filename)
+    server_manager.set_json(json_dict)
 
     server_manager.run(port, verbose)
 
@@ -97,18 +98,21 @@ if __name__ == '__main__':
                 filename_invalid_chars.append(char)
 
     if len(filename_invalid_chars) > 0:
+        """
         invalid_char_str = filename_invalid_chars[0]
         for char in filename_invalid_chars[1:]:
             invalid_char_str = invalid_char_str + " " + char
         print("Invalid file name (" + filename_no_extension + "), the following characters are not valid: " +
               invalid_char_str)
+        """
+        print("A file name can't contain any of the following characters: \ / : * ? \" > < |")
         sys.exit(2)
 
-    if os.path.isfile(filename) is False:
-        print(filename + " does NOT exist")
-        sys.exit(2)
+    if os.path.isfile(filename) is True:
 
-    lm.load_file(filename)
+        lm.load_file(filename)
+    else:
+        lm.set_json({})
 
 
     screen_manager = ScreenManager()
@@ -132,7 +136,7 @@ if __name__ == '__main__':
 
     viewer_manager = ViewerManager()
 
-    http_process = Process(target=run_server, args=(server_port, scaling_factor, filename, args.verbose))
+    http_process = Process(target=run_server, args=(server_port, scaling_factor, filename, args.verbose,lm.get_json()))
     http_process.start()
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -155,8 +159,8 @@ if __name__ == '__main__':
         # save the current file descriptors to a tuple
         save = os.dup(1), os.dup(2)
         # put /dev/null fds on 1 and 2
-        #os.dup2(null_fds[0], 1)
-        #os.dup2(null_fds[1], 2)
+        os.dup2(null_fds[0], 1)
+        os.dup2(null_fds[1], 2)
 
         viewer_manager.run(url, fullscreen=False, dimension=(int(800*scaling_factor),int(460*scaling_factor)),
                            title="Alyvix Selector")
