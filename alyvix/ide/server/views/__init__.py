@@ -773,7 +773,12 @@ def get_scraped_txt():
         results = tm.scrape(roi=roi)
         scraped_text = results[0].scraped_text
 
-        ret_dict = {'scraped_text': scraped_text}
+        #white_list = 'abcdefghilmnopqrstuvzxyw1234567890'
+
+        reg_exp = re.sub('[^A-Za-z0-9]+', '.*', scraped_text)
+
+
+        ret_dict = {'scraped_text': scraped_text, 'reg_exp': reg_exp.lower()}
 
         return jsonify(ret_dict)
 
@@ -786,13 +791,19 @@ def test_txt_regexp():
         regexp = json_data["regexp"]
         scraped_text = json_data["scraped_text"]
 
-        result = re.match(".*" + regexp + ".*", scraped_text, re.DOTALL | re.IGNORECASE)
+        args_in_string = re.findall("\\{[0-9]+\\}", regexp, re.IGNORECASE)
 
-        if result is  None:
-
-            ret_dict = {'match': False}
+        if len(args_in_string) > 0:
+            ret_dict = {'match': 'yellow'}
         else:
-            ret_dict = {'match': True}
+
+            result = re.match(".*" + regexp + ".*", scraped_text, re.DOTALL | re.IGNORECASE)
+
+            if result is None:
+
+                ret_dict = {'match': 'red'}
+            else:
+                ret_dict = {'match': 'green'}
 
         return jsonify(ret_dict)
 

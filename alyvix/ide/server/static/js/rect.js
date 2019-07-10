@@ -122,6 +122,16 @@ class RectManager{
         
         if (e.key == "Control") this.key_ctrl_pressed = true;
         
+        if (e.key == "i") init_rect_type(this.rectangles[this.rectangles.length-1]);
+        if (e.key == "g")
+        {
+            console.log(get_rect_type(this.rectangles[this.rectangles.length-1]));
+            
+        }
+        if (e.key == "s") set_rect_type("box", this.rectangles[this.rectangles.length-1]);
+        if (e.key == "d") set_rect_type("window", this.rectangles[this.rectangles.length-1]);
+        if (e.key == "f") set_rect_type("button", this.rectangles[this.rectangles.length-1]);
+        
         if (this.key_ctrl_pressed == true && e.key == "z")
         {
             if(this.intent["type"]==="set_interaction_point")

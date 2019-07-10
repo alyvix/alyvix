@@ -389,6 +389,7 @@ class TextManager():
             api.Recognize()
             ri = api.GetIterator()
             level = tesserocr.RIL.WORD
+            #level = tesserocr.RIL.SYMBOL
 
             #boxes = api.GetComponentImages(tesserocr.RIL.TEXTLINE, True)
 
