@@ -8,6 +8,12 @@ export interface GroupsFlag{
 }
 
 //define here methods and variables that are defined in the global scope of alyvix
+export enum RectType{
+    Box = "box",
+    Window = "window",
+    Button = "button"
+}
+
 export interface AxGlobal{
     axModel():AxModel;
 
@@ -24,12 +30,25 @@ export interface AxGlobal{
     setGroupFlags(flags:GroupsFlag)
 
     getSelectedNode():number
-	setSelectedNode(i:number)
-	
+    setSelectedNode(i:number)
+    
+    get_rect_type(rect:BoxListEntity):RectType
+    set_rect_type(type:RectType,rect:BoxListEntity)
+    
 	setTypeNode(s:string)
 }
 
 export class MockGlobal implements AxGlobal{
+
+    get_rect_type(rect: BoxListEntity): RectType {
+        console.log("get_rect_type");
+        return RectType.Box;
+    }
+    set_rect_type(type: RectType, rect: BoxListEntity) {
+        console.log("set_rect_type");
+    }
+
+
     lastElement(): BoxListEntity {
         return null;
     }

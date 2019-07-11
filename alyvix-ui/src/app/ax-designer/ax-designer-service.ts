@@ -27,6 +27,8 @@ export class AxDesignerService {
 
     constructor( @Inject('GlobalRef') private global: GlobalRef,) {
         this.axModel = this.global.nativeGlobal().axModel();
+        console.log("axModel")
+        console.log(this.axModel)
         if(this.axModel.box_list) {
             this.axModel.box_list.forEach(box => {
                 if(!box.features.I.likelihood) {
