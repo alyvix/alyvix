@@ -3,7 +3,10 @@
     <div class="pure-u-1-1">
       <div class="form-group">
         <label>Object name</label>
-        <input type="text" [(ngModel)]="axModel.object_name" #first />
+        <input type="text" pattern="[a-zA-Z0-9_\- ]*" [(ngModel)]="axModel.object_name" #first #name="ngModel" />
+        <div *ngIf="name.invalid && (name.dirty || name.touched)" class="alert">
+            Only alphanumeric characters and - _ ` ` (space) are allowed
+        </div>
       </div>
     </div>
     <div class="pure-u-1-1">

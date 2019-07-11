@@ -31,7 +31,7 @@
     <input [(ngModel)]="_node.box.mouse.features.amount" (change)="amountChange()" type="number" style="width:50px" min="1">
   </div>
   
-  <div class="pure-u-3-24 form-group" *ngIf="(_node.box.mouse.features.amount > 1 && _node.box.mouse.type== 'click') || _node.box.mouse.type== 'scroll'">
+  <div class="pure-u-3-24 form-group" *ngIf="_node.box.mouse.features.amount > 1 && ( _node.box.mouse.type== 'click' || _node.box.mouse.type== 'scroll' ) ">
       <label>Delays [ms]</label>
       <input [(ngModel)]="_node.box.mouse.features.delays_ms" (change)="delayChange()" type="number" style="width:50px"  min="1" >
     </div>

@@ -5,6 +5,7 @@ import { GlobalRef } from '../ax-model/ax-global';
 import { ResizedEvent } from 'angular-resize-event';
 import { TouchSequence } from 'selenium-webdriver';
 import { KeyShortcutsService } from '../key-shortcuts.service';
+import { FormControl, Validators } from '@angular/forms';
 
 @Component({
   selector: 'ax-designer',
@@ -21,6 +22,10 @@ export class AxDesignerComponent implements OnInit {
   @ViewChild('treeContainer') treeContainer: ElementRef;
 
   @ViewChild("first") first: ElementRef;
+  // object_name: FormControl = new FormControl('', [
+  //   Validators.required
+  //   Validators.
+  // ]);
 
   bottomWithoutOptions = 72;
   totalHeight = 590;

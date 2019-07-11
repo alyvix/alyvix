@@ -5,6 +5,7 @@ $blue: #0078e7;
 $darkblue: darken( $blue, 30%);
 $lightblue: lighten( $blue, 50% );
 $textcolor: #333;
+$red: red;
 
 * {
     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
@@ -73,7 +74,7 @@ input::-webkit-inner-spin-button {
     }
 
     &.ng-invalid {
-      border-bottom: 1px solid red !important;
+      border-bottom: 1px solid $red !important;
       background-color: lightpink;
     }
 }
@@ -141,6 +142,13 @@ input[type='radio'] {
   font-size: 12px;
   line-height: 20px;
   margin-right: 7px;
+}
+
+.alert{
+  font-size: 12px;
+  font-weight: bold;
+  color: $red;
+  line-height: 14px;
 }
 
 .btn{
