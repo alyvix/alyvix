@@ -15,15 +15,26 @@ export class RComponent implements OnInit {
 
   constructor(@Inject('GlobalRef') private global: GlobalRef,) { }
 
-  @Input()
-  node: TreeNode
+  _node:TreeNode
 
+  @Input()
+  set node(node: TreeNode) {
+    this._node = node;
+    this.onNodeChange();
+  }
+
+  get node():TreeNode {
+    return this._node;
+  }
 
   mode:RectType
 
 
-
   ngOnInit() {
+    
+  }
+
+  onNodeChange() {
     this.mode = this.global.nativeGlobal().get_rect_type(this.node.box);
 	  this.global.nativeGlobal().setTypeNode("R");
   }

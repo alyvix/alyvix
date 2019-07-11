@@ -16,8 +16,17 @@ export class TComponent implements OnInit {
 
   constructor(private alyvixApi: AlyvixApiService, @Inject('GlobalRef') private global: GlobalRef, ) { }
 
+  _node:TreeNode
+
   @Input()
-  node: TreeNode
+  set node(node: TreeNode) {
+    this._node = node;
+    this.onNodeChange();
+  }
+
+  get node():TreeNode {
+    return this._node;
+  }
 
 
   regexpValidation = Validation.debouncedAsyncValidator<string>(v => {
@@ -38,11 +47,14 @@ export class TComponent implements OnInit {
 
   regExWarning:boolean = false
 
-  ngOnInit() {
-    
+  onNodeChange() {
     if (!this.node.box.features.T.type) {
       this.node.box.features.T.type = "detection";
     }
+  }
+  
+  ngOnInit() { 
+    
     if (this.node && this.node.box) {
       this.alyvixApi.getScrapedText(this.node.box).subscribe(x => {
         this.scraped = x.scraped_text;

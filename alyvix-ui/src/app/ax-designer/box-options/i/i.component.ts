@@ -3,7 +3,7 @@ import { TreeNode } from '../../ax-designer-service';
 import { I } from 'src/app/ax-model/model';
 import { GlobalRef, GroupsFlag } from "src/app/ax-model/ax-global";
 
-import * as _ from 'lodash';
+import * as fastDeepEqual from 'fast-deep-equal';
 
 
 
@@ -16,8 +16,17 @@ export class IComponent implements OnInit {
 
   constructor(@Inject('GlobalRef') private global: GlobalRef,) { }
 
+  _node:TreeNode
+
   @Input()
-  node: TreeNode
+  set node(node: TreeNode) {
+    this._node = node;
+    this.onNodeChange();
+  }
+
+  get node():TreeNode {
+    return this._node;
+  }
 
 
   mode:I
@@ -33,13 +42,15 @@ export class IComponent implements OnInit {
     this.node.box.features.I = event;
   }
 
-  ngOnInit() {
-    this.mode = this.modes.find(x => _.isEqual(x,this.node.box.features.I))
+  ngOnInit() {}
+
+  onNodeChange() {
+    this.mode = this.modes.find(x => fastDeepEqual(x,this.node.box.features.I))
     if(!this.mode) {
       this.mode = this.match;
       this.node.box.features.I = this.match;
-	}
-	this.global.nativeGlobal().setTypeNode("I");
+    }
+    this.global.nativeGlobal().setTypeNode("I");
     console.log(this.mode)
   }
 
