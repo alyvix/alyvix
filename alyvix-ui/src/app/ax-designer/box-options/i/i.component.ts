@@ -51,7 +51,6 @@ export class IComponent implements OnInit {
       this.node.box.features.I = this.match;
     }
     this.global.nativeGlobal().setTypeNode("I");
-    console.log(this.mode)
   }
 
 }

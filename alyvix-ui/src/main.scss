@@ -2,6 +2,7 @@
 
 
 $blue: #0078e7;
+$focusBlue: #33C1FF;//darken($blue,10%);
 $darkblue: darken( $blue, 30%);
 $lightblue: lighten( $blue, 50% );
 $textcolor: #333;
@@ -289,6 +290,10 @@ hr {
 
   .detect-type{
 
+    [type="radio"]:checked + label i {
+      transition: all 0.2s ease;
+    }
+    
     [type="radio"]:checked + label,
     [type="radio"]:not(:checked) + label {
       padding-left: 0;
@@ -311,6 +316,10 @@ hr {
     [type="radio"]:checked + label i {
       color: $blue;
     }
+
+    [type="radio"]:checked:focus + label i {
+      color: $focusBlue;
+    }
   }
 
   [type="radio"]:checked + label:before,
@@ -327,6 +336,9 @@ hr {
   }
   [type="radio"]:checked + label:before{
     border: 1px solid $blue;
+  }
+  [type="radio"]:checked:focus + label:before{
+    border: 1px solid $focusBlue;
   }
   [type="radio"]:checked + label:after,
   [type="radio"]:not(:checked) + label:after {
@@ -347,11 +359,13 @@ hr {
       transform: scale(0);
   }
   [type="radio"]:checked + label:after {
-      color: $blue;
       opacity: 1;
       -webkit-transform: scale(1);
       transform: scale(1);
   }
+  [type="radio"]:checked:focus + label:after {
+    background: $focusBlue;
+}
 
 
   .ngx-contextmenu {
