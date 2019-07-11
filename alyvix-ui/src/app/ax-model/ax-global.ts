@@ -35,10 +35,18 @@ export interface AxGlobal{
     get_rect_type(rect:BoxListEntity):RectType
     set_rect_type(type:RectType,rect:BoxListEntity)
     
-	setTypeNode(s:string)
+    setTypeNode(s:string)
+    
+    uuidv4():string 
 }
 
 export class MockGlobal implements AxGlobal{
+    uuidv4(): string {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+          });
+    }
 
     get_rect_type(rect: BoxListEntity): RectType {
         console.log("get_rect_type");

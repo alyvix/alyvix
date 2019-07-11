@@ -26,6 +26,7 @@ export class AxModelMock {
         },
         "box_list": [
             {
+                "id": "sadfsafd",
                 "x": 219,
                 "y": 148,
                 "w": 63,
@@ -75,7 +76,7 @@ export class AxModelMock {
                     "durations_ms": 100
                 }
             },
-            {
+            {"id": "sadfsaf23d",
                 "x": 140,
                 "y": 220,
                 "w": 62,
@@ -126,6 +127,7 @@ export class AxModelMock {
                 }
             },
             {
+                "id": "sadfsaf4453d",
                 "x": 380,
                 "y": 274,
                 "w": 77,
@@ -176,6 +178,7 @@ export class AxModelMock {
                 }
             },
             {
+                "id": "sadfsafsdfasd",
                 "x": 389,
                 "y": 21,
                 "w": 72,
@@ -226,6 +229,7 @@ export class AxModelMock {
                 }
             },
             {
+                "id": "sadfsafd57fhfd",
                 "x": 574,
                 "y": 46,
                 "w": 80,
@@ -276,6 +280,7 @@ export class AxModelMock {
                 }
             },
             {
+                "id": "sadfsafd3453fsdfs",
                 "x": 793,
                 "y": 63,
                 "w": 91,
@@ -326,6 +331,7 @@ export class AxModelMock {
                 }
             },
             {
+                "id": "sadfsafd3242342",
                 "x": 322,
                 "y": 429,
                 "w": 23,
@@ -380,6 +386,7 @@ export class AxModelMock {
                 }
             },
             {
+                "id": "sadfsafd234sdfs",
                 "x": 689,
                 "y": 238,
                 "w": 4,
@@ -443,6 +450,7 @@ export class AxModelMock {
                 }
             },
             {
+                "id": "sadfsafdasdfas1212",
                 "x": 705,
                 "y": 216,
                 "w": 35,
@@ -500,6 +508,7 @@ export class AxModelMock {
                 }
             },
             {
+                "id": "sadfsafdadsa212",
                 "x": 705,
                 "y": 216,
                 "w": 35,

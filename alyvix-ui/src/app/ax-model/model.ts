@@ -10,6 +10,7 @@ export interface AxModel {
     break: boolean;
   }
   export interface BoxListEntity {
+    id:string;
     x: number;
     y: number;
     w: number;

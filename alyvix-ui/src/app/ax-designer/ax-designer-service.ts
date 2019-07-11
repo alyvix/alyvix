@@ -267,6 +267,7 @@ export class AxDesignerService {
         if(nextGroup < 3) {
             var groupToClone = this.axModel.box_list.filter(x => x.group == group);
             var newGroup = _.cloneDeep(groupToClone).map(x => {
+                x.id = this.global.nativeGlobal().uuidv4();
                 x.group = nextGroup
                 return x;
             })
@@ -289,9 +290,10 @@ export class AxDesignerService {
         if(!this.isGroupFull(node.box.group)) {
             var i = this.indexOfBox(node.box);
             var component = _.cloneDeep(node.box);
+            component.id = this.global.nativeGlobal().uuidv4();
             this.axModel.box_list.splice(i+1,0,component);
             this._loadNodes(false);
-            var toSelect = this._root.value.children[node.box.group].children.find(x => x.box == component)
+            var toSelect = this._root.value.children[node.box.group].children.find(x => x.box.id == component.id)
             if(toSelect) {
                 this.setSelectedNode(toSelect);
             }
