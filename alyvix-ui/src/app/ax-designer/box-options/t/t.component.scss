@@ -1,4 +1,5 @@
 $green: rgb(0, 188, 0);
+$yellow: rgb(255,215,51);
 
 .regex-input{
     &.ng-valid {
@@ -8,6 +9,16 @@ $green: rgb(0, 188, 0);
         &:focus{
             background-color: lighten($green,40%);
             border-bottom-color: darken($green,20%);
+        }
+
+        &.warning{
+            background-color: lighten($yellow,20%);
+            border-bottom-color: $yellow;
+
+            &:focus{
+                background-color: lighten($yellow,10%);
+                border-bottom-color: darken($yellow,20%);
+            }
         }
     }
 }

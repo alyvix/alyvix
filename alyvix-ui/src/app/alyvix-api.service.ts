@@ -6,11 +6,12 @@ import { map } from 'rxjs/operators';
 
 export interface ScrapedText{
   regexp?: string,
+  reg_exp?: string,
   scraped_text: string
 }
 
 interface TestScrapedResponse{
-  match: boolean
+  match: string
 }
 
 @Injectable({
@@ -24,8 +25,8 @@ export class AlyvixApiService {
     return this.httpClient.post<ScrapedText>("/get_scraped_txt",box)
   }
 
-  testScrapedText(scraped:ScrapedText):Observable<boolean> {
-    return this.httpClient.post<TestScrapedResponse>("test_txt_regexp",scraped).pipe(map(x => x.match))
+  testScrapedText(scraped:ScrapedText):Observable<TestScrapedResponse> {
+    return this.httpClient.post<TestScrapedResponse>("/test_txt_regexp",scraped)
   }
 
 }

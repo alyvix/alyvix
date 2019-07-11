@@ -36,8 +36,10 @@ export class TComponent implements OnInit {
 
   scraped: string = ""
 
-  ngOnInit() {
+  regExWarning:boolean = false
 
+  ngOnInit() {
+    
     if (!this.node.box.features.T.type) {
       this.node.box.features.T.type = "detection";
     }
@@ -45,14 +47,13 @@ export class TComponent implements OnInit {
       this.alyvixApi.getScrapedText(this.node.box).subscribe(x => {
         this.scraped = x.scraped_text;
         if (!this.node.box.features.T.regexp) {
-          this.node.box.features.T.regexp = x.scraped_text
-
-
+          this.node.box.features.T.regexp = x.reg_exp
         }
 
         this.regexpValidation = Validation.debouncedAsyncValidator<string>(v => {
           return this.alyvixApi.testScrapedText({ regexp: v, scraped_text: this.scraped }).pipe(map(res => {
-            return res ? null : { regexp: { invalidRegexp: v } }
+            this.regExWarning = res.match == 'yellow'
+            return res.match != 'red' ? null : { regexp: { invalidRegexp: v } }
           }))
         })
 

@@ -15,7 +15,7 @@
   <div class="pure-u-11-24" [hidden]="node.box.features.T.type == 'scraper'">
       <div class="form-group">
         <label>Regex</label>
-        <input class="regex-input" [formControl]="regex" [(ngModel)]="node.box.features.T.regexp" type="text">
+        <input class="regex-input" [formControl]="regex" [(ngModel)]="node.box.features.T.regexp" [ngClass]="{'warning': regExWarning}" type="text">
       </div>
     </div>
   <div class="pure-u-2-24" [hidden]="node.box.features.T.type == 'scraper'"></div>
