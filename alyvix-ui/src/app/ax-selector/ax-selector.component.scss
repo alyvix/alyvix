@@ -1,28 +1,58 @@
 @import "../../variables.scss";
 
-cdk-table.ax-selector {
+.ax-selector-container{
+    height: 100%;
     display: flex;
+    align-items: stretch;
     flex-direction: column;
+}
 
-    cdk-header-row,cdk-row{
+.ax-selector-header {
+    display: flex;
+    flex-direction: row;
+    padding-right: 18px;
+    //background-color: $blue;
+    border-bottom: 2px solid $blue;
+    text-align: center;
+    align-items: center;
+    div{
+        padding: 5px;
+        width: 10%;
+        font-weight: bold;
+        color: $blue;
+    }
+}
+
+.ax-selector-footer {
+    height: 40px;
+    padding: 7px;
+    button{
+        margin-right: 5px;
+    }
+}
+
+.ax-selector-table {
+    overflow-y: auto;
+    height: 100%;
+    cdk-table {
         display: flex;
-        flex-direction: row;
-        border-bottom: 1px solid #ccc;
-        cdk-cell,cdk-header-cell {
-            text-align: center;
-            width: 10%;
-            padding: 5px;
-        }
+        flex-direction: column;
 
-        cdk-header-cell{
-            font-weight: bold;
-            color: white;
-            
+        cdk-header-row,cdk-row{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            border-bottom: 1px solid #ccc;
+            cdk-cell,cdk-header-cell {
+                text-align: center;
+                width: 10%;
+                padding: 5px;
+
+                img{
+                    max-width: 100%;
+                    max-height: 50px;
+                }
+            }
         }
     }
-
-    cdk-header-row{
-        background-color: $blue;
-    }
-    
 }

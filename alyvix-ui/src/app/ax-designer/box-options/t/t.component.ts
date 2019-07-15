@@ -5,7 +5,7 @@ import { AlyvixApiService } from 'src/app/alyvix-api.service';
 import { map, switchMap, mapTo, catchError, debounce } from 'rxjs/operators';
 import { Validation } from 'src/app/utils/validators';
 import { timer, of, Observable } from 'rxjs';
-import { GlobalRef, GroupsFlag } from "src/app/ax-model/ax-global";
+import { GlobalRef, GroupsFlag } from "src/app/ax-designer/ax-global";
 
 @Component({
   selector: 'ax-designer-t',

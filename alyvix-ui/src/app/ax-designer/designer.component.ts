@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { AxModel } from '../ax-model/model';
 import { AxModelMock } from '../ax-model/mock';
 import { environment } from 'src/environments/environment';
-import { GroupsFlag } from '../ax-model/ax-global';
+import { GroupsFlag } from './ax-global';
 import { KeyShortcutsService } from './key-shortcuts.service';
 
 @Component({

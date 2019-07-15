@@ -1,7 +1,7 @@
 import { BehaviorSubject, Observable } from "rxjs";
 import { Injectable, Inject } from "@angular/core";
 import { BoxListEntity, AxModel } from "../ax-model/model";
-import { GlobalRef, GroupsFlag } from "../ax-model/ax-global";
+import { GlobalRef, GroupsFlag } from "./ax-global";
 
 import {  moveItemInArray } from '@angular/cdk/drag-drop';
 

@@ -12,7 +12,8 @@ export interface AxModel {
   export interface AxSelectorObject {
     components: {[key:string]:AxSelectorComponentGroups},
     date_modified: string,
-    detection: Detection
+    detection: Detection,
+    thresholds?: any
   }  
 
   export interface AxSelectorComponentGroups{
@@ -21,8 +22,8 @@ export interface AxModel {
   }
 
   export interface AxSelectorComponentGroup{
-    main: AxSelectorComponent,
-    subs: AxSelectorComponent[]
+    main: AxSelectorComponent | {},
+    subs: (AxSelectorComponent | {})[]
   }
 
   export interface AxSelectorComponent {

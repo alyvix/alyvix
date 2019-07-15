@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Injectable, Inject  } from '@angular/core';
 import { TreeNode } from '../../ax-designer-service';
 import { I } from 'src/app/ax-model/model';
-import { GlobalRef, GroupsFlag } from "src/app/ax-model/ax-global";
+import { GlobalRef, GroupsFlag } from "src/app/ax-designer/ax-global";
 
 import * as fastDeepEqual from 'fast-deep-equal';
 

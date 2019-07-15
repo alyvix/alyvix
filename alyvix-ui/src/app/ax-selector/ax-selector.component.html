@@ -1,66 +1,88 @@
-<cdk-table class="ax-selector" [dataSource]="data">
+<div class="ax-selector-container" (resized)="onResized($event)">
+    <div class="ax-selector-header">
+        <div>Name</div>
+        <div>Transaction group</div>
+        <div>Date modified</div>
+        <div>Timeout</div>
+        <div>Break</div>
+        <div>Measure</div>
+        <div>Warning</div>
+        <div>Critical</div>
+        <div>Resolution</div>
+        <div>Screen</div>
+    </div>
+    <div class="ax-selector-table" #tableContainer>
+        <cdk-table [dataSource]="data">
 
-    <!-- Name Definition -->
-    <ng-container cdkColumnDef="name">
-        <cdk-header-cell *cdkHeaderCellDef>Name</cdk-header-cell>
-        <cdk-cell *cdkCellDef="let row"> {{row.name}} </cdk-cell>
-    </ng-container>
+            <!-- Name Definition -->
+            <ng-container cdkColumnDef="name">
 
-    <!-- Transaction group Definition -->
-    <ng-container cdkColumnDef="transactionGroup">
-        <cdk-header-cell *cdkHeaderCellDef> Transaction group </cdk-header-cell>
-        <cdk-cell *cdkCellDef="let row"> {{row.name}} </cdk-cell>
-    </ng-container>
+                <cdk-cell *cdkCellDef="let row"> <strong>{{row.name}}</strong> </cdk-cell>
+            </ng-container>
 
-    <!-- Date modified Definition -->
-    <ng-container cdkColumnDef="dateModified">
-        <cdk-header-cell *cdkHeaderCellDef> Date modified </cdk-header-cell>
-        <cdk-cell *cdkCellDef="let row"> {{row.title}} </cdk-cell>
-    </ng-container>
+            <!-- Transaction group Definition -->
+            <ng-container cdkColumnDef="transactionGroup">
+                <cdk-cell *cdkCellDef="let row"><span *ngIf="row.object.thresholds">{{ row.object.measure.group }}
+                    </span>
+                </cdk-cell>
+            </ng-container>
 
-    <!-- Timeout Definition -->
-    <ng-container cdkColumnDef="timeout">
-        <cdk-header-cell *cdkHeaderCellDef> Timeout </cdk-header-cell>
-        <cdk-cell *cdkCellDef="let row"> {{row.title}} </cdk-cell>
-    </ng-container>
+            <!-- Date modified Definition -->
+            <ng-container cdkColumnDef="dateModified">
+                <cdk-cell *cdkCellDef="let row">{{row.object.date_modified.substring(0,20)}} </cdk-cell>
+            </ng-container>
 
-    <!-- Break Definition -->
-    <ng-container cdkColumnDef="break">
-        <cdk-header-cell *cdkHeaderCellDef> Break </cdk-header-cell>
-        <cdk-cell *cdkCellDef="let row"> {{row.title}} </cdk-cell>
-    </ng-container>
+            <!-- Timeout Definition -->
+            <ng-container cdkColumnDef="timeout">
+                <cdk-cell *cdkCellDef="let row">{{row.object.detection.timeout_s}}</cdk-cell>
+            </ng-container>
 
-    <!-- Measure Definition -->
-    <ng-container cdkColumnDef="measure">
-        <cdk-header-cell *cdkHeaderCellDef> Measure </cdk-header-cell>
-        <cdk-cell *cdkCellDef="let row"> {{row.title}} </cdk-cell>
-    </ng-container>
+            <!-- Break Definition -->
+            <ng-container cdkColumnDef="break">
+                <cdk-cell *cdkCellDef="let row">{{row.object.detection.break}} </cdk-cell>
+            </ng-container>
 
-    <!-- Warning Definition -->
-    <ng-container cdkColumnDef="warning">
-        <cdk-header-cell *cdkHeaderCellDef> Warning </cdk-header-cell>
-        <cdk-cell *cdkCellDef="let row"> {{row.title}} </cdk-cell>
-    </ng-container>
+            <!-- Measure Definition -->
+            <ng-container cdkColumnDef="measure">
+                <cdk-cell *cdkCellDef="let row"><span *ngIf="row.object.thresholds">{{row.object.measure.output}}</span>
+                </cdk-cell>
+            </ng-container>
 
-    <!-- Critical Definition -->
-    <ng-container cdkColumnDef="critical">
-        <cdk-header-cell *cdkHeaderCellDef> Critical </cdk-header-cell>
-        <cdk-cell *cdkCellDef="let row"> {{row.title}} </cdk-cell>
-    </ng-container>
+            <!-- Warning Definition -->
+            <ng-container cdkColumnDef="warning">
+                <cdk-cell *cdkCellDef="let row"><span
+                        *ngIf="row.object.thresholds">{{row.object.thresholds.warning_s}}</span>
+                </cdk-cell>
+            </ng-container>
 
-    <!-- Resolution Definition -->
-    <ng-container cdkColumnDef="resolution">
-        <cdk-header-cell *cdkHeaderCellDef> Resolution </cdk-header-cell>
-        <cdk-cell *cdkCellDef="let row"> {{row.title}} </cdk-cell>
-    </ng-container>
+            <!-- Critical Definition -->
+            <ng-container cdkColumnDef="critical">
+                <cdk-cell *cdkCellDef="let row"><span
+                        *ngIf="row.object.thresholds">{{row.object.thresholds.critical_s}}</span>
+                </cdk-cell>
+            </ng-container>
 
-    <!-- Screen Definition -->
-    <ng-container cdkColumnDef="screen">
-        <cdk-header-cell *cdkHeaderCellDef> Screen </cdk-header-cell>
-        <cdk-cell *cdkCellDef="let row"> {{row.title}} </cdk-cell>
-    </ng-container>
+            <!-- Resolution Definition -->
+            <ng-container cdkColumnDef="resolution">
+                <cdk-cell *cdkCellDef="let row">{{firstResolution(row.object.components).name}} </cdk-cell>
+            </ng-container>
 
-    <!-- Header and Row Declarations -->
-    <cdk-header-row *cdkHeaderRowDef="selectorColumns"></cdk-header-row>
-    <cdk-row *cdkRowDef="let row; columns: selectorColumns"></cdk-row>
-</cdk-table>
+            <!-- Screen Definition -->
+            <ng-container cdkColumnDef="screen">
+                <cdk-cell *cdkCellDef="let row"><img
+                        [src]="imageFor(firstResolution(row.object.components).component.screen)">
+                </cdk-cell>
+            </ng-container>
+
+            <!-- Header and Row Declarations -->
+            <cdk-row *cdkRowDef="let row; columns: selectorColumns"></cdk-row>
+        </cdk-table>
+    </div>
+
+    <div class="ax-selector-footer">
+        <button class="btn btn-primary" (click)="add()">Ok</button>
+        <button class="btn" (click)="newObject()">New</button>
+        <button class="btn" (click)="cancel()">Cancel</button>
+    </div>
+
+</div>

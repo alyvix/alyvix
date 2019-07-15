@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Injectable, Inject  } from '@angular/core';
 import { TreeNode } from '../../ax-designer-service';
 import { R, WidthOrHeight, BoxListEntity } from 'src/app/ax-model/model';
-import { GlobalRef, GroupsFlag, RectType } from "src/app/ax-model/ax-global";
+import { GlobalRef, GroupsFlag, RectType } from "src/app/ax-designer/ax-global";
 
 import * as _ from 'lodash';
 

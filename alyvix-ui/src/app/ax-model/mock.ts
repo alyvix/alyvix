@@ -1,12 +1,12 @@
 import { AxModel, AxSelectorObjects } from "./model";
-import { GroupsFlag } from "./ax-global";
+import { GroupsFlag } from "../ax-designer/ax-global";
 
 import { SelectorMock } from "./mockSelector";
 
 export class AxModelMock {
 
     static getSelector():AxSelectorObjects {
-        return null;//SelectorMock.selectorMock;
+        return SelectorMock.selectorMock;
     }
 
     static get():AxModel {

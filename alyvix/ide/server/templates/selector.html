@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>Alyvix Selector</title>
+<link rel="stylesheet" href="static/alyvix-ui/styles.css"></head>
 <script src="static/js/jquery-3.3.1.min.js"></script>
 <script>
     function new_button()
@@ -29,12 +30,10 @@
     }
 </script>
 </head>
-<body>
-<form>
-Delay [s]: <input type="number" id="delay" min="0" max="20000" step="1" value="0"><br/>
-<input type="button" value="Ok" onclick="add_button()" />
-<input type="button" value="New" onclick="new_button()" />
-<input type="button" value="Cancel" onclick="cancel_button()" />
-</form> 
+<body style="height: 100vh;" onload="loadAlyvixSelector();" onunload="unloadAlyvixSelector();">
+
+    <app-root></app-root>
+    <!-- inject angular-ui -->
+    <script type="text/javascript" src="static/alyvix-ui/runtime.js"></script><script type="text/javascript" src="static/alyvix-ui/polyfills.js"></script><script type="text/javascript" src="static/alyvix-ui/main.js"></script>
 </body>
 </html> 

@@ -5,6 +5,7 @@ import { SelectorComponent } from './selector.component';
 import { AxSelectorComponent } from './ax-selector.component';
 
 import {CdkTableModule} from '@angular/cdk/table'
+import { AngularResizedEventModule } from 'angular-resize-event';
 
 
 
@@ -15,9 +16,10 @@ import {CdkTableModule} from '@angular/cdk/table'
   ],
   imports: [
     BrowserModule,
-    CdkTableModule
+    CdkTableModule,
+    AngularResizedEventModule
   ],
-  providers: [],
+  providers: [{provide: 'GlobalRef', useClass: environment.globalTypeSelector}],
   bootstrap: [SelectorComponent]
 })
 export class SelectorModule { }
