@@ -24,6 +24,7 @@ import cv2
 import numpy as np
 import os
 import sys
+import copy
 from sys import platform as _platform
 
 
@@ -233,7 +234,7 @@ class LibraryManager:
 
                 box["type"] = box_type
 
-                mouse_dict = main_dict["interactions"]["mouse"]
+                mouse_dict = copy.deepcopy(main_dict["interactions"]["mouse"])
 
                 if mouse_dict["features"] == None:
                     mouse_dict["features"] = {"point": {"dx": 0, "dy": 0}}
@@ -297,7 +298,7 @@ class LibraryManager:
 
                     box["type"] = box_type
 
-                    mouse_dict = sub_dict["interactions"]["mouse"]
+                    mouse_dict = copy.deepcopy(sub_dict["interactions"]["mouse"])
 
                     if mouse_dict["features"] == None:
                         mouse_dict["features"] = {"point": {"dx": 0, "dy": 0}}
@@ -309,7 +310,7 @@ class LibraryManager:
                         if (mouse_dict["features"]["point"]["dx"] != 0 or
                                 mouse_dict["features"]["point"]["dy"] != 0):
                             mouse_dict["features"]["point"] = \
-                                {"dx":int( mouse_dict["features"]["point"]["dx"]/scaling_factor) + box["x"],
+                                {"dx": int( mouse_dict["features"]["point"]["dx"]/scaling_factor) + box["x"],
                                  "dy": int(mouse_dict["features"]["point"]["dy"]/scaling_factor) + box["y"]}
                     except Exception as ex:
                         pass #print(ex)

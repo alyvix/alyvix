@@ -73,7 +73,7 @@ class TextManager():
     def set_regexp(self, regexp, args = None):
         self._regexp = regexp
 
-        args_in_string = re.findall("\\{[0-9]+\\}", self._regexp, re.IGNORECASE)
+        args_in_string = re.findall("\\{[1-9]\d*\\}", self._regexp, re.IGNORECASE)
 
         for arg_pattern in args_in_string:
 

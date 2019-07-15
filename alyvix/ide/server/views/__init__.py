@@ -791,7 +791,7 @@ def test_txt_regexp():
         regexp = json_data["regexp"]
         scraped_text = json_data["scraped_text"]
 
-        args_in_string = re.findall("\\{[0-9]+\\}", regexp, re.IGNORECASE)
+        args_in_string = re.findall("\\{[1-9]\d*\\}", regexp, re.IGNORECASE)
 
         if len(args_in_string) > 0:
             ret_dict = {'match': 'yellow'}
