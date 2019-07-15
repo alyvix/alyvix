@@ -6,20 +6,22 @@
         [contextMenuSubject]="root" class="last">
         <div class="tree-content">
           <ax-tree-node [node]="root"></ax-tree-node>
+          <div class="branch-childs"></div>
         </div>
 
-          
-        <div  cdkDropList (cdkDropListDropped)="dropPrimary(root.children,$event)">
+        
+        <div class="tree-childs"  cdkDropList (cdkDropListDropped)="dropPrimary(root.children,$event)">
           <div class="tree-level" [contextMenu]="mainContextMenu" [contextMenuSubject]="node"
             (contextmenu)="onContextMenu($event, node)" *ngFor="let node of root.children" cdkDrag
             (cdkDragStarted)="startDrag(root.children,node,$event)" [cdkDragDisabled]="false">
             <div class="tree-content">
               <div class="leaf" >
-                  <div class="branch" [ngClass]="{'last': node.last}"></div>
+                <div class="branch" [ngClass]="{'last': node.last}"></div>
                 <ax-tree-node [node]="node"></ax-tree-node>
+                
               </div>
             </div>
-
+            <div [ngClass]="{'active': node.children.length > 0}" class="branch-childs-second"></div>
             <div class="vertical-branch" [ngClass]="{'last': node.last}">
               <div cdkDropList (cdkDropListDropped)="drop(node.children,$event)">
                 <div class="tree-level" [contextMenu]="childContextMenu" [contextMenuSubject]="subnode"

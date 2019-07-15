@@ -1,12 +1,15 @@
 .tree-node{
     height: 32px;
+    margin-bottom: 4px;
+    margin-top: 4px;
     width: 200px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
 
     &.primary{
-        width: 232px;
+        width: 233px;
+        z-index: 100;
     }
 }
 .boxEntity {

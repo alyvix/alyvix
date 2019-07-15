@@ -23,11 +23,11 @@ $branchColor: #d9d9d9;
 
 .custom-placeholder {
     margin-left: 10px;
-    margin-top: -4px;
-    margin-bottom: 3px;
+    margin-top: 2px;
+    margin-bottom: 2px;
     background: #eee;
     border: dashed 1px #999;
-    height: 40px;
+    height: 36px;
     transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
@@ -62,15 +62,19 @@ $branchColor: #d9d9d9;
 }
 
 .tree{
-    margin-top: 4px;
     position: relative;
     text-align: left;
+    margin-top: -4px;
 }
 
 .tree-content{
     height: 40px;
     width: 100%;
     display: block;
+}
+
+.tree-childs {
+    margin-top: -4px;
 }
 
 .tree-level{
@@ -83,25 +87,44 @@ div.tree-container{
     left: 0;
     z-index: 10;
     width: 100%;
+    padding-top: 4px;
+    padding-left: 4px;
 }
 
 .leaf{
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    height: 34px;
+    height: 40px;
 }
 
 .branch{
     display: flex;
     flex-direction: column;
     width: 22px;
-    height: 34px;
+    height: 40px;
+}
+
+.branch-childs{
+    height: 4px;
+    margin-top: -4px;
+    margin-left: 12px;
+    border-left:1px solid $branchColor;
+}
+
+.branch-childs-second{
+    height: 8px;
+    margin-top: -4px;
+    margin-left: 33px;
+
+    &.active{
+        border-left:1px solid $branchColor;
+    }
+
 }
 
 .branch:before {
-    margin-top: -8px;
-    height:24px;
+    height:19px;
     color:white;
     border-bottom:1px solid $branchColor;
     content:"";
@@ -109,7 +132,7 @@ div.tree-container{
 }
 
 .branch:after {
-    height:15px;
+    height:20px;
     width:34px;
     color:white;
     content:"";
@@ -125,6 +148,7 @@ div.tree-container{
     flex-direction: row;
     justify-content: flex-start;
     margin-left:-12px;
+    margin-top: -4px;
     width:100%;
 }
 
