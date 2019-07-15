@@ -1,0 +1,66 @@
+<table class="ax-selector" cdk-table [dataSource]="data">
+
+    <!-- Name Definition -->
+    <ng-container cdkColumnDef="name">
+        <th cdk-header-cell *cdkHeaderCellDef>Name</th>
+        <td cdk-cell *cdkCellDef="let row"> {{row.name}} </td>
+    </ng-container>
+
+    <!-- Transaction group Definition -->
+    <ng-container cdkColumnDef="transactionGroup">
+        <th cdk-header-cell *cdkHeaderCellDef> Transaction group </th>
+        <td cdk-cell *cdkCellDef="let row"> {{row.name}} </td>
+    </ng-container>
+
+    <!-- Date modified Definition -->
+    <ng-container cdkColumnDef="dateModified">
+        <th cdk-header-cell *cdkHeaderCellDef> Date modified </th>
+        <td cdk-cell *cdkCellDef="let row"> {{row.title}} </td>
+    </ng-container>
+
+    <!-- Timeout Definition -->
+    <ng-container cdkColumnDef="timeout">
+        <th cdk-header-cell *cdkHeaderCellDef> Timeout </th>
+        <td cdk-cell *cdkCellDef="let row"> {{row.title}} </td>
+    </ng-container>
+
+    <!-- Break Definition -->
+    <ng-container cdkColumnDef="break">
+        <th cdk-header-cell *cdkHeaderCellDef> Break </th>
+        <td cdk-cell *cdkCellDef="let row"> {{row.title}} </td>
+    </ng-container>
+
+    <!-- Measure Definition -->
+    <ng-container cdkColumnDef="measure">
+        <th cdk-header-cell *cdkHeaderCellDef> Measure </th>
+        <td cdk-cell *cdkCellDef="let row"> {{row.title}} </td>
+    </ng-container>
+
+    <!-- Warning Definition -->
+    <ng-container cdkColumnDef="warning">
+        <th cdk-header-cell *cdkHeaderCellDef> Warning </th>
+        <td cdk-cell *cdkCellDef="let row"> {{row.title}} </td>
+    </ng-container>
+
+    <!-- Critical Definition -->
+    <ng-container cdkColumnDef="critical">
+        <th cdk-header-cell *cdkHeaderCellDef> Critical </th>
+        <td cdk-cell *cdkCellDef="let row"> {{row.title}} </td>
+    </ng-container>
+
+    <!-- Resolution Definition -->
+    <ng-container cdkColumnDef="resolution">
+        <th cdk-header-cell *cdkHeaderCellDef> Resolution </th>
+        <td cdk-cell *cdkCellDef="let row"> {{row.title}} </td>
+    </ng-container>
+
+    <!-- Screen Definition -->
+    <ng-container cdkColumnDef="screen">
+        <th cdk-header-cell *cdkHeaderCellDef> Screen </th>
+        <td cdk-cell *cdkCellDef="let row"> {{row.title}} </td>
+    </ng-container>
+
+    <!-- Header and Row Declarations -->
+    <tr cdk-header-row *cdkHeaderRowDef="selectorColumns"></tr>
+    <tr cdk-row *cdkRowDef="let row; columns: selectorColumns"></tr>
+</table>

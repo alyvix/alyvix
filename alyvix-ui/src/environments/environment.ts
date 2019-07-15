@@ -7,6 +7,7 @@ import { DevGlobalRef } from "src/app/ax-model/ax-global";
 export const environment = {
   production: false,
   globalType: DevGlobalRef,
+  workingOn: "designer",
   assets: "/assets"
 };
 

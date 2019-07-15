@@ -4,7 +4,7 @@ import { AxDesignerService, TreeNode } from './ax-designer-service';
 import { GlobalRef } from '../ax-model/ax-global';
 import { ResizedEvent } from 'angular-resize-event';
 import { TouchSequence } from 'selenium-webdriver';
-import { KeyShortcutsService } from '../key-shortcuts.service';
+import { KeyShortcutsService } from './key-shortcuts.service';
 import { FormControl, Validators } from '@angular/forms';
 
 @Component({
