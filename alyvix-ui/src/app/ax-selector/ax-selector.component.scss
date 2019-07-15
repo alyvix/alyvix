@@ -1,13 +1,28 @@
-.ax-selector {
-    width: 100%;
-    margin: 10px;
-    box-sizing: border-box;
+@import "../../variables.scss";
 
-    tr {
-        //border-bottom: 1px solid #ccc;
+cdk-table.ax-selector {
+    display: flex;
+    flex-direction: column;
 
-        td {
+    cdk-header-row,cdk-row{
+        display: flex;
+        flex-direction: row;
+        border-bottom: 1px solid #ccc;
+        cdk-cell,cdk-header-cell {
+            text-align: center;
+            width: 10%;
             padding: 5px;
         }
+
+        cdk-header-cell{
+            font-weight: bold;
+            color: white;
+            
+        }
     }
+
+    cdk-header-row{
+        background-color: $blue;
+    }
+    
 }

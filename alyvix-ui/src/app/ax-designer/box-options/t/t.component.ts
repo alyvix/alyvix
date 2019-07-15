@@ -31,8 +31,10 @@ export class TComponent implements OnInit {
 
   regexpValidation = Validation.debouncedAsyncValidator<string>(v => {
     return this.alyvixApi.testScrapedText({ regexp: v, scraped_text: this.scraped }).pipe(map(res => {
-      return res ? null : { regexp: { invalidRegexp: v } }
+      this.regExWarning = res.match == 'yellow'
+      return res.match != 'red' ? null : { regexp: { invalidRegexp: v } }
     }))
+
   })
 
   regex: FormControl = new FormControl('', null, this.regexpValidation);

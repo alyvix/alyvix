@@ -4,6 +4,61 @@ export interface AxModel {
     box_list?: (BoxListEntity)[] | null;
     background: string;
   }
+
+  export interface AxSelectorObjects {
+    objects: {[key:string]: AxSelectorObject}
+  }
+
+  export interface AxSelectorObject {
+    components: {[key:string]:AxSelectorComponentGroups},
+    date_modified: string,
+    detection: Detection
+  }  
+
+  export interface AxSelectorComponentGroups{
+    groups: AxSelectorComponentGroup[],
+    screen: string
+  }
+
+  export interface AxSelectorComponentGroup{
+    main: AxSelectorComponent,
+    subs: AxSelectorComponent[]
+  }
+
+  export interface AxSelectorComponent {
+    detection: I | R | T,
+    interaction:AxSelectorComponentInteractions,
+    visuals: Visuals
+  }
+
+  export interface AxSelectorComponentInteractions {
+    mouse:Mouse,
+    keyboard:Keyboard
+  }
+
+  export interface Visuals {
+    roi:Roi,
+    selection:Keyboard
+  }
+
+  export interface Roi{
+    height: number,
+    main_dx: number,
+    main_dy: number,
+    unlimited_down: boolean,
+    unlimited_left: boolean,
+    unlimited_right: boolean,
+    unlimited_up: boolean,
+    width: number
+  }
+
+  export interface VisualSelection {
+    height: number,
+    roi_dx: number,
+    roi_dy: number,
+    width: number
+  }
+
   export interface Detection {
     type: string;
     timeout_s: number;
