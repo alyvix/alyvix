@@ -474,7 +474,7 @@ class EngineManager(object):
                 #keyboard_string = "sadfasfdasf asfdf {arg1} dfdfdfd {arg2}"
 
                 #args_in_string = re.findall("\\{arg[0-9]+\\}", keyboard_string,re.IGNORECASE)
-                args_in_string = re.findall("\\{[0-9]+\\}", keyboard_string, re.IGNORECASE)
+                args_in_string = re.findall("\\{[1-9]\d*\\}", keyboard_string, re.IGNORECASE)
 
                 for arg_pattern in args_in_string:
 

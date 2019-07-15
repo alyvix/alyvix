@@ -1383,9 +1383,9 @@ class RectManager{
             
             if(rect.is_main == false)
             {
-                if (x_max < roi_x) x_max = roi_x;
+                if (x_max < roi_x || max_width == roi_w) x_max = roi_x;
                 
-                if (y_max < roi_y) y_max = roi_y;
+                if (y_max < roi_y || max_width == roi_h) y_max = roi_y;
                 
                 if (x_max + max_width > roi_x + roi_w) max_width = max_width - ((x_max + max_width) - (roi_x + roi_w));
                 
@@ -1396,6 +1396,16 @@ class RectManager{
                 ctx.globalAlpha=1;
                 ctx.strokeRect(roi_x, roi_y, roi_w, roi_h);
                 
+            }
+            else
+            {
+                if (x_max < 0 || max_width == screen_w) x_max = 0;
+                
+                if (y_max < 0 || max_width == screen_h) y_max = 0;
+                
+                if (x_max + max_width > screen_w) max_width = max_width - ((x_max + max_width) - (screen_w));
+                
+                if (y_max + max_height > screen_h) max_height = max_height - ((y_max + max_height) - (screen_h));
             }
             
             if(rect.is_main == false) ctx.globalAlpha=0.3;
@@ -1412,7 +1422,8 @@ class RectManager{
             
             
             ctx.strokeRect(x_min, y_min, min_width, min_height);
-            ctx.strokeRect(x_max, y_max, max_width, max_height);
+            if(rect.is_main == false) ctx.strokeRect(x_max, y_max, max_width, max_height);
+            else ctx.strokeRect(x_max, y_max, max_width-1, max_height-1);
             
         }
         else
