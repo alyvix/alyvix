@@ -1,5 +1,5 @@
 <div *ngIf="node && node.box" class="form-group detect-type">
-    <input name="boxType" [ngModel]="node.box.type" (change)="changeType($event)" value="I" type="radio" id="Iradio" /> <label for="Iradio"><i class="far fa-image"></i></label>
-    <input name="boxType" [ngModel]="node.box.type" (change)="changeType($event)" value="R" type="radio" id="Rradio"/> <label for="Rradio"><i class="fas fa-expand"></i></label>
-    <input *ngIf="!node.box.is_main"  name="boxType" [ngModel]="node.box.type" (change)="changeType($event)" value="T" type="radio" id="Tradio"/> <label  *ngIf="!node.box.is_main"  for="Tradio"><i class="fas fa-font"></i></label>
+    <input #iElement name="boxType" [ngModel]="node.box.type" (change)="changeType($event)" value="I" type="radio" id="Iradio" /> <label for="Iradio"><i class="far fa-image"></i></label>
+    <input #rElement name="boxType" [ngModel]="node.box.type" (change)="changeType($event)" value="R" type="radio" id="Rradio"/> <label for="Rradio"><i class="fas fa-expand"></i></label>
+    <input #tElement *ngIf="!node.box.is_main"  name="boxType" [ngModel]="node.box.type" (change)="changeType($event)" value="T" type="radio" id="Tradio"/> <label  *ngIf="!node.box.is_main"  for="Tradio"><i class="fas fa-font"></i></label>
   </div>
