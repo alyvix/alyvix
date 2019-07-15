@@ -81,6 +81,7 @@ export class AxDesignerComponent implements OnInit {
     this.first.nativeElement.focus();
     this.scrollToNode();
   }
+  
 
 
   showAdd():boolean {
