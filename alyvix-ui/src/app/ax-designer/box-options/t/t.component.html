@@ -4,9 +4,9 @@
   </div>
   <div class="pure-u-1-2">
     <div class="form-group distribute">
-      <input [(ngModel)]="node.box.features.T.type" type="radio" name="Tradio" id="Tdetect" value="detection"> <label
+      <input class="mousetrap" [(ngModel)]="node.box.features.T.type" type="radio" name="Tradio" id="Tdetect" value="detection"> <label
         for="Tdetect">Detect</label>
-      <input [(ngModel)]="node.box.features.T.type" type="radio" name="Tradio" id="Tscrap" value="scraper"> <label
+      <input class="mousetrap" [(ngModel)]="node.box.features.T.type" type="radio" name="Tradio" id="Tscrap" value="scraper"> <label
         for="Tscrap">Scrap</label>
     </div>
   </div>
@@ -15,14 +15,14 @@
   <div class="pure-u-11-24" [hidden]="node.box.features.T.type == 'scraper'">
       <div class="form-group">
         <label>Regex</label>
-        <input class="regex-input" [formControl]="regex" [(ngModel)]="node.box.features.T.regexp" [ngClass]="{'warning': regExWarning}" type="text">
+        <input class="mousetrap regex-input" [formControl]="regex" [(ngModel)]="node.box.features.T.regexp" [ngClass]="{'warning': regExWarning}" type="text">
       </div>
     </div>
   <div class="pure-u-2-24" [hidden]="node.box.features.T.type == 'scraper'"></div>
   <div [ngClass]="{'pure-u-11-24': !isScraper(), 'pure-u-1-1': isScraper()}">
       <div class="form-group">
         <label>Scrap</label>
-        <input [(ngModel)]="scraped" type="text" disabled>
+        <input class="mousetrap" [(ngModel)]="scraped" type="text" disabled>
       </div>
     </div>
   <div class="pure-u-1-1">
@@ -31,7 +31,7 @@
   <div class="pure-u-1-1">
     <div class="form-group">
       <label>String</label>
-      <input [(ngModel)]="node.box.keyboard.string" type="text">
+      <input class="mousetrap" [(ngModel)]="node.box.keyboard.string" type="text">
     </div>
   </div>
 </div>

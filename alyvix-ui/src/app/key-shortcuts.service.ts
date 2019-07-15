@@ -32,36 +32,43 @@ export class KeyShortcutsService {
     }, undefined, 'Cancel'));*/
 
     this._hotkeysService.add(new Hotkey('ctrl+x', (event: KeyboardEvent): boolean => {
+      event.preventDefault();
       this.remove();
       return false; // Prevent bubbling
     }, undefined, 'Remove elements/group/component'));
 
     this._hotkeysService.add(new Hotkey('ctrl+d', (event: KeyboardEvent): boolean => {
+      event.preventDefault();
       this.duplicate()
       return false; // Prevent bubbling
     }, undefined, 'Duplicate selected group/component'));
 
     this._hotkeysService.add(new Hotkey('ctrl+i', (event: KeyboardEvent): boolean => {
+      event.preventDefault();
       this.setAs('I')
       return false; // Prevent bubbling
     }, undefined, 'Detect as Image'));
 
     this._hotkeysService.add(new Hotkey('ctrl+r', (event: KeyboardEvent): boolean => {
+      event.preventDefault();
       this.setAs('R')
       return false; // Prevent bubbling
     }, undefined, 'Detect as Rectangle'));
 
     this._hotkeysService.add(new Hotkey('ctrl+t', (event: KeyboardEvent): boolean => {
+      event.preventDefault();
       this.setAs('T')
       return false; // Prevent bubbling
     }, undefined, 'Detect as Text'));
 
     this._hotkeysService.add(new Hotkey('ctrl+m', (event: KeyboardEvent): boolean => {
+      event.preventDefault();
       this.setAsMain()
       return false; // Prevent bubbling
     }, undefined, 'Set as main'));
 
     this._hotkeysService.add(new Hotkey('ctrl+n', (event: KeyboardEvent): boolean => {
+      event.preventDefault();
       this.newComponent()
       return false; // Prevent bubbling
     }, undefined, 'New component'));
@@ -99,7 +106,7 @@ export class KeyShortcutsService {
   }
 
   private setAs(t:string) {
-    if (this.node && this.node.box && !this.node.box.is_main) {
+    if (this.node && this.node.box && (!this.node.box.is_main || t != 'T')) {
       this.axDesignerService.detectAs(t, this.node)
     }
   }

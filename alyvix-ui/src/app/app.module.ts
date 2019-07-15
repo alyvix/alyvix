@@ -43,7 +43,7 @@ import { SelectTypeComponent } from './ax-designer/box-options/select-type/selec
     DragDropModule,
     AngularResizedEventModule,
     ContextMenuModule.forRoot(),
-    HotkeyModule.forRoot(),
+    HotkeyModule.forRoot({cheatSheetHotkey: "ctrl+h"}),
     CustomFormsModule,
     ReactiveFormsModule
   ],

@@ -3,7 +3,7 @@
     <div class="pure-u-1-1">
       <div class="form-group">
         <label>Object name</label>
-        <input type="text" pattern="[a-zA-Z0-9_\- ]*" [(ngModel)]="axModel.object_name" #first #name="ngModel" />
+        <input class="mousetrap" type="text" pattern="[a-zA-Z0-9_\- ]*" [(ngModel)]="axModel.object_name" #first #name="ngModel" />
         <div *ngIf="name.invalid && (name.dirty || name.touched)" class="alert">
             Only alphanumeric characters and - _ ` ` (space) are allowed
         </div>
@@ -11,7 +11,7 @@
     </div>
     <div class="pure-u-1-1">
       <div class="form-group distribute">
-        <select [(ngModel)]="axModel.detection.type">
+        <select class="mousetrap" [(ngModel)]="axModel.detection.type">
           <option value="appear">Appear</option>
           <option value="appear+disappear">AppearDisappear</option>
           <option value="disappear">Disappear</option>
@@ -19,7 +19,7 @@
         
         <div>
           <span class="inline-label">Timeout [s]</span>
-          <input [(ngModel)]="axModel.detection.timeout_s" type="number" (change)="changeTimeout()" class="small" min="1"/>
+          <input  [(ngModel)]="axModel.detection.timeout_s" type="number" (change)="changeTimeout()" class="small mousetrap" min="1"/>
         </div>
         <div>
           <span class="inline-label">Break</span> <input class="regular-checkbox" [(ngModel)]="axModel.detection.break" type="checkbox" />

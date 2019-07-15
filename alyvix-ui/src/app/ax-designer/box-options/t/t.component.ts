@@ -51,29 +51,20 @@ export class TComponent implements OnInit {
     if (!this.node.box.features.T.type) {
       this.node.box.features.T.type = "detection";
     }
-  }
-  
-  ngOnInit() { 
-    
     if (this.node && this.node.box) {
       this.alyvixApi.getScrapedText(this.node.box).subscribe(x => {
         this.scraped = x.scraped_text;
         if (!this.node.box.features.T.regexp) {
           this.node.box.features.T.regexp = x.reg_exp
         }
-
-        this.regexpValidation = Validation.debouncedAsyncValidator<string>(v => {
-          return this.alyvixApi.testScrapedText({ regexp: v, scraped_text: this.scraped }).pipe(map(res => {
-            this.regExWarning = res.match == 'yellow'
-            return res.match != 'red' ? null : { regexp: { invalidRegexp: v } }
-          }))
-        })
-
-        this.regex = new FormControl(this.node.box.features.T.regexp, null, this.regexpValidation);
       })
     }
 
     this.global.nativeGlobal().setTypeNode("T");
+  }
+  
+  ngOnInit() { 
+    
   }
 
 }
