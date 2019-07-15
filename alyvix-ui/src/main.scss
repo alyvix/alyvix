@@ -194,6 +194,10 @@ input[type='radio'] {
       background: $lightblue;
       color: $darkblue;
     }
+
+    &:focus{
+      color: $focusBlue;
+    }
 }
 
 .btn-primary{
@@ -205,6 +209,11 @@ input[type='radio'] {
     color: $lightblue;
     background: $darkblue;
   }
+
+  &:focus {
+    color: white;
+    background: $focusBlue;
+  }
 }
 
 .btn-secondary{
@@ -214,6 +223,11 @@ input[type='radio'] {
   &:hover {
     color: white;
     background: $blue;
+  }
+
+  &:focus {
+    color:$focusBlue;
+    border-color: $focusBlue;
   }
 }
 
