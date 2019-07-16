@@ -4,15 +4,16 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ## Development server
 
+To select on wich subsystem you are developing set the `workingOn` environment variable possible values are:
+- `designer` - Alivix desiger, tree setting properties
+- `selector` - Table with list of objects
+
 Run `ng serve --proxy-config proxy.conf.json` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
-## Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Run `./build.bat` to build and install it in the alyvix backend.
 
 ## Running unit tests
 
