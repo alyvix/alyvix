@@ -230,9 +230,22 @@ class LibraryManager:
 
                 box["features"] = {"I": {}, "R": {}, "T": {}}
 
-                box["features"][box_type] = main_dict["detection"]["features"]
+                box["features"][box_type] = copy.deepcopy(main_dict["detection"]["features"])
 
                 box["type"] = box_type
+
+                if box["type"] == "R":
+                    box["features"]["R"]["width"]["min"] = \
+                        int(box["features"]["R"]["width"]["min"] / scaling_factor)
+
+                    box["features"]["R"]["width"]["max"] = \
+                        int(box["features"]["R"]["width"]["max"] / scaling_factor)
+
+                    box["features"]["R"]["height"]["min"] =\
+                        int(box["features"]["R"]["height"]["min"]/scaling_factor)
+
+                    box["features"]["R"]["height"]["max"] =\
+                        int(box["features"]["R"]["height"]["max"]/scaling_factor)
 
                 mouse_dict = copy.deepcopy(main_dict["interactions"]["mouse"])
 
@@ -294,9 +307,22 @@ class LibraryManager:
                     box_type = sub_dict["detection"]["type"][0].upper()
 
                     box["features"] = {"I": {}, "R": {}, "T": {}}
-                    box["features"][box_type] = sub_dict["detection"]["features"]
+                    box["features"][box_type] = copy.deepcopy(sub_dict["detection"]["features"])
 
                     box["type"] = box_type
+
+                    if box["type"] == "R":
+                        box["features"]["R"]["width"]["min"] = \
+                            int(box["features"]["R"]["width"]["min"] / scaling_factor)
+
+                        box["features"]["R"]["width"]["max"] = \
+                            int(box["features"]["R"]["width"]["max"] / scaling_factor)
+
+                        box["features"]["R"]["height"]["min"] = \
+                            int(box["features"]["R"]["height"]["min"] / scaling_factor)
+
+                        box["features"]["R"]["height"]["max"] = \
+                            int(box["features"]["R"]["height"]["max"] / scaling_factor)
 
                     mouse_dict = copy.deepcopy(sub_dict["interactions"]["mouse"])
 

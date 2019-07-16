@@ -229,7 +229,7 @@ class RectManager{
             }
         }*/
         
-        if((e.key == "o" && this.key_ctrl_pressed == true) || e.keyCode === 27){
+        if((e.key == "o" && this.key_ctrl_pressed == true) || e.keyCode === 27 || e.keyCode === 13){
         
             e.preventDefault();
             /*var resp = null;
@@ -506,6 +506,7 @@ class RectManager{
                     
                 }
                  else if (this.drag_border == true){
+                    var rect = this.rectangles[this.border_index];
                     this.drag_border = false;
                     this.mouse_is_on_left_border = false;
                     this.mouse_is_on_right_border = false;
@@ -513,6 +514,15 @@ class RectManager{
                     this.mouse_is_on_bottom_border = false;
                     this.mouse_is_on_border = null;
                     this.border_index = null;
+                    
+                    if (rect.type === "R")
+                    {
+                        if (rect.rect_type === "box") set_rect_type("box", rect);
+                        
+                        if (rect.rect_type === "window") set_rect_type("window", rect);
+                        
+                        if (rect.rect_type === "button") set_rect_type("button", rect);
+                    }
                  }
                  else if(this.move_index != null)
                  {
@@ -1385,7 +1395,7 @@ class RectManager{
             {
                 if (x_max < roi_x || max_width == roi_w) x_max = roi_x;
                 
-                if (y_max < roi_y || max_width == roi_h) y_max = roi_y;
+                if (y_max < roi_y || max_height == roi_h) y_max = roi_y;
                 
                 if (x_max + max_width > roi_x + roi_w) max_width = max_width - ((x_max + max_width) - (roi_x + roi_w));
                 
@@ -1401,7 +1411,7 @@ class RectManager{
             {
                 if (x_max < 0 || max_width == screen_w) x_max = 0;
                 
-                if (y_max < 0 || max_width == screen_h) y_max = 0;
+                if (y_max < 0 || max_height == screen_h) y_max = 0;
                 
                 if (x_max + max_width > screen_w) max_width = max_width - ((x_max + max_width) - (screen_w));
                 

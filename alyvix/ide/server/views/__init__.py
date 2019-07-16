@@ -406,6 +406,14 @@ def save_json():
         json_data = json.loads(request.data)
         object_name = json_data['object_name']
 
+        object_name = object_name.lstrip()
+        object_name = object_name.rstrip()
+
+        invalid_chars = re.findall("[^a-zA-Z0-9_\- ]+", object_name)
+
+        if len(invalid_chars) > 0:
+            return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
+
         detection = json_data['detection']
 
         background = json_data['background']
@@ -471,6 +479,18 @@ def save_json():
                 elif box["type"] == "R":
                     detection_dict["type"] = "rectangle"
                     detection_dict["features"] = box["features"]["R"]
+
+                    detection_dict["features"]["width"]["min"] = \
+                        int(detection_dict["features"]["width"]["min"] * scaling_factor)
+
+                    detection_dict["features"]["width"]["max"] = \
+                        int(detection_dict["features"]["width"]["max"] * scaling_factor)
+
+                    detection_dict["features"]["height"]["min"] =\
+                        int(detection_dict["features"]["height"]["min"]*scaling_factor)
+
+                    detection_dict["features"]["height"]["max"] =\
+                        int(detection_dict["features"]["height"]["max"]*scaling_factor)
                 elif box["type"] == "T":
                     detection_dict["type"] = "text"
                     detection_dict["features"] = box["features"]["T"]
@@ -605,6 +625,19 @@ def save_json():
                 elif box["type"] == "R":
                     detection_dict["type"] = "rectangle"
                     detection_dict["features"] = box["features"]["R"]
+
+                    detection_dict["features"]["width"]["min"] = \
+                        int(detection_dict["features"]["width"]["min"] * scaling_factor)
+
+                    detection_dict["features"]["width"]["max"] = \
+                        int(detection_dict["features"]["width"]["max"] * scaling_factor)
+
+                    detection_dict["features"]["height"]["min"] =\
+                        int(detection_dict["features"]["height"]["min"]*scaling_factor)
+
+                    detection_dict["features"]["height"]["max"] =\
+                        int(detection_dict["features"]["height"]["max"]*scaling_factor)
+
                 elif box["type"] == "T":
                     detection_dict["type"] = "text"
                     detection_dict["features"] = box["features"]["T"]

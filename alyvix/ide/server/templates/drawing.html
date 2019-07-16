@@ -180,7 +180,7 @@
                     rect_features["height"] = {"min":rect.h - 10, "max":rect.h + 10};  
                 }
                 
-                rect["rect_type"] = "box";
+                rect.rect_type = "box";
             }
             else if (type == "window") //WINDOW
             {
@@ -196,7 +196,7 @@
                     rect_features["height"] = {"min":rect.h - rect_half_h, "max":rect.roi_h}; 
                 }
                 
-                rect["rect_type"] = "window";
+                rect.rect_type = "window";
             }
             else //BUTTON
             {
@@ -210,7 +210,7 @@
                 rect_features["width"] = {"min":min_w, "max": rect.w + 9};
                 rect_features["height"] = {"min":min_h, "max":rect.h + 9};
                 
-                rect["rect_type"] = "button";
+                rect.rect_type = "button";
             
             }
             
@@ -321,17 +321,17 @@
             
             if (is_box)
             {
-                rect["rect_type"] = "box";
+                rect.rect_type = "box";
                 return "box";
             }
             
             if (is_window){
-                rect["rect_type"] = "window";
+                rect.rect_type = "window";
                 return "window";
             }
             
             if (is_button){
-                rect["rect_type"] = "button";
+                rect.rect_type = "button";
                 return "button";
             } 
             
@@ -1168,12 +1168,12 @@
         -->
     </script>
 </head>
-<body onload="doOnLoad();" onunload="doOnUnload();">
+<body onload="doOnLoad();" onunload="doOnUnload();" tabindex='-1'>
 
     
 
     
-    <div id='myDiv'><canvas id='myCanvas' oncontextmenu="return false;" tabindex='1'></canvas></div>
+    <div id='myDiv'><canvas id='myCanvas' oncontextmenu="return false;" tabindex='-1'></canvas></div>
     
 
     
