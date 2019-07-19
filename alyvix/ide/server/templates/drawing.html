@@ -673,7 +673,11 @@
             url: "/load_objects",
             type: "GET",
             contentType: "application/json; charset=utf-8",
-            success: function(dat) { console.log(dat); build_objects_from_file(dat["file_dict"], dat["autocontoured_rects"])}
+            success: function(dat) {
+                console.log(dat);
+                if ("autocontoured_rects" in dat ) build_objects_from_file(dat["file_dict"], dat["autocontoured_rects"]);
+                else build_objects_from_file(dat["file_dict"], null);
+                }
         });
         
         function build_objects_from_file(file_dict, autocontoured_rects){
@@ -683,73 +687,82 @@
                 return;
             }
             
-            rectManager.autocontoured_rects = [];
-            
-            for(i=0; i<autocontoured_rects.length; i++)
+            if (autocontoured_rects != null)
             {
-                rectManager.autocontoured_rects.push( new Box(autocontoured_rects[i][0], autocontoured_rects[i][1], autocontoured_rects[i][2], autocontoured_rects[i][3], 0, 0, 0, 0));
-            }
-        
-            boxes = [];
-            rectManager.set_rectangles(boxes);
-            
-            detection = file_dict["detection"];
-        
-            var boxes_json = file_dict['boxes'];
-            
-            background_base64_string = "data:image/png;base64," + file_dict["screen"];
-
-            $( "body" ).css("background-image", "url('" + background_base64_string + "')");
-         
-            screen_h = file_dict['img_h'];
-            screen_w = file_dict['img_w'];
-
-            console.log('width =' + screen_w + ', height = ' + screen_h)    ;
+                rectManager.autocontoured_rects = [];
                 
-            $("body").css({ "background-size": screen_w.toString() + "px " + screen_h.toString() + "px"});  
+                for(i=0; i<autocontoured_rects.length; i++)
+                {
+                    rectManager.autocontoured_rects.push( new Box(autocontoured_rects[i][0], autocontoured_rects[i][1], autocontoured_rects[i][2], autocontoured_rects[i][3], 0, 0, 0, 0));
+                }
             
+                boxes = [];
+                rectManager.set_rectangles(boxes);
+                
+                detection = file_dict["detection"];
             
-            for(i=0; i<boxes_json.length; i++)
+                var boxes_json = file_dict['boxes'];
+                
+                background_base64_string = "data:image/png;base64," + file_dict["screen"];
+
+                $( "body" ).css("background-image", "url('" + background_base64_string + "')");
+             
+                screen_h = file_dict['img_h'];
+                screen_w = file_dict['img_w'];
+
+                console.log('width =' + screen_w + ', height = ' + screen_h)    ;
+                    
+                $("body").css({ "background-size": screen_w.toString() + "px " + screen_h.toString() + "px"});  
+                
+                
+                for(i=0; i<boxes_json.length; i++)
+                {
+                        var box_json = boxes_json[i];
+                        var box = new Box(box_json["x"], box_json["y"], box_json["w"], box_json["h"], box_json["roi_x"], box_json["roi_y"], box_json["roi_w"], box_json["roi_h"]);
+                        
+                        box.roi_unlimited_left = box_json["roi_unlimited_left"];
+                        box.roi_unlimited_up = box_json["roi_unlimited_up"];
+                        box.roi_unlimited_right = box_json["roi_unlimited_right"];
+                        box.roi_unlimited_down = box_json["roi_unlimited_down"];
+                        box.group = box_json["group"];
+                        box.is_main = box_json["is_main"];
+                        
+                        if (box.is_main)
+                        {
+                            if(box.group==0) rectManager.main_g0_created = true;
+
+                            if(box.group==1) rectManager.main_g1_created = true;
+
+                            if(box.group==2) rectManager.main_g2_created = true;
+                        }
+                        
+                        if(box.group==0) rectManager.g0_elements_cnt+=1;
+                        
+                        if(box.group==1) rectManager.g1_elements_cnt+=1;
+                        
+                        if(box.group==2) rectManager.g2_elements_cnt+=1;
+                        
+                        box.type = box_json["type"];
+                                            
+                        box.features = box_json["features"];
+                                            
+                        box.mouse = box_json["mouse"];
+                        
+                        box.keyboard = box_json["keyboard"];
+                    
+                        boxes.push(box);
+                
+                }
+                
+                rectManager.set_rectangles(boxes);
+                draw();
+            }
+            else
             {
-                    var box_json = boxes_json[i];
-                    var box = new Box(box_json["x"], box_json["y"], box_json["w"], box_json["h"], box_json["roi_x"], box_json["roi_y"], box_json["roi_w"], box_json["roi_h"]);
-                    
-                    box.roi_unlimited_left = box_json["roi_unlimited_left"];
-                    box.roi_unlimited_up = box_json["roi_unlimited_up"];
-                    box.roi_unlimited_right = box_json["roi_unlimited_right"];
-                    box.roi_unlimited_down = box_json["roi_unlimited_down"];
-                    box.group = box_json["group"];
-                    box.is_main = box_json["is_main"];
-                    
-                    if (box.is_main)
-                    {
-                        if(box.group==0) rectManager.main_g0_created = true;
-
-                        if(box.group==1) rectManager.main_g1_created = true;
-
-                        if(box.group==2) rectManager.main_g2_created = true;
-                    }
-                    
-                    if(box.group==0) rectManager.g0_elements_cnt+=1;
-                    
-                    if(box.group==1) rectManager.g1_elements_cnt+=1;
-                    
-                    if(box.group==2) rectManager.g2_elements_cnt+=1;
-                    
-                    box.type = box_json["type"];
-                                        
-                    box.features = box_json["features"];
-                                        
-                    box.mouse = box_json["mouse"];
-                    
-                    box.keyboard = box_json["keyboard"];
-                
-                    boxes.push(box);
-            
+                detection = file_dict;
             }
             
-            rectManager.set_rectangles(boxes);
-            draw();
+            
         
         }
         

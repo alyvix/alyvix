@@ -361,7 +361,10 @@ def load_objects():
         return_dict = {"file_dict":alyvix_file_dict, "autocontoured_rects": autocontoured_rects}
 
         return jsonify(return_dict)
-
+    elif lm.check_if_detection_exist(current_objectname):
+        alyvix_file_dict = lm.get_detection(current_objectname)
+        return_dict = {"file_dict":alyvix_file_dict}
+        return jsonify(return_dict)
     else:
         return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
 
@@ -753,7 +756,7 @@ def save_json():
             if current_objectname in current_json["objects"]:
                 del current_json["objects"][current_objectname]
 
-        current_json["objects"][object_name]["date-modified"] = \
+        current_json["objects"][object_name]["date_modified"] = \
             datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
 
@@ -781,6 +784,12 @@ def selector_save_json_api():
         json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
+@app.route("/get_library_api", methods=['GET', 'POST'])
+def get_library_api():
+    global library_dict
+
+    return jsonify(library_dict)
 
 @app.route("/get_scraped_txt", methods=['GET', 'POST'])
 def get_scraped_txt():
@@ -867,10 +876,10 @@ def create_thumbnail():
         dim = (new_width, new_height)
 
         # resize image
-        background_image = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
+        #background_image = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
 
-        background_h = background_image.shape[0]
-        background_w = background_image.shape[1]
+        background_h = new_height #background_image.shape[0]
+        background_w = new_width #background_image.shape[1]
 
         thumbnail_fixed_width = int((background_w * thumbnail_fixed_height)/background_h)
 
@@ -960,6 +969,16 @@ def create_thumbnail():
                             bounding_box_h += top_bottom_border
                             bounding_box_w = bounding_box_h* w_h_factor
 
+                        if bounding_box_w > background_w or bounding_box_h > background_h:
+                            bounding_box_w = background_w
+                            bounding_box_h = background_h
+
+                            thumbnail_w = bounding_box_w
+                            thumbnail_h = bounding_box_h
+
+                            do_resize = True
+                            break
+
                     elif bounding_box_w > thumbnail_w and bounding_box_h > thumbnail_h:
 
                         #thumbnail_w = bounding_box_w
@@ -987,26 +1006,31 @@ def create_thumbnail():
             x_factor = thumbnail_w / thumbnail_fixed_width
             y_factor = thumbnail_h / thumbnail_fixed_height
 
+            if thumbnail_x < 0 and thumbnail_x + thumbnail_w > background_w:
+                offset = thumbnail_x
+                thumbnail_x = 0
+                new_x = new_x + offset
 
-            if thumbnail_x + thumbnail_w > background_w:
+
+            elif thumbnail_x + thumbnail_w > background_w:
                 offset = (thumbnail_x + thumbnail_w) - background_w
                 thumbnail_x = thumbnail_x - offset
-                new_x = x + offset
+                new_x = new_x + offset
 
-            if thumbnail_x < 0:
-                offset = x + thumbnail_x
+            elif thumbnail_x < 0:
+                offset = thumbnail_x
                 thumbnail_x = 0
-                new_x = offset
+                new_x = new_x + offset
 
             if thumbnail_y + thumbnail_h > background_h:
                 offset = (thumbnail_y + thumbnail_h) - background_h
                 thumbnail_y = thumbnail_y - offset
-                new_y = -offset
+                new_y = new_y + offset
 
             if thumbnail_y < 0:
-                offset = y + thumbnail_y
+                offset = thumbnail_y
                 thumbnail_y = 0
-                new_y = offset
+                new_y = new_y + offset
 
             thumbnail_x = int(thumbnail_x * scaling_factor)
             thumbnail_y = int(thumbnail_y * scaling_factor)
@@ -1032,7 +1056,7 @@ def create_thumbnail():
 
             #cv2.rectangle(resized, (x, y), (x + w, y + h), (0, 0, 255), 1)
 
-            cv2.imwrite("D:\\screenshot\\" + str(cnt) + "_thumbnail.png", resized)
+            #cv2.imwrite("D:\\screenshot\\" + str(cnt) + "_thumbnail.png", resized)
 
             png_image = cv2.imencode('.png', resized)
 

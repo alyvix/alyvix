@@ -148,6 +148,30 @@ class LibraryManager:
 
         return True
 
+    def check_if_detection_exist(self, object_name):
+
+        if object_name is None:
+            return
+
+        try:
+            detection_dict = self._json_object["objects"][object_name]["detection"]
+        except:
+            return False
+
+        return True
+
+    def get_detection(self, object_name):
+
+        if object_name is None:
+            return {}
+
+        try:
+            detection_dict = self._json_object["objects"][object_name]["detection"]
+        except:
+            return {}
+
+        return detection_dict
+
     def add_chunk(self, object_name, chunk):
 
         if object_name is None:
@@ -165,7 +189,7 @@ class LibraryManager:
             #detection_dict[object_name] = alyvix_json["objects"][object_name]
             detection_dict = {object_name: {"components": {resolution_string:self._json_object["objects"][object_name]
                                                             ["components"][resolution_string]},
-                                            "date-modified": self._json_object["objects"][object_name]["date-modified"],
+                                            "date_modified": self._json_object["objects"][object_name]["date_modified"],
                                             "detection": self._json_object["objects"][object_name]["detection"]}}
         except:
             return {}
