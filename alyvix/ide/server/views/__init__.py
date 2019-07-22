@@ -25,6 +25,7 @@ import time
 import hmac
 import json
 import re
+import copy
 from flask import jsonify
 
 import shutil
@@ -70,6 +71,7 @@ current_filename = None
 #current_json = {}
 current_boxes = []
 
+original_screens = {}
 
 library_dict = None
 
@@ -785,11 +787,84 @@ def selector_save_json_api():
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
-@app.route("/get_library_api", methods=['GET', 'POST'])
+
+@app.route("/get_library_api", methods=['GET'])
 def get_library_api():
     global library_dict
+    global original_screens
 
-    return jsonify(library_dict)
+    ret_dict = copy.deepcopy(library_dict)
+
+    objects = ret_dict["objects"]
+
+    original_screens = {}
+
+    #REMOVE SCREEN
+    for obj in objects:
+        #object_name = list(obj.keys())[0]
+        components = objects[obj]["components"]
+
+        original_screens[obj] = {}
+
+        """
+        resolutions = list(components.keys())
+
+        higher_height = 0
+        higher_res = ""
+        for res in resolutions:
+            height = int(res.split('@')[0].split('*')[1])
+
+            if height > higher_height:
+                higher_height = height
+                higher_res = res
+        """
+
+        for cmp in components:
+            original_screens[obj][cmp] = {}
+            original_screens[obj][cmp]["screen"] = components[cmp]["screen"]
+            #del(components[cmp]["screen"])
+
+            base64_img = components[cmp]["screen"]
+            np_array = np.frombuffer(base64.b64decode(base64_img), np.uint8)
+            cv_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+            background_w = cv_image.shape[1]
+            background_h = cv_image.shape[0]
+            thumbnail_fixed_height = 40
+            thumbnail_fixed_width = int((background_w * thumbnail_fixed_height) / background_h)
+
+            dim = (thumbnail_fixed_width, thumbnail_fixed_height)
+
+            resized = cv2.resize(cv_image, dim, interpolation=cv2.INTER_CUBIC)
+            png_image = cv2.imencode('.png', resized)
+            base64png = base64.b64encode(png_image[1]).decode('ascii')
+
+            components[cmp]["screen"] = base64png
+
+
+    return jsonify(ret_dict)
+
+
+@app.route("/set_library_api", methods=['POST'])
+def set_library_api():
+    global library_dict
+    global original_screens
+
+    library = json.loads(request.data)
+
+    objects = library["objects"]
+
+    #reconstruct comp
+    for obj in objects:
+
+        components = objects[obj]["components"]
+
+        for cmp in components:
+
+            components[cmp]["screen"] = original_screens[obj][cmp]["screen"]
+
+    library_dict = library
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route("/get_scraped_txt", methods=['GET', 'POST'])
 def get_scraped_txt():
