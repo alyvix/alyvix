@@ -889,6 +889,7 @@ def get_scraped_txt():
 
         results = tm.scrape(roi=roi)
         scraped_text = results[0].scraped_text
+        scraped_text = scraped_text.lstrip().rstrip()
 
         #white_list = 'abcdefghilmnopqrstuvzxyw1234567890'
 

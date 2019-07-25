@@ -88,17 +88,29 @@ class MouseManager(MouseManagerBase):
         self.move(xs, ys)
 
         cnt = 0
-        for step in range(0, steps, 1):
-            if direction == self.wheel_down:
-                self.ahk.ahkExec(self._coordmode + "\nClick \"WheelDown\"")
-            elif direction == self.wheel_up:
-                self.ahk.ahkExec(self._coordmode + "\nClick \"WheelUp\"")
-            elif direction == self.wheel_left:
-                self.ahk.ahkExec(self._coordmode + "\nClick \"WheelLeft\"")
-            elif direction == self.wheel_right:
-                self.ahk.ahkExec(self._coordmode + "\nClick \"WheelRight\"")
+        if direction == self.wheel_down or direction == self.wheel_up:
+            for step in range(0, steps, 1):
+                if direction == self.wheel_down:
+                    self.ahk.ahkExec(self._coordmode + "\nClick \"WheelDown\"")
+                elif direction == self.wheel_up:
+                    self.ahk.ahkExec(self._coordmode + "\nClick \"WheelUp\"")
 
-            time.sleep(scroll_delay / 1000)
+                time.sleep(scroll_delay / 1000)
+
+        elif direction == self.wheel_left or direction == self.wheel_right:
+            if direction == self.wheel_left:
+                self.ahk.ahkExec(self._coordmode + "\nClick \"middle\"")
+                time.sleep(0.5)
+                self.ahk.ahkExec(self._coordmode + "\nClick \"" + str(xs - steps) + " " + str(ys) + " 0\"")
+                time.sleep(scroll_delay / 1000)
+                self.ahk.ahkExec(self._coordmode + "\nClick \"middle\"")
+            elif direction == self.wheel_right:
+                self.ahk.ahkExec(self._coordmode + "\nClick \"middle\"")
+                time.sleep(0.5)
+                self.ahk.ahkExec(self._coordmode + "\nClick \"" + str(xs + steps) + " " + str(ys) + " 0\"")
+                time.sleep(scroll_delay / 1000)
+                self.ahk.ahkExec(self._coordmode + "\nClick \"middle\"")
+
 
     def hold(self, x, y):
 
