@@ -6,7 +6,7 @@
     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
     -moz-box-sizing: border-box;    /* Firefox, other Gecko */
     box-sizing: border-box;
-    font-family: 'Roboto', sans-serif;  
+    font-family: 'Roboto', sans-serif;
     -webkit-font-smoothing: antialiased;
     color: $textcolor;
 }
@@ -102,7 +102,7 @@ select {
     &:focus{
       outline: none;
       border-bottom: 1px solid $blue;
-      background: $lightblue;
+      background: $lightred;
     }
 }
 
@@ -124,7 +124,7 @@ input[type=checkbox]{
 	padding: 7px;
 	display: inline-block;
   position: relative;
-  
+
   &:focus{
     background-color: $lightblue;
     border-color: $darkblue;
@@ -263,12 +263,12 @@ hr {
 .node-content-wrapper, .tree-children {
     position: relative;
   }
-  
+
   .node-content-wrapper::before, .tree-children::after {
     content: "";
     position: absolute;
   }
-  
+
   .node-content-wrapper::before {
     border-bottom: 1px solid lightgrey;
     border-left: 1px solid lightgrey;
@@ -277,31 +277,31 @@ hr {
     width: 20px;
     left: -28px;
   }
-  
+
   .tree-node-level-1 > tree-node-wrapper > .node-wrapper > .node-content-wrapper::before {
     display: none;
   }
-  
+
   .tree-node-leaf > .node-wrapper > .node-content-wrapper::before {
     width: 25px;
   }
-  
+
   .tree-children::after {
     border-left: 1px solid lightgrey;
     height: 100%;
     top: -15px;
     left: -15px;
   }
-  
+
   tree-node:last-child > .tree-node > .tree-children::after {
     border-left: none;
   }
-  
+
   .toggle-children {
     z-index: 1;
   }
 
- 
+
 
   [type="radio"]:checked,
   [type="radio"]:not(:checked) {
@@ -329,7 +329,7 @@ hr {
     [type="radio"]:checked + label i {
       transition: all 0.2s ease;
     }
-    
+
     [type="radio"]:checked + label,
     [type="radio"]:not(:checked) + label {
       padding-left: 0;
@@ -410,7 +410,7 @@ hr {
   }
 
   .ngx-contextmenu ul {
-    margin: 0;  
+    margin: 0;
   }
 
   .ngx-contextmenu .dropdown-menu {
@@ -442,7 +442,7 @@ hr {
   .ngx-contextmenu li.disabled a {
     color: #999;
   }
-  
+
   .ngx-contextmenu li:hover {
     background-color:#ccc;
   }
