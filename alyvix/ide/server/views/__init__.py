@@ -25,6 +25,7 @@ import time
 import hmac
 import json
 import re
+import copy
 from flask import jsonify
 
 import shutil
@@ -70,6 +71,7 @@ current_filename = None
 #current_json = {}
 current_boxes = []
 
+original_screens = {}
 
 library_dict = None
 
@@ -361,7 +363,10 @@ def load_objects():
         return_dict = {"file_dict":alyvix_file_dict, "autocontoured_rects": autocontoured_rects}
 
         return jsonify(return_dict)
-
+    elif lm.check_if_detection_exist(current_objectname):
+        alyvix_file_dict = lm.get_detection(current_objectname)
+        return_dict = {"file_dict":alyvix_file_dict}
+        return jsonify(return_dict)
     else:
         return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
 
@@ -405,6 +410,14 @@ def save_json():
 
         json_data = json.loads(request.data)
         object_name = json_data['object_name']
+
+        object_name = object_name.lstrip()
+        object_name = object_name.rstrip()
+
+        invalid_chars = re.findall("[^a-zA-Z0-9_\- ]+", object_name)
+
+        if len(invalid_chars) > 0:
+            return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
 
         detection = json_data['detection']
 
@@ -471,6 +484,18 @@ def save_json():
                 elif box["type"] == "R":
                     detection_dict["type"] = "rectangle"
                     detection_dict["features"] = box["features"]["R"]
+
+                    detection_dict["features"]["width"]["min"] = \
+                        int(detection_dict["features"]["width"]["min"] * scaling_factor)
+
+                    detection_dict["features"]["width"]["max"] = \
+                        int(detection_dict["features"]["width"]["max"] * scaling_factor)
+
+                    detection_dict["features"]["height"]["min"] =\
+                        int(detection_dict["features"]["height"]["min"]*scaling_factor)
+
+                    detection_dict["features"]["height"]["max"] =\
+                        int(detection_dict["features"]["height"]["max"]*scaling_factor)
                 elif box["type"] == "T":
                     detection_dict["type"] = "text"
                     detection_dict["features"] = box["features"]["T"]
@@ -605,6 +630,19 @@ def save_json():
                 elif box["type"] == "R":
                     detection_dict["type"] = "rectangle"
                     detection_dict["features"] = box["features"]["R"]
+
+                    detection_dict["features"]["width"]["min"] = \
+                        int(detection_dict["features"]["width"]["min"] * scaling_factor)
+
+                    detection_dict["features"]["width"]["max"] = \
+                        int(detection_dict["features"]["width"]["max"] * scaling_factor)
+
+                    detection_dict["features"]["height"]["min"] =\
+                        int(detection_dict["features"]["height"]["min"]*scaling_factor)
+
+                    detection_dict["features"]["height"]["max"] =\
+                        int(detection_dict["features"]["height"]["max"]*scaling_factor)
+
                 elif box["type"] == "T":
                     detection_dict["type"] = "text"
                     detection_dict["features"] = box["features"]["T"]
@@ -720,7 +758,7 @@ def save_json():
             if current_objectname in current_json["objects"]:
                 del current_json["objects"][current_objectname]
 
-        current_json["objects"][object_name]["date-modified"] = \
+        current_json["objects"][object_name]["date_modified"] = \
             datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
 
@@ -748,6 +786,85 @@ def selector_save_json_api():
         json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
+
+@app.route("/get_library_api", methods=['GET'])
+def get_library_api():
+    global library_dict
+    global original_screens
+
+    ret_dict = copy.deepcopy(library_dict)
+
+    objects = ret_dict["objects"]
+
+    original_screens = {}
+
+    #REMOVE SCREEN
+    for obj in objects:
+        #object_name = list(obj.keys())[0]
+        components = objects[obj]["components"]
+
+        original_screens[obj] = {}
+
+        """
+        resolutions = list(components.keys())
+
+        higher_height = 0
+        higher_res = ""
+        for res in resolutions:
+            height = int(res.split('@')[0].split('*')[1])
+
+            if height > higher_height:
+                higher_height = height
+                higher_res = res
+        """
+
+        for cmp in components:
+            original_screens[obj][cmp] = {}
+            original_screens[obj][cmp]["screen"] = components[cmp]["screen"]
+            #del(components[cmp]["screen"])
+
+            base64_img = components[cmp]["screen"]
+            np_array = np.frombuffer(base64.b64decode(base64_img), np.uint8)
+            cv_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+            background_w = cv_image.shape[1]
+            background_h = cv_image.shape[0]
+            thumbnail_fixed_height = 40
+            thumbnail_fixed_width = int((background_w * thumbnail_fixed_height) / background_h)
+
+            dim = (thumbnail_fixed_width, thumbnail_fixed_height)
+
+            resized = cv2.resize(cv_image, dim, interpolation=cv2.INTER_CUBIC)
+            png_image = cv2.imencode('.png', resized)
+            base64png = base64.b64encode(png_image[1]).decode('ascii')
+
+            components[cmp]["screen"] = base64png
+
+
+    return jsonify(ret_dict)
+
+
+@app.route("/set_library_api", methods=['POST'])
+def set_library_api():
+    global library_dict
+    global original_screens
+
+    library = json.loads(request.data)
+
+    objects = library["objects"]
+
+    #reconstruct comp
+    for obj in objects:
+
+        components = objects[obj]["components"]
+
+        for cmp in components:
+
+            components[cmp]["screen"] = original_screens[obj][cmp]["screen"]
+
+    library_dict = library
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route("/get_scraped_txt", methods=['GET', 'POST'])
 def get_scraped_txt():
@@ -834,10 +951,10 @@ def create_thumbnail():
         dim = (new_width, new_height)
 
         # resize image
-        background_image = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
+        #background_image = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
 
-        background_h = background_image.shape[0]
-        background_w = background_image.shape[1]
+        background_h = new_height #background_image.shape[0]
+        background_w = new_width #background_image.shape[1]
 
         thumbnail_fixed_width = int((background_w * thumbnail_fixed_height)/background_h)
 
@@ -927,6 +1044,16 @@ def create_thumbnail():
                             bounding_box_h += top_bottom_border
                             bounding_box_w = bounding_box_h* w_h_factor
 
+                        if bounding_box_w > background_w or bounding_box_h > background_h:
+                            bounding_box_w = background_w
+                            bounding_box_h = background_h
+
+                            thumbnail_w = bounding_box_w
+                            thumbnail_h = bounding_box_h
+
+                            do_resize = True
+                            break
+
                     elif bounding_box_w > thumbnail_w and bounding_box_h > thumbnail_h:
 
                         #thumbnail_w = bounding_box_w
@@ -954,26 +1081,31 @@ def create_thumbnail():
             x_factor = thumbnail_w / thumbnail_fixed_width
             y_factor = thumbnail_h / thumbnail_fixed_height
 
+            if thumbnail_x < 0 and thumbnail_x + thumbnail_w > background_w:
+                offset = thumbnail_x
+                thumbnail_x = 0
+                new_x = new_x + offset
 
-            if thumbnail_x + thumbnail_w > background_w:
+
+            elif thumbnail_x + thumbnail_w > background_w:
                 offset = (thumbnail_x + thumbnail_w) - background_w
                 thumbnail_x = thumbnail_x - offset
-                new_x = x + offset
+                new_x = new_x + offset
 
-            if thumbnail_x < 0:
-                offset = x + thumbnail_x
+            elif thumbnail_x < 0:
+                offset = thumbnail_x
                 thumbnail_x = 0
-                new_x = offset
+                new_x = new_x + offset
 
             if thumbnail_y + thumbnail_h > background_h:
                 offset = (thumbnail_y + thumbnail_h) - background_h
                 thumbnail_y = thumbnail_y - offset
-                new_y = -offset
+                new_y = new_y + offset
 
             if thumbnail_y < 0:
-                offset = y + thumbnail_y
+                offset = thumbnail_y
                 thumbnail_y = 0
-                new_y = offset
+                new_y = new_y + offset
 
             thumbnail_x = int(thumbnail_x * scaling_factor)
             thumbnail_y = int(thumbnail_y * scaling_factor)
@@ -999,7 +1131,7 @@ def create_thumbnail():
 
             #cv2.rectangle(resized, (x, y), (x + w, y + h), (0, 0, 255), 1)
 
-            cv2.imwrite("D:\\screenshot\\" + str(cnt) + "_thumbnail.png", resized)
+            #cv2.imwrite("D:\\screenshot\\" + str(cnt) + "_thumbnail.png", resized)
 
             png_image = cv2.imencode('.png', resized)
 

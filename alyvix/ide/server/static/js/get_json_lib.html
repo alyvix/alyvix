@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TEST</title>
+</head>
+<body>
+<script src="jquery-ui.min.js"></script>
+<script src="jquery-3.3.1.min.js"></script>
+
+<script>
+
+var lib = null;
+$.getJSON('/get_library_api', function(data) {
+    console.log(data);
+    lib = data;
+});
+
+function set_lib(){
+    var jsonData = JSON.stringify(lib);
+    
+    $.ajax({
+        url: "/set_library_api",
+        type: "POST",
+        data: jsonData,
+        contentType: "application/json; charset=utf-8",
+        success: function(dat) { 
+            
+                console.log("set lib!");
+            }
+    });
+}
+
+</script>
+<button type="button" onclick="set_lib();">Set Json!</button> 
+</body>
+</html> 
