@@ -22,8 +22,7 @@
 
             <!-- Transaction group Definition -->
             <ng-container cdkColumnDef="transactionGroup">
-                <cdk-cell *cdkCellDef="let row"><span *ngIf="row.object.thresholds"><input type="text"  [(ngModel)]="row.object.measure.group" />
-                    </span>
+                <cdk-cell *cdkCellDef="let row"><input type="text"  [ngModel]="row.object.measure.group" (ngModelChange)="changeTransactionGroup(row,$event)" />
                 </cdk-cell>
             </ng-container>
 
@@ -44,21 +43,19 @@
 
             <!-- Measure Definition -->
             <ng-container cdkColumnDef="measure">
-                <cdk-cell *cdkCellDef="let row"><span *ngIf="row.object.thresholds"><span class="inline-label">Break</span><input class="regular-checkbox" [(ngModel)]="row.object.measure.output" type="checkbox" /></span>
+                <cdk-cell *cdkCellDef="let row"><input class="regular-checkbox" [(ngModel)]="row.object.measure.output" type="checkbox" />
                 </cdk-cell>
             </ng-container>
 
             <!-- Warning Definition -->
             <ng-container cdkColumnDef="warning">
-                <cdk-cell *cdkCellDef="let row"><span
-                        *ngIf="row.object.thresholds"><input type="number"  [(ngModel)]="row.object.thresholds.warning_s" min="1" /></span>
+                <cdk-cell *cdkCellDef="let row"><input type="number"  [(ngModel)]="row.object.measure.thresholds.warning_s" min="1" />
                 </cdk-cell>
             </ng-container>
 
             <!-- Critical Definition -->
             <ng-container cdkColumnDef="critical">
-                <cdk-cell *cdkCellDef="let row"><span
-                        *ngIf="row.object.thresholds"><input type="number"  [(ngModel)]="row.object.thresholds.critical_s" min="1" /></span>
+                <cdk-cell *cdkCellDef="let row"><input type="number"  [(ngModel)]="row.object.measure.thresholds.critical_s" min="1" />
                 </cdk-cell>
             </ng-container>
 
@@ -87,7 +84,7 @@
     <div class="ax-selector-footer distribute form-group">
         <div>
           <span class="inline-label">Delay [s]</span>
-          <input class="small" type="number" />
+          <input class="small" [(ngModel)]="delay" type="number" />
           <button class="btn" (click)="newObject()">Add</button>
         </div>
         <div>

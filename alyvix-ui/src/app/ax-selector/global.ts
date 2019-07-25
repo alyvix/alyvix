@@ -2,23 +2,21 @@
 
 
 export interface Global{
-    new_button();
+    new_button(delay:number);
     cancel_button();
-    add_button();
 }
 
 export class MockGlobal implements Global{
-    new_button() {
+    new_button(delay:number) {
+        console.log(delay);
         throw new Error("Method not implemented.");
     }
     cancel_button() {
         throw new Error("Method not implemented.");
     }
-    add_button() {
-        throw new Error("Method not implemented.");
-    }
 
-   
+
+
 }
 
 export interface GlobalRef{

@@ -61,8 +61,17 @@ interface RowVM{
       	this.global.nativeGlobal().cancel_button()
     }
 
+    delay:number = 0;
     newObject() {
-      this.global.nativeGlobal().new_button()
+      this.global.nativeGlobal().new_button(this.delay);
+    }
+
+    changeTransactionGroup(row:RowVM,tg:string) {
+      if(tg.length == 0) {
+        row.object.measure.group = null;
+      } else {
+        row.object.measure.group = tg;
+      }
     }
 
 
@@ -74,6 +83,7 @@ interface RowVM{
           this.model = library;
           this.data = Object.entries(this.model.objects).map(
             ([key, value]) =>  {
+               if(!value.measure) value.measure = {output: false, thresholds: {}}
                return {name:key, object:value, selectedResolution: this.firstResolution(value.components)}
             }
           );

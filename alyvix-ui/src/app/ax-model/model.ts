@@ -13,8 +13,20 @@ export interface AxModel {
     components: {[key:string]:AxSelectorComponentGroups},
     date_modified: string,
     detection: Detection,
-    thresholds?: any
-  }  
+    thresholds?: any,
+    measure?: Measure
+  }
+
+  export interface Measure{
+    group?: string,
+    output: boolean,
+    thresholds: MeasureThresholds
+  }
+
+  export interface MeasureThresholds{
+    warning_s?: number,
+    critical_s?: number
+  }
 
   export interface AxSelectorComponentGroups{
     groups: AxSelectorComponentGroup[],
@@ -142,4 +154,3 @@ export interface AxModel {
     durations_ms: number;
     string: string;
   }
-  

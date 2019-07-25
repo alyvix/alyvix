@@ -5,10 +5,10 @@
 <link rel="stylesheet" href="static/alyvix-ui/styles.css"></head>
 <script src="static/js/jquery-3.3.1.min.js"></script>
 <script>
-    function new_button()
+    function new_button(delay)
     {
         $.ajax({
-            url: "{{new_url_api}}?delay=" +  $("#delay").val(),
+            url: "{{new_url_api}}?delay=" +  delay,
             type: "GET"
         });
     }
