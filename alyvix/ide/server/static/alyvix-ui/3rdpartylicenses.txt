@@ -411,6 +411,10 @@ Apache License
  See the License for the specific language governing permissions and
  limitations under the License.
 
+@angular/forms@7.2.15
+MIT
+MIT
+
 css-element-queries@1.1.1
 MIT
 Copyright (c) 2013 Marc J. Schmidt
@@ -651,10 +655,6 @@ conflicts with the conditions of the GPLv2, you may retroactively and
 prospectively choose to deem waived or otherwise exclude such Section(s) of
 the License, but only in their entirety and only with respect to the Combined
 Software.
-
-@angular/forms@7.2.15
-MIT
-MIT
 
 lodash@4.17.11
 MIT
