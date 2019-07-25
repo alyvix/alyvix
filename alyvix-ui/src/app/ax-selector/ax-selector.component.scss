@@ -43,6 +43,11 @@
             flex-direction: row;
             align-items: center;
             border-bottom: 1px solid #ccc;
+
+            &.selected{
+              background: $lightblue;
+            }
+
             cdk-cell,cdk-header-cell {
                 text-align: center;
                 width: 10%;
@@ -75,11 +80,12 @@
     {
 
         border: 0;
-        border-bottom: white 1px solid;
+        border-bottom: transparent 1px solid;
         padding: 2px 5px;
         width: 100%;
         height: 20px;
         text-align: center;
+        background-color: transparent;
 
         &.small {
           width: 40px;
@@ -100,6 +106,10 @@
         &.primary{
           font-weight: bold;
         }
+    }
+
+    select{
+      background-color: transparent;
     }
 
 }

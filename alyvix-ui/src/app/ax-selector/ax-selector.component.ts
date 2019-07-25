@@ -5,6 +5,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { ResizedEvent } from 'angular-resize-event';
 import { GlobalRef } from './global';
 import { AlyvixApiService } from '../alyvix-api.service';
+import { environment } from 'src/environments/environment';
 
 
 interface RowVM{
@@ -22,8 +23,11 @@ interface RowVM{
 
     constructor(private _sanitizer: DomSanitizer,@Inject('GlobalRef') private global: GlobalRef,private apiService:AlyvixApiService) {}
 
+
+    production:boolean = environment.production;
     model:AxSelectorObjects
     data: RowVM[];
+    selectedRow:RowVM;
 
     private firstResolution(component: {[key:string]:AxSelectorComponentGroups}):string {
       return Object.entries(component).map(
@@ -52,13 +56,17 @@ interface RowVM{
     ok() {
       const model:AxSelectorObjects = { objects: {}};
       this.data.forEach( d => {
-        model[d.name] = d.object;
+        model.objects[d.name] = d.object;
       });
       this.apiService.setLibrary(model).subscribe(x => console.log(x));
     }
 
     cancel() {
       	this.global.nativeGlobal().cancel_button()
+    }
+
+    edit() {
+      this.global.nativeGlobal().edit(this.selectedRow.name,this.selectedRow.selectedResolution);
     }
 
     delay:number = 0;
@@ -74,6 +82,10 @@ interface RowVM{
       }
     }
 
+    selectRow(row) {
+      this.selectedRow = row;
+    }
+
 
 
     selectorColumns = ['name','transactionGroup','dateModified','timeout','break','measure','warning','critical','resolution','screen']
@@ -83,10 +95,16 @@ interface RowVM{
           this.model = library;
           this.data = Object.entries(this.model.objects).map(
             ([key, value]) =>  {
-               if(!value.measure) value.measure = {output: false, thresholds: {}}
+               if(!value.measure) {
+                 value.measure = {output: false, thresholds: {}}
+               } else  {
+                  if(!value.measure.thresholds) value.measure.thresholds = {};
+                  if(typeof value.measure.output === 'undefined') value.measure.output = false;
+               }
                return {name:key, object:value, selectedResolution: this.firstResolution(value.components)}
             }
           );
+          this.selectedRow = this.data[0];
         })
     }
 
