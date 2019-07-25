@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { BoxListEntity } from './ax-model/model';
+import { BoxListEntity, AxSelectorObjects } from './ax-model/model';
 import { map } from 'rxjs/operators';
 
 export interface ScrapedText{
@@ -27,6 +27,14 @@ export class AlyvixApiService {
 
   testScrapedText(scraped:ScrapedText):Observable<TestScrapedResponse> {
     return this.httpClient.post<TestScrapedResponse>("/test_txt_regexp",scraped)
+  }
+
+  getLibrary():Observable<AxSelectorObjects> {
+    return this.httpClient.get<AxSelectorObjects>("/get_library_api");
+  }
+
+  setLibrary(library:AxSelectorObjects):Observable<any> {
+    return this.httpClient.post<any>("/set_library_api",library);
   }
 
 }

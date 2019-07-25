@@ -4,6 +4,14 @@ import { AxModelMock } from '../ax-model/mock';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ResizedEvent } from 'angular-resize-event';
 import { GlobalRef } from './global';
+import { AlyvixApiService } from '../alyvix-api.service';
+
+
+interface RowVM{
+  name:string
+  object:AxSelectorObject
+  selectedResolution:string
+}
 
 @Component({
     selector: 'ax-selector',
@@ -11,28 +19,29 @@ import { GlobalRef } from './global';
     styleUrls: ['./ax-selector.component.scss']
   })
   export class AxSelectorComponent implements OnInit {
-    
-    constructor(private _sanitizer: DomSanitizer,@Inject('GlobalRef') private global: GlobalRef) {}
 
-    model:AxSelectorObjects = AxModelMock.getSelector();
+    constructor(private _sanitizer: DomSanitizer,@Inject('GlobalRef') private global: GlobalRef,private apiService:AlyvixApiService) {}
 
-    
-    data: {name:string, object:AxSelectorObject}[] = Object.entries(this.model.objects).map(
-      ([key, value]) =>  {
-         return {name:key, object:value}
-      }
-    );
+    model:AxSelectorObjects
+    data: RowVM[];
 
-    firstResolution(component: {[key:string]:AxSelectorComponentGroups}):{name:string,component:AxSelectorComponentGroups} {
+    private firstResolution(component: {[key:string]:AxSelectorComponentGroups}):string {
       return Object.entries(component).map(
         ([key, value]) =>  {
-           return {name:key, component:value}
+           return key
         }
       )[0]
     }
 
+    objectKeys = Object.keys;
+
     imageFor(image:string) {
       return this._sanitizer.bypassSecurityTrustResourceUrl("data:image/png;base64,"+image);
+    }
+
+    changeObjectName(oldKey: string,newKey: string) {
+      delete Object.assign(this.model.objects, {[newKey]: this.model.objects[oldKey] })[oldKey];
+      delete Object.assign(this.data, {[newKey]: this.data })[oldKey];
     }
 
     @ViewChild('tableContainer') tableContainer: ElementRef;
@@ -40,8 +49,12 @@ import { GlobalRef } from './global';
       this.tableContainer.nativeElement.style.height = (event.newHeight - 44 - 40) + "px"
     }
 
-    add() {
-      this.global.nativeGlobal().add_button()
+    ok() {
+      const model:AxSelectorObjects = { objects: {}};
+      this.data.forEach( d => {
+        model[d.name] = d.object;
+      });
+      this.apiService.setLibrary(model).subscribe(x => console.log(x));
     }
 
     cancel() {
@@ -52,11 +65,19 @@ import { GlobalRef } from './global';
       this.global.nativeGlobal().new_button()
     }
 
-   
 
-    selectorColumns = ['name','transactionGroup','dateModified','timeout','break','measure','warning','critical','resolution','screen'] 
+
+    selectorColumns = ['name','transactionGroup','dateModified','timeout','break','measure','warning','critical','resolution','screen']
 
     ngOnInit(): void {
+        this.apiService.getLibrary().subscribe( library => {
+          this.model = library;
+          this.data = Object.entries(this.model.objects).map(
+            ([key, value]) =>  {
+               return {name:key, object:value, selectedResolution: this.firstResolution(value.components)}
+            }
+          );
+        })
     }
 
   }

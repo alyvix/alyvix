@@ -6,6 +6,8 @@ import { AxSelectorComponent } from './ax-selector.component';
 
 import {CdkTableModule} from '@angular/cdk/table'
 import { AngularResizedEventModule } from 'angular-resize-event';
+import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 
 
 
@@ -17,7 +19,9 @@ import { AngularResizedEventModule } from 'angular-resize-event';
   imports: [
     BrowserModule,
     CdkTableModule,
-    AngularResizedEventModule
+    AngularResizedEventModule,
+    HttpClientModule,
+    FormsModule
   ],
   providers: [{provide: 'GlobalRef', useClass: environment.globalTypeSelector}],
   bootstrap: [SelectorComponent]

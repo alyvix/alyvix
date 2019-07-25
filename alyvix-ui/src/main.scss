@@ -15,17 +15,6 @@ body{
     font-size: 14px;
 }
 
-input[type='number'] {
-    -moz-appearance:textfield;
-}
-
-
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-}
-
 .form-group {
     margin: 5px 0;
 }
@@ -70,7 +59,7 @@ input::-webkit-inner-spin-button {
 
     &.ng-invalid {
       border-bottom: 1px solid $red !important;
-      background-color: lightpink;
+      background-color: $lightred;
     }
 }
 
@@ -102,7 +91,7 @@ select {
     &:focus{
       outline: none;
       border-bottom: 1px solid $blue;
-      background: $lightred;
+      background: $lightblue;
     }
 }
 

@@ -17,12 +17,12 @@
             <!-- Name Definition -->
             <ng-container cdkColumnDef="name">
 
-                <cdk-cell *cdkCellDef="let row"> <strong>{{row.name}}</strong> </cdk-cell>
+                <cdk-cell *cdkCellDef="let row"> <input type="text" class="primary" [(ngModel)]="row.name" /> </cdk-cell>
             </ng-container>
 
             <!-- Transaction group Definition -->
             <ng-container cdkColumnDef="transactionGroup">
-                <cdk-cell *cdkCellDef="let row"><span *ngIf="row.object.thresholds">{{ row.object.measure.group }}
+                <cdk-cell *cdkCellDef="let row"><span *ngIf="row.object.thresholds"><input type="text"  [(ngModel)]="row.object.measure.group" />
                     </span>
                 </cdk-cell>
             </ng-container>
@@ -34,43 +34,48 @@
 
             <!-- Timeout Definition -->
             <ng-container cdkColumnDef="timeout">
-                <cdk-cell *cdkCellDef="let row">{{row.object.detection.timeout_s}}</cdk-cell>
+                <cdk-cell *cdkCellDef="let row"><input type="number"  [(ngModel)]="row.object.detection.timeout_s" min="1" /></cdk-cell>
             </ng-container>
 
             <!-- Break Definition -->
             <ng-container cdkColumnDef="break">
-                <cdk-cell *cdkCellDef="let row">{{row.object.detection.break}} </cdk-cell>
+                <cdk-cell *cdkCellDef="let row"><input class="regular-checkbox" [(ngModel)]="row.object.detection.break" type="checkbox" /></cdk-cell>
             </ng-container>
 
             <!-- Measure Definition -->
             <ng-container cdkColumnDef="measure">
-                <cdk-cell *cdkCellDef="let row"><span *ngIf="row.object.thresholds">{{row.object.measure.output}}</span>
+                <cdk-cell *cdkCellDef="let row"><span *ngIf="row.object.thresholds"><span class="inline-label">Break</span><input class="regular-checkbox" [(ngModel)]="row.object.measure.output" type="checkbox" /></span>
                 </cdk-cell>
             </ng-container>
 
             <!-- Warning Definition -->
             <ng-container cdkColumnDef="warning">
                 <cdk-cell *cdkCellDef="let row"><span
-                        *ngIf="row.object.thresholds">{{row.object.thresholds.warning_s}}</span>
+                        *ngIf="row.object.thresholds"><input type="number"  [(ngModel)]="row.object.thresholds.warning_s" min="1" /></span>
                 </cdk-cell>
             </ng-container>
 
             <!-- Critical Definition -->
             <ng-container cdkColumnDef="critical">
                 <cdk-cell *cdkCellDef="let row"><span
-                        *ngIf="row.object.thresholds">{{row.object.thresholds.critical_s}}</span>
+                        *ngIf="row.object.thresholds"><input type="number"  [(ngModel)]="row.object.thresholds.critical_s" min="1" /></span>
                 </cdk-cell>
             </ng-container>
 
             <!-- Resolution Definition -->
             <ng-container cdkColumnDef="resolution">
-                <cdk-cell *cdkCellDef="let row">{{firstResolution(row.object.components).name}} </cdk-cell>
+                <cdk-cell *cdkCellDef="let row">
+                  <select [(ngModel)]="row.selectedResolution">
+                    <option [ngValue]="resolution" *ngFor="let resolution of objectKeys(row.object.components)">{{resolution}}</option>
+                  </select>
+
+                </cdk-cell>
             </ng-container>
 
             <!-- Screen Definition -->
             <ng-container cdkColumnDef="screen">
-                <cdk-cell *cdkCellDef="let row"><img
-                        [src]="imageFor(firstResolution(row.object.components).component.screen)">
+                <cdk-cell *cdkCellDef="let row"><img *ngIf="row.object.components[row.selectedResolution]"
+                        [src]="imageFor(row.object.components[row.selectedResolution].screen)">
                 </cdk-cell>
             </ng-container>
 
@@ -79,10 +84,21 @@
         </cdk-table>
     </div>
 
-    <div class="ax-selector-footer">
-        <button class="btn btn-primary" (click)="add()">Ok</button>
-        <button class="btn" (click)="newObject()">New</button>
-        <button class="btn" (click)="cancel()">Cancel</button>
+    <div class="ax-selector-footer distribute form-group">
+        <div>
+          <span class="inline-label">Delay [s]</span>
+          <input class="small" type="number" />
+          <button class="btn" (click)="newObject()">Add</button>
+        </div>
+        <div>
+          <button class="btn btn-primary" (click)="ok()">Ok</button>
+          <button class="btn" (click)="cancel()">Cancel</button>
+        </div>
     </div>
 
+</div>
+
+
+<div style="position: absolute; top: 0px; left: 1250px; overflow: auto; height: 600px; width: 400px; background-color: white">
+  <pre>{{data | json}}</pre>
 </div>
