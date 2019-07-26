@@ -799,12 +799,16 @@ def get_library_api():
 
     original_screens = {}
 
+    id = 0
+
     #REMOVE SCREEN
     for obj in objects:
         #object_name = list(obj.keys())[0]
         components = objects[obj]["components"]
+        objects[obj]["id"] = id
 
-        original_screens[obj] = {}
+        #original_screens[obj] = {}
+        original_screens[id] = {}
 
         """
         resolutions = list(components.keys())
@@ -820,8 +824,9 @@ def get_library_api():
         """
 
         for cmp in components:
-            original_screens[obj][cmp] = {}
-            original_screens[obj][cmp]["screen"] = components[cmp]["screen"]
+            original_screens[id][cmp] = {}
+            original_screens[id][cmp]["screen"] = components[cmp]["screen"]
+
             #del(components[cmp]["screen"])
 
             base64_img = components[cmp]["screen"]
@@ -839,6 +844,8 @@ def get_library_api():
             base64png = base64.b64encode(png_image[1]).decode('ascii')
 
             components[cmp]["screen"] = base64png
+
+        id += 1
 
 
     return jsonify(ret_dict)
@@ -860,9 +867,29 @@ def set_library_api():
 
         for cmp in components:
 
-            components[cmp]["screen"] = original_screens[obj][cmp]["screen"]
+            components[cmp]["screen"] = original_screens[objects[obj]["id"]][cmp]["screen"]
+
+        del objects[obj]["id"]
+        datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
+
+        try:
+            if objects[obj] != library_dict["objects"][obj]:
+                objects[obj]["date_modified"] = datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") +\
+                                                " UTC" + time.strftime("%z")
+        except:
+            objects[obj]["date_modified"] = datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") +\
+                                            " UTC" + time.strftime("%z")
+
+    curr_script = library.get("script", {})
+
+    library["script"] = curr_script
 
     library_dict = library
+
+    with open(current_filename, 'w') as f:
+        json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+
+    selector_shutdown_and_close_api()
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
