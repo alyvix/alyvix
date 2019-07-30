@@ -15,7 +15,7 @@
   <div class="pure-u-11-24" [hidden]="node.box.features.T.type == 'scraper'">
       <div class="form-group">
         <label>Regex</label>
-        <input class="mousetrap regex-input" [formControl]="regex" [(ngModel)]="node.box.features.T.regexp" [ngClass]="{'warning': regExWarning}" type="text" spellcheck="false">
+        <input class="mousetrap regex-input" [formControl]="regex" (change)="onRegexChange()"  [ngClass]="{'warning': regExWarning, 'loading': loading}" type="text" spellcheck="false">
       </div>
     </div>
   <div class="pure-u-2-24" [hidden]="node.box.features.T.type == 'scraper'"></div>
