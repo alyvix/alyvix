@@ -22,6 +22,10 @@
     }
 
     function edit(object_name, resolution) {
+        $.ajax({
+            url: "{{edit_url_api}}?object_name=" + object_name + "&resolution=" + resolution,
+            type: "GET"
+        });
         console.log(object_name);
         console.log(resolution);
     }

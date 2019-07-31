@@ -74,6 +74,7 @@ current_boxes = []
 original_screens = {}
 
 library_dict = None
+library_dict_in_editing = None
 
 win32_window = None
 server_process = None
@@ -87,6 +88,8 @@ viewer_manager = None
 viewer_process = None
 
 default_object_name = "VisualObject"
+
+selector_vm = None
 
 def detachedProcessFunction(wait_time):
     i=0
@@ -119,7 +122,9 @@ def selector():
                            close_and_shutdown_url_api='http://127.0.0.1:' + str(
                                current_port) + '/selector_shutdown_and_close_api',
                            selector_save_json_api='http://127.0.0.1:' + str(
-                               current_port) + '/selector_save_json_api')
+                               current_port) + '/selector_save_json_api',
+                           edit_url_api='http://127.0.0.1:' + str(
+                               current_port) + '/selector_button_edit_api')
 
 @app.route("/selector_button_new_api", methods=['GET', 'POST'])
 def selector_button_new_api():
@@ -255,6 +260,82 @@ if __name__ == '__main__':
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
+@app.route("/selector_button_edit_api", methods=['GET', 'POST'])
+def selector_edit_api():
+
+    global library_dict
+    global library_dict_in_editing
+
+    global current_objectname
+    global background_image
+    global base64png
+    global img_h
+    global img_w
+    global popen_process
+    global autocontoured_rects
+
+
+    object_name = request.args.get('object_name')
+    resolution = request.args.get('resolution')
+
+    vm = ViewerManager()
+    vm.set_win_handler(viewer_handler_selector)
+    vm.hide()
+
+    while True:
+        if vm.IsWindowVisible(viewer_handler_selector) is False and vm.IsIconic(viewer_handler_selector) is False:
+            break
+
+
+
+    screen_manager = ScreenManager()
+
+    scaling_factor = screen_manager.get_scaling_factor()
+
+    np_array = np.frombuffer(base64.b64decode(library_dict["objects"][object_name]["components"][resolution]["screen"]), np.uint8)
+
+    background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+
+    png_image = cv2.imencode('.png', background_image)
+
+    base64png = base64.b64encode(png_image[1]).decode('ascii')
+    img_h = int(background_image.shape[0] / scaling_factor)
+    img_w = int(background_image.shape[1] / scaling_factor)
+
+
+    object_res = copy.deepcopy(library_dict["objects"][object_name]["components"][resolution])
+
+    library_dict_in_editing = {"objects":{}}
+    library_dict_in_editing["objects"][object_name] = {"components": {}}
+    library_dict_in_editing["objects"][object_name]["components"][resolution] = object_res
+    library_dict_in_editing["objects"][object_name]["measure"] = copy.deepcopy(library_dict["objects"][object_name]["measure"])
+    library_dict_in_editing["objects"][object_name]["detection"] = copy.deepcopy(library_dict["objects"][object_name]["detection"])
+    library_dict_in_editing["objects"][object_name]["date_modified"] = copy.deepcopy(library_dict["objects"][object_name]["date_modified"])
+
+    current_objectname = object_name
+
+    url = "http://127.0.0.1:" + str(current_port) + "/drawing"
+
+    executable_code = """
+from alyvix.ide.viewer import ViewerManager
+
+if __name__ == '__main__':
+    viewer_manager = ViewerManager()
+    viewer_manager.run('{}', fullscreen=True)
+    """.format(url)
+
+    python_exec = sys.executable
+    python_path = os.path.dirname(python_exec)
+
+    if os.path.isfile(python_path + os.sep + 'pythor.exe') is True:
+        popen_process = subprocess.Popen([python_path + os.sep + 'pythor.exe', '-c', executable_code])
+    else:
+        popen_process = subprocess.Popen([python_path + os.sep + 'python.exe', '-c', executable_code],
+                                         stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
 @app.route("/selector_close_api", methods=['GET'])
 def selector_close_api():
 
@@ -276,13 +357,14 @@ def selector_close_api():
 @app.route("/selector_shutdown_and_close_api", methods=['GET'])
 def selector_shutdown_and_close_api():
 
+    """
     func = request.environ.get('werkzeug.server.shutdown')
     if func is not None:
         func()
     else:
         # raise RuntimeError('Not running with the Werkzeug Server')
         server_process.close()
-
+    """
     vm = ViewerManager()
     vm.set_win_handler(viewer_handler_selector)
     vm.close_and_no_shutdown()
@@ -308,11 +390,16 @@ def set_viewer_handler_api():
 @app.route("/load_objects", methods=['GET'])
 def load_objects():
     global autocontoured_rects
+    global library_dict_in_editing
+
     lm = LibraryManager()
 
     lm.set_json(library_dict)
 
-    alyvix_file_dict = lm.build_objects_for_ide(current_objectname)
+    if library_dict_in_editing is None:
+        alyvix_file_dict = lm.build_objects_for_ide(current_objectname)
+    else:
+        alyvix_file_dict = lm.build_objects_for_ide(current_objectname, library_dict_in_editing)
 
     if bool(alyvix_file_dict):
 
@@ -362,6 +449,8 @@ def load_objects():
 
         return_dict = {"file_dict":alyvix_file_dict, "autocontoured_rects": autocontoured_rects}
 
+        #print(alyvix_file_dict)
+
         return jsonify(return_dict)
     elif lm.check_if_detection_exist(current_objectname):
         alyvix_file_dict = lm.get_detection(current_objectname)
@@ -395,6 +484,9 @@ def cancel_event():
 @app.route("/save_json", methods=['GET', 'POST'])
 def save_json():
     global library_dict
+    global selector_vm
+    global library_dict_in_editing
+
     if request.method == 'POST':
 
         current_json = {}
@@ -405,8 +497,10 @@ def save_json():
                     current_json = json.load(f)
             except:
                 pass
-        else:
+        else: #elif library_dict_in_editing is None:
             current_json = library_dict
+        #elif library_dict_in_editing is not None:
+        #    current_json = library_dict_in_editing
 
         json_data = json.loads(request.data)
         object_name = json_data['object_name']
@@ -428,9 +522,15 @@ def save_json():
 
         curr_script = current_json.get("script", {})
 
+
         curr_object_list_dict = current_json.get("objects", {})
 
         curr_object_dict = curr_object_list_dict.get(object_name, {})
+
+
+        curr_measure = curr_object_dict.get("measure", {})
+        curr_output = curr_measure.get("output", True)
+        curr_thresholds = curr_measure.get("thresholds", {})
 
         curr_object_dict["detection"] = detection
 
@@ -751,6 +851,10 @@ def save_json():
 
         current_json["objects"][object_name] = curr_object_dict
 
+        current_json["objects"][object_name]["measure"] = curr_measure
+        current_json["objects"][object_name]["measure"]["output"] = curr_output
+        current_json["objects"][object_name]["measure"]["thresholds"] = curr_thresholds
+
         current_json["objects"][object_name]["components"] = curr_components
 
 
@@ -766,9 +870,13 @@ def save_json():
             with open(current_filename, 'w') as f:
                 json.dump(current_json, f, indent=4, sort_keys=True, ensure_ascii=False)
         else:
-            vm = ViewerManager()
+
+            library_dict_in_editing = None
+
+            vm = selector_vm #ViewerManager()
             vm.set_win_handler(viewer_handler_selector)
-            vm.show()
+            vm.load_url('http://127.0.0.1:' + str(current_port) + '/selector', viewer_handler_selector)
+            #vm.show()
 
         aaa = "asas"
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
@@ -795,57 +903,60 @@ def get_library_api():
 
     ret_dict = copy.deepcopy(library_dict)
 
-    objects = ret_dict["objects"]
+    #check if dict is empty
+    if bool(ret_dict) == True:
 
-    original_screens = {}
+        objects = ret_dict["objects"]
 
-    id = 0
+        original_screens = {}
 
-    #REMOVE SCREEN
-    for obj in objects:
-        #object_name = list(obj.keys())[0]
-        components = objects[obj]["components"]
-        objects[obj]["id"] = id
+        id = 0
 
-        #original_screens[obj] = {}
-        original_screens[id] = {}
+        #REMOVE SCREEN
+        for obj in objects:
+            #object_name = list(obj.keys())[0]
+            components = objects[obj]["components"]
+            objects[obj]["id"] = id
 
-        """
-        resolutions = list(components.keys())
+            #original_screens[obj] = {}
+            original_screens[id] = {}
 
-        higher_height = 0
-        higher_res = ""
-        for res in resolutions:
-            height = int(res.split('@')[0].split('*')[1])
+            """
+            resolutions = list(components.keys())
+    
+            higher_height = 0
+            higher_res = ""
+            for res in resolutions:
+                height = int(res.split('@')[0].split('*')[1])
+    
+                if height > higher_height:
+                    higher_height = height
+                    higher_res = res
+            """
 
-            if height > higher_height:
-                higher_height = height
-                higher_res = res
-        """
+            for cmp in components:
+                original_screens[id][cmp] = {}
+                original_screens[id][cmp]["screen"] = components[cmp]["screen"]
 
-        for cmp in components:
-            original_screens[id][cmp] = {}
-            original_screens[id][cmp]["screen"] = components[cmp]["screen"]
+                #del(components[cmp]["screen"])
 
-            #del(components[cmp]["screen"])
+                base64_img = components[cmp]["screen"]
+                np_array = np.frombuffer(base64.b64decode(base64_img), np.uint8)
+                cv_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+                background_w = cv_image.shape[1]
+                background_h = cv_image.shape[0]
+                thumbnail_fixed_height = 40
+                thumbnail_fixed_width = int((background_w * thumbnail_fixed_height) / background_h)
 
-            base64_img = components[cmp]["screen"]
-            np_array = np.frombuffer(base64.b64decode(base64_img), np.uint8)
-            cv_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
-            background_w = cv_image.shape[1]
-            background_h = cv_image.shape[0]
-            thumbnail_fixed_height = 40
-            thumbnail_fixed_width = int((background_w * thumbnail_fixed_height) / background_h)
+                dim = (thumbnail_fixed_width, thumbnail_fixed_height)
 
-            dim = (thumbnail_fixed_width, thumbnail_fixed_height)
+                resized = cv2.resize(cv_image, dim, interpolation=cv2.INTER_CUBIC)
+                png_image = cv2.imencode('.png', resized)
+                base64png = base64.b64encode(png_image[1]).decode('ascii')
 
-            resized = cv2.resize(cv_image, dim, interpolation=cv2.INTER_CUBIC)
-            png_image = cv2.imencode('.png', resized)
-            base64png = base64.b64encode(png_image[1]).decode('ascii')
+                components[cmp]["screen"] = base64png
 
-            components[cmp]["screen"] = base64png
-
-        id += 1
+            id += 1
 
 
     return jsonify(ret_dict)

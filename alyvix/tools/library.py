@@ -198,11 +198,11 @@ class LibraryManager:
 
         return detection_dict
 
-    def build_objects_for_ide(self, object_name):
+    def build_objects_for_ide(self, object_name, library=None):
 
         self.boxes = []
 
-        if self._json_object is None:
+        if self._json_object is None and library is None:
             return
 
         if object_name is None:
@@ -213,14 +213,20 @@ class LibraryManager:
         scaling_factor = sm.get_scaling_factor()
 
         try:
-            detection_dict = self._json_object["objects"][object_name]["detection"]
+            if library is None:
+                detection_dict = self._json_object["objects"][object_name]["detection"]
+            else:
+                detection_dict = library["objects"][object_name]["detection"]
         except:
             return {}
 
         resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
 
         try:
-            object_dict = self._json_object["objects"][object_name]["components"][resolution_string]
+            if library is None:
+                object_dict = self._json_object["objects"][object_name]["components"][resolution_string]
+            else:
+                object_dict = library["objects"][object_name]["components"][resolution_string]
         except:
             return {}
 

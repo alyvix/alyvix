@@ -75,6 +75,7 @@ class ViewerManager(ViewerManagerBase):
         self.window_handle = None
         self._base_url = None
         self._title = None
+        self._browser = None
 
     def close(self):
 
@@ -85,19 +86,21 @@ class ViewerManager(ViewerManagerBase):
 
     def close_and_no_shutdown(self):
         win32gui.PostMessage(self.window_handle, win32con.WM_CLOSE, 0, 0)
+        print("close {}".format(self.window_handle))
 
     def hide(self):
         win32gui.ShowWindow(self.window_handle, win32con.SW_HIDE)
 
     def show(self):
         win32gui.ShowWindow(self.window_handle, win32con.SW_SHOW)
+        win32gui.SetForegroundWindow(self.window_handle)
 
     def set_win_handler(self, handler):
         self.window_handle = handler
 
-    def load_url(self, url):
-        #browser = cef.GetBrowserByWindowHandle(window_handle)
-        self._browser.loadUrl('url')
+    def load_url(self, url, window_handle):
+        browser = cef.GetBrowserByWindowHandle(window_handle)
+        browser.LoadUrl(url)
 
     def IsWindowVisible(self, handler):
         visible = win32gui.IsWindowVisible(handler)
@@ -268,6 +271,7 @@ class ViewerManager(ViewerManagerBase):
                                         url=url)
 
         #bb = cef.GetBrowserByWindowHandle(window_info.parentWindowHandle)
+        self._browser = browser
 
         #aa = ""
 
@@ -355,6 +359,9 @@ class ViewerManager(ViewerManagerBase):
         browser = None
         # OFF: win32gui.DestroyWindow(window_handle)
         #cef.Shutdown()
+
+        if self._title == "Alyvix Selector":
+            aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
 
         return win32gui.DefWindowProc(window_handle, message, wparam, lparam)
 

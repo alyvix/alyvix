@@ -26,6 +26,8 @@ import threading
 from multiprocessing import Process
 from alyvix.core.contouring import ContouringManager
 from gevent.pywsgi import WSGIServer
+#from geventwebsocket.handler import WebSocketHandler
+
 
 app = Flask(__name__)
 
@@ -51,6 +53,8 @@ class ServerManager():
         elif log_level == 1:
             server_log = 'default'
 
+            #logging.basicConfig(level=logging.INFO)
+
             print("Serving on http://127.0.0.1:" + str(port))
 
         views.current_port = port
@@ -62,6 +66,9 @@ class ServerManager():
 
     def set_window(self, window):
         views.win32_window = window
+
+    def set_selector_vm_object(self, vm):
+        views.selector_vm = vm
 
     def set_background(self, background_image, scaling_factor):
 
