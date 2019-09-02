@@ -8,13 +8,15 @@ import {CdkTableModule} from '@angular/cdk/table'
 import { AngularResizedEventModule } from 'angular-resize-event';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { AxTableComponent } from './ax-table/ax-table.component';
 
 
 
 @NgModule({
   declarations: [
     SelectorComponent,
-    AxSelectorComponent
+    AxSelectorComponent,
+    AxTableComponent
   ],
   imports: [
     BrowserModule,

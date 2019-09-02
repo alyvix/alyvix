@@ -14,6 +14,10 @@ interface TestScrapedResponse{
   match: string
 }
 
+interface DefaultResponse{
+  success: boolean
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -33,7 +37,7 @@ export class AlyvixApiService {
     return this.httpClient.get<AxSelectorObjects>("/get_library_api");
   }
 
-  setLibrary(library:AxSelectorObjects):Observable<any> {
+  setLibrary(library:AxSelectorObjects):Observable<DefaultResponse> {
     return this.httpClient.post<any>("/set_library_api",library);
   }
 

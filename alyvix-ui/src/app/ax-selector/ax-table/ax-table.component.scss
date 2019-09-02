@@ -1,0 +1,108 @@
+@import "../../../variables.scss";
+
+.ax-selector-header {
+  display: flex;
+  flex-direction: row;
+  padding-right: 18px;
+  //background-color: $blue;
+  border-bottom: 1px solid $blue;
+  text-align: center;
+  align-items: center;
+  div{
+      padding: 5px;
+      width: 10%;
+      font-weight: bold;
+      color: $blue;
+  }
+}
+
+.ax-selector-footer {
+  height: 40px;
+  padding: 7px;
+  button{
+      margin-right: 5px;
+  }
+}
+
+.ax-selector-table {
+  overflow-y: auto;
+  height: 100%;
+  cdk-table {
+      display: flex;
+      flex-direction: column;
+
+      cdk-header-row,cdk-row{
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          border-bottom: 1px solid #ccc;
+
+          &.selected{
+            background: $lightblue;
+          }
+
+          cdk-cell,cdk-header-cell {
+              text-align: center;
+              width: 10%;
+              padding: 5px;
+
+              img{
+                  max-width: 100%;
+                  max-height: 50px;
+              }
+          }
+      }
+  }
+
+
+
+  input[type=date],
+  input[type=datetime],
+  input[type=datetime-local],
+  input[type=email],
+  input[type=month],
+  input[type=number],
+  input[type=password],
+  input[type=range],
+  input[type=search],
+  input[type=tel],
+  input[type=text],
+  input[type=time],
+  input[type=url],
+  input[type=week]
+  {
+
+      border: 0;
+      border-bottom: transparent 1px solid;
+      padding: 2px 5px;
+      width: 100%;
+      height: 20px;
+      text-align: center;
+      background-color: transparent;
+
+      &.small {
+        width: 40px;
+      }
+
+      &:hover, &:focus{
+        outline: none;
+        border-bottom: 1px solid $blue;
+        background: $lightblue;
+      }
+
+
+      &.ng-invalid {
+        border-bottom: 1px solid $red !important;
+        background-color: $lightred;
+      }
+
+      &.primary{
+        font-weight: bold;
+      }
+  }
+
+  select{
+    background-color: transparent;
+  }
+
+}

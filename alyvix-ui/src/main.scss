@@ -61,10 +61,14 @@ body{
       border-bottom: 1px solid $red !important;
       background-color: $lightred;
     }
+
+    &.std-width {
+      width: 160px;
+    }
 }
 
 
-input.std-width {
+input.std-width,select.std-width {
     width: 160px;
 }
 
