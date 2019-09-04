@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild} from '@angular/core';
 import { ResizedEvent } from 'angular-resize-event';
 import { AxTableComponent } from './ax-table/ax-table.component';
+import { environment } from 'src/environments/environment';
 
 @Component({
     selector: 'ax-selector',
@@ -15,6 +16,9 @@ import { AxTableComponent } from './ax-table/ax-table.component';
     ngOnInit(): void {
 
     }
+
+    production:boolean = environment.production;
+
 
     @ViewChild(AxTableComponent) table;
     onResized(event: ResizedEvent) {

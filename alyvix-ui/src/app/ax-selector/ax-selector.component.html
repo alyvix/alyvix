@@ -1,9 +1,11 @@
 <div class="ax-selector-container" (resized)="onResized($event)">
-    <div class="ax-selector-tabs">
-        <div class="ax-selector-tab" [ngClass]="{'selected': selectedTab == i}" *ngFor="let i of [1,2,3]"><a (click)="selectTab(i)">Tab {{i}}</a></div>
+    <div class="ax-selector-main">
+      <div class="ax-selector-tabs">
+          <div class="ax-selector-tab" [ngClass]="{'selected': selectedTab == i}" *ngFor="let i of [1,2,3]"><a (click)="selectTab(i)">Tab {{i}}</a></div>
 
+      </div>
+      <ax-table></ax-table>
     </div>
-    <ax-table></ax-table>
 
 </div>
 

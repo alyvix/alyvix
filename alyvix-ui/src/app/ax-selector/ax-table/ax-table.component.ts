@@ -6,6 +6,9 @@ import { AlyvixApiService } from 'src/app/alyvix-api.service';
 import { environment } from 'src/environments/environment';
 import { ResizedEvent } from 'angular-resize-event';
 
+
+import * as _ from 'lodash';
+
 interface RowVM{
   name:string
   object:AxSelectorObject
@@ -156,9 +159,7 @@ export class AxTableComponent implements OnInit {
           }
         );
         this.selectedRow = this.data[0];
-        this.resolutions = this.data.flatMap(o => this.resolutionsForObject(o.object.components)).filter(function(value, index, array) {
-          return array.indexOf(value, index + 1) < 0;
-        });
+        this.resolutions = _.uniq(_.flatten(this.data.map(o => this.resolutionsForObject(o.object.components))));
         this.filterData();
       })
   }
