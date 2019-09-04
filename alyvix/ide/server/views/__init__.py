@@ -116,6 +116,12 @@ def drawing():
 def selector():
     text = en.drawing
 
+    sm = ScreenManager()
+    resolution = sm.get_resolution()
+    res_w = resolution[0]
+    res_h = resolution[1]
+    resolution_string = str(res_w) + "*" + str(res_h) + "@" + str(int(scaling_factor * 100))
+
     return render_template('selector.html', new_url_api='http://127.0.0.1:' + str(current_port) + '/selector_button_new_api',
                            close_url_api='http://127.0.0.1:' + str(
                                current_port) + '/selector_close_api',
@@ -124,7 +130,9 @@ def selector():
                            selector_save_json_api='http://127.0.0.1:' + str(
                                current_port) + '/selector_save_json_api',
                            edit_url_api='http://127.0.0.1:' + str(
-                               current_port) + '/selector_button_edit_api')
+                               current_port) + '/selector_button_edit_api',
+                           res_w=res_w, res_h=res_h, scaling_factor=int(scaling_factor * 100),
+                           res_string=resolution_string)
 
 @app.route("/selector_button_new_api", methods=['GET', 'POST'])
 def selector_button_new_api():
@@ -967,9 +975,9 @@ def set_library_api():
     global library_dict
     global original_screens
 
-    library = json.loads(request.data)
+    json_string = json.loads(request.data)
 
-    objects = library["objects"]
+    objects = json_string["library"]["objects"]
 
     #reconstruct comp
     for obj in objects:
@@ -991,16 +999,17 @@ def set_library_api():
             objects[obj]["date_modified"] = datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") +\
                                             " UTC" + time.strftime("%z")
 
-    curr_script = library.get("script", {})
+    curr_script = json_string["library"].get("script", {})
 
-    library["script"] = curr_script
+    json_string["library"]["script"] = curr_script
 
-    library_dict = library
+    library_dict = json_string["library"]
 
-    with open(current_filename, 'w') as f:
-        json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+    if json_string["close_selector"] is True:
+        with open(current_filename, 'w') as f:
+            json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
 
-    selector_shutdown_and_close_api()
+        selector_shutdown_and_close_api()
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
