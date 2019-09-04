@@ -33,7 +33,7 @@ export class AxTableComponent implements OnInit {
   selectedRow:RowVM;
   resolutions: string[]
 
-  currentResolution:string = '1920*1200@100';
+  currentResolution:string = this.global.nativeGlobal().res_string;
   selectedResolution = this.currentResolution;
   searchElementQuery = '';
 
@@ -80,7 +80,7 @@ export class AxTableComponent implements OnInit {
 
   ok() {
 
-    this.apiService.setLibrary(this.prepareModelForSubmission()).subscribe(x => console.log(x));
+    this.apiService.setLibrary({library: this.prepareModelForSubmission(), close_selector: true}).subscribe(x => console.log(x));
   }
 
   cancel() {
@@ -88,7 +88,7 @@ export class AxTableComponent implements OnInit {
   }
 
   edit() {
-    this.apiService.setLibrary(this.prepareModelForSubmission()).subscribe(x => {
+    this.apiService.setLibrary({library: this.prepareModelForSubmission(), close_selector: false}).subscribe(x => {
       console.log(x);
       if(x.success) {
         this.global.nativeGlobal().edit(this.selectedRow.name,this.selectedRow.selectedResolution);
@@ -159,7 +159,13 @@ export class AxTableComponent implements OnInit {
           }
         );
         this.selectedRow = this.data[0];
-        this.resolutions = _.uniq((_.flatten([this.currentResolution].concat(this.data.map(o => this.resolutionsForObject(o.object.components)))));
+        this.resolutions = _.uniq(
+          [this.currentResolution].concat(
+            _.flatten(
+              this.data.map(o => this.resolutionsForObject(o.object.components))
+            )
+          )
+        );
         this.filterData();
       })
   }

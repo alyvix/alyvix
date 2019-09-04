@@ -18,6 +18,11 @@ interface DefaultResponse{
   success: boolean
 }
 
+export interface SetLibraryRequest{
+  library:AxSelectorObjects,
+  close_selector: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -40,7 +45,7 @@ export class AlyvixApiService {
     );
   }
 
-  setLibrary(library:AxSelectorObjects):Observable<DefaultResponse> {
+  setLibrary(library: SetLibraryRequest):Observable<DefaultResponse> {
     return this.httpClient.post<any>("/set_library_api",library);
   }
 

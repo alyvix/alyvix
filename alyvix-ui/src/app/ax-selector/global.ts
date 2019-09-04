@@ -5,9 +5,12 @@ export interface Global{
     new_button(delay:number);
     cancel_button();
     edit(object_name:string, resolution:string);
+
+    res_string:string;
 }
 
 export class MockGlobal implements Global{
+    res_string: string = '1920*1200@100';
     edit(object_name: string, resolution: string) {
       console.log(object_name);
       console.log(resolution);
