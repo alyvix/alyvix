@@ -159,7 +159,7 @@ export class AxTableComponent implements OnInit {
           }
         );
         this.selectedRow = this.data[0];
-        this.resolutions = _.uniq(_.flatten(this.data.map(o => this.resolutionsForObject(o.object.components))));
+        this.resolutions = _.uniq((_.flatten([this.currentResolution].concat(this.data.map(o => this.resolutionsForObject(o.object.components)))));
         this.filterData();
       })
   }

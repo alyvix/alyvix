@@ -93,7 +93,7 @@
         <option *ngFor="let resolution of resolutions" value="{{resolution}}">{{resolution}}</option>
       </select>
       <span class="inline-label"> Search: </span>
-      <input type="text" class="std-width" [(ngModel)]="searchElementQuery" (change)="filterData()"/>
+      <input type="text" class="std-width" [(ngModel)]="searchElementQuery" (keyup)="filterData()"/>
     </div>
     <div>
       <button class="btn btn-primary" (click)="ok()">Ok</button>
