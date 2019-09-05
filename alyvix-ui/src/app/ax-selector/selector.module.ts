@@ -9,6 +9,7 @@ import { AngularResizedEventModule } from 'angular-resize-event';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { AxTableComponent } from './ax-table/ax-table.component';
+import { CopyClipboardDirective } from '../directives/copy-clipboard.directive';
 
 
 
@@ -16,7 +17,8 @@ import { AxTableComponent } from './ax-table/ax-table.component';
   declarations: [
     SelectorComponent,
     AxSelectorComponent,
-    AxTableComponent
+    AxTableComponent,
+    CopyClipboardDirective
   ],
   imports: [
     BrowserModule,

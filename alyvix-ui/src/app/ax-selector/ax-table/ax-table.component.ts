@@ -38,13 +38,17 @@ export class AxTableComponent implements OnInit {
   data: RowVM[];
   sort:SortDescriptor = {column: 'name', asc: true};
   filteredData: RowVM[];
-  selectedRow:RowVM;
+  selectedRows: RowVM[] = [];
   resolutions: string[]
 
   currentResolution:string = this.global.nativeGlobal().res_string;
   selectedResolution = this.currentResolution;
   searchElementQuery = '';
 
+
+  singleSelection():boolean {
+    return this.selectedRows.length === 1;
+  }
 
   private firstResolution(component: {[key:string]:AxSelectorComponentGroups}):string {
     return Object.entries(component).map(
@@ -75,7 +79,7 @@ export class AxTableComponent implements OnInit {
 
   @ViewChild('tableContainer') tableContainer: ElementRef;
   onResized(event: ResizedEvent) {
-    this.tableContainer.nativeElement.style.height = (event.newHeight - 44 - 70) + "px"
+    this.tableContainer.nativeElement.style.height = (event.newHeight - 44 - 70 - 27) + "px"
   }
 
   private prepareModelForSubmission():AxSelectorObjects {
@@ -95,12 +99,14 @@ export class AxTableComponent implements OnInit {
   }
 
   edit() {
-    this.apiService.setLibrary({library: this.prepareModelForSubmission(), close_selector: false}).subscribe(x => {
-      console.log(x);
-      if(x.success) {
-        this.global.nativeGlobal().edit(this.selectedRow.name,this.selectedRow.selectedResolution);
-      }
-    })
+    if (this.singleSelection()) {
+      this.apiService.setLibrary({library: this.prepareModelForSubmission(), close_selector: false}).subscribe(x => {
+        console.log(x);
+        if (x.success) {
+          this.global.nativeGlobal().edit(this.selectedRows[0].name, this.selectedRows[0].selectedResolution);
+        }
+      });
+    }
 
   }
 
@@ -117,8 +123,52 @@ export class AxTableComponent implements OnInit {
     }
   }
 
-  selectRow(row) {
-    this.selectedRow = row;
+  selectRow(event: MouseEvent, row: RowVM) {
+    if (event.ctrlKey || event.shiftKey) {
+      if (this.isSelected(row)) {
+        this.selectedRows = this.selectedRows.filter(r => r.id !== row.id);
+      } else {
+        this.selectedRows.push(row);
+      }
+    } else if (!this.isSelected(row) || event.detail > 1) {
+      this.selectedRows = [row];
+    }
+  }
+
+  selectAll() {
+    this.filteredData.forEach(r => this.selectedRows.push(r));
+  }
+
+  deselectAll() {
+    this.selectedRows = [];
+  }
+
+  selectedNames(): string {
+    return this.selectedRows.map(x => x.name).join(',');
+  }
+
+  remove() {
+    if (confirm('Do you really want to delete ' + this.selectedNames() + '?')) {
+      this.data = this.data.filter(d => !this.isSelected(d));
+      this.selectedRows = [];
+      this.filterData();
+    }
+  }
+
+  duplicate() {
+    this.selectedRows.forEach(row => {
+      const newRow = _.cloneDeep(row);
+      newRow.id = Utils.uuidv4();
+      newRow.name = row.name + '_copy';
+      this.data.push(newRow);
+      let count = 0;
+      while (this.isDuplicatedName(newRow.name)) {
+        count++;
+        newRow.name = row.name + '_copy_' + count;
+      }
+      this.selectedRows.push(newRow);
+    });
+    this.filterData();
   }
 
   sortColumn(column) {
@@ -172,8 +222,10 @@ export class AxTableComponent implements OnInit {
       }
     })
 
-    if((!this.filteredData.map(x => x.id).includes(this.selectedRow.id)) && this.filteredData.length > 0) {
-      this.selectedRow = this.filteredData[0];
+    this.selectedRows = this.selectedRows.filter(r => this.filteredData.some(r1 => r.id == r1.id)); //reduce selection to only visibles
+
+    if (this.selectedRows.length === 0 && this.filteredData.length > 0) {
+      this.selectedRows = [this.filteredData[0]];
     }
 
   }
@@ -181,6 +233,11 @@ export class AxTableComponent implements OnInit {
   isDuplicatedName(name:string):boolean {
     return this.data.filter(x => name == x.name).length > 1;
   }
+
+  isSelected(row:RowVM):boolean {
+    return this.selectedRows.map(x => x.id).includes(row.id);
+  }
+
 
   hasError():boolean {
     let result = true;
@@ -212,7 +269,7 @@ export class AxTableComponent implements OnInit {
              return {name:key, object:value, selectedResolution: this.firstResolution(value.components), id: Utils.uuidv4()}
           }
         );
-        this.selectedRow = this.data[0];
+        this.selectedRows = [this.data[0]];
         this.resolutions = _.uniq(
           [this.currentResolution].concat(
             _.flatten(

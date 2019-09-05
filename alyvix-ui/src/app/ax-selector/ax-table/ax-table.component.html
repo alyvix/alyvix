@@ -23,7 +23,7 @@
                     Only alphanumeric characters and - _ ` ` (space) are allowed
                   </div>
               </div>
-              <div *ngIf="isDuplicatedName(row.name)  && row.id == selectedRow.id" class="name-popover">
+              <div *ngIf="isDuplicatedName(row) && isSelected(row)" class="name-popover">
                   <div class="name-popover-content">
                     Name already used
                   </div>
@@ -89,29 +89,41 @@
         </ng-container>
 
         <!-- Header and Row Declarations -->
-        <cdk-row (click)="selectRow(row)" [ngClass]="{'selected': row.id == selectedRow.id}" *cdkRowDef="let row; columns: selectorColumns"></cdk-row>
+        <cdk-row (click)="selectRow($event,row)" [ngClass]="{'selected': isSelected(row)}" *cdkRowDef="let row; columns: selectorColumns"></cdk-row>
     </cdk-table>
 </div>
 
-<div class="ax-selector-footer distribute form-group">
-    <div>
-      <span class="inline-label">Delay [s]</span>
-      <input class="small" [(ngModel)]="delay" type="number"  min="0" />
-      <button class="btn" [disabled]="hasError()" (click)="newObject()">Add</button>
+<div class="ax-selector-footer form-group">
+    <div class="distribute">
+      <div>
+          <button class="btn" (click)="selectAll()">Select all</button>
+          <button class="btn" (click)="deselectAll()">Deselect all</button>
+          <button class="btn" [copy-clipboard]="selectedNames()">Copy</button>
+      </div>
+
+      <div>
+        <span class="inline-label">Delay [s]</span>
+        <input class="small" [(ngModel)]="delay" type="number"  min="0" />
+        <button class="btn" [disabled]="hasError()" (click)="newObject()">Add</button>
+        <button class="btn btn-secondary" [disabled]="hasError() || !singleSelection()" (click)="edit()">Edit</button>
+        <button class="btn btn-secondary" [disabled]="hasError()" (click)="duplicate()">Duplicate</button>
+        <button class="btn btn-danger" [disabled]="hasError()" (click)="remove()">Remove</button>
+      </div>
     </div>
-    <div>
-      <span class="inline-label">Resolution: </span>
-      <select class="std-width" [(ngModel)]="selectedResolution" (change)="changeResolution()">
-        <option value="All">All</option>
-        <option *ngFor="let resolution of resolutions" value="{{resolution}}">{{resolution}}</option>
-      </select>
-      <span class="inline-label"> Search: </span>
-      <input type="text" class="std-width" [(ngModel)]="searchElementQuery" (keyup)="filterData()"/>
-      <button class="btn" (click)="resetFilters()"><i class="fas fa-times"></i></button>
-    </div>
-    <div>
-      <button class="btn btn-primary" [disabled]="hasError()" (click)="ok()">Ok</button>
-      <button class="btn" (click)="cancel()">Cancel</button>
-      <button class="btn btn-secondary" [disabled]="hasError()" (click)="edit()">Edit</button>
+    <div class="distribute" style="margin-top: 5px">
+        <div>
+            <span class="inline-label" style="margin-left: 7px">Resolution: </span>
+            <select class="std-width" [(ngModel)]="selectedResolution" (change)="changeResolution()">
+              <option value="All">All</option>
+              <option *ngFor="let resolution of resolutions" value="{{resolution}}">{{resolution}}</option>
+            </select>
+            <span class="inline-label"> Search: </span>
+            <input type="text" class="std-width" [(ngModel)]="searchElementQuery" (keyup)="filterData()"/>
+            <button class="btn" (click)="resetFilters()"><i class="fas fa-times"></i></button>
+          </div>
+      <div>
+          <button class="btn btn-primary" [disabled]="hasError()" (click)="ok()">Ok</button>
+          <button class="btn" (click)="cancel()">Cancel</button>
+      </div>
     </div>
 </div>

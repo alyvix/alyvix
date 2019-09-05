@@ -224,6 +224,21 @@ input[type='radio'] {
   }
 }
 
+.btn-danger{
+  border: 1px $red solid;
+  color:  $red;
+
+  &:hover {
+    color: white;
+    background: $red;
+  }
+
+  &:focus {
+    color:$lightred;
+    border-color: $lightred;
+  }
+}
+
 
 
 .container{

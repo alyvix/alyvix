@@ -71,10 +71,14 @@
 }
 
 .ax-selector-footer {
-  height: 40px;
+  height: 65px;
   padding: 7px;
   button{
       margin-right: 5px;
+  }
+  .ax-selector-footer-actions{
+    margin-top: 5px;
+    text-align: right;
   }
 }
 
