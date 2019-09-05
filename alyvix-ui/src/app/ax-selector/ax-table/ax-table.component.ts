@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, Inject, ViewChild, ElementRef, Input, Output, EventEmitter } from '@angular/core';
 import { AxSelectorObject, AxSelectorObjects, AxSelectorComponentGroups } from 'src/app/ax-model/model';
 import { DomSanitizer } from '@angular/platform-browser';
 import { GlobalRef } from '../global';
@@ -9,8 +9,9 @@ import { ResizedEvent } from 'angular-resize-event';
 
 import * as _ from 'lodash';
 import { Utils } from 'src/app/utils';
+import { SelectorUtils } from '../selector-utils';
 
-interface RowVM{
+export interface RowVM{
   name:string
   object:AxSelectorObject
   selectedResolution:string,
@@ -33,15 +34,40 @@ export class AxTableComponent implements OnInit {
   constructor(private _sanitizer: DomSanitizer,@Inject('GlobalRef') private global: GlobalRef,private apiService:AlyvixApiService) {}
 
 
-  production:boolean = environment.production;
-  model:AxSelectorObjects
-  data: RowVM[];
-  sort:SortDescriptor = {column: 'name', asc: true};
+  production: boolean = environment.production;
+  private _data: RowVM[] = [];
+
+  @Output() import = new EventEmitter<RowVM[]>();
+
+  @Input()
+  readonly: boolean;
+
+  @Input()
+  set data(data: RowVM[]) {
+    this._data = data;
+    if (data.length > 0) {
+      this.selectedRows = [data[0]];
+    }
+    this.resolutions = _.uniq(
+      [this.currentResolution].concat(
+        _.flatten(
+          data.map(o => this.resolutionsForObject(o.object.components))
+        )
+      )
+    );
+    this.filterData();
+  }
+
+  get data(): RowVM[] {
+    return this._data;
+  }
+
+  sort: SortDescriptor = {column: 'name', asc: true};
   filteredData: RowVM[];
   selectedRows: RowVM[] = [];
   resolutions: string[]
 
-  currentResolution:string = this.global.nativeGlobal().res_string;
+  currentResolution: string = this.global.nativeGlobal().res_string;
   selectedResolution = this.currentResolution;
   searchElementQuery = '';
 
@@ -50,13 +76,10 @@ export class AxTableComponent implements OnInit {
     return this.selectedRows.length === 1;
   }
 
-  private firstResolution(component: {[key:string]:AxSelectorComponentGroups}):string {
-    return Object.entries(component).map(
-      ([key, value]) =>  {
-         return key
-      }
-    )[0]
+  importRows() {
+    this.import.emit(this.selectedRows);
   }
+
 
   private resolutionsForObject(component: {[key:string]:AxSelectorComponentGroups}):string[] {
     return Object.entries(component).map(
@@ -70,11 +93,6 @@ export class AxTableComponent implements OnInit {
 
   imageFor(image:string) {
     return this._sanitizer.bypassSecurityTrustResourceUrl("data:image/png;base64,"+image);
-  }
-
-  changeObjectName(oldKey: string,newKey: string) {
-    delete Object.assign(this.model.objects, {[newKey]: this.model.objects[oldKey] })[oldKey];
-    delete Object.assign(this.data, {[newKey]: this.data })[oldKey];
   }
 
   @ViewChild('tableContainer') tableContainer: ElementRef;
@@ -136,6 +154,7 @@ export class AxTableComponent implements OnInit {
   }
 
   selectAll() {
+    this.selectedRows = [];
     this.filteredData.forEach(r => this.selectedRows.push(r));
   }
 
@@ -156,18 +175,7 @@ export class AxTableComponent implements OnInit {
   }
 
   duplicate() {
-    this.selectedRows.forEach(row => {
-      const newRow = _.cloneDeep(row);
-      newRow.id = Utils.uuidv4();
-      newRow.name = row.name + '_copy';
-      this.data.push(newRow);
-      let count = 0;
-      while (this.isDuplicatedName(newRow.name)) {
-        count++;
-        newRow.name = row.name + '_copy_' + count;
-      }
-      this.selectedRows.push(newRow);
-    });
+    SelectorUtils.duplicateRows(this.selectedRows, this.data).forEach(r => this.selectedRows.push(r));
     this.filterData();
   }
 
@@ -231,7 +239,7 @@ export class AxTableComponent implements OnInit {
   }
 
   isDuplicatedName(name:string):boolean {
-    return this.data.filter(x => name == x.name).length > 1;
+    return SelectorUtils.isDuplicatedName(name, this.data);
   }
 
   isSelected(row:RowVM):boolean {
@@ -256,28 +264,6 @@ export class AxTableComponent implements OnInit {
   selectorColumns = ['name','transactionGroup','dateModified','timeout','break','measure','warning','critical','resolution','screen']
 
   ngOnInit(): void {
-      this.apiService.getLibrary().subscribe( library => {
-        this.model = library;
-        this.data = Object.entries(this.model.objects).map(
-          ([key, value]) =>  {
-             if(!value.measure) {
-               value.measure = {output: false, thresholds: {}}
-             } else  {
-                if(!value.measure.thresholds) value.measure.thresholds = {};
-                if(typeof value.measure.output === 'undefined') value.measure.output = false;
-             }
-             return {name:key, object:value, selectedResolution: this.firstResolution(value.components), id: Utils.uuidv4()}
-          }
-        );
-        this.selectedRows = [this.data[0]];
-        this.resolutions = _.uniq(
-          [this.currentResolution].concat(
-            _.flatten(
-              this.data.map(o => this.resolutionsForObject(o.object.components))
-            )
-          )
-        );
-        this.filterData();
-      })
+
   }
 }

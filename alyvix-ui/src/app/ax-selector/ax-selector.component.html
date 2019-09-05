@@ -1,15 +1,17 @@
 <div class="ax-selector-container" (resized)="onResized($event)">
-    <div class="ax-selector-main">
+    <div class="ax-selector-main" >
       <div class="ax-selector-tabs">
-          <div class="ax-selector-tab" [ngClass]="{'selected': selectedTab == i}" *ngFor="let i of [1,2,3]"><a (click)="selectTab(i)">Tab {{i}}</a></div>
-
+          <div class="ax-selector-tab primary" [ngClass]="{'selected': selected.name === main.name}" ><a (click)="selectTab(main)">Main: {{main.name}}</a></div>
+          <div class="ax-selector-tab" [ngClass]="{'selected': selected.name === file.name}" *ngFor="let file of files"><a (click)="selectTab(file)">{{file.name}}</a></div>
+          <a class="ax-selector-tab btn" (click)="loadFile()">+</a>
+          <input type="file" accept=".alyvix" #file (change)="onFileAdd()" style="display: none">
       </div>
-      <ax-table></ax-table>
+      <ax-table [data]="selected.data" [readonly]="selected.readonly" (import)="onImport($event)"></ax-table>
     </div>
 
 </div>
 
 
 <div *ngIf="!production" style="position: absolute; top: 0px; left: 1250px; overflow: auto; height: 600px; width: 400px; background-color: white">
-  <pre>{{data | json}}</pre>
+  <pre>{{selected | json}}</pre>
 </div>

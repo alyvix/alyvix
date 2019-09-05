@@ -27,10 +27,14 @@
       font-weight: bolder;
 
       &.selected{
-        background-color: $blue;
-        a {
-          color: white;
+        &.primary{
+          background-color: $blue;
+          a {
+            color: white;
+          }
         }
+        background-color: $lightblue;
+
       }
 
       a {
