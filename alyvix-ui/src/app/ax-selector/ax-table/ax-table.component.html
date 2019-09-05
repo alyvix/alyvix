@@ -73,9 +73,10 @@
         <!-- Resolution Definition -->
         <ng-container cdkColumnDef="resolution">
             <cdk-cell *cdkCellDef="let row">
-              <select [(ngModel)]="row.selectedResolution">
+              <select *ngIf="selectedResolution === 'All'" [(ngModel)]="row.selectedResolution">
                 <option [ngValue]="resolution" *ngFor="let resolution of objectKeys(row.object.components)">{{resolution}}</option>
               </select>
+              <span *ngIf="selectedResolution != 'All'">{{row.selectedResolution}}</span>
 
             </cdk-cell>
         </ng-container>
@@ -106,6 +107,7 @@
       </select>
       <span class="inline-label"> Search: </span>
       <input type="text" class="std-width" [(ngModel)]="searchElementQuery" (keyup)="filterData()"/>
+      <button class="btn" (click)="resetFilters()"><i class="fas fa-times"></i></button>
     </div>
     <div>
       <button class="btn btn-primary" [disabled]="hasError()" (click)="ok()">Ok</button>

@@ -142,6 +142,12 @@ export class AxTableComponent implements OnInit {
     this.filterData();
   }
 
+  resetFilters() {
+    this.searchElementQuery = '';
+    this.selectedResolution = this.currentResolution;
+    this.filterData();
+  }
+
   filterData() {
     let self = this;
     this.filteredData = this.data.filter( d => //resolution filter
