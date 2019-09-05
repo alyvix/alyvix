@@ -8,11 +8,18 @@ import { ResizedEvent } from 'angular-resize-event';
 
 
 import * as _ from 'lodash';
+import { Utils } from 'src/app/utils';
 
 interface RowVM{
   name:string
   object:AxSelectorObject
-  selectedResolution:string
+  selectedResolution:string,
+  id:string
+}
+
+interface SortDescriptor{
+  column: string
+  asc: boolean
 }
 
 
@@ -29,6 +36,7 @@ export class AxTableComponent implements OnInit {
   production:boolean = environment.production;
   model:AxSelectorObjects
   data: RowVM[];
+  sort:SortDescriptor = {column: 'name', asc: true};
   filteredData: RowVM[];
   selectedRow:RowVM;
   resolutions: string[]
@@ -79,7 +87,6 @@ export class AxTableComponent implements OnInit {
   }
 
   ok() {
-
     this.apiService.setLibrary({library: this.prepareModelForSubmission(), close_selector: true}).subscribe(x => console.log(x));
   }
 
@@ -114,6 +121,15 @@ export class AxTableComponent implements OnInit {
     this.selectedRow = row;
   }
 
+  sortColumn(column) {
+    if (this.sort.column === column) {
+      this.sort.asc = !this.sort.asc;
+    } else {
+      this.sort = {column: column, asc: true};
+    }
+    this.filterData();
+  }
+
   changeResolution() {
     this.data.forEach(d => {
       const resolutions = this.resolutionsForObject(d.object.components);
@@ -127,17 +143,49 @@ export class AxTableComponent implements OnInit {
   }
 
   filterData() {
+    let self = this;
     this.filteredData = this.data.filter( d => //resolution filter
       this.selectedResolution == 'All' ||
       this.resolutionsForObject(d.object.components).includes(this.selectedResolution)
     ).filter(d => //name filtering
       d.object.date_modified.includes(this.searchElementQuery) || d.name.includes(this.searchElementQuery)
-    )
+    ).sort((r1,r2) => {
 
-    if((!this.filteredData.map(x => x.name).includes(this.selectedRow.name)) && this.filteredData.length > 0) {
+      function compare(toColumn:(RowVM) => string):number {
+        if(self.sort.asc) {
+          return toColumn(r1).localeCompare(toColumn(r2));
+        } else {
+          return -toColumn(r1).localeCompare(toColumn(r2));
+        }
+      }
+
+      switch(self.sort.column) {
+        case 'name': return compare(x => x.name);
+        case 'transaction_group': return compare(x => x.object.measure.group);
+        case 'date': return compare(x => x.object.date_modified);
+      }
+    })
+
+    if((!this.filteredData.map(x => x.id).includes(this.selectedRow.id)) && this.filteredData.length > 0) {
       this.selectedRow = this.filteredData[0];
     }
 
+  }
+
+  isDuplicatedName(name:string):boolean {
+    return this.data.filter(x => name == x.name).length > 1;
+  }
+
+  hasError():boolean {
+    let result = true;
+    if (this.data) {
+      result = !this.data.every(d => {
+        return d.name.length > 0 &&
+        !this.isDuplicatedName(d.name) &&
+        /^[a-zA-Z0-9_\- ]+$/.test(d.name);
+      });
+    }
+    return result;
   }
 
 
@@ -155,7 +203,7 @@ export class AxTableComponent implements OnInit {
                 if(!value.measure.thresholds) value.measure.thresholds = {};
                 if(typeof value.measure.output === 'undefined') value.measure.output = false;
              }
-             return {name:key, object:value, selectedResolution: this.firstResolution(value.components)}
+             return {name:key, object:value, selectedResolution: this.firstResolution(value.components), id: Utils.uuidv4()}
           }
         );
         this.selectedRow = this.data[0];

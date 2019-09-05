@@ -1,7 +1,7 @@
 <div class="ax-selector-header">
-    <div>Name</div>
-    <div>Transaction group</div>
-    <div>Date modified</div>
+    <div><a (click)="sortColumn('name')">Name<span *ngIf="sort.column == 'name' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'name' && !sort.asc"> &#9660;</span></a></div>
+    <div><a (click)="sortColumn('transaction_group')">Transaction group<span *ngIf="sort.column == 'transaction_group' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'transaction_group' && !sort.asc"> &#9660;</span></a></div>
+    <div><a (click)="sortColumn('date')">Date modified<span *ngIf="sort.column == 'date' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'date' && !sort.asc"> &#9660;</span></a></div>
     <div>Timeout</div>
     <div>Break</div>
     <div>Measure</div>
@@ -16,7 +16,19 @@
         <!-- Name Definition -->
         <ng-container cdkColumnDef="name">
 
-            <cdk-cell *cdkCellDef="let row"> <input type="text" class="primary" [(ngModel)]="row.name" /> </cdk-cell>
+            <cdk-cell *cdkCellDef="let row">
+              <input type="text" class="primary" [ngClass]="{'ng-invalid': isDuplicatedName(row.name) || row.name.length == 0 }" [(ngModel)]="row.name" pattern="[a-zA-Z0-9_\- ]+" #name="ngModel" />
+              <div *ngIf="(name.invalid || row.name.length == 0) && (name.dirty || name.touched) " class="name-popover">
+                  <div class="name-popover-content">
+                    Only alphanumeric characters and - _ ` ` (space) are allowed
+                  </div>
+              </div>
+              <div *ngIf="isDuplicatedName(row.name)  && row.id == selectedRow.id" class="name-popover">
+                  <div class="name-popover-content">
+                    Name already used
+                  </div>
+              </div>
+            </cdk-cell>
         </ng-container>
 
         <!-- Transaction group Definition -->
@@ -76,7 +88,7 @@
         </ng-container>
 
         <!-- Header and Row Declarations -->
-        <cdk-row (click)="selectRow(row)" [ngClass]="{'selected': row.name == selectedRow.name}" *cdkRowDef="let row; columns: selectorColumns"></cdk-row>
+        <cdk-row (click)="selectRow(row)" [ngClass]="{'selected': row.id == selectedRow.id}" *cdkRowDef="let row; columns: selectorColumns"></cdk-row>
     </cdk-table>
 </div>
 
@@ -84,7 +96,7 @@
     <div>
       <span class="inline-label">Delay [s]</span>
       <input class="small" [(ngModel)]="delay" type="number"  min="0" />
-      <button class="btn" (click)="newObject()">Add</button>
+      <button class="btn" [disabled]="hasError()" (click)="newObject()">Add</button>
     </div>
     <div>
       <span class="inline-label">Resolution: </span>
@@ -96,8 +108,8 @@
       <input type="text" class="std-width" [(ngModel)]="searchElementQuery" (keyup)="filterData()"/>
     </div>
     <div>
-      <button class="btn btn-primary" (click)="ok()">Ok</button>
+      <button class="btn btn-primary" [disabled]="hasError()" (click)="ok()">Ok</button>
       <button class="btn" (click)="cancel()">Cancel</button>
-      <button class="btn btn-secondary" (click)="edit()">Edit</button>
+      <button class="btn btn-secondary" [disabled]="hasError()" (click)="edit()">Edit</button>
     </div>
 </div>

@@ -1,5 +1,6 @@
 import { AxModel, BoxListEntity } from "../ax-model/model";
 import { AxModelMock } from "../ax-model/mock";
+import { Utils } from "../utils";
 
 export interface GroupsFlag{
     created:boolean[]
@@ -19,7 +20,7 @@ export interface AxGlobal{
 
     lastElement():BoxListEntity;
 
-    newComponent(group:number):any 
+    newComponent(group:number):any
     setPoint(i:number):any
 
     setRectangles():any
@@ -31,21 +32,18 @@ export interface AxGlobal{
 
     getSelectedNode():number
     setSelectedNode(i:number)
-    
+
     get_rect_type(rect:BoxListEntity):RectType
     set_rect_type(type:RectType,rect:BoxListEntity)
-    
+
     setTypeNode(s:string)
-    
-    uuidv4():string 
+
+    uuidv4():string
 }
 
 export class MockGlobal implements AxGlobal{
     uuidv4(): string {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-          });
+        return Utils.uuidv4();
     }
 
     get_rect_type(rect: BoxListEntity): RectType {
@@ -67,7 +65,7 @@ export class MockGlobal implements AxGlobal{
         return AxModelMock.flags();
     }
     setRectangles() {
-        
+
     }
     save() {
         throw new Error("Method not implemented.");
@@ -89,7 +87,7 @@ export class MockGlobal implements AxGlobal{
     setSelectedNode(i:number) {
 
 	}
-	
+
 	setTypeNode(s:string){
 
 	}
