@@ -52,6 +52,7 @@ from alyvix.core.contouring import ContouringManager
 from alyvix.core.engine import Roi
 from alyvix.core.engine.text import TextManager
 from alyvix.tools.screen import ScreenManager
+from alyvix.tools.library import LibraryManager
 from operator import itemgetter
 import threading
 import subprocess
@@ -122,6 +123,10 @@ def selector():
     res_h = resolution[1]
     resolution_string = str(res_w) + "*" + str(res_h) + "@" + str(int(scaling_factor * 100))
 
+    filename_path = os.path.dirname(current_filename)
+    filename_no_path = os.path.basename(current_filename)
+    filename_no_extension = os.path.splitext(filename_no_path)[0]
+
     return render_template('selector.html', new_url_api='http://127.0.0.1:' + str(current_port) + '/selector_button_new_api',
                            close_url_api='http://127.0.0.1:' + str(
                                current_port) + '/selector_close_api',
@@ -132,7 +137,7 @@ def selector():
                            edit_url_api='http://127.0.0.1:' + str(
                                current_port) + '/selector_button_edit_api',
                            res_w=res_w, res_h=res_h, scaling_factor=int(scaling_factor * 100),
-                           res_string=resolution_string)
+                           res_string=resolution_string, current_library_name=filename_no_extension)
 
 @app.route("/selector_button_new_api", methods=['GET', 'POST'])
 def selector_button_new_api():
@@ -985,10 +990,16 @@ def set_library_api():
         components = objects[obj]["components"]
 
         for cmp in components:
+            try:
+                components[cmp]["screen"] = original_screens[objects[obj]["id"]][cmp]["screen"]
+            except:
+                pass #object was imported from other library
 
-            components[cmp]["screen"] = original_screens[objects[obj]["id"]][cmp]["screen"]
+        try:
+            del objects[obj]["id"]
+        except:
+            pass #object was imported from other library
 
-        del objects[obj]["id"]
         datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
         try:
