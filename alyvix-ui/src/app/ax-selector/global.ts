@@ -6,10 +6,12 @@ export interface Global{
     cancel_button();
     edit(object_name:string, resolution:string);
 
+    current_library_name:string;
     res_string:string;
 }
 
 export class MockGlobal implements Global{
+    current_library_name = 'test_long_filename';
     res_string: string = '1920*1200@100';
     edit(object_name: string, resolution: string) {
       console.log(object_name);

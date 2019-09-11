@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild} from '@angular/core';
+import { Component, OnInit, ViewChild, Inject} from '@angular/core';
 import { ResizedEvent } from 'angular-resize-event';
 import { AxTableComponent, RowVM } from './ax-table/ax-table.component';
 import { environment } from 'src/environments/environment';
@@ -7,6 +7,7 @@ import { Utils } from '../utils';
 import { AxSelectorComponentGroups, AxSelectorObjects } from '../ax-model/model';
 import { empty } from 'rxjs';
 import { SelectorUtils } from './selector-utils';
+import { GlobalRef } from './global';
 
 
 interface AxFile {
@@ -22,7 +23,7 @@ interface AxFile {
   export class AxSelectorComponent implements OnInit {
 
 
-    constructor(private apiService:AlyvixApiService) {}
+    constructor(private apiService:AlyvixApiService, @Inject('GlobalRef') private global: GlobalRef) {}
 
     selected: AxFile = {data: [], name: '', readonly: false};
     main: AxFile = {data: [], name: '', readonly: false};
@@ -53,7 +54,7 @@ interface AxFile {
 
     ngOnInit(): void {
       this.apiService.getLibrary().subscribe( library => {
-        this.main = {data: this.modelToData(library), name: 'main', readonly: false};
+        this.main = {data: this.modelToData(library), name: this.global.nativeGlobal().current_library_name, readonly: false};
         this.selected = this.main;
       });
     }
@@ -68,6 +69,11 @@ interface AxFile {
 
     selectTab(i: AxFile) {
       this.selected = i;
+    }
+
+    closeTab(i: AxFile) {
+      this.selectTab(this.main);
+      this.files = this.files.filter(f => f.name !== i.name);
     }
 
     @ViewChild('file') _file;

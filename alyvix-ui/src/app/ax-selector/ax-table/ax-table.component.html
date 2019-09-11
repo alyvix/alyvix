@@ -10,7 +10,7 @@
     <div>Resolution</div>
     <div>Screen</div>
 </div>
-<div class="ax-selector-table" #tableContainer>
+<div class="ax-selector-table" [ngClass]="{'read-write': !readonly}" #tableContainer>
     <cdk-table [dataSource]="filteredData">
 
         <!-- Name Definition -->

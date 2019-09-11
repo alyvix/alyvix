@@ -1,9 +1,14 @@
 <div class="ax-selector-container" (resized)="onResized($event)">
     <div class="ax-selector-main" >
       <div class="ax-selector-tabs">
-          <div class="ax-selector-tab primary" [ngClass]="{'selected': selected.name === main.name}" ><a (click)="selectTab(main)">Main: {{main.name}}</a></div>
-          <div class="ax-selector-tab" [ngClass]="{'selected': selected.name === file.name}" *ngFor="let file of files"><a (click)="selectTab(file)">{{file.name}}</a></div>
-          <a class="ax-selector-tab btn" (click)="loadFile()">+</a>
+          <div class="ax-selector-tab primary" [ngClass]="{'selected': selected.name === main.name}" ><a (click)="selectTab(main)">Working case: {{main.name}}</a></div>
+          <div class="ax-selector-tab secondary" [ngClass]="{'selected': selected.name === file.name}" *ngFor="let file of files">
+            <div style="width: 100%" class="distribute">
+              <div><a (click)="selectTab(file)">{{file.name}}</a></div>
+              <div><a (click)="closeTab(file)"><i class="fas fa-times"></i></a></div>
+            </div>
+          </div>
+          <a class="ax-selector-tab btn add" (click)="loadFile()">+</a>
           <input type="file" accept=".alyvix" #file (change)="onFileAdd()" style="display: none">
       </div>
       <ax-table [data]="selected.data" [readonly]="selected.readonly" (import)="onImport($event)"></ax-table>

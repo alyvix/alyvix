@@ -20,7 +20,7 @@
     }
 
     .ax-selector-tab{
-      width: 120px;
+      min-width: 120px;
       padding: 3px 10px;
       display: flex;
       font-size: 80%;
@@ -37,10 +37,27 @@
 
       }
 
+      &.add{
+        cursor: pointer;
+        min-width: 0;
+      }
+
       a {
         width: 100%;
         cursor: pointer;
+        &:hover {
+          color:$blue;
+        }
       }
+
+      &.secondary{
+        a:hover{
+          i {
+            color: $blue;
+          }
+        }
+      }
+
     }
   }
 
