@@ -96,18 +96,22 @@
 <div class="ax-selector-footer form-group">
     <div class="distribute">
       <div>
-          <button class="btn" (click)="selectAll()">Select all</button>
-          <button class="btn" (click)="deselectAll()">Deselect all</button>
-          <button class="btn" [copy-clipboard]="selectedNames()">Copy</button>
+          <button class="btn" *ngIf="!isEmptyTable()" (click)="selectAll()">Select all</button>
+          <button class="btn" *ngIf="!isEmptyTable()" (click)="deselectAll()">Deselect all</button>
+          <button class="btn" *ngIf="isSomethingSelected()" [copy-clipboard]="selectedNames()">Copy</button>
       </div>
-
+      <div *ngIf="readonly">
+          <button class="btn btn-secondary" *ngIf="isSomethingSelected()" (click)="importRows()">Import</button>
+      </div>
       <div *ngIf="!readonly">
-        <span class="inline-label">Delay [s]</span>
-        <input class="small" [(ngModel)]="delay" type="number"  min="0" />
-        <button class="btn" [disabled]="hasError()" (click)="newObject()">Add</button>
-        <button class="btn btn-secondary" [disabled]="hasError() || !singleSelection()" (click)="edit()">Edit</button>
-        <button class="btn btn-secondary" [disabled]="hasError()" (click)="duplicate()">Duplicate</button>
-        <button class="btn btn-danger" [disabled]="hasError()" (click)="remove()">Remove</button>
+
+        <button class="btn btn-secondary add-btn" [disabled]="hasError()" (click)="newObject()">
+            <span class="inline-label">Delay [s]</span>
+            <input class="small" [(ngModel)]="delay" type="number" (click)="preventClick($event)"  min="0" />
+          Add</button>
+        <button class="btn btn-secondary" [disabled]="hasError()" *ngIf="singleSelection() && isSelectedInWorkingResolution()" (click)="edit()">Edit</button>
+        <button class="btn btn-secondary" [disabled]="hasError()" *ngIf="isSomethingSelected()" (click)="duplicate()">Duplicate</button>
+        <button class="btn btn-danger" [disabled]="hasError()" *ngIf="isSomethingSelected()" (click)="remove()">Remove</button>
       </div>
     </div>
     <div class="distribute" style="margin-top: 5px">
@@ -121,12 +125,9 @@
             <input type="text" class="std-width" [(ngModel)]="searchElementQuery" (keyup)="filterData()"/>
             <button class="btn" (click)="resetFilters()"><i class="fas fa-times"></i></button>
           </div>
-      <div *ngIf="!readonly">
+      <div>
           <button class="btn btn-primary" [disabled]="hasError()" (click)="ok()">Ok</button>
           <button class="btn" (click)="cancel()">Cancel</button>
-      </div>
-      <div *ngIf="readonly">
-          <button class="btn btn-secondary" (click)="importRows()">Import</button>
       </div>
     </div>
 </div>

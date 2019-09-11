@@ -72,9 +72,7 @@ export class AxTableComponent implements OnInit {
   searchElementQuery = '';
 
 
-  singleSelection():boolean {
-    return this.selectedRows.length === 1;
-  }
+
 
   importRows() {
     this.import.emit(this.selectedRows);
@@ -258,6 +256,31 @@ export class AxTableComponent implements OnInit {
     }
     return result;
   }
+
+  preventClick(event) {
+    event.stopPropagation();
+  }
+
+  isEmptyTable():boolean {
+    return this.filteredData.length == 0;
+  }
+
+  isSomethingSelected():boolean {
+    return this.selectedRows.length > 0;
+  }
+
+  isSelectedInWorkingResolution():boolean {
+    if (this.singleSelection) {
+      return this.selectedRows[0].selectedResolution === this.currentResolution;
+    } else {
+      return false;
+    }
+  }
+
+  singleSelection():boolean {
+    return this.selectedRows.length === 1;
+  }
+
 
 
 

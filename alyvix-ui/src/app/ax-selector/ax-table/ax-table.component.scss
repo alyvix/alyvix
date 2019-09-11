@@ -80,6 +80,30 @@
     margin-top: 5px;
     text-align: right;
   }
+
+  .add-btn{
+    padding-top: 2px;
+    padding-bottom: 3px;
+    span{
+      color: $blue;
+    }
+
+    input{
+      border: 0;
+      color: $blue;
+      background-color: transparent;
+    }
+
+    &:hover{
+      input{
+        color: white;
+      }
+      span{
+        color: white;
+      }
+    }
+
+  }
 }
 
 .ax-selector-table {
