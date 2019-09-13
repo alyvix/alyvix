@@ -39,7 +39,10 @@ class OutputManager:
                                             "width": w,
                                             "height": h
                                             },
-                                      "scaling_factor": int(scaling_factor*100)
+                                      "scaling_factor": int(scaling_factor*100),
+                                      "group": object.group,
+                                      "thresholds": object.thresholds,
+                                      "output": object.output
                                       }
 
             if object.screenshot is not None:
