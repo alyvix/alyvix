@@ -17,7 +17,7 @@
         <ng-container cdkColumnDef="name">
 
             <cdk-cell *cdkCellDef="let row">
-              <input [disabled]="readonly" type="text" class="primary" [ngClass]="{'ng-invalid': isDuplicatedName(row.name) || row.name.length == 0 }" [(ngModel)]="row.name" pattern="[a-zA-Z0-9_\- ]+" #name="ngModel" />
+              <input [disabled]="readonly" type="text" class="primary" [ngClass]="{'ng-invalid': isDuplicatedName(row.name) || row.name.length == 0 }" spellcheck="false" [(ngModel)]="row.name" pattern="[a-zA-Z0-9_\- ]+" #name="ngModel" />
               <div *ngIf="(name.invalid || row.name.length == 0) && (name.dirty || name.touched) " class="name-popover">
                   <div class="name-popover-content">
                     Only alphanumeric characters and - _ ` ` (space) are allowed
@@ -33,7 +33,7 @@
 
         <!-- Transaction group Definition -->
         <ng-container cdkColumnDef="transactionGroup">
-            <cdk-cell *cdkCellDef="let row"><input [disabled]="readonly" type="text"  [ngModel]="row.object.measure.group" (ngModelChange)="changeTransactionGroup(row,$event)" />
+            <cdk-cell *cdkCellDef="let row"><input [disabled]="readonly" type="text" spellcheck="false" [ngModel]="row.object.measure.group" (ngModelChange)="changeTransactionGroup(row,$event)" />
             </cdk-cell>
         </ng-container>
 
@@ -122,7 +122,7 @@
               <option *ngFor="let resolution of resolutions" value="{{resolution}}">{{resolution}}</option>
             </select>
             <span class="inline-label"> Search: </span>
-            <input type="text" class="std-width" [(ngModel)]="searchElementQuery" (keyup)="filterData()"/>
+            <input type="text" class="std-width" [(ngModel)]="searchElementQuery" (keyup)="filterData()" spellcheck="false"/>
             <button class="btn" (click)="resetFilters()"><i class="fas fa-times"></i></button>
           </div>
       <div>

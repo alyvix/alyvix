@@ -31,6 +31,18 @@ export interface AxModel {
   export interface AxSelectorComponentGroups{
     groups: AxSelectorComponentGroup[],
     screen: string
+    call?:AxSystemCall
+  }
+
+  export interface AxSystemCall {
+    type: string
+    features: AxSystemCallFeatures
+  }
+
+  export interface AxSystemCallFeatures{
+    path?: string
+    arguments?: string,
+    process?: string
   }
 
   export interface AxSelectorComponentGroup{
