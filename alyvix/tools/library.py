@@ -190,7 +190,8 @@ class LibraryManager:
             detection_dict = {object_name: {"components": {resolution_string:self._json_object["objects"][object_name]
                                                             ["components"][resolution_string]},
                                             "date_modified": self._json_object["objects"][object_name]["date_modified"],
-                                            "detection": self._json_object["objects"][object_name]["detection"]}}
+                                            "detection": self._json_object["objects"][object_name]["detection"],
+                                            "measure": self._json_object["objects"][object_name]["measure"]}}
         except:
             return {}
 

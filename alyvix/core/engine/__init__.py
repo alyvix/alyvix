@@ -61,6 +61,10 @@ class Result():
         self.timeout = None
         self.records = {"text":"", "image":""}
 
+        self.group = None
+        self.thresholds = {"warning_s": None, "critical_s": None}
+        self.output = True
+
 
 class EngineManager(object):
 
@@ -69,6 +73,19 @@ class EngineManager(object):
         self._result = Result()
 
         self._result.object_name = list(object_json.keys())[0]
+
+        try:
+            self._result.group = object_json[self._result.object_name]["measure"]["group"]
+        except:
+            pass
+
+        try:
+            self._result.thresholds = {"warning_s": object_json[self._result.object_name]["measure"]["thresholds"]["warning_s"],
+                                       "critical_s": object_json[self._result.object_name]["measure"]["thresholds"]["critical_s"]}
+        except:
+            self._result.thresholds = {}
+
+        self._result.output = object_json[self._result.object_name]["measure"]["output"]
 
         self._verbose = verbose
 
@@ -129,6 +146,9 @@ class EngineManager(object):
         self._disappear_accuracy = -1
 
         self._disappear_mode = False
+
+        self._objects_appeared = False
+        self._objects_disappeared = False
 
         self._arguments = args
 
@@ -369,7 +389,7 @@ class EngineManager(object):
 
     def _exec_interactions(self):
 
-        for component in self._components_found:
+        for component in self._components_appeared:
 
             if component.type == "T" and component.scraped_text is not None:
                 continue
@@ -572,6 +592,8 @@ class EngineManager(object):
                 for main_found in mains_found:
                     sub_results = []
 
+                    main_and_subs = (main_found, []) #0-> main, 1-> subs
+
                     for box in sub_boxes:
 
                         roi = Roi()
@@ -632,17 +654,16 @@ class EngineManager(object):
                             sub_results[0].is_main = box["is_main"]
                             sub_results[0].roi = roi
 
-                            subs_found.append(sub_results[0])
+                            #subs_found.append(sub_results[0])
+
+                            main_and_subs[1].append(sub_results[0])
 
                     if cnt_g == 0:
-                        return_group_0.append(main_found)
-                        return_group_0.extend(subs_found)
+                        return_group_0.append(main_and_subs)
                     elif cnt_g == 1:
-                        return_group_1.append(main_found)
-                        return_group_1.extend(subs_found)
+                        return_group_1.append(main_and_subs)
                     elif cnt_g == 2:
-                        return_group_2.append(main_found)
-                        return_group_2.extend(subs_found)
+                        return_group_2.append(main_and_subs)
 
                     if len(subs_found) == len(sub_boxes):
                         break
@@ -658,30 +679,113 @@ class EngineManager(object):
             self._components_found.extend(return_group_1)
             self._components_found.extend(return_group_2)
 
-        if self._disappear_mode is False and self.stop_threads is False and (len(return_group_0) == len(self._group_0))\
-                and (len(return_group_1) == len(self._group_1)) and (len(return_group_2) == len(self._group_2)):
+
+        len_g0_found_ok = False
+        len_g1_found_ok = False
+        len_g2_found_ok = False
+
+        if len(self._group_0) == 0:
+            len_g0_found_ok = True
+
+        if len(self._group_1) == 0:
+            len_g1_found_ok = True
+
+        if len(self._group_2) == 0:
+            len_g2_found_ok = True
+
+        for main_subs_group_0 in return_group_0:
+
+            subs_group_0 = main_subs_group_0[1]
+
+            if 1 + len(subs_group_0) == len(self._group_0):
+                len_g0_found_ok = True
+                break
+
+        for main_subs_group_1 in return_group_1:
+
+            subs_group_1 = main_subs_group_1[1]
+
+            if 1 + len(subs_group_1) == len(self._group_1):
+                len_g1_found_ok = True
+                break
+
+        for main_subs_group_2 in return_group_2:
+
+            subs_group_2 = main_subs_group_2[1]
+
+            if 1 + len(subs_group_2) == len(self._group_2):
+                len_g2_found_ok = True
+                break
+
+        if self._disappear_mode is False and self.stop_threads is False and\
+                (len_g0_found_ok is True and len_g1_found_ok is True and len_g2_found_ok is True):
 
             self.stop_threads = True
 
             self._components_appeared = []
-            self._components_appeared = copy.deepcopy(self._components_found)
+
+            self._components_appeared.append(main_subs_group_0[0])
+            self._components_appeared.extend(subs_group_0)
+
+            if len(self._group_1) != 0:
+                self._components_appeared.append(main_subs_group_1[0])
+                self._components_appeared.extend(subs_group_1)
+
+            if len(self._group_2) != 0:
+                self._components_appeared.append(main_subs_group_2[0])
+                self._components_appeared.extend(subs_group_2)
+
+            #self._components_appeared = copy.deepcopy(self._components_found)
 
             self._components_disappeared = []
-            self._components_disappeared = copy.deepcopy(self._components_found)
+
+            self._components_disappeared.append(main_subs_group_0)
+            self._components_disappeared.extend(subs_group_0)
+
+            if len(self._group_1) != 0:
+                self._components_disappeared.append(main_subs_group_1)
+                self._components_disappeared.extend(subs_group_1)
+
+            if len(self._group_2) != 0:
+                self._components_disappeared.append(main_subs_group_2)
+                self._components_disappeared.extend(subs_group_2)
+
+            #self._components_disappeared = copy.deepcopy(self._components_found)
+
+            self._objects_appeared = True
+            self._objects_disappeared = False
 
             self._last_screen = current_color_screen
             self._result.records["text"] = scraped_text
 
-        elif self._disappear_mode is True and self.stop_threads is False and ((len(return_group_0) != len(self._group_0))\
-            or (len(return_group_1) != len(self._group_1)) \
-            or (len(return_group_2) != len(self._group_2))):
+        elif self._disappear_mode is True and self.stop_threads is False and\
+                (len_g0_found_ok is False or len_g1_found_ok is False or len_g2_found_ok is False):
 
+            self._objects_disappeared = True
             self.stop_threads = True
 
         self.total_threads -= 1
         self.lock.release()
 
     def _get_annotation_screen(self, index=None):
+
+        class DummyResult:
+            def __init__(self):
+                self.x = None
+                self.y = None
+                self.w = None
+                self.h = None
+                self.type = None
+                self.scraped_text = None
+                self.group = 0
+                self.is_main = False
+                self.index_in_tree = 0
+                self.index_in_group = 0
+                self.mouse = {}
+                self.keyboard = {}
+                self.roi = Roi()
+                self.is_found = False
+
         if index is not None:
             last_screen = self._uncompress(self._screens[index][0])
         else:
@@ -712,92 +816,102 @@ class EngineManager(object):
         m1_xy = None
         m2_xy = None
 
+        mains_and_subs = []
+
         for box in self._object_definition['boxes']:
 
-            if box["group"] == 0:
-                has_to_find_m0 = True
-            elif box["group"] == 1:
-                has_to_find_m1 = True
-            elif box["group"] == 2:
-                has_to_find_m2 = True
+            if box["is_main"] is True:
 
-            component_found = False
+                if box["group"] == 0:
+                    has_to_find_m0 = True
+                elif box["group"] == 1:
+                    has_to_find_m1 = True
+                elif box["group"] == 2:
+                    has_to_find_m2 = True
 
-            if self._disappear_mode is True and len(self._components_appeared) > 0:
+        if self._objects_appeared:
+            for component in self._components_appeared:
+                if component.is_main is True:
+                    mains_and_subs.append((component,[]))
+
+
+            for main_and_sub in mains_and_subs:
+
+                main = main_and_sub[0]
+
                 for component in self._components_appeared:
-                    if component.index_in_tree == box["index_in_tree"]:
-                        component_found = True
-                        break
-            else:
-                for component in self._components_found:
-                    if component.index_in_tree == box["index_in_tree"]:
-                        component_found = True
-                        break
+                    if component.group == main.group and component.is_main is False:
+                        main_and_sub[1].append(component)
 
-            if component_found is False:
 
-                if box["is_main"] == True:
-                    continue
 
-                class DummyResult:
-                    def __init__(self):
-                        self.x = None
-                        self.y = None
-                        self.w = None
-                        self.h = None
-                        self.type = None
-                        self.scraped_text = None
-                        self.group = 0
-                        self.is_main = False
-                        self.index_in_tree = 0
-                        self.index_in_group = 0
-                        self.mouse = {}
-                        self.keyboard = {}
-                        self.roi = None
+        elif self._disappear_mode is False and self._timedout is True:
+            for component in self._components_found:
+                mains_and_subs.append(component)
 
-                component = DummyResult()
-                component.type = box["type"]
-                component.group = box["group"]
-                component.index_in_tree = box["index_in_tree"]
-                component.index_in_group = box["index_in_group"]
-                component.is_main = False
 
-                if component.group == 0 and m0_found == False and component.is_main == False:
-                    continue
-                elif component.group == 1 and m1_found == False and component.is_main == False:
-                    continue
-                elif component.group == 2 and m2_found == False and component.is_main == False:
-                    continue
+            tmp_main_and_subs = []
+            for main_and_sub in mains_and_subs:
 
-                if component.group == 0:
-                    m_xy = m0_xy
-                elif component.group == 1:
-                    m_xy = m1_xy
-                elif component.group == 2:
-                    m_xy = m2_xy
+                main = main_and_sub[0]
 
-                roi = Roi()
-                roi.x = box["roi_x"] + m_xy[0]
-                roi.y = box["roi_y"] + m_xy[1]
-                roi.w = box["roi_w"]
-                roi.h = box["roi_h"]
-                roi.unlimited_left = box["roi_unlimited_left"]
-                roi.unlimited_up = box["roi_unlimited_up"]
-                roi.unlimited_right = box["roi_unlimited_right"]
-                roi.unlimited_down = box["roi_unlimited_down"]
+                subs = []
 
-                component.roi = roi
+                for sub_def in self._object_definition['boxes']:
 
-            else:
-                if component.group == 0 and component.is_main == True:
-                    m0_found = True
-                    m0_xy = (component.x, component.y)
-                elif component.group == 1 and component.is_main == True:
-                    m1_found = True
-                    m1_xy = (component.x, component.y)
-                elif component.group == 2 and component.is_main == True:
-                    m2_found = True
-                    m2_xy = (component.x, component.y)
+                    if sub_def["group"] == main.group and sub_def["is_main"] is False:
+
+                        sub_found = False
+
+                        for sub_in_comp_found in main_and_sub[1]:
+                            if sub_in_comp_found.index_in_tree == sub_def["index_in_tree"]:
+                                sub_found = True
+                                subs.append(sub_in_comp_found)
+                                break
+
+                        if sub_found is False:
+                            dummy_sub = DummyResult()
+                            dummy_sub.type = sub_def["type"]
+                            dummy_sub.group = sub_def["group"]
+                            dummy_sub.index_in_tree = sub_def["index_in_tree"]
+                            dummy_sub.index_in_group = sub_def["index_in_group"]
+                            dummy_sub.is_main = False
+                            dummy_sub.roi.x = main.x + sub_def["roi_x"]
+                            dummy_sub.roi.y = main.y + sub_def["roi_y"]
+                            dummy_sub.roi.h = sub_def["roi_h"]
+                            dummy_sub.roi.w = sub_def["roi_w"]
+                            dummy_sub.roi.unlimited_left = sub_def["roi_unlimited_left"]
+                            dummy_sub.roi.unlimited_right = sub_def["roi_unlimited_right"]
+                            dummy_sub.roi.unlimited_up = sub_def["roi_unlimited_up"]
+                            dummy_sub.roi.unlimited_down = sub_def["roi_unlimited_down"]
+                            subs.append(dummy_sub)
+
+                tmp_main_and_subs.append((main, subs))
+
+            mains_and_subs = tmp_main_and_subs
+
+        elif self._disappear_mode is False and self._objects_appeared is False:
+            pass
+
+        for main_and_sub in mains_and_subs:
+
+            component = main_and_sub[0]
+
+            if component.group == 0:
+                m0_found = True
+
+            if component.group == 1:
+                m1_found = True
+
+            if component.group == 2:
+                m2_found = True
+
+            m_xy = (component.x, component.y)
+
+            x1 = component.x
+            y1 = component.y
+            x2 = component.x + component.w
+            y2 = component.y + component.h
 
             if component.group == 0:
                 color_stroke = (0, 0, 255)
@@ -809,45 +923,89 @@ class EngineManager(object):
                 color_stroke = (255, 0, 0)
                 color_fill = (255, 114, 0)
 
-            # if timeout is true and main is found than we are in disappear mode
-            if component.is_main:
-                x1 = component.x
-                y1 = component.y
-                x2 = component.x + component.w
-                y2 = component.y + component.h
+            cv2.rectangle(overlay, (x1, y1), (x2, y2), color_fill, -1)
 
-                cv2.rectangle(overlay, (x1, y1), (x2, y2), color_fill, -1)
+            alpha = 0.5
+            cv2.addWeighted(overlay[y1:y2, x1:x2], alpha, image[y1:y2, x1:x2], 1 - alpha,
+                            0, image[y1:y2, x1:x2])
 
-                alpha = 0.5
-                cv2.addWeighted(overlay[y1:y2, x1:x2], alpha, image[y1:y2, x1:x2], 1 - alpha,
-                                0, image[y1:y2, x1:x2])
+            cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
 
-                cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
+            if (self._disappear_mode is True and self._timedout is False) or (self._disappear_mode is False):
 
-                if (self._disappear_mode is True and self._timedout is False) or (self._disappear_mode is False):
+                text = "M_" + str(component.group + 1)
+                cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+                            lineType=cv2.LINE_AA)
+
+                scraped_text = None
+
+                try:
+                    scraped_text = component.scraped_text
+                except:
+                    pass
+
+                if self._disappear_mode is False and scraped_text is None:
+
+                    mouse_dict = component.mouse
+
+                    if mouse_dict["type"] is not None and self._objects_appeared is True:
+
+                        point_dx = 0
+                        point_dy = 0
+
+                        try:
+                            if (mouse_dict["features"]["point"]["dx"] != 0 or
+                                    mouse_dict["features"]["point"]["dy"] != 0):
+                                point_dx = mouse_dict["features"]["point"]["dx"]
+                                point_dy = mouse_dict["features"]["point"]["dy"]
+                        except:
+                            pass
+
+                        position_x = int(component.x + (component.w / 2))
+                        position_y = int(component.y + (component.h / 2))
+
+                        if point_dx != 0 or point_dy != 0:
+                            new_position_x = component.x + point_dx
+                            new_position_y = component.y + point_dy
+
+                            cv2.line(image, (position_x, position_y), (new_position_x, new_position_y),
+                                     color_stroke,
+                                     int(1 * self._scaling_factor), lineType=cv2.LINE_AA)
+                        else:
+                            new_position_x = position_x
+                            new_position_y = position_y
+
+                        cv2.circle(image, (new_position_x, new_position_y), int(4 * self._scaling_factor),
+                                   color_stroke, -1,
+                                   lineType=cv2.LINE_AA)
+                            
+            elif (self._disappear_mode is True and self._timedout is True):
+                text = "M_" + str(component.group + 1) + "!"
+                cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+                            lineType=cv2.LINE_AA)
+
+                scale = 1  # this value can be from 0 to 1 (0,1] to change the size of the text relative to the image
+                fontScale = min(component.w, component.h) / (25 / scale)
+
+                text_box_size = cv2.getTextSize("!", cv2.FONT_HERSHEY_SIMPLEX, fontScale, 2)
+                text_x = int(component.x + (component.w / 2)) - int(text_box_size[0][0] / 2)
+                text_y = int(component.y + (component.h / 2)) + int(text_box_size[0][1] / 2)
+
+                cv2.putText(image, "!", (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color_stroke, 2,
+                            lineType=cv2.LINE_AA)
 
 
+            for sub_component in main_and_sub[1]:
+                sub_component_found = True
 
-                    text = "M_" + str(component.group + 1)
-                    cv2.putText(image, text, (x2+1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
-                                lineType=cv2.LINE_AA)
-                elif (self._disappear_mode is True and self._timedout is True):
-                    text = "M_" + str(component.group + 1) + "!"
-                    cv2.putText(image, text, (x2+1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
-                                lineType=cv2.LINE_AA)
+                try:
+                    if sub_component.is_found is False:
+                        sub_component_found = False
+                except:
+                    pass
 
-                    scale = 1  # this value can be from 0 to 1 (0,1] to change the size of the text relative to the image
-                    fontScale = min(component.w, component.h) / (25 / scale)
-
-                    text_box_size = cv2.getTextSize("!", cv2.FONT_HERSHEY_SIMPLEX, fontScale, 2)
-                    text_x = int(component.x + (component.w / 2)) - int(text_box_size[0][0] / 2)
-                    text_y = int(component.y + (component.h / 2)) + int(text_box_size[0][1] / 2)
-
-                    cv2.putText(image, "!", (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color_stroke, 2,
-                                lineType=cv2.LINE_AA)
-            else:
-
-                roi = component.roi
+                # object roi
+                roi = sub_component.roi
 
                 y1 = roi.y
                 y2 = y1 + roi.h
@@ -889,26 +1047,25 @@ class EngineManager(object):
                 elif x2 > source_img_w:
                     x2 = source_img_w
 
-                cv2.rectangle(overlay, (x1, y1), (x2, y2), color_fill, -1)
-
-                alpha = 0.2
-                cv2.addWeighted(overlay[y1:y2, x1:x2], alpha, image[y1:y2, x1:x2], 1 - alpha,
-                                0, image[y1:y2, x1:x2])
-
-                cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
+                if sub_component_found is True:
 
 
-
-                if component_found:
-
-                    x1 = component.x
-                    y1 = component.y
-                    x2 = component.x + component.w
-                    y2 = component.y + component.h
 
                     cv2.rectangle(overlay, (x1, y1), (x2, y2), color_fill, -1)
 
+                    alpha = 0.2
+                    cv2.addWeighted(overlay[y1:y2, x1:x2], alpha, image[y1:y2, x1:x2], 1 - alpha,
+                                    0, image[y1:y2, x1:x2])
 
+                    cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
+
+                    #object
+                    x1 = sub_component.x
+                    y1 = sub_component.y
+                    x2 = sub_component.x + sub_component.w
+                    y2 = sub_component.y + sub_component.h
+
+                    cv2.rectangle(overlay, (x1, y1), (x2, y2), color_fill, -1)
 
                     alpha = 0.3
                     cv2.addWeighted(overlay[y1:y2, x1:x2], alpha, image[y1:y2, x1:x2], 1 - alpha,
@@ -918,27 +1075,72 @@ class EngineManager(object):
 
                     if (self._disappear_mode is True and self._timedout is False) or (self._disappear_mode is False):
 
-                        text = "s_" + str(component.group + 1) + "_" + str(component.index_in_group)
+                        text = "s_" + str(sub_component.group + 1) + "_" + str(sub_component.index_in_group)
                         cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
                                     lineType=cv2.LINE_AA)
+
+                        scraped_text = None
+
+                        try:
+                            scraped_text = sub_component.scraped_text
+                        except:
+                            pass
+
+                        if self._disappear_mode is False and scraped_text is None:
+
+                            mouse_dict = sub_component.mouse
+
+                            if mouse_dict["type"] is not None and self._objects_appeared is True:
+
+                                point_dx = 0
+                                point_dy = 0
+
+                                try:
+                                    if (mouse_dict["features"]["point"]["dx"] != 0 or
+                                            mouse_dict["features"]["point"]["dy"] != 0):
+                                        point_dx = mouse_dict["features"]["point"]["dx"]
+                                        point_dy = mouse_dict["features"]["point"]["dy"]
+                                except:
+                                    pass
+
+                                position_x = int(sub_component.x + (sub_component.w / 2))
+                                position_y = int(sub_component.y + (sub_component.h / 2))
+
+                                if point_dx != 0 or point_dy != 0:
+                                    new_position_x = sub_component.x + point_dx
+                                    new_position_y = sub_component.y + point_dy
+
+                                    cv2.line(image, (position_x, position_y), (new_position_x, new_position_y),
+                                             color_stroke,
+                                             int(1 * self._scaling_factor), lineType=cv2.LINE_AA)
+                                else:
+                                    new_position_x = position_x
+                                    new_position_y = position_y
+
+                                cv2.circle(image, (new_position_x, new_position_y), int(4 * self._scaling_factor),
+                                           color_stroke, -1,
+                                           lineType=cv2.LINE_AA)
+
                     elif (self._disappear_mode is True and self._timedout is True):
 
-                        text = "s_" + str(component.group + 1) + "_" + str(component.index_in_group) + "!"
+                        text = "s_" + str(sub_component.group + 1) + "_" + str(sub_component.index_in_group) + "!"
                         cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
                                     lineType=cv2.LINE_AA)
 
                         scale = 1  # this value can be from 0 to 1 (0,1] to change the size of the text relative to the image
-                        fontScale = min(component.w, component.h) / (25 / scale)
+                        fontScale = min(sub_component.w, sub_component.h) / (25 / scale)
 
                         text_box_size = cv2.getTextSize("!", cv2.FONT_HERSHEY_SIMPLEX, fontScale, 2)
-                        text_x = int(component.x + (component.w / 2)) - int(text_box_size[0][0] / 2)
-                        text_y = int(component.y + (component.h / 2)) + int(text_box_size[0][1] / 2)
+                        text_x = int(sub_component.x + (sub_component.w / 2)) - int(text_box_size[0][0] / 2)
+                        text_y = int(sub_component.y + (sub_component.h / 2)) + int(text_box_size[0][1] / 2)
 
                         cv2.putText(image, "!", (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color_stroke, 2,
                                     lineType=cv2.LINE_AA)
-                else:
 
-                    text = "s_" + str(component.group + 1) + "_" + str(component.index_in_group) + "!"
+                else:
+                    cv2.rectangle(image, (x1, y1), (x2, y2), color_stroke, 1)
+
+                    text = "s_" + str(sub_component.group + 1) + "_" + str(sub_component.index_in_group) + "!"
                     cv2.putText(image, text, (x2 + 1, y1 - 1), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
                                 lineType=cv2.LINE_AA)
 
@@ -946,75 +1148,24 @@ class EngineManager(object):
                     fontScale = min(roi.w, roi.h) / (25 / scale)
 
                     text_box_size = cv2.getTextSize("!", cv2.FONT_HERSHEY_SIMPLEX, fontScale, 2)
-                    text_x = int(roi.x + (roi.w / 2)) - int(text_box_size[0][0]/2)
-                    text_y = int(roi.y + (roi.h / 2)) + int(text_box_size[0][1]/2)
-
+                    text_x = int(roi.x + (roi.w / 2)) - int(text_box_size[0][0] / 2)
+                    text_y = int(roi.y + (roi.h / 2)) + int(text_box_size[0][1] / 2)
 
                     cv2.putText(image, "!", (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color_stroke, 2,
                                 lineType=cv2.LINE_AA)
 
-            if component_found is False:
-                continue
 
-            if component.type == "T" and component.scraped_text is not None:
-                continue
-
-            mouse_dict = component.mouse
-
-            if mouse_dict["type"] is not None and self._disappear_mode is False and \
-                    len(self._components_found) == (len(self._group_0) + len(self._group_1) + len(self._group_2)):
-
-                point_dx = 0
-                point_dy = 0
-
-                try:
-                    if (mouse_dict["features"]["point"]["dx"] != 0 or mouse_dict["features"]["point"]["dy"] != 0):
-                        point_dx = mouse_dict["features"]["point"]["dx"]
-                        point_dy = mouse_dict["features"]["point"]["dy"]
-                except:
-                    pass
-
-                position_x = int(component.x + (component.w / 2))
-                position_y = int(component.y + (component.h / 2))
-
-                if point_dx != 0 or point_dy != 0:
-                    new_position_x = component.x + point_dx
-                    new_position_y = component.y + point_dy
-
-                    cv2.line(image, (position_x, position_y), (new_position_x, new_position_y), color_stroke,
-                             int(1*self._scaling_factor), lineType=cv2.LINE_AA)
-                else:
-                    new_position_x = position_x
-                    new_position_y = position_y
-
-                cv2.circle(image, (new_position_x, new_position_y), int(4*self._scaling_factor), color_stroke,-1,
-                           lineType=cv2.LINE_AA)
-
-
-        """
-        text = "s_" + str(component.index_in_group)
-        cv2.putText(image, text, (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_fill, 1,
-                    lineType=cv2.LINE_AA)
-        
-
-        cv2.rectangle(image, (component.x, component.y), (component.x + component.w, component.y + component.h),
-                      color_stroke, 1)
-                      
-                alpha = 0.7
-                cv2.addWeighted(overlay, alpha, image, 1 - alpha,
-                                0, image)
-        """
         main_notfound_banner_size = 0
 
         if m2_found is False and has_to_find_m2 is True:
-
             color_stroke = (255, 0, 0)
 
             text_box_size = cv2.getTextSize(" (M_3)", cv2.FONT_HERSHEY_SIMPLEX, 0.4, 1)
             text_w = text_box_size[0][0]
             text_h = text_box_size[0][1]
 
-            cv2.putText(image, " (M_3)", (image.shape[1] - text_w - 1, 2 + text_h), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_stroke, 1,
+            cv2.putText(image, " (M_3)", (image.shape[1] - text_w - 1, 2 + text_h), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
+                        color_stroke, 1,
                         lineType=cv2.LINE_AA)
 
             main_notfound_banner_size += text_box_size[0][0]
@@ -1046,8 +1197,6 @@ class EngineManager(object):
                         lineType=cv2.LINE_AA)
 
             main_notfound_banner_size += text_box_size[0][0]
-
-
         return image
 
     def _get_output_json(self):
@@ -1071,6 +1220,9 @@ class EngineManager(object):
         self._components_appeared = []
         self._return_values = []
 
+        self._objects_appeared = False
+        self._objects_disappeared = False
+
         self._last_screen = None
         self._screen_with_objects = None
         self._annotation_screen = None
@@ -1089,7 +1241,7 @@ class EngineManager(object):
 
         #sm = ScreenManager()
 
-        MAX_THREADS = 3
+        MAX_THREADS = 1 #3
 
         timeout = self._detection["timeout_s"]
         has_to_break = self._detection["break"]
@@ -1126,8 +1278,7 @@ class EngineManager(object):
             total_threads = self.total_threads
             self.lock.release()
 
-            if len(components_appeared) == (len(self._group_0) + len(self._group_1) + len(self._group_2)) \
-                    and disappear_mode is False:
+            if self._objects_appeared is True and disappear_mode is False:
 
                 if self._verbose >= 1:
                     print("Alyvix detected " + self._result.object_name)
@@ -1168,8 +1319,7 @@ class EngineManager(object):
                     self._appear_time, self._appear_accuracy, first_index_found = self._get_appear_time()
                     last_found_index = len(self._screens) -2
 
-            elif len(components_found) != (len(self._group_0) + len(self._group_1) + len(self._group_2)) \
-                    and disappear_mode is True:
+            elif self._objects_disappeared is True and disappear_mode is True:
 
 
                 if detection_type == 'appear+disappear':
