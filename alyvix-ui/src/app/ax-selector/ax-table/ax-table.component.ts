@@ -140,7 +140,31 @@ export class AxTableComponent implements OnInit {
   }
 
   selectRow(event: MouseEvent, row: RowVM) {
-    if (event.ctrlKey || event.shiftKey) {
+    if(event.shiftKey) {
+      document.getSelection().removeAllRanges();
+      let leftIndex = -1;
+      let rightIndex = -1;
+      const rowIndex = this.filteredData.indexOf(row);
+      this.filteredData.forEach((fd,i) => {
+        if(this.isSelected(fd) && i < rowIndex ) {
+          leftIndex = i;
+        }
+        if(this.isSelected(fd) && i > rowIndex) {
+          rightIndex = i;
+        }
+      });
+      if(leftIndex >= 0) { // found on the right
+        for(let i = leftIndex+1; i <= rowIndex; i++) {
+          this.selectedRows.push(this.filteredData[i]);
+        }
+      } else if(rightIndex > 0) {
+        for(let i = rowIndex; i < rightIndex; i++) {
+          this.selectedRows.push(this.filteredData[i]);
+        }
+      } else {
+        this.selectedRows = [row];
+      }
+    } else if (event.ctrlKey) {
       if (this.isSelected(row)) {
         this.selectedRows = this.selectedRows.filter(r => r.id !== row.id);
       } else {
@@ -148,7 +172,9 @@ export class AxTableComponent implements OnInit {
       }
     } else if (!this.isSelected(row) || event.detail > 1) {
       this.selectedRows = [row];
+      document.getSelection().removeAllRanges();
     }
+
   }
 
   selectAll() {
