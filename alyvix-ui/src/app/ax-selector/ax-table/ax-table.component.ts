@@ -217,6 +217,8 @@ export class AxTableComponent implements OnInit {
       const resolutions = this.resolutionsForObject(d.object.components);
       if(resolutions.includes(this.selectedResolution)) { //select the current resolution
         d.selectedResolution = this.selectedResolution;
+      } else if (resolutions.includes(this.currentResolution)) {
+        d.selectedResolution = this.currentResolution;
       } else {                                            //or the first resolution in the list
         d.selectedResolution = resolutions[0];
       }
