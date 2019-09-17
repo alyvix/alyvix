@@ -55,7 +55,7 @@ export class AxTableComponent implements OnInit {
         )
       )
     );
-    this.filterData();
+    this.changeResolution();
   }
 
   get data(): RowVM[] {

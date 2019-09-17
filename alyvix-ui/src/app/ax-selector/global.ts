@@ -12,7 +12,7 @@ export interface Global{
 
 export class MockGlobal implements Global{
     current_library_name = 'test_long_filename';
-    res_string: string = '1920*1200@100';
+    res_string: string = '1920*1080@100';
     edit(object_name: string, resolution: string) {
       console.log(object_name);
       console.log(resolution);
