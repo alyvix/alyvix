@@ -160,6 +160,13 @@ class LibraryManager:
 
         return True
 
+    def check_if_any_res_exists(self, object_name):
+        try:
+            object_dict = self._json_object["objects"][object_name]["components"]
+            return True
+        except:
+            return False
+
     def get_detection(self, object_name):
 
         if object_name is None:

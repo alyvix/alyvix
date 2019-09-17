@@ -56,6 +56,7 @@ from alyvix.tools.library import LibraryManager
 from operator import itemgetter
 import threading
 import subprocess
+import psutil
 
 import win32gui
 import win32con
@@ -908,6 +909,36 @@ def selector_save_json_api():
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
+@app.route("/get_user_process_api")
+def list_user_process_api():
+    proc_list = []
+    for proc in psutil.process_iter(attrs=['name', 'username']):
+
+        try:
+            logged_user = os.environ['userdomain'] + "\\" +  os.environ.get( "USERNAME" ) #os.getlogin()
+            proc_user = proc.username()
+
+            if proc_user == logged_user:
+                proc_list.append(proc.name())
+        except:
+            pass
+
+    return json.dumps({'object_exists': proc_list}), 200, {'ContentType': 'application/json'}
+
+@app.route("/check_if_object_exists_api")
+def check_if_object_exists_api():
+    global library_dict
+    obj_name = request.args.get("object_name")
+
+    lm = LibraryManager()
+    lm.set_json(library_dict)
+
+    all_res_exists = False
+
+    if lm.check_if_any_res_exists(obj_name) is True:
+        all_res_exists = True
+
+    return json.dumps({'object_exists': all_res_exists}), 200, {'ContentType': 'application/json'}
 
 @app.route("/get_library_api", methods=['GET'])
 def get_library_api():
@@ -958,7 +989,7 @@ def get_library_api():
                 cv_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
                 background_w = cv_image.shape[1]
                 background_h = cv_image.shape[0]
-                thumbnail_fixed_height = 40
+                thumbnail_fixed_height = 80
                 thumbnail_fixed_width = int((background_w * thumbnail_fixed_height) / background_h)
 
                 dim = (thumbnail_fixed_width, thumbnail_fixed_height)
