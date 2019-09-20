@@ -100,6 +100,9 @@ class ViewerManager(ViewerManagerBase):
     def show(self, hwnd):
         win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
         win32gui.SetForegroundWindow(hwnd)
+        #win32gui.SetFocus(hwnd)
+        win32gui.SetActiveWindow(hwnd)
+
 
     def load_url(self, url, window_handle):
         browser = cef.GetBrowserByWindowHandle(window_handle)
@@ -154,6 +157,14 @@ class ViewerManager(ViewerManagerBase):
             win32con.WM_ERASEBKGND: WindowUtils.OnEraseBackground
         }
 
+        window_proc_2 = {
+            win32con.WM_CLOSE: self.close_window_2,
+            win32con.WM_DESTROY: self.exit_app,
+            win32con.WM_SIZE: WindowUtils.OnSize,
+            win32con.WM_SETFOCUS: WindowUtils.OnSetFocus,
+            win32con.WM_ERASEBKGND: WindowUtils.OnEraseBackground
+        }
+
 
         self._hwnd_1 = self.create_window(title="Alyvix Designer",
                                       class_name="alyvix.designerr",
@@ -171,7 +182,7 @@ class ViewerManager(ViewerManagerBase):
                                           class_name="alyvix.selector",
                                           width=int(1300*scaling_factor),
                                           height=int(460*scaling_factor),
-                                          window_proc=window_proc,
+                                          window_proc=window_proc_2,
                                           icon="resources/chromium.ico",
                                           fullscreen=False)
 
@@ -334,22 +345,19 @@ class ViewerManager(ViewerManagerBase):
 
 
     def close_window(self, window_handle, message, wparam, lparam):
-        try:
-            browser = cef.GetBrowserByWindowHandle(self._hwnd_1)
-            browser.CloseBrowser(True)
-            #browser = None
-        except:
-            pass
 
-        if self._father == "selector":
-            browser2 = cef.GetBrowserByWindowHandle(self._hwnd_2)
-            browser2.CloseBrowser(True)
-            #browser = None
+        browser = cef.GetBrowserByWindowHandle(self._hwnd_1)
+        browser.CloseBrowser(True)
+        #browser = None
 
-            try:
-                aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
-            except:
-                pass
+        return win32gui.DefWindowProc(window_handle, message, wparam, lparam)
+
+    def close_window_2(self, window_handle, message, wparam, lparam):
+
+        browser2 = cef.GetBrowserByWindowHandle(self._hwnd_2)
+        browser2.CloseBrowser(True)
+
+        aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
 
         return win32gui.DefWindowProc(window_handle, message, wparam, lparam)
 
