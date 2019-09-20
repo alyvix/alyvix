@@ -183,6 +183,8 @@ export class AxTableComponent implements OnInit {
       this.selectedRows = [row];
       document.getSelection().removeAllRanges();
     }
+    this.changeDetecor.markForCheck();
+    this.changeDetecor.detectChanges();
 
   }
 
@@ -243,7 +245,6 @@ export class AxTableComponent implements OnInit {
 
   filterData() {
     let self = this;
-    console.log(this._data);
     this.filteredData = this.data.filter( d => //resolution filter
       this.selectedResolution == 'All' ||
       this.resolutionsForObject(d.object.components).includes(this.selectedResolution)
@@ -332,6 +333,8 @@ export class AxTableComponent implements OnInit {
 
         const dataIndex = this._data.indexOf(this.editing);
         if ( dataIndex >= 0 ) { this._data[dataIndex] = r; }
+        const selectedIndex = this.selectedRows.indexOf(this.editing);
+        if ( selectedIndex >= 0 ) { this.selectedRows[selectedIndex] = r; }
         this.editing = null;
         this.filterData();
         this.changeDetecor.markForCheck();
