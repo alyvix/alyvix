@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, ViewChild, ElementRef, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Inject, ViewChild, ElementRef, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { AxSelectorObject, AxSelectorObjects, AxSelectorComponentGroups } from 'src/app/ax-model/model';
 import { DomSanitizer } from '@angular/platform-browser';
 import { GlobalRef } from '../global';
@@ -10,6 +10,7 @@ import { ResizedEvent } from 'angular-resize-event';
 import * as _ from 'lodash';
 import { Utils } from 'src/app/utils';
 import { SelectorUtils } from '../selector-utils';
+import { SelectorDatastoreService } from '../selector-datastore.service';
 
 export interface RowVM{
   name:string
@@ -31,7 +32,12 @@ interface SortDescriptor{
 })
 export class AxTableComponent implements OnInit {
 
-  constructor(private _sanitizer: DomSanitizer,@Inject('GlobalRef') private global: GlobalRef,private apiService:AlyvixApiService) {}
+  constructor(
+    private _sanitizer: DomSanitizer,
+    @Inject('GlobalRef') private global: GlobalRef,
+    private apiService:AlyvixApiService,
+    private datastore:SelectorDatastoreService,
+    private changeDetecor: ChangeDetectorRef) {}
 
 
   production: boolean = environment.production;
@@ -61,6 +67,8 @@ export class AxTableComponent implements OnInit {
   get data(): RowVM[] {
     return this._data;
   }
+
+  private editing:RowVM = null;
 
   sort: SortDescriptor = {column: 'name', asc: true};
   filteredData: RowVM[];
@@ -116,6 +124,7 @@ export class AxTableComponent implements OnInit {
 
   edit() {
     if (this.singleSelection()) {
+      this.editing = this.selectedRows[0];
       this.apiService.setLibrary({library: this.prepareModelForSubmission(), close_selector: false}).subscribe(x => {
         console.log(x);
         if (x.success) {
@@ -234,6 +243,7 @@ export class AxTableComponent implements OnInit {
 
   filterData() {
     let self = this;
+    console.log(this._data);
     this.filteredData = this.data.filter( d => //resolution filter
       this.selectedResolution == 'All' ||
       this.resolutionsForObject(d.object.components).includes(this.selectedResolution)
@@ -315,6 +325,18 @@ export class AxTableComponent implements OnInit {
   selectorColumns = ['name','transactionGroup','dateModified','timeout','break','measure','warning','critical','resolution','screen']
 
   ngOnInit(): void {
+    this.datastore.editRow().subscribe(r => {
+      if (r && this.editing) {
+        r.id = this.editing.id;
+        r.selectedResolution = this.editing.selectedResolution;
 
+        const dataIndex = this._data.indexOf(this.editing);
+        if ( dataIndex >= 0 ) { this._data[dataIndex] = r; }
+        this.editing = null;
+        this.filterData();
+        this.changeDetecor.markForCheck();
+        this.changeDetecor.detectChanges();
+      }
+    })
   }
 }

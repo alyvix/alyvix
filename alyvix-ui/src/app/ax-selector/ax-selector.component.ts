@@ -8,13 +8,11 @@ import { AxSelectorComponentGroups, AxSelectorObjects } from '../ax-model/model'
 import { empty } from 'rxjs';
 import { SelectorUtils } from './selector-utils';
 import { GlobalRef } from './global';
+import { connectableObservableDescriptor } from 'rxjs/internal/observable/ConnectableObservable';
+import { SelectorDatastoreService, AxFile } from './selector-datastore.service';
 
 
-interface AxFile {
-  data: RowVM[];
-  name: string;
-  readonly: boolean;
-}
+
 @Component({
     selector: 'ax-selector',
     templateUrl: './ax-selector.component.html',
@@ -23,39 +21,24 @@ interface AxFile {
   export class AxSelectorComponent implements OnInit {
 
 
-    constructor(private apiService:AlyvixApiService, @Inject('GlobalRef') private global: GlobalRef) {}
+    constructor(
+      private datastore: SelectorDatastoreService
+      ) {}
 
     selected: AxFile = {data: [], name: '', readonly: false};
     main: AxFile = {data: [], name: '', readonly: false};
     files: AxFile[] = [];
     production: boolean = environment.production;
 
-    private firstResolution(component: {[key:string]:AxSelectorComponentGroups}):string {
-      return Object.entries(component).map(
-        ([key, value]) =>  {
-           return key;
-        }
-      )[0]
-    }
 
-    private modelToData(model: AxSelectorObjects): RowVM[] {
-      return Object.entries(model.objects).map(
-        ([key, value]) =>  {
-           if (!value.measure) {
-             value.measure = {output: false, thresholds: {}}
-           } else  {
-              if (!value.measure.thresholds) { value.measure.thresholds = {}; }
-              if (typeof value.measure.output === 'undefined') { value.measure.output = false; }
-           }
-           return {name: key, object: value, selectedResolution: this.firstResolution(value.components), id: Utils.uuidv4()};
-        }
-      );
-    }
 
     ngOnInit(): void {
-      this.apiService.getLibrary().subscribe( library => {
-        this.main = {data: this.modelToData(library), name: this.global.nativeGlobal().current_library_name, readonly: false};
-        this.selected = this.main;
+      this.datastore.load();
+      this.datastore.getWorkingCase().subscribe( workingCase => {
+        if(workingCase) {
+          this.main = workingCase;
+          this.selected = workingCase;
+        }
       });
     }
 
@@ -101,7 +84,7 @@ interface AxFile {
 
     parseFile(filename: string, body: string) {
       const newFile:AxFile = {
-        data: this.modelToData(JSON.parse(body)),
+        data: this.datastore.modelToData(JSON.parse(body)),
         readonly: true,
         name: filename.substring(0, filename.indexOf('.alyvix'))
       }

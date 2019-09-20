@@ -5,6 +5,8 @@ import { DesignerModule } from './app/ax-designer/designer.module';
 import { environment } from './environments/environment';
 import { HotkeysService } from 'angular2-hotkeys';
 import { SelectorModule } from './app/ax-selector/selector.module';
+import { SelectorDatastoreService } from './app/ax-selector/selector-datastore.service';
+
 
 if (environment.production) {
   enableProdMode();
@@ -20,6 +22,13 @@ function loadAlyvixDesigner() {
 
 function loadAlyvixSelector() {
   platformBrowserDynamic().bootstrapModule(SelectorModule).catch(err => console.log(err)).then(module => selector = module)
+}
+
+function reloadAlyvixSelector(objectName: string) {
+  if (selector) {
+    const selectorDatastore = selector.injector.get(SelectorDatastoreService);
+    selectorDatastore.reload(objectName);
+  }
 }
 
 function unloadAlyvixDesigner() {
@@ -40,6 +49,7 @@ function unloadAlyvixSelector() {
 (window as any).loadAlyvixDesigner = loadAlyvixDesigner;
 (window as any).unloadAlyvixDesigner = unloadAlyvixDesigner;
 (window as any).loadAlyvixSelector = loadAlyvixSelector;
+(window as any).reloadAlyvixSelector = reloadAlyvixSelector;
 (window as any).unloadAlyvixSelector = unloadAlyvixSelector;
 
 /* TO TEST
@@ -54,7 +64,7 @@ if (!environment.production) {
   } else if(environment.workingOn == "selector") {
     loadAlyvixSelector();
   }
-  
+
   //loadAlyvixSelector();
   // uncomment o simulate multiple close open of the designer
   // setTimeout(() => {
