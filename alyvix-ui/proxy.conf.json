@@ -23,6 +23,18 @@
         "logLevel": "debug",
         "changeOrigin": true
       },
+      "/check_if_object_exists_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
+      "/get_user_process_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
       "/api/*": {
         "target": "http://localhost:5000",
         "secure": false,

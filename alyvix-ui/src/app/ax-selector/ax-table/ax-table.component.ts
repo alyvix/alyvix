@@ -336,6 +336,11 @@ export class AxTableComponent implements OnInit {
         this.filterData();
         this.changeDetecor.markForCheck();
         this.changeDetecor.detectChanges();
+      } else if(r) {
+        this._data.push(r);
+        this.changeResolution();
+        this.changeDetecor.markForCheck();
+        this.changeDetecor.detectChanges();
       }
     })
   }
