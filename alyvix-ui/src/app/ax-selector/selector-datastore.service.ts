@@ -18,24 +18,12 @@ export interface AxFile {
 })
 export class SelectorDatastoreService {
 
-  private workingCase: BehaviorSubject<AxFile> = new BehaviorSubject<AxFile>(null);
   private editedRow: BehaviorSubject<RowVM> = new BehaviorSubject<RowVM>(null);
 
   constructor(
-    private apiService: AlyvixApiService,
-    @Inject('GlobalRef') private global: GlobalRef
+    private apiService: AlyvixApiService
     ) { }
 
-
-  load() {
-    this.apiService.getLibrary().subscribe( library => {
-      this.workingCase.next({data: this.modelToData(library), name: this.global.nativeGlobal().current_library_name, readonly: false});
-    });
-  }
-
-  getWorkingCase(): Observable<AxFile> {
-    return this.workingCase;
-  }
 
   editRow():Observable<RowVM> {
     return this.editedRow;

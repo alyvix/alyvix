@@ -6,7 +6,7 @@ import { Utils } from "../utils";
 export class SelectorUtils {
 
   static isDuplicatedName(name: string, data: RowVM[]):boolean {
-    return data.filter(x => name == x.name).length > 1;
+    return data.filter(x => name === x.name).length > 1;
   }
 
   static duplicateRows(rows: RowVM[], data:RowVM[]):RowVM[] {

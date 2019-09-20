@@ -276,6 +276,8 @@ export class AxTableComponent implements OnInit {
   }
 
   isDuplicatedName(name:string):boolean {
+    console.log(name)
+    console.log(SelectorUtils.isDuplicatedName(name, this.data));
     return SelectorUtils.isDuplicatedName(name, this.data);
   }
 

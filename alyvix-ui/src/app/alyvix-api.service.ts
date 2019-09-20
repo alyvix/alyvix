@@ -49,6 +49,10 @@ export class AlyvixApiService {
     return this.httpClient.post<any>("/set_library_api",library);
   }
 
+  checkObjectName(name: string): Observable<any> {
+    return this.httpClient.get<any>("/check_if_object_exists_api?object_name="+name)
+  }
+
   private handleError(error) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {

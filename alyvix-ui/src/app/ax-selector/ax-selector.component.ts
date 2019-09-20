@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Inject} from '@angular/core';
+import { Component, OnInit, ViewChild, Inject } from '@angular/core';
 import { ResizedEvent } from 'angular-resize-event';
 import { AxTableComponent, RowVM } from './ax-table/ax-table.component';
 import { environment } from 'src/environments/environment';
@@ -14,86 +14,86 @@ import { SelectorDatastoreService, AxFile } from './selector-datastore.service';
 
 
 @Component({
-    selector: 'ax-selector',
-    templateUrl: './ax-selector.component.html',
-    styleUrls: ['./ax-selector.component.scss']
-  })
-  export class AxSelectorComponent implements OnInit {
+  selector: 'ax-selector',
+  templateUrl: './ax-selector.component.html',
+  styleUrls: ['./ax-selector.component.scss']
+})
+export class AxSelectorComponent implements OnInit {
 
 
-    constructor(
-      private datastore: SelectorDatastoreService
-      ) {}
+  constructor(
+    private datastore: SelectorDatastoreService,
+    private apiService: AlyvixApiService,
+    @Inject('GlobalRef') private global: GlobalRef
+  ) { }
 
-    selected: AxFile = {data: [], name: '', readonly: false};
-    main: AxFile = {data: [], name: '', readonly: false};
-    files: AxFile[] = [];
-    production: boolean = environment.production;
-
-
-
-    ngOnInit(): void {
-      this.datastore.load();
-      this.datastore.getWorkingCase().subscribe( workingCase => {
-        if(workingCase) {
-          this.main = workingCase;
-          this.selected = workingCase;
-        }
-      });
-    }
+  selected: AxFile = { data: [], name: '', readonly: false };
+  main: AxFile = { data: [], name: '', readonly: false };
+  files: AxFile[] = [];
+  production: boolean = environment.production;
 
 
-    @ViewChild(AxTableComponent) table;
-    onResized(event: ResizedEvent) {
-      if (this.table) {
-        this.table.onResized(event);
-      }
-    }
 
-    selectTab(i: AxFile) {
-      this.selected = i;
-    }
+  ngOnInit(): void {
 
-    closeTab(i: AxFile) {
-      this.selectTab(this.main);
-      this.files = this.files.filter(f => f.name !== i.name);
-    }
-
-    @ViewChild('file') _file;
-    loadFile() {
-      this._file.nativeElement.click();
-    }
-
-    onFileAdd() {
-      const self = this;
-      const files: { [key: string]: File } = this._file.nativeElement.files;
-      let file:File
-      for (let key in files) {
-        if (!isNaN(parseInt(key))) {
-          file = files[key];
-          const reader = new FileReader();
-          reader.onload = function() {
-            if (typeof reader.result == "string") {
-              self.parseFile(file.name, reader.result);
-            }
-          };
-          reader.readAsText(file);
-        }
-      }
-    }
-
-    parseFile(filename: string, body: string) {
-      const newFile:AxFile = {
-        data: this.datastore.modelToData(JSON.parse(body)),
-        readonly: true,
-        name: filename.substring(0, filename.indexOf('.alyvix'))
-      }
-      this.files.push(newFile);
-    }
-
-    onImport(rows: RowVM[]) {
-      console.log(rows);
-      SelectorUtils.duplicateRows(rows, this.main.data);
-    }
-
+    this.apiService.getLibrary().subscribe(library => {
+      this.main = { data: this.datastore.modelToData(library), name: this.global.nativeGlobal().current_library_name, readonly: false };
+      this.selected = this.main;
+    });
   }
+
+
+  @ViewChild(AxTableComponent) table;
+  onResized(event: ResizedEvent) {
+    if (this.table)
+      this.table.onResized(event);
+  }
+
+
+  selectTab(i: AxFile) {
+    this.selected = i;
+  }
+
+  closeTab(i: AxFile) {
+    this.selectTab(this.main);
+    this.files = this.files.filter(f => f.name !== i.name);
+  }
+
+  @ViewChild('file') _file;
+  loadFile() {
+    this._file.nativeElement.click();
+  }
+
+  onFileAdd() {
+    const self = this;
+    const files: { [key: string]: File } = this._file.nativeElement.files;
+    let file: File
+    for (let key in files) {
+      if (!isNaN(parseInt(key))) {
+        file = files[key];
+        const reader = new FileReader();
+        reader.onload = function () {
+          if (typeof reader.result == "string") {
+            self.parseFile(file.name, reader.result);
+          }
+        };
+        reader.readAsText(file);
+      }
+    }
+  }
+
+  parseFile(filename: string, body: string) {
+    const newFile: AxFile = {
+      data: this.datastore.modelToData(JSON.parse(body)),
+      readonly: true,
+      name: filename.substring(0, filename.indexOf('.alyvix'))
+    }
+    this.files.push(newFile);
+  }
+
+  onImport(rows: RowVM[]) {
+    console.log(rows);
+    SelectorUtils.duplicateRows(rows, this.main.data);
+  }
+
+}

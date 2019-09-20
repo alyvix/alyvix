@@ -6,6 +6,9 @@ import { ResizedEvent } from 'angular-resize-event';
 import { TouchSequence } from 'selenium-webdriver';
 import { KeyShortcutsService } from './key-shortcuts.service';
 import { FormControl, Validators } from '@angular/forms';
+import { Validation } from '../utils/validators';
+import { AlyvixApiService } from '../alyvix-api.service';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'ax-designer',
@@ -14,7 +17,7 @@ import { FormControl, Validators } from '@angular/forms';
 })
 export class AxDesignerComponent implements OnInit {
 
-  constructor(private axDesignerService:AxDesignerService, private keyShortcuts:KeyShortcutsService) { }
+  constructor(private axDesignerService:AxDesignerService, private keyShortcuts:KeyShortcutsService, private alyvixApi:AlyvixApiService) { }
 
   axModel:AxModel;
 
@@ -31,11 +34,27 @@ export class AxDesignerComponent implements OnInit {
   totalHeight = 590;
   treeElementHeight = 43;
 
+
+  originalName = '';
+
+  objectNameValidation = Validation.debouncedAsyncValidator<string>(v => {
+    return this.alyvixApi.checkObjectName(v).pipe(map(res => {
+      return !res.object_exists || v === this.originalName ? null : { name: { existing_name: v } }
+    }))
+
+  })
+
+  object_name: FormControl = new FormControl('', null, this.objectNameValidation);
+
+  onNameChange() {
+    this.axModel.object_name = this.object_name.value;
+  }
+
   treeHeight() {
 
     var topHeight = 106;
-    
-    var bottomHeight = this.bottomWithoutOptions; 
+
+    var bottomHeight = this.bottomWithoutOptions;
     if(!this.selectedNode || this.selectedNode.box && !this.hideOptionsOnDrag()) {
       bottomHeight = this.pullDown.nativeElement.offsetHeight;
     }
@@ -78,10 +97,12 @@ export class AxDesignerComponent implements OnInit {
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectNode(n));
     this.axDesignerService.getDragging().subscribe(d => this.dragging = d);
     this.axModel = this.axDesignerService.getModel();
+    this.object_name.setValue(this.axModel.object_name);
+    this.originalName = this.axModel.object_name;
     this.first.nativeElement.focus();
     this.scrollToNode();
   }
-  
+
 
 
   showAdd():boolean {

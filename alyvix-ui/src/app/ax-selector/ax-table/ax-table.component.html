@@ -23,9 +23,9 @@
                     Only alphanumeric characters and - _ ` ` (space) are allowed
                   </div>
               </div>
-              <div *ngIf="isDuplicatedName(row) && isSelected(row)" class="name-popover">
+              <div *ngIf="isSelected(row) && isDuplicatedName(row.name)" class="name-popover">
                   <div class="name-popover-content">
-                    Name already used
+                    Object name already in use
                   </div>
               </div>
             </cdk-cell>

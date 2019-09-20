@@ -3,10 +3,13 @@
     <div class="pure-u-1-1">
       <div class="form-group">
         <label>Object name</label>
-        <input class="mousetrap" type="text" pattern="[a-zA-Z0-9_\- ]*" [(ngModel)]="axModel.object_name" #first #name="ngModel" spellcheck="false"/>
-        <div *ngIf="name.invalid && (name.dirty || name.touched)" class="name-popover">
-            <div class="name-popover-content">
+        <input class="mousetrap" type="text" [formControl]="object_name" (change)="onNameChange()" pattern="[a-zA-Z0-9_\- ]*"   #first spellcheck="false"/>
+        <div *ngIf="object_name.invalid && (object_name.dirty || object_name.touched)" class="name-popover">
+            <div class="name-popover-content" *ngIf="!object_name.errors.name">
               Only alphanumeric characters and - _ ` ` (space) are allowed
+            </div>
+            <div class="name-popover-content" *ngIf="object_name.errors.name">
+              Object name already in use
             </div>
         </div>
       </div>
