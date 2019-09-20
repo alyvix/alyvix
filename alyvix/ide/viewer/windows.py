@@ -35,6 +35,7 @@ import win32api
 import win32con
 import win32gui
 import win32com.client
+from alyvix.tools.screen import ScreenManager
 
 from multiprocessing import Process
 
@@ -75,28 +76,30 @@ class ViewerManager(ViewerManagerBase):
         self.window_handle = None
         self._base_url = None
         self._title = None
-        self._browser = None
+        self._father = None
+        self._browser_1 = None
+        self._browser_2 = None
+        self._hwnd_1 = None
+        self._hwnd_2 = None
+        self._sm = ScreenManager()
 
     def close(self):
 
-        if self._title == "Alyvix Selector":
-            aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
+        win32gui.PostMessage(self._hwnd_1, win32con.WM_CLOSE, 0, 0)
 
-        win32gui.PostMessage(self.window_handle, win32con.WM_CLOSE, 0, 0)
+        if self._father == "selector":
+            win32gui.PostMessage(self._hwnd_2, win32con.WM_CLOSE, 0, 0)
 
     def close_and_no_shutdown(self):
-        win32gui.PostMessage(self.window_handle, win32con.WM_CLOSE, 0, 0)
-        print("close {}".format(self.window_handle))
+        win32gui.PostMessage(self._hwnd_2, win32con.WM_CLOSE, 0, 0)
+        print("close {}".format(self._hwnd_2))
 
-    def hide(self):
-        win32gui.ShowWindow(self.window_handle, win32con.SW_HIDE)
+    def hide(self, hwnd):
+        win32gui.ShowWindow(hwnd, win32con.SW_HIDE)
 
-    def show(self):
-        win32gui.ShowWindow(self.window_handle, win32con.SW_SHOW)
-        win32gui.SetForegroundWindow(self.window_handle)
-
-    def set_win_handler(self, handler):
-        self.window_handle = handler
+    def show(self, hwnd):
+        win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
+        win32gui.SetForegroundWindow(hwnd)
 
     def load_url(self, url, window_handle):
         browser = cef.GetBrowserByWindowHandle(window_handle)
@@ -118,9 +121,17 @@ class ViewerManager(ViewerManagerBase):
         elif iconic == 0:
             return False
 
-    def run(self, url, fullscreen=False, dimension=None, title=None):
+    def run(self, url, father=None):
         global WindowUtils
         global g_multi_threaded
+
+        base_url = url.rsplit('/', 1)[0]
+
+        self._base_url = base_url
+        
+        scaling_factor = self._sm.get_scaling_factor()
+
+        self._father = father
 
         self.command_line_args()
         self.check_versions()
@@ -143,44 +154,31 @@ class ViewerManager(ViewerManagerBase):
             win32con.WM_ERASEBKGND: WindowUtils.OnEraseBackground
         }
 
-        if dimension is not None:
-            width = dimension[0]
-            height = dimension[1]
-        else:
-            width = 450
-            height = 600
 
-        if title is not None:
-            win_title = title
-        else:
-            win_title = "Alyvix Designer"
-
-        window_handle = self.create_window(title=win_title,
-                                      class_name="pywin32.example",
-                                      width=width,
-                                      height=height,
+        self._hwnd_1 = self.create_window(title="Alyvix Designer",
+                                      class_name="alyvix.designerr",
+                                      width=800,
+                                      height=800,
                                       window_proc=window_proc,
                                       icon="resources/chromium.ico",
-                                      fullscreen=fullscreen)
-
-        base_url = url.rsplit('/',1)[0]
-
-        self._base_url = base_url
-
-        handler_type = None
-
-        if win_title == "Alyvix Designer":
-            handler_type = "designer"
-        elif win_title == "Alyvix Selector":
-            handler_type = "selector"
-
-        self._title = win_title
-
-        aa = urllib.request.urlopen(base_url + "/set_viewer_handler_api?handler=" + str(window_handle) +
-                                        "&type=" + handler_type).read()
+                                      fullscreen=True)
 
         window_info = cef.WindowInfo()
-        window_info.SetAsChild(window_handle)
+        window_info.SetAsChild(self._hwnd_1)
+
+        if father == "selector":
+            self._hwnd_2 = self.create_window(title="Alyvix Selector",
+                                          class_name="alyvix.selector",
+                                          width=int(1300*scaling_factor),
+                                          height=int(460*scaling_factor),
+                                          window_proc=window_proc,
+                                          icon="resources/chromium.ico",
+                                          fullscreen=False)
+
+            window_info_2 = cef.WindowInfo()
+            window_info_2.SetAsChild(self._hwnd_2)
+
+            self.hide(self._hwnd_1)
 
         if g_multi_threaded:
             # When using multi-threaded message loop, CEF's UI thread
@@ -195,32 +193,22 @@ class ViewerManager(ViewerManagerBase):
             win32gui.PumpMessages()
 
         else:
-            self.create_browser(window_info=window_info,
-                           settings={"plugins_disabled":True},
-                           url=url,
-                           fullscreen=fullscreen)
-
-            """
-            if win32gui.IsIconic(window_handle) != 0: #restore first
-                win32gui.ShowWindow(window_handle, win32con.SW_RESTORE)
+            if father == "selector":
+                self._browser_1 = self.create_browser(window_info=window_info,
+                               settings={"plugins_disabled":True},
+                               url=self._base_url + "/static/blank.html")
 
 
-            win32gui.SetWindowPos(window_handle,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
-            win32gui.SetWindowPos(window_handle,win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
-            win32gui.SetWindowPos(window_handle,win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_SHOWWINDOW + win32con.SWP_NOMOVE + win32con.SWP_NOSIZE)
+                self._browser_2 = self.create_browser(window_info=window_info_2,
+                                                      settings={"plugins_disabled": True},
+                                                      url=url)
+            else:
+                self._browser_1 = self.create_browser(window_info=window_info,
+                               settings={"plugins_disabled":True},
+                               url=url)
 
-            #win32gui.BringWindowToTop(window_handle)
-            #win32gui.SetActiveWindow(window_handle)
-            """
-
-            """
-            shell = win32com.client.Dispatch('WScript.Shell')
-            shell.Run(
-                "python.exe -c \"import time; import win32gui; time.sleep(1); win32gui.SetForegroundWindow(" + str(window_handle) + ")\"", 1, 1)
-            """
-
-            foreground_process = Process(target=set_foreground, args=(window_handle,))
-            foreground_process.start()
+            #foreground_process = Process(target=set_foreground, args=(window_handle,))
+            #foreground_process.start()
 
             cef.MessageLoop()
 
@@ -264,21 +252,13 @@ class ViewerManager(ViewerManagerBase):
         assert cef.__version__ >= "57.0", "CEF Python v57.0+ required to run this"
 
 
-    def create_browser(self, window_info, settings, url, fullscreen):
+    def create_browser(self, window_info, settings, url):
         assert (cef.IsThread(cef.TID_UI))
         browser = cef.CreateBrowserSync(window_info=window_info,
                                         settings=settings,
                                         url=url)
+        return browser
 
-        #bb = cef.GetBrowserByWindowHandle(window_info.parentWindowHandle)
-        self._browser = browser
-
-        #aa = ""
-
-        """
-        if fullscreen is True:
-            browser.ToggleFullscreen()
-        """
 
     def create_window(self, title, class_name, width, height, window_proc, icon, fullscreen):
         # Register window class
@@ -354,14 +334,22 @@ class ViewerManager(ViewerManagerBase):
 
 
     def close_window(self, window_handle, message, wparam, lparam):
-        browser = cef.GetBrowserByWindowHandle(window_handle)
-        browser.CloseBrowser(True)
-        browser = None
-        # OFF: win32gui.DestroyWindow(window_handle)
-        #cef.Shutdown()
+        try:
+            browser = cef.GetBrowserByWindowHandle(self._hwnd_1)
+            browser.CloseBrowser(True)
+            #browser = None
+        except:
+            pass
 
-        if self._title == "Alyvix Selector":
-            aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
+        if self._father == "selector":
+            browser2 = cef.GetBrowserByWindowHandle(self._hwnd_2)
+            browser2.CloseBrowser(True)
+            #browser = None
+
+            try:
+                aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
+            except:
+                pass
 
         return win32gui.DefWindowProc(window_handle, message, wparam, lparam)
 

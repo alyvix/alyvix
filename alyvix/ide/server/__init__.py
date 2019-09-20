@@ -50,7 +50,7 @@ class ServerManager():
 
             server_log = None
 
-        elif log_level == 1:
+        elif log_level > 0:
             server_log = 'default'
 
             #logging.basicConfig(level=logging.INFO)
@@ -67,8 +67,8 @@ class ServerManager():
     def set_window(self, window):
         views.win32_window = window
 
-    def set_selector_vm_object(self, vm):
-        views.selector_vm = vm
+    def set_browser_class(self, browser_class):
+        views.browser_class = browser_class
 
     def set_background(self, background_image, scaling_factor):
 
@@ -142,3 +142,4 @@ class ServerManager():
 
     def set_boxes(self, boxes):
         views.current_boxes = boxes
+

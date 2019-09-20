@@ -56,7 +56,7 @@ def run_server(port, scaling_factor, filename, verbose, json_dict, viewer_manage
     server_manager.set_scaling_factor(scaling_factor)
     server_manager.set_file_name(filename)
     server_manager.set_json(json_dict)
-    server_manager.set_selector_vm_object(viewer_manager)
+    server_manager.set_browser_class(viewer_manager)
 
     server_manager.run(port, verbose)
 
@@ -167,8 +167,7 @@ if __name__ == '__main__':
             os.dup2(null_fds[0], 1)
             os.dup2(null_fds[1], 2)
         """
-        viewer_manager.run(url, fullscreen=False, dimension=(int(1300*scaling_factor),int(460*scaling_factor)),
-                           title="Alyvix Selector")
+        viewer_manager.run(url, father="selector")
 
         """
         if args.verbose == 0:

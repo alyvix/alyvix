@@ -91,7 +91,7 @@ viewer_process = None
 
 default_object_name = "VisualObject"
 
-selector_vm = None
+browser_class = None
 
 def detachedProcessFunction(wait_time):
     i=0
@@ -151,13 +151,11 @@ def selector_button_new_api():
     global popen_process
     global autocontoured_rects
 
-    vm = ViewerManager()
-    vm.set_win_handler(viewer_handler_selector)
-    vm.hide()
-
+    browser_class.hide(browser_class._hwnd_2)
 
     while True:
-        if vm.IsWindowVisible(viewer_handler_selector) is False and vm.IsIconic(viewer_handler_selector) is False:
+        if browser_class.IsWindowVisible(browser_class._hwnd_2) is False \
+                and browser_class.IsIconic(browser_class._hwnd_2) is False:
             break
 
     time.sleep(0.5)
@@ -252,25 +250,9 @@ def selector_button_new_api():
 
     url = "http://127.0.0.1:" + str(current_port) + "/drawing"
 
+    browser_class._browser_1.LoadUrl(url)
 
-    executable_code = """
-from alyvix.ide.viewer import ViewerManager
-
-if __name__ == '__main__':
-    viewer_manager = ViewerManager()
-    viewer_manager.run('{}', fullscreen=True)
-    """.format(url)
-
-    python_exec = sys.executable
-    python_path = os.path.dirname(python_exec)
-
-    if os.path.isfile(python_path + os.sep + 'pythor.exe') is True:
-        popen_process = subprocess.Popen([python_path + os.sep + 'pythor.exe', '-c', executable_code],
-                                         stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-    else:
-        popen_process = subprocess.Popen([python_path + os.sep + 'python.exe', '-c', executable_code],
-                                         stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-
+    browser_class.show(browser_class._hwnd_1)
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -292,12 +274,11 @@ def selector_edit_api():
     object_name = request.args.get('object_name')
     resolution = request.args.get('resolution')
 
-    vm = ViewerManager()
-    vm.set_win_handler(viewer_handler_selector)
-    vm.hide()
+    browser_class.hide(browser_class._hwnd_2)
 
     while True:
-        if vm.IsWindowVisible(viewer_handler_selector) is False and vm.IsIconic(viewer_handler_selector) is False:
+        if browser_class.IsWindowVisible(browser_class._hwnd_2) is False \
+                and browser_class.IsIconic(browser_class._hwnd_2) is False:
             break
 
 
@@ -331,22 +312,10 @@ def selector_edit_api():
 
     url = "http://127.0.0.1:" + str(current_port) + "/drawing"
 
-    executable_code = """
-from alyvix.ide.viewer import ViewerManager
+    browser_class.show(browser_class._hwnd_1)
 
-if __name__ == '__main__':
-    viewer_manager = ViewerManager()
-    viewer_manager.run('{}', fullscreen=True)
-    """.format(url)
+    browser_class._browser_1.LoadUrl(url)
 
-    python_exec = sys.executable
-    python_path = os.path.dirname(python_exec)
-
-    if os.path.isfile(python_path + os.sep + 'pythor.exe') is True:
-        popen_process = subprocess.Popen([python_path + os.sep + 'pythor.exe', '-c', executable_code])
-    else:
-        popen_process = subprocess.Popen([python_path + os.sep + 'python.exe', '-c', executable_code],
-                                         stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
@@ -379,9 +348,8 @@ def selector_shutdown_and_close_api():
         # raise RuntimeError('Not running with the Werkzeug Server')
         server_process.close()
     """
-    vm = ViewerManager()
-    vm.set_win_handler(viewer_handler_selector)
-    vm.close_and_no_shutdown()
+
+    browser_class.close()
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -476,7 +444,7 @@ def load_objects():
 @app.route("/cancel_event", methods=['GET'])
 def cancel_event():
 
-    if viewer_handler_selector is None:
+    if browser_class._hwnd_2 is None:
         func = request.environ.get('werkzeug.server.shutdown')
         if func is not None:
             func()
@@ -485,27 +453,28 @@ def cancel_event():
             server_process.close()
 
 
-    vm = ViewerManager()
-    vm.set_win_handler(viewer_handler_designer)
-    vm.close()
 
-    if viewer_handler_selector is not None:
-        vm.set_win_handler(viewer_handler_selector)
-        vm.show()
+
+
+    if browser_class._hwnd_2 is not None:
+        browser_class.hide(browser_class._hwnd_1)
+        browser_class._browser_1.LoadUrl("http://127.0.0.1:" + str(current_port) + "/static/blank.html")
+
+        browser_class.show(browser_class._hwnd_2)
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route("/save_json", methods=['GET', 'POST'])
 def save_json():
     global library_dict
-    global selector_vm
+    global browser_class
     global library_dict_in_editing
 
     if request.method == 'POST':
 
         current_json = {}
 
-        if viewer_handler_selector is None:
+        if browser_class._hwnd_2 is None:
             try:
                 with open(current_filename) as f:
                     current_json = json.load(f)
@@ -880,18 +849,21 @@ def save_json():
             datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
 
-        if viewer_handler_selector is None:
+        if browser_class._browser_2 is None:
             with open(current_filename, 'w') as f:
                 json.dump(current_json, f, indent=4, sort_keys=True, ensure_ascii=False)
         else:
 
             library_dict_in_editing = None
 
+            """
             vm = selector_vm #ViewerManager()
             vm.set_win_handler(viewer_handler_selector)
             vm.load_url('http://127.0.0.1:' + str(current_port) + '/selector', viewer_handler_selector)
             #vm.show()
-
+            """
+            browser_class._browser_2.ExecuteJavascript("reloadAlyvixSelector('" + object_name + "')")
+            browser_class.show(browser_class._hwnd_2)
         aaa = "asas"
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
