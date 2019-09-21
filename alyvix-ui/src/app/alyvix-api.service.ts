@@ -53,6 +53,10 @@ export class AlyvixApiService {
     return this.httpClient.get<any>("/check_if_object_exists_api?object_name="+name)
   }
 
+  getProcesses():Observable<any> {
+    return this.httpClient.get<any>("/get_user_process_api");
+  }
+
   private handleError(error) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {

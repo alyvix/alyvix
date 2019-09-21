@@ -10,5 +10,10 @@
       <ax-designer-t [node]="node"></ax-designer-t>
     </div>
   </div>
+</div>
 
+<div class="pure-g box-options" *ngIf="node && !node.box">
+    <div class="pure-u-1-1">
+        <ax-designer-screen></ax-designer-screen>
+    </div>
 </div>

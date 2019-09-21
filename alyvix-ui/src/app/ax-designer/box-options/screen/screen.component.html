@@ -1,0 +1,38 @@
+<div class="pure-u-1-1">
+  <div class="form-group">
+    <select class="mousetrap" [(ngModel)]="call.type">
+      <option value="run">Run</option>
+      <option value="kill">Kill</option>
+    </select>
+  </div>
+</div>
+
+
+<div class="pure-u-1-1" *ngIf="call.type == 'run'">
+    <div class="form-group" style="align-items: flex-end; display: flex;">
+        <div class="form-group" style="flex-grow: 1;">
+            <label>Path</label>
+            <input class="mousetrap" [(ngModel)]="call.features.path" type="text" spellcheck="false">
+        </div>
+        <!-- <div class="form-group">
+          <button class="btn" (click)="selectFile()">Select</button>
+          <input type="file" accept=".alyvix" #file (change)="onFileSelected()" style="display: none">
+        </div> -->
+
+    </div>
+  </div>
+  <div class="pure-u-1-1" *ngIf="call.type == 'run'">
+          <div class="form-group">
+              <label>Arguments</label>
+              <input  [(ngModel)]="call.features.arguments" class="mousetrap" type="text" spellcheck="false">
+          </div>
+    </div>
+
+
+  <div class="pure-u-1-1" *ngIf="call.type == 'kill'">
+      <div class="form-group">
+        <select class="mousetrap" [(ngModel)]="call.features.process" style="max-width: 350px">
+          <option *ngFor="let process of processes" value="{{process}}">{{process}}</option>
+        </select>
+      </div>
+    </div>

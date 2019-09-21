@@ -35,13 +35,11 @@
   <div class="pure-g">
     <div class="pure-u-1-1">
       <div #treeContainer [ngStyle]="treeHeight()" (resized)="treeResize($event)">
-
         <ax-designer-tree></ax-designer-tree>
       </div>
     </div>
   </div>
   <div class="pull-down pure-g" #pullDown>
-
 
     <ax-box-options *ngIf="!hideOptionsOnDrag()" [node]="selectedNode"></ax-box-options>
     <div class="pure-u-1-1 distribute">

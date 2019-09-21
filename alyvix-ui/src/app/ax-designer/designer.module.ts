@@ -22,6 +22,7 @@ import { BoxOptionsComponent } from './box-options/box-options.component';
 import { environment } from 'src/environments/environment';
 import { TreeNodeComponent } from './tree/tree-node/tree-node.component';
 import { SelectTypeComponent } from './box-options/select-type/select-type.component';
+import { ScreenComponent } from './box-options/screen/screen.component';
 
 @NgModule({
   declarations: [
@@ -35,6 +36,7 @@ import { SelectTypeComponent } from './box-options/select-type/select-type.compo
     BoxOptionsComponent,
     TreeNodeComponent,
     SelectTypeComponent,
+    ScreenComponent,
   ],
   imports: [
     BrowserModule,

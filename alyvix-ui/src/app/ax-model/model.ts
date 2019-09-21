@@ -3,6 +3,7 @@ export interface AxModel {
     detection: Detection;
     box_list?: (BoxListEntity)[] | null;
     background: string;
+    call?:AxSystemCall;
   }
 
   export interface AxSelectorObjects {

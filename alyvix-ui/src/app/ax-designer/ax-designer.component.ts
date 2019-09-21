@@ -55,7 +55,7 @@ export class AxDesignerComponent implements OnInit {
     var topHeight = 106;
 
     var bottomHeight = this.bottomWithoutOptions;
-    if(!this.selectedNode || this.selectedNode.box && !this.hideOptionsOnDrag()) {
+    if(!this.selectedNode || !this.hideOptionsOnDrag()) {
       bottomHeight = this.pullDown.nativeElement.offsetHeight;
     }
     var height = this.totalHeight - topHeight - bottomHeight;
