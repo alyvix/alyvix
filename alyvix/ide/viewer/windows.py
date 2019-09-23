@@ -100,8 +100,8 @@ class ViewerManager(ViewerManagerBase):
     def show(self, hwnd):
         win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
         win32gui.SetForegroundWindow(hwnd)
-        #win32gui.SetFocus(hwnd)
         win32gui.SetActiveWindow(hwnd)
+        win32gui.BringWindowToTop(hwnd)
 
 
     def load_url(self, url, window_handle):
@@ -204,6 +204,7 @@ class ViewerManager(ViewerManagerBase):
             win32gui.PumpMessages()
 
         else:
+            
             if father == "selector":
                 self._browser_1 = self.create_browser(window_info=window_info,
                                settings={"plugins_disabled":True},
@@ -346,18 +347,24 @@ class ViewerManager(ViewerManagerBase):
 
     def close_window(self, window_handle, message, wparam, lparam):
 
-        browser = cef.GetBrowserByWindowHandle(self._hwnd_1)
-        browser.CloseBrowser(True)
-        #browser = None
+        try:
+            browser = cef.GetBrowserByWindowHandle(self._hwnd_1)
+            browser.CloseBrowser(True)
+            #browser = None
+        except:
+            pass
 
         return win32gui.DefWindowProc(window_handle, message, wparam, lparam)
 
     def close_window_2(self, window_handle, message, wparam, lparam):
 
-        browser2 = cef.GetBrowserByWindowHandle(self._hwnd_2)
-        browser2.CloseBrowser(True)
+        try:
+            browser2 = cef.GetBrowserByWindowHandle(self._hwnd_2)
+            browser2.CloseBrowser(True)
 
-        aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
+            aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
+        except:
+            pass
 
         return win32gui.DefWindowProc(window_handle, message, wparam, lparam)
 
