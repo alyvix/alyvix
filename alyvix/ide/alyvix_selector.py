@@ -157,7 +157,7 @@ if __name__ == '__main__':
     url = "http://127.0.0.1:" + str(server_port) + "/selector"
 
     if args.window is True:
-        """
+
         if args.verbose == 0:
             # open 2 fds
             null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
@@ -166,10 +166,9 @@ if __name__ == '__main__':
             # put /dev/null fds on 1 and 2
             os.dup2(null_fds[0], 1)
             os.dup2(null_fds[1], 2)
-        """
+
         viewer_manager.run(url, father="selector")
 
-        """
         if args.verbose == 0:
             # restore file descriptors so I can print the results
             os.dup2(save[0], 1)
@@ -177,7 +176,7 @@ if __name__ == '__main__':
             # close the temporary fds
             os.close(null_fds[0])
             os.close(null_fds[1])
-        """
+
     else:
         while True:
             pass

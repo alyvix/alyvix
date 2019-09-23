@@ -454,13 +454,14 @@ def cancel_event():
 
 
 
-
-
     if browser_class._hwnd_2 is not None:
         browser_class.hide(browser_class._hwnd_1)
         browser_class._browser_1.LoadUrl("http://127.0.0.1:" + str(current_port) + "/static/blank.html")
 
         browser_class.show(browser_class._hwnd_2)
+    else:
+
+        browser_class.close()
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -852,6 +853,8 @@ def save_json():
         if browser_class._browser_2 is None:
             with open(current_filename, 'w') as f:
                 json.dump(current_json, f, indent=4, sort_keys=True, ensure_ascii=False)
+
+            browser_class.close()
         else:
 
             library_dict_in_editing = None
