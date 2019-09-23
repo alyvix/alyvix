@@ -35,6 +35,12 @@
         "logLevel": "debug",
         "changeOrigin": true
       },
+      "/designer_open_file_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
       "/api/*": {
         "target": "http://localhost:5000",
         "secure": false,

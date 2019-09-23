@@ -6,6 +6,7 @@ import { environment } from './environments/environment';
 import { HotkeysService } from 'angular2-hotkeys';
 import { SelectorModule } from './app/ax-selector/selector.module';
 import { SelectorDatastoreService } from './app/ax-selector/selector-datastore.service';
+import { DesignerDatastoreService } from './app/ax-designer/designer-datastore.service';
 
 
 if (environment.production) {
@@ -45,12 +46,21 @@ function unloadAlyvixSelector() {
   }
 }
 
+function setExePath(path) {
+  console.log("test");
+  if(designer) {
+    const datastore = designer.injector.get(DesignerDatastoreService);
+    datastore.setSelectedFile(path);
+  }
+}
+
 
 (window as any).loadAlyvixDesigner = loadAlyvixDesigner;
 (window as any).unloadAlyvixDesigner = unloadAlyvixDesigner;
 (window as any).loadAlyvixSelector = loadAlyvixSelector;
 (window as any).reloadAlyvixSelector = reloadAlyvixSelector;
 (window as any).unloadAlyvixSelector = unloadAlyvixSelector;
+(window as any).setExePath = setExePath;
 
 /* TO TEST
 var node = document.createElement("app-root");

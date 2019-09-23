@@ -1,7 +1,8 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { AxDesignerService } from '../../ax-designer-service';
 import { AxSystemCall } from 'src/app/ax-model/model';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
+import { DesignerDatastoreService } from '../../designer-datastore.service';
 
 @Component({
   selector: 'ax-designer-screen',
@@ -10,7 +11,11 @@ import { AlyvixApiService } from 'src/app/alyvix-api.service';
 })
 export class ScreenComponent implements OnInit {
 
-  constructor(private axService:AxDesignerService, private alyvixApi:AlyvixApiService) { }
+  constructor(
+    private axService:AxDesignerService,
+    private alyvixApi:AlyvixApiService,
+    private datastore:DesignerDatastoreService,
+    private changeDetecor: ChangeDetectorRef) { }
 
   call:AxSystemCall
 
@@ -24,23 +29,20 @@ export class ScreenComponent implements OnInit {
     this.alyvixApi.getProcesses().subscribe(x => {
       this.processes = x.object_exists;
     });
-  }
-
-  @ViewChild('file') _file;
-  selectFile() {
-    this._file.nativeElement.click();
-  }
-
-  onFileSelected() {
-    const self = this;
-    const files: { [key: string]: File } = this._file.nativeElement.files;
-    let file: File
-    for (let key in files) {
-      if (!isNaN(parseInt(key))) {
-        file = files[key];
-        console.log(file);
+    this.datastore.getSelectedFile().subscribe(f => {
+      if (f.length > 0) {
+        this.call.features.path = f;
+        this.datastore.setSelectedFile("");
+        this.changeDetecor.markForCheck();
+        this.changeDetecor.detectChanges();
       }
-    }
+    });
   }
+
+  selectFile() {
+    this.alyvixApi.openOpenFileDialog().subscribe(x => {});
+  }
+
+
 
 }

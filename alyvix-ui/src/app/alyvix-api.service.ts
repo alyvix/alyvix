@@ -57,6 +57,10 @@ export class AlyvixApiService {
     return this.httpClient.get<any>("/get_user_process_api");
   }
 
+  openOpenFileDialog():Observable<any> {
+    return this.httpClient.get<any>("/designer_open_file_api");
+  }
+
   private handleError(error) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {
