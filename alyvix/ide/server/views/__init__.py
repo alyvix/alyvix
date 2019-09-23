@@ -58,6 +58,12 @@ import threading
 import subprocess
 import psutil
 
+import tkinter as tk
+from tkinter import filedialog
+from tkinter import PhotoImage
+
+from PIL import Image
+
 import win32gui
 import win32con
 import win32com.client
@@ -113,6 +119,33 @@ def drawing():
                            autocontoured_rects=autocontoured_rects, text=en.drawing,
                            object_name=current_objectname,
                            loaded_boxes=current_boxes)
+
+@app.route("/designer_open_file_api")
+def designer_open_file_api():
+    import tempfile, base64, zlib
+
+    ICON = zlib.decompress(base64.b64decode('eJxjYGAEQgEBBiDJwZDBy'
+                                            'sAgxsDAoAHEQCEGBQaIOAg4sDIgACMUj4JRMApGwQgF/ykEAFXxQRc='))
+
+    _, ICON_PATH = tempfile.mkstemp()
+    with open(ICON_PATH, 'wb') as icon_file:
+        icon_file.write(ICON)
+
+    root = tk.Tk()
+    root.withdraw()
+    #icon = PhotoImage(height=16, width=16)
+    #icon.blank()
+    root.iconbitmap(default=ICON_PATH)
+    img = Image.open(r'server\static\img\icons\transparent_ico.gif')
+    #root.call('wm', 'iconphoto', root._w, PhotoImage(r'server\static\img\icons\transparent_ico.gif'))
+    root.call('wm', 'attributes', '.', '-topmost', '1')
+    #root.tk.call('wm', 'iconphoto', root._w, icon)
+    file_path = filedialog.askopenfilename()
+    print(file_path)
+
+    browser_class._browser_1.ExecuteJavascript("setExePath('" + file_path + "')")
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route("/selector", methods=['GET', 'POST'])
 def selector():
