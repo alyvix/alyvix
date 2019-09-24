@@ -140,7 +140,7 @@ def designer_open_file_api():
     root.call('wm', 'attributes', '.', '-topmost', '1')
     #root.tk.call('wm', 'iconphoto', root._w, icon)
     file_path = filedialog.askopenfilename()
-    print(file_path)
+    #print(file_path)
 
     browser_class._browser_1.ExecuteJavascript("setExePath('" + file_path + "')")
 
@@ -203,17 +203,17 @@ def selector_button_new_api():
         seconds = delay #// 1
         #milliseconds = args.delay - seconds
 
-        print("Counting down")
+        #print("Counting down")
 
         for i in range(seconds):
             print(str(seconds - i))
             time.sleep(1)
 
-        print("Frame grabbing!")
+        #print("Frame grabbing!")
 
         background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
     elif delay == 0: #and lm.check_if_exist(object) is False:
-        print("Frame grabbing!")
+        #print("Frame grabbing!")
 
         background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
 
