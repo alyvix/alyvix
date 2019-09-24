@@ -25,6 +25,17 @@
     </div>
   </div>
 
+  <div
+    class="pure-u-13-24"
+    *ngIf="isMap()"
+  >
+    <div class="form-group">
+      <label>Map</label>
+      <select>
+        <option value="None">None</option>
+      </select>
+    </div>
+  </div>
   <div class="pure-u-5-24" *ngIf="!isMap()">
     <div class="form-group">
       <label>Mode</label>
