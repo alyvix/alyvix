@@ -48,6 +48,7 @@ export class AxTableComponent implements OnInit {
   @Input()
   readonly: boolean;
 
+  @Output() dataChange:EventEmitter<RowVM[]> = new EventEmitter<RowVM[]>();
   @Input()
   set data(data: RowVM[]) {
     this._data = data;
@@ -204,6 +205,7 @@ export class AxTableComponent implements OnInit {
   remove() {
     if (confirm('Do you really want to delete ' + this.selectedNames() + '?')) {
       this.data = this.data.filter(d => !this.isSelected(d));
+      this.dataChange.emit(this.data);
       this.selectedRows = [];
       this.filterData();
     }
@@ -211,6 +213,7 @@ export class AxTableComponent implements OnInit {
 
   duplicate() {
     SelectorUtils.duplicateRows(this.selectedRows, this.data).forEach(r => this.selectedRows.push(r));
+    this.dataChange.emit(this.data);
     this.filterData();
   }
 
