@@ -29,6 +29,13 @@ export class AxModelMock {
             "timeout_s": 10,
             "break": true
         },
+        "call": {
+          "type": "run",
+          "features": {
+            "path": "test path",
+            "arguments": "test arguments"
+          }
+        },
         "box_list": [
             {
                 "id": "sadfsafd",
