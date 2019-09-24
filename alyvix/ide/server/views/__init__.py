@@ -136,7 +136,6 @@ def designer_open_file_api():
     #icon = PhotoImage(height=16, width=16)
     #icon.blank()
     root.iconbitmap(default=ICON_PATH)
-    img = Image.open(r'server\static\img\icons\transparent_ico.gif')
     #root.call('wm', 'iconphoto', root._w, PhotoImage(r'server\static\img\icons\transparent_ico.gif'))
     root.call('wm', 'attributes', '.', '-topmost', '1')
     #root.tk.call('wm', 'iconphoto', root._w, icon)
@@ -537,8 +536,10 @@ def save_json():
         box_list = json_data['box_list']
 
 
-        curr_script = current_json.get("script", {})
+        curr_call = json_data['call']
 
+
+        curr_script = current_json.get("script", {})
 
         curr_object_list_dict = current_json.get("objects", {})
 
@@ -548,6 +549,8 @@ def save_json():
         curr_measure = curr_object_dict.get("measure", {})
         curr_output = curr_measure.get("output", True)
         curr_thresholds = curr_measure.get("thresholds", {})
+
+
 
         curr_object_dict["detection"] = detection
 
@@ -867,6 +870,7 @@ def save_json():
         current_json["objects"] = curr_object_list_dict
 
         current_json["objects"][object_name] = curr_object_dict
+        current_json["objects"][object_name]["call"] = curr_call
 
         current_json["objects"][object_name]["measure"] = curr_measure
         current_json["objects"][object_name]["measure"]["output"] = curr_output
