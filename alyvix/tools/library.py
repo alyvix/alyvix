@@ -228,6 +228,14 @@ class LibraryManager:
         except:
             return {}
 
+        try:
+            if library is None:
+                call_dict = self._json_object["objects"][object_name]["call"]
+            else:
+                call_dict = library["objects"][object_name]["call"]
+        except:
+            call_dict = {}
+
         resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
 
         try:
@@ -400,8 +408,9 @@ class LibraryManager:
         # np_array = np.fromstring(base64.b64decode(background_string), np.uint8)
         # background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-        return {"detection": detection_dict, "boxes": self.boxes, "screen": background_string,
-                "scaling_factor": scaling_factor, "img_h": int(h/scaling_factor), "img_w": int(w/scaling_factor), "object_name": object_name}
+        return {"call":call_dict, "detection": detection_dict, "boxes": self.boxes, "screen": background_string,
+                "scaling_factor": scaling_factor, "img_h": int(h/scaling_factor), "img_w": int(w/scaling_factor),
+                "object_name": object_name}
 
 
 
