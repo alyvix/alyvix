@@ -536,7 +536,7 @@ def save_json():
         box_list = json_data['box_list']
 
 
-        curr_call = json_data['call']
+        curr_call = json_data.get("call", {})
 
 
         curr_script = current_json.get("script", {})
