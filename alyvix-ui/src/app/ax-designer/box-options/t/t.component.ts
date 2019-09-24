@@ -44,8 +44,8 @@ export class TComponent implements OnInit {
 
 
 
-  isScraper(): boolean {
-    return this.node.box.features.T.type == 'scraper'
+  isMap(): boolean {
+    return this.node.box.features.T.type == 'map'
   }
 
   scraped: string = ""
@@ -58,7 +58,10 @@ export class TComponent implements OnInit {
 
   onNodeChange() {
     if (!this.node.box.features.T.type) {
-      this.node.box.features.T.type = "detection";
+      this.node.box.features.T.type = "detect";
+    }
+    if (!this.node.box.features.T.detection) {
+      this.node.box.features.T.detection = "regex";
     }
     if (this.node && this.node.box) {
       this.alyvixApi.getScrapedText(this.node.box).subscribe(x => {

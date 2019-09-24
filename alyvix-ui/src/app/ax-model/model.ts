@@ -144,7 +144,9 @@ export interface AxModel {
 
   export interface T {
     type?: string | null;
-    regexp?: string
+    regexp?: string;
+    detection?: string;
+    logic?: string;
   }
   export interface Mouse {
     features: Features1;
