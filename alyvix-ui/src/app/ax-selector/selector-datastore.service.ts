@@ -34,6 +34,8 @@ export class SelectorDatastoreService {
     this.apiService.getLibrary().subscribe( library => {
       const updatedRow = this.modelToData(library).find(x => x.name === objectName);
       if (updatedRow) {
+        console.log("updated row")
+        console.log(updatedRow);
         this.editedRow.next(updatedRow);
       }
     });

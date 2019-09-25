@@ -47,7 +47,6 @@ function unloadAlyvixSelector() {
 }
 
 function setExePath(path) {
-  console.log("test");
   if(designer) {
     const datastore = designer.injector.get(DesignerDatastoreService);
     datastore.setSelectedFile(path);

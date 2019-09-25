@@ -4,6 +4,7 @@ export interface AxModel {
     box_list?: (BoxListEntity)[] | null;
     background: string;
     call?:AxSystemCall;
+    measure?:Measure;
   }
 
   export interface AxSelectorObjects {
