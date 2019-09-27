@@ -8,6 +8,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 
 export interface AxFile {
+  id: string;
   data: RowVM[];
   name: string;
   readonly: boolean;

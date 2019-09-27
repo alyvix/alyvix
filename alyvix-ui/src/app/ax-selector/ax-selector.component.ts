@@ -27,8 +27,8 @@ export class AxSelectorComponent implements OnInit {
     @Inject('GlobalRef') private global: GlobalRef
   ) { }
 
-  selected: AxFile = { data: [], name: '', readonly: false };
-  main: AxFile = { data: [], name: '', readonly: false };
+  selected: AxFile = {id: '', data: [], name: '', readonly: false };
+  main: AxFile = {id: '', data: [], name: '', readonly: false };
   files: AxFile[] = [];
   production: boolean = environment.production;
 
@@ -37,7 +37,7 @@ export class AxSelectorComponent implements OnInit {
   ngOnInit(): void {
 
     this.apiService.getLibrary().subscribe(library => {
-      this.main = { data: this.datastore.modelToData(library), name: this.global.nativeGlobal().current_library_name, readonly: false };
+      this.main = {id:Utils.uuidv4(), data: this.datastore.modelToData(library), name: this.global.nativeGlobal().current_library_name, readonly: false };
       this.selected = this.main;
     });
   }
@@ -56,7 +56,7 @@ export class AxSelectorComponent implements OnInit {
 
   closeTab(i: AxFile) {
     this.selectTab(this.main);
-    this.files = this.files.filter(f => f.name !== i.name);
+    this.files = this.files.filter(f => f.id !== i.id);
   }
 
   @ViewChild('file') _file;
@@ -76,6 +76,7 @@ export class AxSelectorComponent implements OnInit {
           if (typeof reader.result == "string") {
             self.parseFile(file.name, reader.result);
           }
+          self._file.nativeElement.value = ''; //reset the file input
         };
         reader.readAsText(file);
       }
@@ -84,6 +85,7 @@ export class AxSelectorComponent implements OnInit {
 
   parseFile(filename: string, body: string) {
     const newFile: AxFile = {
+      id: Utils.uuidv4(),
       data: this.datastore.modelToData(JSON.parse(body)),
       readonly: true,
       name: filename.substring(0, filename.indexOf('.alyvix'))
