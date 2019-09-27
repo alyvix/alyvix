@@ -39,7 +39,7 @@
   <div class="pure-u-5-24" *ngIf="!isMap()">
     <div class="form-group">
       <label>Mode</label>
-      <select [(ngModel)]="node.box.features.T.detection">
+      <select [ngModel]="node.box.features.T.detection" (ngModelChange)="changeScrapMode($event)">
         <option value="regex">regex</option>
         <option value="number">number</option>
         <option value="date">date</option>
@@ -69,8 +69,8 @@
   >
     <div class="form-group">
       <label>Logic</label>
-      <select [(ngModel)]="node.box.features.T.logic">
-        <option value="more than zero">more than zero</option>
+      <select class="logic" [formControl]="numberLogic" (change)="onNumberLogicChange()">
+        <option value="more_than_zero">more than zero</option>
       </select>
     </div>
   </div>
@@ -80,11 +80,11 @@
   >
     <div class="form-group">
       <label>Logic</label>
-      <select [(ngModel)]="node.box.features.T.logic">
-          <option value="last hour">last hour</option>
-          <option value="last day">last day</option>
-          <option value="last week">last week</option>
-          <option value="last month">last month</option>
+      <select  class="logic" [formControl]="dateLogic" (change)="onDateLogicChange()">
+          <option value="last_hour">last hour</option>
+          <option value="last_day">last day</option>
+          <option value="last_week">last week</option>
+          <option value="last_month">last month</option>
         </select>
     </div>
   </div>

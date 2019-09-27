@@ -97,6 +97,11 @@ select {
       border-bottom: 1px solid $blue;
       background: $lightblue;
     }
+
+    &.ng-invalid {
+      border-bottom: 1px solid $red !important;
+      background-color: $lightred;
+    }
 }
 
 select:disabled {

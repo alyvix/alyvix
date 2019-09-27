@@ -151,7 +151,6 @@ export class AxTableComponent implements OnInit {
 
   selectRow(event: MouseEvent, row: RowVM) {
     if(event.shiftKey) {
-      document.getSelection().removeAllRanges();
       let leftIndex = -1;
       let rightIndex = -1;
       const rowIndex = this.filteredData.indexOf(row);

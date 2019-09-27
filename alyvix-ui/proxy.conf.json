@@ -41,6 +41,18 @@
         "logLevel": "debug",
         "changeOrigin": true
       },
+      "/check_number_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
+      "/check_date_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
       "/api/*": {
         "target": "http://localhost:5000",
         "secure": false,

@@ -10,6 +10,15 @@ export interface ScrapedText{
   scraped_text: string
 }
 
+export interface ScrapedValidation{
+  scraped_text: string;
+  logic: string;
+}
+
+export interface ValidationResult{
+  result: boolean;
+}
+
 interface TestScrapedResponse{
   match: string
 }
@@ -60,6 +69,18 @@ export class AlyvixApiService {
   openOpenFileDialog():Observable<any> {
     return this.httpClient.get<any>("/designer_open_file_api");
   }
+
+  checkTextDate(request:ScrapedValidation):Observable<ValidationResult> {
+    return this.httpClient.get<ValidationResult>("/check_date_api");
+  }
+
+  checkTextNumber(request:ScrapedValidation):Observable<ValidationResult> {
+    return this.httpClient.get<ValidationResult>("/check_number_api");
+  }
+
+
+
+
 
   private handleError(error) {
     let errorMessage = '';
