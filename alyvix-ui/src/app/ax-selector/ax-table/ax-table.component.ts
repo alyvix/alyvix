@@ -217,6 +217,14 @@ export class AxTableComponent implements OnInit {
     this.filterData();
   }
 
+  hasFocus(input:HTMLInputElement):boolean {
+    return document.activeElement === input;
+  }
+
+  isNameValid(input:HTMLInputElement):boolean {
+    return input.validity.valid && input.value.length > 0;
+  }
+
   sortColumn(column) {
     if (this.sort.column === column) {
       this.sort.asc = !this.sort.asc;
@@ -279,9 +287,28 @@ export class AxTableComponent implements OnInit {
   }
 
   isDuplicatedName(name:string):boolean {
-    console.log(name)
-    console.log(SelectorUtils.isDuplicatedName(name, this.data));
     return SelectorUtils.isDuplicatedName(name, this.data);
+  }
+
+  nameExists(old:string, name:string):boolean {
+    if(old === name) { return false; }
+    return this.data.filter(x => name === x.name).length > 0;
+  }
+
+
+  private tempName = '';
+
+  changeName(row:RowVM,name,invalid:boolean) {
+    if(!invalid) {
+      this.tempName = name;
+    } else {
+      this.tempName = row.name;
+    }
+  }
+
+  onChangeName(row:RowVM,event) {
+    event.srcElement.value = this.tempName;
+    row.name = this.tempName;
   }
 
   isSelected(row:RowVM):boolean {
