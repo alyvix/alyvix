@@ -1167,7 +1167,7 @@ def check_number_api():
 @app.route("/check_date_api", methods=['GET', 'POST'])
 def check_date_api():
 
-    ret_dict = {"result":False}
+    ret_dict = {"result":False} #pass
 
     if request.method == 'POST':
         json_data = json.loads(request.data)
