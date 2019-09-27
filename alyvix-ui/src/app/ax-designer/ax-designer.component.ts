@@ -47,7 +47,11 @@ export class AxDesignerComponent implements OnInit {
   object_name: FormControl = new FormControl('', null, this.objectNameValidation);
 
   onNameChange() {
-    this.axModel.object_name = this.object_name.value;
+    if (this.object_name.valid) {
+      this.axModel.object_name = this.object_name.value;
+    } else {
+      this.object_name.setValue(this.axModel.object_name);
+    }
   }
 
   treeHeight() {

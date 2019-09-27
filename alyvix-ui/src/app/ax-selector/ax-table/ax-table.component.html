@@ -17,13 +17,14 @@
         <ng-container cdkColumnDef="name">
 
             <cdk-cell *cdkCellDef="let row">
-              <input [disabled]="readonly" type="text" class="primary" [ngClass]="{'ng-invalid': isDuplicatedName(row.name) || row.name.length == 0 }" spellcheck="false" [(ngModel)]="row.name" pattern="[a-zA-Z0-9_\- ]+" #name="ngModel" />
-              <div *ngIf="(name.invalid || row.name.length == 0) && (name.dirty || name.touched) " class="name-popover">
+              <input #nameInput #name="ngModel" [disabled]="readonly" type="text" class="primary" [ngClass]="{'ng-invalid': nameExists(row.name,nameInput.value) || !isNameValid(nameInput) }" spellcheck="false" [ngModel]="row.name" (ngModelChange)="changeName(row,$event,!isNameValid(nameInput) || nameExists(row.name,nameInput.value))" (change)="onChangeName(row,$event)" pattern="[a-zA-Z0-9_\- ]+" />
+
+              <div *ngIf="!isNameValid(nameInput) && (name.dirty || name.touched)" class="name-popover">
                   <div class="name-popover-content">
                     Only alphanumeric characters and - _ ` ` (space) are allowed
                   </div>
               </div>
-              <div *ngIf="isSelected(row) && isDuplicatedName(row.name)" class="name-popover">
+              <div *ngIf="hasFocus(nameInput)  && nameExists(row.name,nameInput.value)" class="name-popover">
                   <div class="name-popover-content">
                     Object name already in use
                   </div>
