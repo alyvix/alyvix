@@ -191,10 +191,14 @@ export class AxTableComponent implements OnInit {
   selectAll() {
     this.selectedRows = [];
     this.filteredData.forEach(r => this.selectedRows.push(r));
+    this.changeDetecor.markForCheck();
+    this.changeDetecor.detectChanges();
   }
 
   deselectAll() {
     this.selectedRows = [];
+    this.changeDetecor.markForCheck();
+    this.changeDetecor.detectChanges();
   }
 
   selectedNames(): string {
@@ -282,6 +286,8 @@ export class AxTableComponent implements OnInit {
     if (this.selectedRows.length === 0 && this.filteredData.length > 0) {
       this.selectedRows = [this.filteredData[0]];
     }
+    this.changeDetecor.markForCheck();
+    this.changeDetecor.detectChanges();
 
   }
 
@@ -303,6 +309,8 @@ export class AxTableComponent implements OnInit {
     } else {
       this.tempName = row.name;
     }
+    this.changeDetecor.markForCheck();
+    this.changeDetecor.detectChanges();
   }
 
   onChangeName(row:RowVM,event) {
