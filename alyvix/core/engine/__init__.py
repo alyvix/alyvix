@@ -637,11 +637,11 @@ class EngineManager(object):
                             tm.set_gray_screen(current_gray_screen)
                             tm.set_scaling_factor(scaling_factor)
 
-                            if box["features"]["T"]["type"] == "detection":
+                            if box["features"]["T"]["type"] == "detect":
                                 tm.set_regexp(box["features"]["T"]["regexp"], self._arguments)
 
                                 sub_results = tm.find(box["features"]["T"], roi=roi)
-                            elif box["features"]["T"]["type"] == "scraper":
+                            elif box["features"]["T"]["type"] == "map":
                                 sub_results = tm.scrape(roi=roi)
                                 scraped_text += sub_results[0].scraped_text + " "
 
