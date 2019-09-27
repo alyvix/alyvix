@@ -1139,6 +1139,75 @@ def test_txt_regexp():
 
         return jsonify(ret_dict)
 
+@app.route("/check_number_api", methods=['GET', 'POST'])
+def check_number_api():
+
+    ret_dict = {"result":False}
+
+    if request.method == 'POST':
+        json_data = json.loads(request.data)
+
+        scraped_text = json_data["scraped_text"]
+        logic = json_data["logic"]
+
+        try:
+            result = re.search(r'\d+', scraped_text).group()
+
+            if logic == "more_than_zero":
+                if int(result) > 0:
+                    ret_dict = {"result": True}
+                else:
+                    ret_dict = {"result": False}
+        except:
+            pass
+
+
+    return jsonify(ret_dict)
+
+@app.route("/check_date_api", methods=['GET', 'POST'])
+def check_date_api():
+
+    ret_dict = {"result":False}
+
+    if request.method == 'POST':
+        json_data = json.loads(request.data)
+
+        scraped_text = json_data["scraped_text"]
+        logic = json_data["logic"]
+
+        try:
+            result = re.search(r'\d+', scraped_text).group()
+            result = 0
+
+            if logic == "last_hour":
+
+                if int(result) > 0:
+                    ret_dict = {"result": True}
+                else:
+                    ret_dict = {"result": False}
+
+            elif logic == "last_day":
+
+                if int(result) > 0:
+                    ret_dict = {"result": True}
+                else:
+                    ret_dict = {"result": False}
+            elif logic == "last_week":
+
+                if int(result) > 0:
+                    ret_dict = {"result": True}
+                else:
+                    ret_dict = {"result": False}
+            elif logic == "last_month":
+
+                if int(result) > 0:
+                    ret_dict = {"result": True}
+                else:
+                    ret_dict = {"result": False}
+        except:
+            pass
+
+    return jsonify(ret_dict)
 
 @app.route("/create_thumbnail", methods=['POST'])
 def create_thumbnail():
