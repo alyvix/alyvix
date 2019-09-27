@@ -78,6 +78,8 @@ current_objectname = None
 current_filename = None
 #current_json = {}
 current_boxes = []
+measure = {}
+call = {}
 
 original_screens = {}
 
@@ -113,11 +115,19 @@ def index():
     
 @app.route("/drawing", methods=['GET', 'POST'])
 def drawing():
+    global library_dict
     text = en.drawing
 
+
+    lm = LibraryManager()
+    lm.set_json(library_dict)
+    curr_call = lm.get_call(current_objectname)
+    curr_measure = lm.get_measure(current_objectname)
     return render_template('drawing.html', base64url = "data:image/png;base64," + base64png, img_h=img_h, img_w=img_w,
                            autocontoured_rects=autocontoured_rects, text=en.drawing,
                            object_name=current_objectname,
+                           measure=curr_measure,
+                           call=curr_call,
                            loaded_boxes=current_boxes)
 
 @app.route("/designer_open_file_api")
@@ -182,6 +192,7 @@ def selector_button_new_api():
     global img_w
     global popen_process
     global autocontoured_rects
+    global measure
 
     browser_class.hide(browser_class._hwnd_2)
 
@@ -206,7 +217,7 @@ def selector_button_new_api():
         #print("Counting down")
 
         for i in range(seconds):
-            print(str(seconds - i))
+            #print(str(seconds - i))
             time.sleep(1)
 
         #print("Frame grabbing!")
@@ -301,6 +312,7 @@ def selector_edit_api():
     global img_w
     global popen_process
     global autocontoured_rects
+    global measure
 
 
     object_name = request.args.get('object_name')
@@ -336,9 +348,11 @@ def selector_edit_api():
     library_dict_in_editing = {"objects":{}}
     library_dict_in_editing["objects"][object_name] = {"components": {}}
     library_dict_in_editing["objects"][object_name]["components"][resolution] = object_res
-    library_dict_in_editing["objects"][object_name]["measure"] = copy.deepcopy(library_dict["objects"][object_name]["measure"])
+    #library_dict_in_editing["objects"][object_name]["measure"] = copy.deepcopy(library_dict["objects"][object_name]["measure"])
     library_dict_in_editing["objects"][object_name]["detection"] = copy.deepcopy(library_dict["objects"][object_name]["detection"])
     library_dict_in_editing["objects"][object_name]["date_modified"] = copy.deepcopy(library_dict["objects"][object_name]["date_modified"])
+    library_dict_in_editing["objects"][object_name]["call"] = copy.deepcopy(library_dict["objects"][object_name]["call"])
+    measure = copy.deepcopy(library_dict["objects"][object_name]["measure"])
 
     current_objectname = object_name
 
@@ -539,16 +553,15 @@ def save_json():
         curr_call = json_data.get("call", {})
 
 
+        curr_measure = json_data.get("measure", {})
+        curr_output = curr_measure.get("output", True)
+        curr_thresholds = curr_measure.get("thresholds", {})
+
         curr_script = current_json.get("script", {})
 
         curr_object_list_dict = current_json.get("objects", {})
 
         curr_object_dict = curr_object_list_dict.get(object_name, {})
-
-
-        curr_measure = curr_object_dict.get("measure", {})
-        curr_output = curr_measure.get("output", True)
-        curr_thresholds = curr_measure.get("thresholds", {})
 
 
 

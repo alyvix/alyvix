@@ -35,6 +35,8 @@
         var rows_html = [];
         
         var object_name = "{{object_name}}";
+        var measure = {{measure|tojson|safe}};
+        var call = {{call|tojson|safe}};
         
         var last_element = null;
         
@@ -76,7 +78,7 @@
         //Interface to alyvix-ui project
         function axModel() {
             if(!model.box_list) {
-                model = {object_name:object_name, detection: detection, box_list:boxes, background: background_base64_string} 
+                model = {object_name:object_name, detection: detection, box_list:boxes, background: background_base64_string, measure:measure, call:call} 
             }
             return model;
         }

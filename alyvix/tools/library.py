@@ -179,6 +179,33 @@ class LibraryManager:
 
         return detection_dict
 
+    def get_measure(self, object_name):
+
+        if object_name is None:
+            return {}
+
+        try:
+            measure_dict = self._json_object["objects"][object_name]["measure"]
+        except:
+            return {}
+
+        return measure_dict
+
+    def get_call(self, object_name):
+
+        if object_name is None:
+            return {}
+
+        try:
+            call_dict = self._json_object["objects"][object_name]["call"]
+        except:
+            return {
+                "features": {},
+                "type": "run"
+            }
+
+        return call_dict
+
     def add_chunk(self, object_name, chunk):
 
         if object_name is None:
@@ -235,6 +262,15 @@ class LibraryManager:
                 call_dict = library["objects"][object_name]["call"]
         except:
             call_dict = {}
+
+
+        try:
+            if library is None:
+                measure_dict = self._json_object["objects"][object_name]["measure"]
+            else:
+                measure_dict = library["objects"][object_name]["measure"]
+        except:
+            measure_dict = {}
 
         resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
 
@@ -408,8 +444,9 @@ class LibraryManager:
         # np_array = np.fromstring(base64.b64decode(background_string), np.uint8)
         # background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-        return {"call":call_dict, "detection": detection_dict, "boxes": self.boxes, "screen": background_string,
-                "scaling_factor": scaling_factor, "img_h": int(h/scaling_factor), "img_w": int(w/scaling_factor),
+        return {"call":call_dict, "detection": detection_dict, "measure": measure_dict,
+                "boxes": self.boxes, "screen": background_string, "scaling_factor": scaling_factor,
+                "img_h": int(h/scaling_factor), "img_w": int(w/scaling_factor),
                 "object_name": object_name}
 
 
