@@ -17,9 +17,9 @@ export interface GroupColors{
   styleUrls: ['./tree-node.component.scss']
 })
 export class TreeNodeComponent implements OnInit,DoCheck {
-  
+
   group = 0
-  
+
   ngDoCheck(): void {
     if(this.node.box && this.group != this.node.box.group) {
       this.groupChanged()
@@ -83,7 +83,7 @@ export class TreeNodeComponent implements OnInit,DoCheck {
         ctx.strokeStyle = self.groupColor(self.node.box.group).thumbnail;
         ctx.strokeRect(t.x, t.y, t.w, t.h);
 
-        
+
       };
       image.src = this.node.image;
     }
@@ -105,9 +105,9 @@ export class TreeNodeComponent implements OnInit,DoCheck {
 
   icon(type) {
     switch(type) {
-      case 'I': return ['far','fa-image'] 
-      case 'R': return ['fas','fa-expand'] 
-      case 'T': return ['fas','fa-font'] 
+      case 'I': return ['far','fa-image']
+      case 'R': return ['fas','fa-expand']
+      case 'T': return ['fas','fa-font']
     }
   }
 
@@ -119,7 +119,7 @@ export class TreeNodeComponent implements OnInit,DoCheck {
 
     if(this.node.box)
 	  this.group = this.node.box.group
-	  
+
 	/*var ctx = this.canvas.nativeElement.getContext("2d");
 	var dpi = window.devicePixelRatio || 1;
 	ctx.scale(dpi, dpi);
@@ -148,7 +148,7 @@ export class TreeNodeComponent implements OnInit,DoCheck {
     return this.node == this.selectedNode;
   }
 
-  
+
 
   setBackground() {
     if(this.node.box) {
@@ -191,10 +191,10 @@ export class TreeNodeComponent implements OnInit,DoCheck {
         if(this.node.box.mouse.features.button == 'left')
           return "Mouse_32px4";
         else
-          return "Mouse_32px4_2"      
+          return "Mouse_32px4_2"
       else
         if(this.node.box.mouse.features.button == 'left')
-          return "Mouse_32px2";  
+          return "Mouse_32px2";
         else
           return "Mouse_32px3";
     } else {
@@ -209,11 +209,11 @@ export class TreeNodeComponent implements OnInit,DoCheck {
         case 'left': return "Mouse_32px8"
         case 'right': return "Mouse_32px9"
         case 'down': return "Mouse_32px7"
-      } 
+      }
     } else {
       return null;
     }
-    
+
   }
 
   private _interactionIconRelease():string {
@@ -247,7 +247,7 @@ export class TreeNodeComponent implements OnInit,DoCheck {
   private _interactionKeyboardIcon():string {
     if(this.node.box) {
       if(this.node.box.keyboard) {
-        if(this.node.box.keyboard.string.match(/\{(\d+)\}/)) {
+        if(this.node.box.keyboard.string.match(/\{[1-9]\d*\}/)) {
           return "Keyboard_32px6"
         }
         if(this.node.box.keyboard.string) {
