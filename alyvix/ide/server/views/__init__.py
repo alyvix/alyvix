@@ -960,7 +960,10 @@ def check_if_object_exists_api():
 
     all_res_exists = False
 
-    if lm.check_if_any_res_exists(obj_name) is True:
+    #if lm.check_if_any_res_exists(obj_name) is True:
+    #    all_res_exists = True
+
+    if lm.check_if_exist(obj_name) is True:
         all_res_exists = True
 
     return json.dumps({'object_exists': all_res_exists}), 200, {'ContentType': 'application/json'}
