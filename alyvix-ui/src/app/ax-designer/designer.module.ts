@@ -23,6 +23,7 @@ import { environment } from 'src/environments/environment';
 import { TreeNodeComponent } from './tree/tree-node/tree-node.component';
 import { SelectTypeComponent } from './box-options/select-type/select-type.component';
 import { ScreenComponent } from './box-options/screen/screen.component';
+import {AutocompleteLibModule} from 'angular-ng-autocomplete';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { ScreenComponent } from './box-options/screen/screen.component';
     ContextMenuModule.forRoot(),
     HotkeyModule.forRoot({cheatSheetHotkey: "ctrl+h"}),
     CustomFormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    AutocompleteLibModule
   ],
   providers: [{provide: 'GlobalRef', useClass: environment.globalType}],
   bootstrap: [DesignerComponent]

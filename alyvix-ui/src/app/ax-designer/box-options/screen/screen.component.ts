@@ -1,8 +1,10 @@
-import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { AxDesignerService } from '../../ax-designer-service';
 import { AxSystemCall } from 'src/app/ax-model/model';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
 import { DesignerDatastoreService } from '../../designer-datastore.service';
+
+import * as _ from 'lodash';
 
 @Component({
   selector: 'ax-designer-screen',
@@ -19,7 +21,11 @@ export class ScreenComponent implements OnInit {
 
   call:AxSystemCall
 
+
   processes: string[] = [];
+
+
+  @ViewChild('selectProcess') selectProcess: ElementRef;
 
   ngOnInit() {
     if(!this.axService.axModel.call) {
@@ -27,7 +33,7 @@ export class ScreenComponent implements OnInit {
     }
     this.call = this.axService.getModel().call;
     this.alyvixApi.getProcesses().subscribe(x => {
-      this.processes = x.object_exists;
+      this.processes = _.uniq(x.object_exists);
     });
     this.datastore.getSelectedFile().subscribe(f => {
       if (f.length > 0) {
@@ -38,6 +44,13 @@ export class ScreenComponent implements OnInit {
       }
     });
   }
+
+  changeProcess(event) {
+    console.log(event);
+    this.axService.axModel.call.features.process = event;
+  }
+
+
 
   selectFile() {
     this.alyvixApi.openOpenFileDialog().subscribe(x => {});

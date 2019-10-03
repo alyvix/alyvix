@@ -33,7 +33,8 @@ export class AxModelMock {
           "type": "run",
           "features": {
             "path": "test path",
-            "arguments": "test arguments"
+            "arguments": "test arguments",
+            "process": "test process"
           }
         },
         "box_list": [

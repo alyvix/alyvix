@@ -2,6 +2,7 @@
 
 @import "./variables.scss";
 
+
 * {
     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
     -moz-box-sizing: border-box;    /* Firefox, other Gecko */
@@ -70,6 +71,32 @@ body{
 
 input.std-width,select.std-width {
     width: 160px;
+}
+
+.form-group {
+  .autocomplete-container {
+    box-shadow: none;
+    .suggestions-container ul li a {
+      padding: 2px 5px;
+    }
+    .input-container{
+      input {
+        border-bottom: #555 1px solid;
+        height: 20px;
+        padding: 2px 5px;
+        &:focus{
+          outline: none;
+          border-bottom: 1px solid $blue;
+          background: $lightblue;
+        }
+      }
+      .x{
+        top: 25%;
+        right: 0;
+      }
+
+    }
+  }
 }
 
 .form-group input[type=number] {
@@ -479,3 +506,4 @@ hr {
   flex-direction: row;
   justify-content: space-between;
 }
+
