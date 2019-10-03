@@ -37,6 +37,7 @@
         var object_name = "{{object_name}}";
         var measure = {{measure|tojson|safe}};
         var call = {{call|tojson|safe}};
+        var maps = {{maps|tojson|safe}};
         
         var last_element = null;
         
@@ -60,11 +61,7 @@
         
 		function doOnLoad() {
 			dhxWins = new dhtmlXWindows();
-            setTimeout(function() {
-                console.log("init draw");
-                draw({clientX: 500, clientY: 500});
-            },500);
-            console.log('on load')
+            
         }
         
         function clone(obj) {
@@ -82,7 +79,7 @@
         //Interface to alyvix-ui project
         function axModel() {
             if(!model.box_list) {
-                model = {object_name:object_name, detection: detection, box_list:boxes, background: background_base64_string, measure:measure, call:call} 
+                model = {object_name:object_name, detection: detection, box_list:boxes, background: background_base64_string, measure:measure, call:call, maps:maps} 
             }
             return model;
         }

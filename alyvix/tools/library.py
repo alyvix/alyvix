@@ -191,6 +191,15 @@ class LibraryManager:
 
         return measure_dict
 
+    def get_map(self):
+
+        try:
+            map_dict = self._json_object["maps"]
+        except:
+            return {}
+
+        return map_dict
+
     def get_call(self, object_name):
 
         if object_name is None:

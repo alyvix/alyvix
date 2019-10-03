@@ -123,11 +123,13 @@ def drawing():
     lm.set_json(library_dict)
     curr_call = lm.get_call(current_objectname)
     curr_measure = lm.get_measure(current_objectname)
+    map_dict = lm.get_map()
     return render_template('drawing.html', base64url = "data:image/png;base64," + base64png, img_h=img_h, img_w=img_w,
                            autocontoured_rects=autocontoured_rects, text=en.drawing,
                            object_name=current_objectname,
                            measure=curr_measure,
                            call=curr_call,
+                           maps=map_dict,
                            loaded_boxes=current_boxes)
 
 @app.route("/designer_open_file_api")
@@ -558,6 +560,7 @@ def save_json():
         curr_thresholds = curr_measure.get("thresholds", {})
 
         curr_script = current_json.get("script", {})
+        curr_maps = current_json.get("maps", {})
 
         curr_object_list_dict = current_json.get("objects", {})
 
@@ -879,6 +882,7 @@ def save_json():
         curr_components[resolution_string]["groups"].append({"main": main_2, "subs": subs_2})
 
         current_json["script"] = curr_script
+        current_json["maps"] = curr_maps
 
         current_json["objects"] = curr_object_list_dict
 
@@ -1070,8 +1074,10 @@ def set_library_api():
                                             " UTC" + time.strftime("%z")
 
     curr_script = json_string["library"].get("script", {})
+    curr_maps = json_string["library"].get("maps", {})
 
     json_string["library"]["script"] = curr_script
+    json_string["library"]["maps"] = curr_maps
 
     library_dict = json_string["library"]
 
