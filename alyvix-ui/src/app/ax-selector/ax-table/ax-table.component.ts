@@ -181,7 +181,6 @@ export class AxTableComponent implements OnInit {
       }
     } else if (!this.isSelected(row) || event.detail > 1) {
       this.selectedRows = [row];
-      document.getSelection().removeAllRanges();
     }
     this.changeDetecor.markForCheck();
     this.changeDetecor.detectChanges();
