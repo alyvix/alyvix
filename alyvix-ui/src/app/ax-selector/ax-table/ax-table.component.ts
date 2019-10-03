@@ -381,6 +381,14 @@ export class AxTableComponent implements OnInit {
         this.filterData();
         this.changeDetecor.markForCheck();
         this.changeDetecor.detectChanges();
+      } else if(r && this.data.find(d => d.name === r.name)) {
+        const dataIndex = this._data.findIndex(d => d.name === r.name);
+        if ( dataIndex >= 0 ) { this._data[dataIndex] = r; }
+        const selectedIndex = this.selectedRows.findIndex(d => d.name === r.name);
+        if ( selectedIndex >= 0 ) { this.selectedRows[selectedIndex] = r; }
+        this.changeResolution();
+        this.changeDetecor.markForCheck();
+        this.changeDetecor.detectChanges();
       } else if(r) {
         this._data.push(r);
         this.changeResolution();
