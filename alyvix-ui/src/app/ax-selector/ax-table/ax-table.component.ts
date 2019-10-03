@@ -138,7 +138,11 @@ export class AxTableComponent implements OnInit {
 
   delay:number = 0;
   newObject() {
-    this.global.nativeGlobal().new_button(this.delay);
+    this.apiService.setLibrary({library: this.prepareModelForSubmission(), close_selector: false}).subscribe(x => {
+      if (x.success) {
+        this.global.nativeGlobal().new_button(this.delay);
+      }
+    });
   }
 
   changeTransactionGroup(row:RowVM,tg:string) {
