@@ -60,7 +60,8 @@
         
 		function doOnLoad() {
 			dhxWins = new dhtmlXWindows();
-            draw();
+            setTimeout(draw,500);
+            console.log('on load')
         }
         
         function clone(obj) {

@@ -44,6 +44,7 @@ export class SelectorDatastoreService {
 
 
   modelToData(model: AxSelectorObjects): RowVM[] {
+    if(!model.objects) { return []; }
     return Object.entries(model.objects).map(
       ([key, value]) =>  {
          if (!value.measure) {

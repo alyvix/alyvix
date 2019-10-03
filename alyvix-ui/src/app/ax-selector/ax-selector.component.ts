@@ -37,7 +37,11 @@ export class AxSelectorComponent implements OnInit {
   ngOnInit(): void {
 
     this.apiService.getLibrary().subscribe(library => {
-      this.main = {id:Utils.uuidv4(), data: this.datastore.modelToData(library), name: this.global.nativeGlobal().current_library_name, readonly: false };
+      let data = [];
+      if(library) {
+        data = this.datastore.modelToData(library);
+      }
+      this.main = {id:Utils.uuidv4(), data: data, name: this.global.nativeGlobal().current_library_name, readonly: false };
       this.selected = this.main;
     });
   }
