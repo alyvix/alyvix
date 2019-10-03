@@ -60,7 +60,10 @@
         
 		function doOnLoad() {
 			dhxWins = new dhtmlXWindows();
-            setTimeout(draw,500);
+            setTimeout(function() {
+                console.log("init draw");
+                draw({clientX: 500, clientY: 500});
+            },500);
             console.log('on load')
         }
         
