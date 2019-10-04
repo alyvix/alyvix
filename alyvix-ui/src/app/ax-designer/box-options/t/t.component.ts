@@ -50,7 +50,9 @@ export class TComponent implements OnInit {
 
   scraped: string = ""
 
-  regExWarning:boolean = false
+  regExWarning:boolean = false;
+
+  maps:string[] = []
 
 
   onRegexChange() {
@@ -85,6 +87,9 @@ export class TComponent implements OnInit {
     if (!this.node.box.features.T.detection) {
       this.node.box.features.T.detection = "regex";
     }
+    if (!this.node.box.features.T.map) {
+      this.node.box.features.T.map = "None";
+    }
     if (this.node && this.node.box) {
       this.alyvixApi.getScrapedText(this.node.box).subscribe(x => {
         this.scraped = x.scraped_text;
@@ -116,7 +121,11 @@ export class TComponent implements OnInit {
   }
 
   ngOnInit() {
-
+    const maps = this.global.nativeGlobal().axModel().maps;
+    console.log(maps);
+    if(maps) {
+      this.maps = Object.keys(maps);
+    }
   }
 
 }

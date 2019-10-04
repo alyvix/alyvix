@@ -5,10 +5,12 @@ export interface AxModel {
     background: string;
     call?:AxSystemCall;
     measure?:Measure;
+    maps?: {[key:string]: {[key:string]: string}};
   }
 
   export interface AxSelectorObjects {
-    objects: {[key:string]: AxSelectorObject}
+    objects: {[key:string]: AxSelectorObject};
+    maps?: {[key:string]: {[key:string]: string}};
   }
 
   export interface AxSelectorObject {
@@ -148,6 +150,7 @@ export interface AxModel {
     regexp?: string;
     detection?: string;
     logic?: string;
+    map?: string;
   }
   export interface Mouse {
     features: Features1;

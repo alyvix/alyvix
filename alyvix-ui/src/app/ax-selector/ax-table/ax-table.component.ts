@@ -35,7 +35,6 @@ export class AxTableComponent implements OnInit {
   constructor(
     private _sanitizer: DomSanitizer,
     @Inject('GlobalRef') private global: GlobalRef,
-    private apiService:AlyvixApiService,
     private datastore:SelectorDatastoreService,
     private changeDetecor: ChangeDetectorRef) {}
 
@@ -107,16 +106,10 @@ export class AxTableComponent implements OnInit {
     this.tableContainer.nativeElement.style.height = (event.newHeight - 44 - 70 - 27) + "px"
   }
 
-  private prepareModelForSubmission():AxSelectorObjects {
-    const model:AxSelectorObjects = { objects: {}};
-    this.data.forEach( d => {
-      model.objects[d.name] = d.object;
-    });
-    return model;
-  }
+
 
   ok() {
-    this.apiService.setLibrary({library: this.prepareModelForSubmission(), close_selector: true}).subscribe(x => console.log(x));
+    this.datastore.saveData(this.data,true).subscribe(x => console.log(x));
   }
 
   cancel() {
@@ -126,7 +119,7 @@ export class AxTableComponent implements OnInit {
   edit() {
     if (this.singleSelection()) {
       this.editing = this.selectedRows[0];
-      this.apiService.setLibrary({library: this.prepareModelForSubmission(), close_selector: false}).subscribe(x => {
+      this.datastore.saveData(this.data,false).subscribe(x => {
         console.log(x);
         if (x.success) {
           this.global.nativeGlobal().edit(this.selectedRows[0].name, this.selectedRows[0].selectedResolution);
@@ -138,7 +131,7 @@ export class AxTableComponent implements OnInit {
 
   delay:number = 0;
   newObject() {
-    this.apiService.setLibrary({library: this.prepareModelForSubmission(), close_selector: false}).subscribe(x => {
+    this.datastore.saveData(this.data,false).subscribe(x => {
       if (x.success) {
         this.global.nativeGlobal().new_button(this.delay);
       }

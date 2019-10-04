@@ -23,7 +23,6 @@ export class AxSelectorComponent implements OnInit {
 
   constructor(
     private datastore: SelectorDatastoreService,
-    private apiService: AlyvixApiService,
     @Inject('GlobalRef') private global: GlobalRef
   ) { }
 
@@ -36,11 +35,7 @@ export class AxSelectorComponent implements OnInit {
 
   ngOnInit(): void {
 
-    this.apiService.getLibrary().subscribe(library => {
-      let data = [];
-      if(library) {
-        data = this.datastore.modelToData(library);
-      }
+    this.datastore.getData().subscribe(data => {
       this.main = {id:Utils.uuidv4(), data: data, name: this.global.nativeGlobal().current_library_name, readonly: false };
       this.selected = this.main;
     });

@@ -24,6 +24,16 @@ export class AxModelMock {
     }
     static _model = {
         "object_name": "test",
+        "maps": {
+          "test": {
+              "bla1": "BLA1",
+              "bla2": "bla2"
+              },
+          "test2": {
+              "bla1": "BLA1",
+              "bla2": "bla2"
+              }
+        },
         "detection": {
             "type": "appear+disappear",
             "timeout_s": 10,

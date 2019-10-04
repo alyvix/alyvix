@@ -31,8 +31,9 @@
   >
     <div class="form-group">
       <label>Map</label>
-      <select>
+      <select [(ngModel)]="node.box.features.T.map" style="width: 100%">
         <option value="None">None</option>
+        <option *ngFor="let map of maps" value="{{map}}">{{map}}</option>
       </select>
     </div>
   </div>

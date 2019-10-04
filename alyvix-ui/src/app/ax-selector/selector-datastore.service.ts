@@ -5,6 +5,7 @@ import { Utils } from '../utils';
 import { AlyvixApiService } from '../alyvix-api.service';
 import { GlobalRef } from './global';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 
 export interface AxFile {
@@ -20,6 +21,7 @@ export interface AxFile {
 export class SelectorDatastoreService {
 
   private editedRow: BehaviorSubject<RowVM> = new BehaviorSubject<RowVM>(null);
+  private maps:{[key:string]: {[key:string]: string}};
 
   constructor(
     private apiService: AlyvixApiService
@@ -40,6 +42,30 @@ export class SelectorDatastoreService {
         this.editedRow.next(updatedRow);
       }
     });
+  }
+
+  getData():Observable<RowVM[]> {
+    return this.apiService.getLibrary().pipe(map(library => {
+      console.log(library);
+      let data = [];
+      if(library) {
+        data = this.modelToData(library);
+      }
+      this.maps = library.maps;
+      return data;
+    }));
+  }
+
+  private prepareModelForSubmission(data:RowVM[]):AxSelectorObjects {
+    const model:AxSelectorObjects = { objects: {}, maps: this.maps};
+    data.forEach( d => {
+      model.objects[d.name] = d.object;
+    });
+    return model;
+  }
+
+  saveData(data:RowVM[],close_selector):Observable<any> {
+    return this.apiService.setLibrary({library: this.prepareModelForSubmission(data), close_selector: close_selector});
   }
 
 
