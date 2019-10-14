@@ -264,14 +264,14 @@ class RectManager{
             
             this.rectangles = boxes;
             
-            if (boxes.length == 0)
+            /*if (boxes.length == 0)
             {
                 $.ajax({
                     url: "/cancel_event",
                     type: "GET"
                 });
                 return;
-            }
+            }*/
             
      
             

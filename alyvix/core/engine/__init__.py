@@ -59,16 +59,17 @@ class Result():
         self.screenshot = None
         self.annotation = None
         self.timeout = None
-        self.records = {"text":"", "image":""}
+        self.records = {"text":"", "image":"", "extract":"", "check":False}
 
         self.group = None
         self.thresholds = {"warning_s": None, "critical_s": None}
         self.output = True
+        self.exit = False
 
 
 class EngineManager(object):
 
-    def __init__(self, object_json, args=None, verbose=0):
+    def __init__(self, object_json, args=None, maps={}, verbose=0):
 
         self._result = Result()
 
@@ -88,6 +89,11 @@ class EngineManager(object):
         self._result.output = object_json[self._result.object_name]["measure"]["output"]
 
         self._verbose = verbose
+
+        self._maps = maps
+
+        self._tmp_text_scraped = ""
+        self._tmp_text_extracted = ""
 
         self._mouse_manager = MouseManager()
         self._keyboard_manager = KeyboardManager()
@@ -391,8 +397,8 @@ class EngineManager(object):
 
         for component in self._components_appeared:
 
-            if component.type == "T" and component.scraped_text is not None:
-                continue
+            #if component.type == "T" and component.scraped_text is not None:
+            #    continue
 
             mouse_dict = component.mouse
 
@@ -517,7 +523,9 @@ class EngineManager(object):
         return_group_1 = []
         return_group_2 = []
         mains_found = []
-        scraped_text = ""
+
+        tmp_text_scraped = ""
+        tmp_text_extracted = ""
 
         for cnt_g in range(3):
 
@@ -559,17 +567,6 @@ class EngineManager(object):
 
                 mains_found = rm.find(box["features"]["R"])
 
-            elif box['type'] == 'T':
-                tm = TextManager()
-
-                tm.set_color_screen(current_color_screen)
-                tm.set_gray_screen(current_gray_screen)
-                tm.set_scaling_factor(scaling_factor)
-
-                tm.set_regexp(box["features"]["T"]["regexp"], self._arguments)
-
-                mains_found = tm.find()
-
             for main in mains_found:
                 main.index_in_tree = box["index_in_tree"]
                 main.index_in_group = box["index_in_group"]
@@ -578,7 +575,6 @@ class EngineManager(object):
                 main.group = box["group"]
                 main.is_main = box["is_main"]
 
-            subs_found = []
 
             sub_boxes = []
             if cnt_g == 0:
@@ -590,10 +586,13 @@ class EngineManager(object):
 
             if len(mains_found) > 0:
                 for main_found in mains_found:
+
+
                     sub_results = []
 
-                    main_and_subs = (main_found, []) #0-> main, 1-> subs
+                    main_and_subs = (main_found, []) #0-> main, 1-> subs, 2-> records
 
+                    subs_found = 0
                     for box in sub_boxes:
 
                         roi = Roi()
@@ -638,12 +637,58 @@ class EngineManager(object):
                             tm.set_scaling_factor(scaling_factor)
 
                             if box["features"]["T"]["type"] == "detect":
-                                tm.set_regexp(box["features"]["T"]["regexp"], self._arguments)
 
-                                sub_results = tm.find(box["features"]["T"], roi=roi)
+                                if box["features"]["T"]["detection"] == "date":
+                                    logic = "date_" + box["features"]["T"]["logic"]
+
+                                    sub_results = tm.scrape(roi=roi, logic=logic)
+                                    scraped_text = sub_results[0].scraped_text
+                                    tmp_text_scraped += scraped_text + ";"
+
+                                    if sub_results[0].extract_text is None:
+                                        sub_results = []
+                                    else:
+                                        extract_text = sub_results[0].extract_text
+                                        tmp_text_extracted += extract_text + ";"
+
+                                elif box["features"]["T"]["detection"] == "number":
+                                    logic = "number_" + box["features"]["T"]["logic"]
+
+                                    sub_results = tm.scrape(roi=roi, logic=logic)
+                                    scraped_text = sub_results[0].scraped_text
+                                    tmp_text_scraped += scraped_text + ";"
+
+                                    if sub_results[0].extract_text is None:
+                                        sub_results = []
+                                    else:
+                                        extract_text = sub_results[0].extract_text
+                                        tmp_text_extracted += extract_text + ";"
+
+                                else:
+                                    tm.set_regexp(box["features"]["T"]["regexp"], self._arguments)
+                                    sub_results = tm.find(box["features"]["T"], roi=roi)
+
                             elif box["features"]["T"]["type"] == "map":
-                                sub_results = tm.scrape(roi=roi)
-                                scraped_text += sub_results[0].scraped_text + " "
+
+                                map_name = box["features"]["T"]["map"]
+
+                                if map_name != "None":
+
+                                    map_dict = self._maps[map_name]
+                                    sub_results = tm.scrape(roi=roi, map_dict=map_dict)
+                                    scraped_text = sub_results[0].scraped_text
+                                    tmp_text_scraped += scraped_text + ";"
+
+                                    if sub_results[0].extract_text is None:
+                                        sub_results = []
+                                    else:
+                                        extract_text = sub_results[0].extract_text
+                                        tmp_text_extracted += extract_text + ";"
+                                else:
+                                    sub_results = tm.scrape(roi=roi)
+                                    scraped_text = sub_results[0].scraped_text
+                                    tmp_text_scraped += scraped_text + ";"
+
 
                         if len(sub_results) > 0:
                             sub_results[0].index_in_tree = box["index_in_tree"]
@@ -654,7 +699,7 @@ class EngineManager(object):
                             sub_results[0].is_main = box["is_main"]
                             sub_results[0].roi = roi
 
-                            #subs_found.append(sub_results[0])
+                            subs_found += 1
 
                             main_and_subs[1].append(sub_results[0])
 
@@ -665,8 +710,11 @@ class EngineManager(object):
                     elif cnt_g == 2:
                         return_group_2.append(main_and_subs)
 
+                    """
                     if len(subs_found) == len(sub_boxes):
+                        a = "a"
                         break
+                    """
 
 
 
@@ -756,13 +804,40 @@ class EngineManager(object):
             self._objects_disappeared = False
 
             self._last_screen = current_color_screen
+
+            scraped_text = ""
+            extract_text = ""
+            check = True
+
+            for component in self._components_appeared:
+                if component.type == "T":
+
+                    scraped_text += component.scraped_text + ";"
+
+                    if component.extract_text:
+                        extract_text += component.extract_text + ";"
+                        #check = 1
+
+            if scraped_text != "":
+                scraped_text = scraped_text[:-1]
+
+            if extract_text != "":
+                extract_text = extract_text[:-1]
+
             self._result.records["text"] = scraped_text
+            self._result.records["extract"] = extract_text
+            self._result.records["check"] = check
 
         elif self._disappear_mode is True and self.stop_threads is False and\
                 (len_g0_found_ok is False or len_g1_found_ok is False or len_g2_found_ok is False):
 
             self._objects_disappeared = True
             self.stop_threads = True
+
+        elif self.stop_threads is False: #timedout
+
+            self._tmp_text_scraped = tmp_text_scraped
+            self._tmp_text_extracted = tmp_text_extracted
 
         self.total_threads -= 1
         self.lock.release()
@@ -944,7 +1019,7 @@ class EngineManager(object):
                 except:
                     pass
 
-                if self._disappear_mode is False and scraped_text is None:
+                if self._disappear_mode is False: #and scraped_text is None:
 
                     mouse_dict = component.mouse
 
@@ -1086,7 +1161,7 @@ class EngineManager(object):
                         except:
                             pass
 
-                        if self._disappear_mode is False and scraped_text is None:
+                        if self._disappear_mode is False: #and scraped_text is None:
 
                             mouse_dict = sub_component.mouse
 
@@ -1355,6 +1430,15 @@ class EngineManager(object):
 
                 self._screen_with_objects = self._uncompress(self._screens[-1][0])
                 self._annotation_screen = self._get_annotation_screen()
+
+                if self._tmp_text_scraped != "":
+                    self._tmp_text_scraped = self._tmp_text_scraped[:-1]
+
+                if self._tmp_text_extracted != "":
+                    self._tmp_text_extracted = self._tmp_text_extracted[:-1]
+
+                self._result.records["text"] = self._tmp_text_scraped
+                self._result.records["extract"] = self._tmp_text_extracted
 
                 self._result.performance_ms = -1
                 self._result.accuracy_ms = -1

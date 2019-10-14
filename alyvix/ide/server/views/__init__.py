@@ -1184,37 +1184,44 @@ def check_date_api():
         scraped_text = json_data["scraped_text"]
         logic = json_data["logic"]
 
-        try:
-            result = re.search(r'\d+', scraped_text).group()
-            result = 0
 
+        tm = TextManager()
+
+        scraped_text_one_space = re.sub(r'\s+', ' ', scraped_text.lower()).strip()
+
+        date = tm._get_date_str(scraped_text_one_space)
+
+        hour = tm._get_hour_str(scraped_text_one_space)
+
+        date_time = None
+        if date[0] != "" and hour[0] != "":
+            date_time = datetime.datetime.strptime(date[0] + " " + hour[0], date[1] + " " + hour[1])
+
+        elif date[0] != "" and hour[0] == "":
+            date_time = datetime.datetime.strptime(date[0], date[1])
+
+        elif date[0] == "" and hour[0] != "":
+            date_time = datetime.datetime.strptime(hour[0], hour[1])
+            date_now = datetime.datetime.now()
+            date_now = date_now.replace(hour=date_time.hour, minute=date_time.minute, second=date_time.second)
+            date_time = date_now
+
+        ret_dict = {"result": False}
+
+        if date_time is not None:
             if logic == "last_hour":
-
-                if int(result) > 0:
+                if date_time >= datetime.datetime.now() - datetime.timedelta(hours=1):
                     ret_dict = {"result": True}
-                else:
-                    ret_dict = {"result": False}
-
             elif logic == "last_day":
-
-                if int(result) > 0:
+                if date_time >= datetime.datetime.now() - datetime.timedelta(days=1):
                     ret_dict = {"result": True}
-                else:
-                    ret_dict = {"result": False}
             elif logic == "last_week":
-
-                if int(result) > 0:
+                if date_time >= datetime.datetime.now() - datetime.timedelta(days=7):
                     ret_dict = {"result": True}
-                else:
-                    ret_dict = {"result": False}
             elif logic == "last_month":
-
-                if int(result) > 0:
+                if date_time >= datetime.datetime.now() - datetime.timedelta(days=31):
                     ret_dict = {"result": True}
-                else:
-                    ret_dict = {"result": False}
-        except:
-            pass
+
 
     return jsonify(ret_dict)
 
@@ -1231,7 +1238,9 @@ def create_thumbnail():
         json_data = json.loads(request.data)
 
         dict_list = json_data['box_list']
-        last_dict = dict_list[-1]  #get last dict of the array
+
+        if len(dict_list) > 0:
+            last_dict = dict_list[-1]  #get last dict of the array
         background_string = json_data["background"]
         background_string = background_string[22:]
 

@@ -42,7 +42,8 @@ class OutputManager:
                                       "scaling_factor": int(scaling_factor*100),
                                       "group": object.group,
                                       "thresholds": object.thresholds,
-                                      "output": object.output
+                                      "output": object.output,
+                                      "exit": object.exit
                                       }
 
             if object.screenshot is not None:
@@ -68,6 +69,9 @@ class OutputManager:
 
     def save_screenshots(self, file_path, object_list, prefix=None):
         for object in object_list:
+
+            if object.screenshot is None:
+                continue
 
             date_from_ts = datetime.fromtimestamp(object.timestamp)
 

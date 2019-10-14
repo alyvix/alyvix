@@ -148,6 +148,8 @@ if filename is not None:
 
     state=0
 
+    maps = lm.get_map()
+
     for object_name in objects_names:
 
         if lm.check_if_exist(object_name) is False:
@@ -156,7 +158,7 @@ if filename is not None:
 
         object_json = lm.add_chunk(object_name, chunk)
 
-        engine_manager = EngineManager(object_json, args=engine_arguments, verbose=verbose)
+        engine_manager = EngineManager(object_json, args=engine_arguments, maps=maps, verbose=verbose)
         result = engine_manager.execute()
 
         objects_result.append(result)
@@ -195,17 +197,13 @@ if filename is not None:
     if verbose >= 2:
         om.save_screenshots(filename_path, objects_result, prefix=filename_no_extension)
 
-    date_from_ts = datetime.fromtimestamp(timestamp)
-    date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_UTC" + time.strftime("%z")
-
-    filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
-    om.save(filename, lm.get_json(), chunk, objects_result)
-
 
     not_executed_ts = time.time()
     for result in objects_result:
         #YYYYMMDD_hhmmss_lll : <object_name> measures <performance_ms> (+/-<accuracy>)
         if result.timestamp != -1:
+
+
             date_from_ts = datetime.fromtimestamp(result.timestamp)
             #millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
             try:
@@ -214,19 +212,31 @@ if filename is not None:
                 millis_from_ts = "000"
 
             date_formatted = date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts)
+
+            if result.performance_ms != -1:
+                performance = round(result.performance_ms/1000, 3)
+                accuracy = round(result.accuracy_ms/1000, 3)
+                if result.output is True:
+                    print(date_formatted + ": " + result.object_name + " measures " + str(performance) + "s " +
+                          "(+/-" + '{:.3f}'.format(accuracy) + ") OK")
+                result.exit = True
+            else:
+                if result.output is True:
+                    print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(result.timeout) + "s")
+                result.exit = False
+
         else:
-            date_formatted = "not executed"
+            print(result.object_name + " NOT EXECUTED")
+            result.exit = True
 
 
-        if result.performance_ms != -1:
+    date_from_ts = datetime.fromtimestamp(timestamp)
+    date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_UTC" + time.strftime("%z")
 
-            performance = round(result.performance_ms/1000, 3)
-            accuracy = round(result.accuracy_ms/1000, 3)
+    filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
+    om.save(filename, lm.get_json(), chunk, objects_result)
 
-            print(date_formatted + ": " + result.object_name + " measures " + str(performance) + "s " +
-                  "(+/-" + '{:.3f}'.format(accuracy) + ") OK")
-        else:
-            print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(result.timeout) + "s")
+
 
     if state == 0:
         print (filename_no_extension + " ends ok")

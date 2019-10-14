@@ -23,6 +23,8 @@ import time
 import cv2
 import numpy as np
 import re
+import difflib
+import datetime
 import tesserocr
 from PIL import Image
 from alyvix.tools.screen import ScreenManager
@@ -44,6 +46,9 @@ class Result():
         self.mouse = {}
         self.keyboard = {}
         self.roi = None
+        self.extract_text = None
+        self.check = False
+
 
 class TextManager():
 
@@ -60,6 +65,62 @@ class TextManager():
         self._arguments = None
 
         self._tessdata_path = os.path.dirname(__file__) + os.sep + "tessdata"
+
+        self._map = None
+
+        self._dict_month = {
+            "ja(m|n|nn)uar(y|v)": "1",
+            "(7|f|t)ebruar(y|v)": "2",
+            "(m|n|nn)arch": "3",
+            "apr(l|1|i)(l|1|i)": "4",
+            "(m|n|nn)a(y|v)": "5",
+            "ju(m|n|nn)e": "6",
+            "ju(l|1|i)(y|v)": "7",
+            "au(g|q)u(5|s)(7|f|t)": "8",
+            "(5|s)ep(7|f|t)e(m|n|nn)ber": "9",
+            "(o|0)c(7|f|t)(o|0)ber": "10",
+            "(m|n|nn)(o|0)(y|v)e(m|n|nn)ber": "11",
+            "dece(m|n|nn)ber": "12",
+
+            "ja(m|n|nn).": "1",
+            "(7|f|t)eb.": "2",
+            "(m|n|nn)ar.": "3",
+            "apr.": "4",
+            "(m|n|nn)a(y|v).": "5",
+            "ju(m|n|nn).": "6",
+            "ju(l|1|i).": "7",
+            "au(g|q).": "8",
+            "(5|s)ep.": "9",
+            "(o|0)c(7|f|t).": "10",
+            "(m|n|nn)(o|0)(v|y).": "11",
+            "dec.": "12",
+
+            "(g|q)e((m|n|nn)(m|n|nn)|m|nn)a(l|1|i)(o|0)": "1",
+            "(7|f|t)ebbra(l|1|i)(o|0)": "2",
+            "(m|n|nn)arz(o|0)": "3",
+            "apr(l|1|i)(l|1|i)e": "4",
+            "(m|n|nn)a(g|q)(g|q)(l|1|i)(o|0)": "5",
+            "(g|q)(l|1|i)u(g|q)n(o|0)": "6",
+            "lu(g|q)(l|1|i)(l|1|i)(o|0)": "7",
+            "a(g|q)(o|0)(5|s)(7|f|t)(o|0)": "8",
+            "(5|s)e(7|f|t)(7|f|t)e(m|n|nn)bre": "9",
+            "(o|0)(7|f|t)(7|f|t)(o|0)bre": "10",
+            "(m|n|nn)(o|0)ve(m|n|nn)bre": "11",
+            "d(l|1|i)ce(m|n|nn)bre": "12",
+
+            "(g|q)e(m|n|nn).": "1",
+            "(7|f|t)eb.": "2",
+            "(m|n|nn)ar.": "3",
+            "apr.": "4",
+            "(m|n|nn)a(g|q).": "5",
+            "(g|q)(l|1|i)u.": "6",
+            "(l|1|i)u(g|q).": "7",
+            "a(g|q)(o|0).": "8",
+            "(5|s)e(7|f|t).": "9",
+            "(o|0)(7|f|t)(7|f|t).": "10",
+            "(m|n|nn)(o|0)(y|v).": "11",
+            "d(l|1|i)c.": "12"
+        }
 
     def set_color_screen(self, screen):
         self._color_screen = screen
@@ -84,11 +145,336 @@ class TextManager():
             except:
                 pass  # not enought arguments
 
-    def scrape(self, roi):
+    def _build_regexp(self, string):
 
-        scraped_text = self._find_sub(roi, scrape=True)
+        regexp = ""
+
+        for char in string:
+
+            if char in ['a', '4']:
+                regexp += '[a4]'
+            elif char in ['b', 'h', '6', '8']:
+                regexp += '[bh68]'
+            elif char in ['d', 'o', '0']:
+                regexp += '[do0]'
+            elif char in ['e', '3']:
+                regexp += '[e3]'
+            elif char in ['f', 't', '7']:
+                regexp += '[ft7]'
+            elif char in ['i', 'l', '1']:
+                regexp += '[il1]'
+            elif char in ['s', '5']:
+                regexp += '[s5]'
+            elif char in ['z', '2', 'k']:
+                regexp += '[z2l1k]'
+            else:
+                regexp += char
+
+        return regexp
+
+    def _build_month_regexp(self):
+        regexp = "("
+
+        for month in self._dict_month:
+            regexp += month.replace(".", "\.") + "|"
+
+        regexp = regexp[:-1]
+        regexp += ")"
+
+        return regexp
+
+    def _char_to_number(self, string):
+        return string.replace("z", "2").replace("s", "5").replace("o", "0").replace(
+                "i", "1").replace("l", "1").replace("f","7").replace("t", "7")
+
+    def _get_char_as_number(self):
+        return "([0-9]|b|[li]|z|o|e|t|s)"
+
+    def _get_hour_str(self, hour_str):
+        reg_number = self._get_char_as_number()
+
+        hour = re.search("(" + reg_number + "{2}:" + reg_number + "{2}:" + reg_number + "{2}.*(pm|am))", hour_str,
+                         re.IGNORECASE)
+
+        if hour is not None:
+            hour = hour.group(0).replace(" ", "")
+
+            hour = self._char_to_number(hour)
+
+            return (hour, "%I:%M:%S%p")
+
+        hour = re.search("(" + reg_number + "{2}:" + reg_number + "{2}\\." + reg_number + "{2}.*(pm|am))", hour_str,
+                         re.IGNORECASE)
+
+        if hour is not None:
+            hour = hour.group(0).replace(" ", "")
+
+            hour = self._char_to_number(hour)
+
+            return (hour, "%I:%M:%S%p")
+
+        # europe date
+        hour = re.search("(" + reg_number + "{2}:" + reg_number + "{2}:" + reg_number + "{2})", hour_str)
+
+        if hour is not None:
+            hour = hour.group(0)
+
+            hour = self._char_to_number(hour)
+
+            return (hour, "%H:%M:%S")
+
+        hour = re.search("(" + reg_number + "{2}:" + reg_number + "{2})", hour_str)
+
+        if hour is not None:
+            hour = hour.group(0)
+
+            hour = self._char_to_number(hour)
+
+            return (hour, "%H:%M")
+
+        hour = re.search("(" + reg_number + "{2}:" + reg_number + "{2}." + reg_number + "{2})", hour_str)
+
+        if hour is not None:
+            hour = hour.group(0)
+
+            hour = self._char_to_number(hour)
+
+            return (hour, "%H:%M:%S")
+
+        hour = re.search("(" + reg_number + "{6})", hour_str)
+
+        if hour is not None:
+            hour = hour.group(0)
+
+            hour = self._char_to_number(hour)
+
+            return (hour, "%H%M%S")
+
+        return ("", "")
+
+    def _get_date_str(self, date_str):
+
+        reg_number = self._get_char_as_number()
+
+        # europe date
+        date = re.search("(" + reg_number + "{2}/" + reg_number + "{2}/" + reg_number + "{4})", date_str)
+
+        if date is not None:
+            date = date.group(0)
+
+            date = self._char_to_number(date)
+
+            return (date, '%d/%m/%Y')
+
+        month_reg = self._build_month_regexp()
+
+        # date with extended month eu/us
+        date = re.search("(" + reg_number + "{1,2} " + month_reg + " " + reg_number + "{4})", date_str)
+
+        if date is not None:
+
+            date = date.group(0)
+
+            arr = date.split(" ")
+            day = arr[0]
+            month = arr[1]
+            year = arr[2]
+
+            day = self._char_to_number(day)
+            year = self._char_to_number(year)
+            # number_of_month = dict_date[month]
+
+            for month_reg in self._dict_month:
+                res = re.search(month_reg, month)
+
+                if res is not None:
+                    number_of_month = self._dict_month[month_reg]
+                    break
+
+            # date = date.replace(month, number_of_month)
+
+            return (day + " " + number_of_month + " " + year, '%d %m %Y')
+
+        # date with extended month us
+        date = re.search("(" + month_reg + " " + reg_number + "{1,2}, " + reg_number + "{4})", date_str)
+
+        if date is not None:
+
+            date = date.group(0)
+
+            arr = date.split(" ")
+            day = arr[1].replace(",", "")
+            month = arr[0]
+            year = arr[2]
+
+            day = self._char_to_number(day)
+            year = self._char_to_number(year)
+            # number_of_month = dict_date[month]
+
+            for month_reg in self._dict_month:
+                res = re.search(month_reg, month)
+
+                if res is not None:
+                    number_of_month = self._dict_month[month_reg]
+                    break
+
+            return (number_of_month + " " + day + ", " + year, '%m %d, %Y')
+
+        # american date
+        date = re.search("(" + reg_number + "{4}/" + reg_number + "{2}/" + reg_number + "{2})", date_str)
+
+        if date is not None:
+            date = date.group(0)
+            date = self._char_to_number(date)
+
+            return (date, '%Y/%m/%d')
+
+        date = re.search("(" + reg_number + "{8})", date_str)
+
+        if date is not None:
+            date = date.group(0)
+            date = self._char_to_number(date)
+            return (date, "%Y%m%d")
+
+        return ("", "")
+
+    def scrape(self, roi, map_dict=None, logic=None):
+
+        if map_dict is not None:
+            result_list = []
+            scraped_text = self._find_sub(roi, scrape=True)
+
+            for s_text in scraped_text:
+
+                if s_text.scraped_text != "":
+
+                    for key in map_dict:
+
+                        if len(s_text.scraped_text) >= len(key):
+
+                            regexp = self._build_regexp(key)
+                            # regexp = regexp.replace("][","]|[")
+
+                            result = re.match(".*" + regexp + ".*", s_text.scraped_text.replace(' ', ".*"), re.DOTALL | re.IGNORECASE)
+                        else:
+
+                            regexp = self._build_regexp(s_text.scraped_text.replace(' ', ".*"))
+
+                            result = re.match(".*" + regexp + ".*", key, re.DOTALL | re.IGNORECASE)
+
+                        if result is not None:
+                            result_list.append({"key": key, "score": 0.2})
+                            # filter_string = maps_dict[key]
+
+                        #print(key)
+
+                    for result in result_list:
+                        #print(result)
+                        score = result["score"]
+                        best_match = difflib.get_close_matches(s_text.scraped_text, [result["key"]], 1, 0.2)
+                        if len(best_match) > 0:
+                            score = difflib.SequenceMatcher(None, s_text.scraped_text, best_match[0]).ratio()
+
+                        #perc_len_key_mystr = (100 * len(result["key"])) / len(
+                        #    s_text.scraped_text)  # if scores are equal, take also len of string
+
+                        #l1 = len(result["key"])
+                        #l2 = len(s_text.scraped_text)
+
+                        diff_len = abs(len(s_text.scraped_text) - len(result["key"]))
+
+                        result["score"] = score - (diff_len / 1000000000000)
+
+                    # best_match = difflib.get_close_matches(my_str,str_list,1,0.2)
+                    # score = difflib.SequenceMatcher(None, my_str, best_match).ratio()
+                    result_list = sorted(result_list, key=lambda k: k['score'], reverse=True)
+
+
+                    if len(result_list) > 0:
+                        s_text.extract_text = map_dict[result_list[0]["key"]]
+                        s_text.check = True
+
+        elif logic is not None:
+            if "date" in logic:
+                scraped_text = self._find_sub(roi, scrape=True)
+
+                for s_text in scraped_text:
+
+                    if s_text.scraped_text != "":
+
+                        scraped_text_one_space = re.sub(r'\s+', ' ', s_text.scraped_text.lower()).strip()
+
+                        date = self._get_date_str(scraped_text_one_space)
+
+                        hour = self._get_hour_str(scraped_text_one_space)
+
+                        extract_text = ""
+                        if date[0] != "" and hour[0] != "":
+                            date_time = datetime.datetime.strptime(date[0] + " " + hour[0], date[1] + " " + hour[1])
+                            extract_text = date_time.strftime("%Y%m%d%H%M%S")
+
+                        elif date[0] != "" and hour[0] == "":
+                            date_time = datetime.datetime.strptime(date[0], date[1])
+                            extract_text = date_time.strftime("%Y%m%d%H%M%S")
+
+                        elif date[0] == "" and hour[0] != "":
+                            date_time = datetime.datetime.strptime(hour[0], hour[1])
+                            date_now = datetime.datetime.now()
+                            date_now = date_now.replace(hour=date_time.hour, minute=date_time.minute, second=date_time.second)
+                            date_time = date_now
+                            extract_text = date_time.strftime("%Y%m%d%H%M%S")
+
+                        if extract_text != "":
+                            if logic == "date_last_hour":
+                                if date_time >= datetime.datetime.now() - datetime.timedelta(hours=1):
+                                    s_text.check = True
+                                    s_text.extract_text = extract_text
+                            elif logic == "date_last_day":
+                                if date_time >= datetime.datetime.now() - datetime.timedelta(days=1):
+                                    s_text.check = True
+                                    s_text.extract_text = extract_text
+                            elif logic == "date_last_week":
+                                if date_time >= datetime.datetime.now() - datetime.timedelta(days=7):
+                                    s_text.check = True
+                                    s_text.extract_text = extract_text
+                            elif logic == "date_last_month":
+                                if date_time >= datetime.datetime.now() - datetime.timedelta(days=31):
+                                    s_text.check = True
+                                    s_text.extract_text = extract_text
+
+            elif "number" in logic:
+                scraped_text = self._find_sub(roi, scrape=True)
+
+                for s_text in scraped_text:
+
+                    if s_text.scraped_text != "":
+
+                        scraped_text_one_space = re.sub(r'\s+', ' ', s_text.scraped_text.lower()).strip()
+
+                        result = re.search(r'\d+', scraped_text_one_space)
+
+                        if result is not None:
+
+                            result = result.group(0)
+
+                            if logic == "number_more_than_zero":
+                                if int(result) > 0:
+                                    s_text.check = True
+                                    s_text.extract_text = result
+
+
+        else:
+            scraped_text = self._find_sub(roi, scrape=True)
+
+            for s_text in scraped_text:
+                s_text.check = True
 
         return scraped_text
+
+
+    def set_scaling_factor(self, scaling_factor):
+        self._scaling_factor = scaling_factor
+
 
     def find(self, detection, roi=None):
 
@@ -481,7 +867,7 @@ class TextManager():
                 return_value.y = 0 #offset_y + 0
                 return_value.w = 0 #roi.w - 0
                 return_value.h = 0 #roi.h - 0
-                return_value.scraped_text = text
+                return_value.scraped_text = text.lstrip().rstrip()
                 objects_found.append(return_value)
             else:
                 for word in scraped_words:
@@ -506,7 +892,7 @@ class TextManager():
                 return_value.y = offset_y + y1
                 return_value.w = x2 - x1
                 return_value.h = y2 - y1
-                return_value.scraped_text = text
+                return_value.scraped_text = text.lstrip().rstrip()
                 objects_found.append(return_value)
 
             return objects_found
