@@ -1,5 +1,6 @@
 <div class="pure-u-1-1">
   <div class="form-group">
+      <label>Call</label>
     <select class="mousetrap" [(ngModel)]="call.type">
       <option value="run">Run</option>
       <option value="kill">Kill</option>
@@ -37,6 +38,7 @@
 
 <div class="pure-u-1-1" *ngIf="call.type == 'kill'">
   <div class="form-group" style="width: 375px">
+      <label>Process</label>
     <ng-autocomplete
       [data]="processes"
       [itemTemplate]="itemTemplate"

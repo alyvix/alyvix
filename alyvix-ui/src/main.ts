@@ -53,6 +53,10 @@ function setExePath(path) {
   }
 }
 
+function changeResolution(resolution) {
+  console.log(resolution)
+}
+
 
 (window as any).loadAlyvixDesigner = loadAlyvixDesigner;
 (window as any).unloadAlyvixDesigner = unloadAlyvixDesigner;
@@ -60,6 +64,7 @@ function setExePath(path) {
 (window as any).reloadAlyvixSelector = reloadAlyvixSelector;
 (window as any).unloadAlyvixSelector = unloadAlyvixSelector;
 (window as any).setExePath = setExePath;
+(window as any).changeResolution = changeResolution;
 
 /* TO TEST
 var node = document.createElement("app-root");

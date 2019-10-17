@@ -71,11 +71,11 @@ export class AlyvixApiService {
   }
 
   checkTextDate(request:ScrapedValidation):Observable<ValidationResult> {
-    return this.httpClient.get<ValidationResult>("/check_date_api");
+    return this.httpClient.post<ValidationResult>("/check_date_api",request);
   }
 
   checkTextNumber(request:ScrapedValidation):Observable<ValidationResult> {
-    return this.httpClient.get<ValidationResult>("/check_number_api");
+    return this.httpClient.post<ValidationResult>("/check_number_api",request);
   }
 
 

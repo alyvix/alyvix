@@ -74,10 +74,15 @@ input.std-width,select.std-width {
 }
 
 .form-group {
+
+
   .autocomplete-container {
     box-shadow: none;
-    .suggestions-container ul li a {
-      padding: 2px 5px;
+    .suggestions-container ul {
+      max-height: 114px;
+      li a {
+        padding: 2px 5px;
+      }
     }
     .input-container{
       input {
