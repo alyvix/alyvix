@@ -153,8 +153,8 @@ class TextManager():
 
             if char in ['a', '4']:
                 regexp += '[a4]'
-            elif char in ['b', 'h', '6', '8']:
-                regexp += '[bh68]'
+            elif char in ['b', 'h', '6', 'g','8']:
+                regexp += '[bh6g8]'
             elif char in ['d', 'o', '0']:
                 regexp += '[do0]'
             elif char in ['e', '3']:
@@ -760,6 +760,9 @@ class TextManager():
         image_pil = Image.fromarray(cv2.cvtColor(bigger_image, cv2.COLOR_BGR2RGB).astype('uint8'))
 
         text = ""
+        text_for_finder = ""
+
+        obj_found = True
 
         # with PyTessBaseAPI(path='C:\\ProgramData\\python36\\tessdata', lang='eng') as api:
         with tesserocr.PyTessBaseAPI(path=self._tessdata_path, lang='eng') as api:
@@ -809,9 +812,10 @@ class TextManager():
 
                 text_list.append(((bbox), symbol, conf))
                 text += " " + symbol
+                text_for_finder += " " + symbol
 
                 if scrape is False:
-                    result = re.match(".*" + self._regexp + ".*", text, re.DOTALL | re.IGNORECASE)
+                    result = re.search(self._regexp, text_for_finder, re.DOTALL | re.IGNORECASE)
 
                     if result is not None:
                         text_for_result = ""
@@ -822,13 +826,13 @@ class TextManager():
                             text_for_result = box[1] + " " + text_for_result
                             boxes_for_result.append(box)
 
-                            result2 = re.match(".*" + self._regexp + ".*", text_for_result,
+                            result2 = re.match(".*" + self._regexp, text_for_result + ".*",
                                                re.DOTALL | re.IGNORECASE)
 
                             if result2 is not None:
                                 boxes_for_result = boxes_for_result[::-1]  # reverse array
                                 text_list = []
-                                text = ""
+                                text_for_finder = ""
                                 #results.append(boxes_for_result) all words of a result
 
                                 first_word = boxes_for_result[0]
@@ -838,6 +842,9 @@ class TextManager():
                                 return_value.y = offset_y + bounding_box[1]
                                 return_value.w = bounding_box[2] - bounding_box[0]
                                 return_value.h = bounding_box[3] - bounding_box[1]
+                                return_value.extract_text = result.group(0)
+
+
 
                                 objects_found.append(return_value)
 
@@ -848,6 +855,7 @@ class TextManager():
 
                 else:
                     scraped_words.append(bbox)
+                #scraped_words.append(bbox)
                 i += 1
             # print(ocrResult)
             cnt += 1
@@ -897,4 +905,19 @@ class TextManager():
 
             return objects_found
         else:
+
+
+            if len(objects_found) > 0:
+                for obj_found in objects_found:
+                    obj_found.scraped_text = text.lstrip().rstrip()
+
+            else:
+                return_value = Result()
+                return_value.x = 0 #offset_x + 0
+                return_value.y = 0 #offset_y + 0
+                return_value.w = 0 #roi.w - 0
+                return_value.h = 0 #roi.h - 0
+                return_value.scraped_text = text.lstrip().rstrip()
+                objects_found.append(return_value)
+
             return objects_found
