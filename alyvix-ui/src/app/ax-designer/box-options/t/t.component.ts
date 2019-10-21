@@ -84,17 +84,19 @@ export class TComponent implements OnInit {
     if (!this.node.box.features.T.type) {
       this.node.box.features.T.type = "detect";
     }
-    if (!this.node.box.features.T.detection) {
+    if (!this.node.box.features.T.detection && this.node.box.features.T.type === 'detect') {
       this.node.box.features.T.detection = "regex";
     }
-    if (!this.node.box.features.T.map) {
+    if (!this.node.box.features.T.map && this.node.box.features.T.type === 'map') {
       this.node.box.features.T.map = "None";
     }
     if (this.node && this.node.box) {
       this.alyvixApi.getScrapedText(this.node.box).subscribe(x => {
         this.scraped = x.scraped_text;
         if (!this.node.box.features.T.regexp) {
-          this.node.box.features.T.regexp = x.reg_exp
+          if(this.node.box.features.T.detection === "regex") {
+            this.node.box.features.T.regexp = x.reg_exp
+          }
           this.regex.setValue(x.reg_exp);
         } else {
           this.regex.setValue(this.node.box.features.T.regexp);
@@ -116,9 +118,29 @@ export class TComponent implements OnInit {
     if(mode === 'number') {
       this.numberLogic.setValue('more_than_zero');
       this.node.box.features.T.logic = this.numberLogic.value;
+      delete this.node.box.features.T.regexp;
     } else if(mode === 'date') {
       this.dateLogic.setValue('last_hour');
       this.node.box.features.T.logic = this.dateLogic.value;
+      delete this.node.box.features.T.regexp;
+    } else {
+      delete this.node.box.features.T.logic;
+      this.node.box.features.T.regexp = this.regex.value;
+    }
+  }
+
+  changeType(type) {
+    console.log("change" + type)
+    this.node.box.features.T.type = type;
+    if(type === 'detect') {
+      this.node.box.features.T.detection = "regex";
+      delete this.node.box.features.T.map;
+    } else {
+      console.log('change to map');
+      this.node.box.features.T.map = "None";
+      delete this.node.box.features.T.logic;
+      delete this.node.box.features.T.regexp;
+      delete this.node.box.features.T.detection;
     }
   }
 

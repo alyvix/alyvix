@@ -6,7 +6,8 @@
     <div class="form-group distribute">
       <input
         class="mousetrap"
-        [(ngModel)]="node.box.features.T.type"
+        [ngModel]="node.box.features.T.type"
+        (ngModelChange)="changeType($event)"
         type="radio"
         name="Tradio"
         id="Tdetect"
@@ -15,7 +16,8 @@
       <label for="Tdetect">Detect</label>
       <input
         class="mousetrap"
-        [(ngModel)]="node.box.features.T.type"
+        [ngModel]="node.box.features.T.type"
+        (ngModelChange)="changeType($event)"
         type="radio"
         name="Tradio"
         id="Tscrap"
@@ -31,7 +33,7 @@
   >
     <div class="form-group">
       <label>Map</label>
-      <select [(ngModel)]="node.box.features.T.map" style="width: 100%">
+      <select [(ngModel)]="node.box.features.T.map"  style="width: 100%">
         <option value="None">None</option>
         <option *ngFor="let map of maps" value="{{map}}">{{map}}</option>
       </select>
