@@ -668,6 +668,15 @@ class EngineManager(object):
                                     tm.set_regexp(box["features"]["T"]["regexp"], self._arguments)
                                     sub_results = tm.find(box["features"]["T"], roi=roi)
 
+                                    scraped_text = sub_results[0].scraped_text
+                                    tmp_text_scraped += scraped_text + ";"
+
+                                    if sub_results[0].extract_text is None:
+                                        sub_results = []
+                                    else:
+                                        extract_text = sub_results[0].extract_text
+                                        tmp_text_extracted += extract_text + ";"
+
                             elif box["features"]["T"]["type"] == "map":
 
                                 map_name = box["features"]["T"]["map"]
@@ -809,14 +818,17 @@ class EngineManager(object):
             extract_text = ""
             check = True
 
-            for component in self._components_appeared:
-                if component.type == "T":
+            try:
+                for component in self._components_appeared:
+                    if component.type == "T":
 
-                    scraped_text += component.scraped_text + ";"
+                        scraped_text += component.scraped_text + ";"
 
-                    if component.extract_text:
+                        #if component.extract_text is not None:
                         extract_text += component.extract_text + ";"
                         #check = 1
+            except:
+                pass
 
             if scraped_text != "":
                 scraped_text = scraped_text[:-1]
