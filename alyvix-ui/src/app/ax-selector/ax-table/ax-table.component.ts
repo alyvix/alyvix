@@ -54,14 +54,18 @@ export class AxTableComponent implements OnInit {
     if (data.length > 0) {
       this.selectedRows = [data[0]];
     }
+    this.updateResolutions();
+    this.changeResolution();
+  }
+
+  private updateResolutions() {
     this.resolutions = _.uniq(
       [this.currentResolution].concat(
         _.flatten(
-          data.map(o => this.resolutionsForObject(o.object.components))
+          this._data.map(o => this.resolutionsForObject(o.object.components))
         )
       )
     );
-    this.changeResolution();
   }
 
   get data(): RowVM[] {
@@ -372,6 +376,7 @@ export class AxTableComponent implements OnInit {
         if ( selectedIndex >= 0 ) { this.selectedRows[selectedIndex] = r; }
         this.editing = null;
         this.filterData();
+        this.updateResolutions();
         this.changeDetecor.markForCheck();
         this.changeDetecor.detectChanges();
       } else if(r && this.data.find(d => d.name === r.name)) {
@@ -379,11 +384,13 @@ export class AxTableComponent implements OnInit {
         if ( dataIndex >= 0 ) { this._data[dataIndex] = r; }
         const selectedIndex = this.selectedRows.findIndex(d => d.name === r.name);
         if ( selectedIndex >= 0 ) { this.selectedRows[selectedIndex] = r; }
+        this.updateResolutions();
         this.changeResolution();
         this.changeDetecor.markForCheck();
         this.changeDetecor.detectChanges();
       } else if(r) {
         this._data.push(r);
+        this.updateResolutions();
         this.changeResolution();
         this.changeDetecor.markForCheck();
         this.changeDetecor.detectChanges();
