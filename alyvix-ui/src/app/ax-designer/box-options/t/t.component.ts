@@ -115,8 +115,10 @@ export class TComponent implements OnInit {
     this.node.box.features.T.detection = mode;
     if(mode === 'number') {
       this.numberLogic.setValue('more_than_zero');
+      this.node.box.features.T.logic = this.numberLogic.value;
     } else if(mode === 'date') {
       this.dateLogic.setValue('last_hour');
+      this.node.box.features.T.logic = this.dateLogic.value;
     }
   }
 
