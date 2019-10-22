@@ -234,7 +234,8 @@ class LibraryManager:
                                                             ["components"][resolution_string]},
                                             "date_modified": self._json_object["objects"][object_name]["date_modified"],
                                             "detection": self._json_object["objects"][object_name]["detection"],
-                                            "measure": self._json_object["objects"][object_name]["measure"]}}
+                                            "measure": self._json_object["objects"][object_name]["measure"],
+                                            "call": self._json_object["objects"][object_name]["call"]}}
         except:
             return {}
 
@@ -476,6 +477,21 @@ class LibraryManager:
             return detection_dict
         except:
             return {}
+
+
+    def get_call_from_string(self, json_string):
+
+        object_name = list(json_string.keys())[0]
+        alyvix_json = json_string
+
+        try:
+            detection_dict = alyvix_json[object_name]["call"]
+            return detection_dict
+        except:
+            return {
+                "features": {},
+                "type": "run"
+            }
 
 
     def build_objects_for_engine(self, json_string):

@@ -24,7 +24,11 @@ import json
 import time
 import copy
 import base64
+import shlex
+import subprocess
 import threading
+import psutil
+import os
 import numpy as np
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.library import LibraryManager
@@ -109,6 +113,8 @@ class EngineManager(object):
 
         self._object_definition = self._library_manager.build_objects_for_engine(self._object_json)
         self._detection = self._library_manager.get_detection_from_string(self._object_json)
+
+        self._call = self._library_manager.get_call_from_string(self._object_json)
 
         self._result.detection_type = self._detection["type"]
         self._result.has_to_break = self._detection["break"]
@@ -1333,6 +1339,45 @@ class EngineManager(object):
         timeout = self._detection["timeout_s"]
         has_to_break = self._detection["break"]
         detection_type = self._detection["type"]
+
+        call = self._call
+
+        if call["type"] == "run":
+            try:
+                args = call["features"]["arguments"]
+                exe = call["features"]["path"]
+
+                popen_input = []
+                popen_input.append(exe)
+                popen_input.extend(shlex.split(args))
+
+                print("Run " + exe)
+
+                proc = subprocess.Popen(popen_input)
+
+
+            except:
+                pass
+        elif call["type"] == "kill":
+
+            try:
+                process_name = call["features"]["process"]
+
+                logged_user = os.environ['userdomain'] + "\\" + os.environ.get("USERNAME")  # os.getlogin()
+
+                for proc in psutil.process_iter(attrs=['name', 'username']):
+                    try:
+
+                        if proc.name() == process_name and proc.username() == logged_user:
+                            print("Kill " + process_name)
+
+                            p = psutil.Process(proc.pid)
+                            p.kill()
+                    except:
+                        pass
+
+            except:
+                pass
 
         disappear_mode = False
 
