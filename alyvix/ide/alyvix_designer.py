@@ -147,6 +147,7 @@ if __name__ == '__main__':
         print("Frame grabbing!")
 
         background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+
     elif lm.check_if_exist(object) == True:
         alyvix_file_dict = lm.build_objects_for_ide(object)
 

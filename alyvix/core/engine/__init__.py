@@ -653,6 +653,7 @@ class EngineManager(object):
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
+                                        tmp_text_extracted += "" + ";"
                                     else:
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ";"
@@ -666,6 +667,7 @@ class EngineManager(object):
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
+                                        tmp_text_extracted += "" + ";"
                                     else:
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ";"
@@ -679,6 +681,7 @@ class EngineManager(object):
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
+                                        tmp_text_extracted += "" + ";"
                                     else:
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ";"
@@ -696,6 +699,7 @@ class EngineManager(object):
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
+                                        tmp_text_extracted += "" + ";"
                                     else:
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ";"
@@ -1344,12 +1348,18 @@ class EngineManager(object):
 
         if call["type"] == "run":
             try:
-                args = call["features"]["arguments"]
+                args = None
+                try:
+                    args = call["features"]["arguments"]
+                except:
+                    pass
+
                 exe = call["features"]["path"]
 
                 popen_input = []
                 popen_input.append(exe)
-                popen_input.extend(shlex.split(args))
+                if args is not None:
+                    popen_input.extend(shlex.split(args))
 
                 print("Run " + exe)
 
@@ -1379,6 +1389,19 @@ class EngineManager(object):
             except:
                 pass
 
+        if self._library_manager.check_if_empty_from_string(self._object_json):
+            self._screen_with_objects = self._screen_manager.grab_desktop(self._screen_manager.get_color_mat)
+
+            self._annotation_screen = self._annotation_screen
+
+            self._result.performance_ms = 0
+            self._result.records["check"] = True
+            self._result.accuracy_ms = 0
+            self._result.screenshot = self._screen_with_objects
+            self._result.annotation = self._annotation_screen
+
+            return self._result
+
         disappear_mode = False
 
         appear_time = 0
@@ -1398,6 +1421,7 @@ class EngineManager(object):
 
             #t_before_grab = time.time()
             current_color_screen = self._screen_manager.grab_desktop(self._screen_manager.get_color_mat)
+
             t_after_grab = time.time()
 
             #self._screens.append((t_before_grab, self._compress(current_color_screen), t_after_grab))
