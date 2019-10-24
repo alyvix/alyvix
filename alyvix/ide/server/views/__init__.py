@@ -124,12 +124,14 @@ def drawing():
     curr_call = lm.get_call(current_objectname)
     curr_measure = lm.get_measure(current_objectname)
     map_dict = lm.get_map()
+    script = lm.get_script()
     return render_template('drawing.html', base64url = "data:image/png;base64," + base64png, img_h=img_h, img_w=img_w,
                            autocontoured_rects=autocontoured_rects, text=en.drawing,
                            object_name=current_objectname,
                            measure=curr_measure,
                            call=curr_call,
                            maps=map_dict,
+                           script=script,
                            loaded_boxes=current_boxes)
 
 @app.route("/designer_open_file_api")

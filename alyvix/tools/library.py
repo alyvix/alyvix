@@ -200,6 +200,15 @@ class LibraryManager:
 
         return map_dict
 
+    def get_script(self):
+
+        try:
+            map_dict = self._json_object["script"]
+        except:
+            return {}
+
+        return map_dict
+
     def get_call(self, object_name):
 
         if object_name is None:
