@@ -6,11 +6,13 @@ export interface AxModel {
     call?:AxSystemCall;
     measure?:Measure;
     maps?: {[key:string]: {[key:string]: string}};
+    script?: any;
   }
 
   export interface AxSelectorObjects {
     objects: {[key:string]: AxSelectorObject};
     maps?: {[key:string]: {[key:string]: string}};
+    script?: any;
   }
 
   export interface AxSelectorObject {

@@ -134,6 +134,7 @@ export class TComponent implements OnInit {
     this.node.box.features.T.type = type;
     if(type === 'detect') {
       this.node.box.features.T.detection = "regex";
+      this.node.box.features.T.regexp = this.regex.value;
       delete this.node.box.features.T.map;
     } else {
       console.log('change to map');
