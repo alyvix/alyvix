@@ -750,9 +750,11 @@ class TextManager():
         new_width = int(source_image.shape[1] * self._scale_for_tesseract)
         new_height = int(source_image.shape[0] * self._scale_for_tesseract)
         dim = (new_width, new_height)
+        #cv2.imwrite("D:\\alyvix_testcase\\test3.png", source_image)
 
         # resize image
         bigger_image = cv2.resize(source_image, dim, interpolation=cv2.INTER_CUBIC)
+        #cv2.imwrite("D:\\alyvix_testcase\\test3_2.png", bigger_image)
 
 
         t0 = time.time()

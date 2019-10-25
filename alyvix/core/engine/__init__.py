@@ -24,7 +24,11 @@ import json
 import time
 import copy
 import base64
+import shlex
+import subprocess
 import threading
+import psutil
+import os
 import numpy as np
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.library import LibraryManager
@@ -109,6 +113,8 @@ class EngineManager(object):
 
         self._object_definition = self._library_manager.build_objects_for_engine(self._object_json)
         self._detection = self._library_manager.get_detection_from_string(self._object_json)
+
+        self._call = self._library_manager.get_call_from_string(self._object_json)
 
         self._result.detection_type = self._detection["type"]
         self._result.has_to_break = self._detection["break"]
@@ -647,6 +653,7 @@ class EngineManager(object):
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
+                                        tmp_text_extracted += "" + ";"
                                     else:
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ";"
@@ -660,6 +667,7 @@ class EngineManager(object):
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
+                                        tmp_text_extracted += "" + ";"
                                     else:
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ";"
@@ -673,6 +681,7 @@ class EngineManager(object):
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
+                                        tmp_text_extracted += "" + ";"
                                     else:
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ";"
@@ -690,6 +699,7 @@ class EngineManager(object):
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
+                                        tmp_text_extracted += "" + ";"
                                     else:
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ";"
@@ -1334,6 +1344,64 @@ class EngineManager(object):
         has_to_break = self._detection["break"]
         detection_type = self._detection["type"]
 
+        call = self._call
+
+        if call["type"] == "run":
+            try:
+                args = None
+                try:
+                    args = call["features"]["arguments"]
+                except:
+                    pass
+
+                exe = call["features"]["path"]
+
+                popen_input = []
+                popen_input.append(exe)
+                if args is not None:
+                    popen_input.extend(shlex.split(args))
+
+                print("Run " + exe)
+
+                proc = subprocess.Popen(popen_input)
+
+
+            except:
+                pass
+        elif call["type"] == "kill":
+
+            try:
+                process_name = call["features"]["process"]
+
+                logged_user = os.environ['userdomain'] + "\\" + os.environ.get("USERNAME")  # os.getlogin()
+
+                for proc in psutil.process_iter(attrs=['name', 'username']):
+                    try:
+
+                        if proc.name() == process_name and proc.username() == logged_user:
+                            print("Kill " + process_name)
+
+                            p = psutil.Process(proc.pid)
+                            p.kill()
+                    except:
+                        pass
+
+            except:
+                pass
+
+        if self._library_manager.check_if_empty_from_string(self._object_json):
+            self._screen_with_objects = self._screen_manager.grab_desktop(self._screen_manager.get_color_mat)
+
+            self._annotation_screen = self._annotation_screen
+
+            self._result.performance_ms = 0
+            self._result.records["check"] = True
+            self._result.accuracy_ms = 0
+            self._result.screenshot = self._screen_with_objects
+            self._result.annotation = self._annotation_screen
+
+            return self._result
+
         disappear_mode = False
 
         appear_time = 0
@@ -1353,6 +1421,7 @@ class EngineManager(object):
 
             #t_before_grab = time.time()
             current_color_screen = self._screen_manager.grab_desktop(self._screen_manager.get_color_mat)
+
             t_after_grab = time.time()
 
             #self._screens.append((t_before_grab, self._compress(current_color_screen), t_after_grab))

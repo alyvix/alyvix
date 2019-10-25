@@ -200,6 +200,15 @@ class LibraryManager:
 
         return map_dict
 
+    def get_script(self):
+
+        try:
+            map_dict = self._json_object["script"]
+        except:
+            return {}
+
+        return map_dict
+
     def get_call(self, object_name):
 
         if object_name is None:
@@ -234,7 +243,8 @@ class LibraryManager:
                                                             ["components"][resolution_string]},
                                             "date_modified": self._json_object["objects"][object_name]["date_modified"],
                                             "detection": self._json_object["objects"][object_name]["detection"],
-                                            "measure": self._json_object["objects"][object_name]["measure"]}}
+                                            "measure": self._json_object["objects"][object_name]["measure"],
+                                            "call": self._json_object["objects"][object_name]["call"]}}
         except:
             return {}
 
@@ -476,6 +486,48 @@ class LibraryManager:
             return detection_dict
         except:
             return {}
+
+
+    def get_call_from_string(self, json_string):
+
+        object_name = list(json_string.keys())[0]
+        alyvix_json = json_string
+
+        try:
+            detection_dict = alyvix_json[object_name]["call"]
+            return detection_dict
+        except:
+            return {
+                "features": {},
+                "type": "run"
+            }
+
+    def check_if_empty_from_string(self, json_string):
+
+        object_name = list(json_string.keys())[0]
+        alyvix_json = json_string
+
+        sm = ScreenManager()
+        w, h = sm.get_resolution()
+        scaling_factor = sm.get_scaling_factor()
+
+        resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
+
+
+        try:
+            groups = alyvix_json[object_name]["components"][resolution_string]["groups"]
+
+            cnt_main_empty = 0
+            for group in groups:
+                if bool(group["main"]) is False:
+                    cnt_main_empty += 1
+
+            if cnt_main_empty == 3:
+                return True
+            else:
+                return False
+        except:
+            return True
 
 
     def build_objects_for_engine(self, json_string):
