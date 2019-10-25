@@ -32,12 +32,15 @@ export class ScreenComponent implements OnInit {
       this.axService.axModel.call = {type: "run", features: {}}
     }
     this.call = this.axService.getModel().call;
+    this.arguments = this.call.features.arguments;
+    this.path = this.call.features.path;
+    this.process = this.call.features.process;
     this.alyvixApi.getProcesses().subscribe(x => {
       this.processes = _.uniq(x.object_exists);
     });
     this.datastore.getSelectedFile().subscribe(f => {
       if (f.length > 0) {
-        this.call.features.path = f;
+        this.changePath(f);
         this.datastore.setSelectedFile("");
         this.changeDetecor.markForCheck();
         this.changeDetecor.detectChanges();
@@ -45,9 +48,36 @@ export class ScreenComponent implements OnInit {
     });
   }
 
+  changeType(t) {
+    this.call.type = t;
+    if(t === 'run') {
+      delete this.call.features.process;
+      this.call.features.path = this.path;
+      this.call.features.arguments = this.arguments;
+    } else if(t === 'kill') {
+      delete this.call.features.arguments;
+      delete this.call.features.path;
+      this.call.features.process = this.process;
+    }
+  }
+
   changeProcess(event) {
     console.log(event);
     this.axService.axModel.call.features.process = event;
+    this.process = event;
+  }
+  process:string = "";
+  arguments:string = "";
+  path:string = "";
+
+  changePath(p) {
+    this.call.features.path = p;
+    this.path = p;
+  }
+
+  changeArguments(a) {
+    this.arguments = a;
+    this.call.features.arguments = a;
   }
 
 

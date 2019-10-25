@@ -1,7 +1,7 @@
 <div class="pure-u-1-1">
   <div class="form-group">
       <label>Call</label>
-    <select class="mousetrap" [(ngModel)]="call.type">
+    <select class="mousetrap" [ngModel]="call.type" (ngModelChange)="changeType($event)">
       <option value="run">Run</option>
       <option value="kill">Kill</option>
     </select>
@@ -14,7 +14,8 @@
       <label>Path</label>
       <input
         class="mousetrap"
-        [(ngModel)]="call.features.path"
+        [ngModel]="path"
+        (ngModelChange)="changePath($event)"
         type="text"
         spellcheck="false"
       />
@@ -28,7 +29,8 @@
   <div class="form-group">
     <label>Arguments</label>
     <input
-      [(ngModel)]="call.features.arguments"
+      [ngModel]="arguments"
+      (ngModelChange)="changeArguments($event)"
       class="mousetrap"
       type="text"
       spellcheck="false"
