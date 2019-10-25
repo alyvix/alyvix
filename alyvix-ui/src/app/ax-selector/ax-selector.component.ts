@@ -23,18 +23,19 @@ export class AxSelectorComponent implements OnInit {
 
   constructor(
     private datastore: SelectorDatastoreService,
-    @Inject('GlobalRef') private global: GlobalRef
+    @Inject('GlobalRefSelector') private global: GlobalRef
   ) { }
 
   selected: AxFile = {id: '', data: [], name: '', readonly: false };
   main: AxFile = {id: '', data: [], name: '', readonly: false };
   files: AxFile[] = [];
   production: boolean = environment.production;
+  debugJson:boolean = false;
 
 
 
   ngOnInit(): void {
-
+    this.debugJson = !environment.production && environment.workingOn === 'selector'
     this.datastore.getData().subscribe(data => {
       this.main = {id:Utils.uuidv4(), data: data, name: this.global.nativeGlobal().current_library_name, readonly: false };
       this.selected = this.main;

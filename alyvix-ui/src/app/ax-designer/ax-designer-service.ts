@@ -25,7 +25,7 @@ export interface TreeNode{
 export class AxDesignerService {
 
 
-    constructor( @Inject('GlobalRef') private global: GlobalRef,) {
+    constructor( @Inject('GlobalRefDesigner') private global: GlobalRef,) {
         this.axModel = this.global.nativeGlobal().axModel();
         console.log(this.axModel)
         if(this.axModel.box_list) {
@@ -52,17 +52,17 @@ export class AxDesignerService {
             this.global.nativeGlobal().setSelectedNode(this.indexOfBox(lastElement))
 
         } else if(iSelectedNode >= 0) {
-			this.global.nativeGlobal().setSelectedNode(iSelectedNode); 
+			this.global.nativeGlobal().setSelectedNode(iSelectedNode);
             var node = this.axModel.box_list[iSelectedNode];
             selectedNode = this.findNode(node)
-               
+
         }
-        if(selectedNode)    
+        if(selectedNode)
             this._selectedNode.next(selectedNode)
-        
 
 
-        
+
+
 
     }
 
@@ -90,7 +90,7 @@ export class AxDesignerService {
     }
 
     private findNode(box:BoxListEntity):TreeNode {
-        var selectedNode:TreeNode 
+        var selectedNode:TreeNode
         if(box && box.is_main) {
             selectedNode = this._root.value.children.find(x => fastDeepEqual(x.box,box))
         } else {
@@ -99,7 +99,7 @@ export class AxDesignerService {
         }
         return selectedNode
     }
- 
+
 
 
     public setSelectedNode(box:TreeNode) {
@@ -147,20 +147,20 @@ export class AxDesignerService {
     }
 
 
-  
+
     private static boxListEntityToNode(box:BoxListEntity):TreeNode {
       var result:TreeNode =  {
         box: box,
         last: false
       }
-  
+
       if(box.thumbnail) {
         result.image = 'data:image/jpg;base64,' + box.thumbnail.image;
       }
-  
+
       return result;
     }
-  
+
     getRoot():Observable<TreeNode> {
         return this._root;
     }
@@ -168,37 +168,37 @@ export class AxDesignerService {
     getModel():AxModel {
         return this.axModel;
     }
-  
+
     private _loadNodes(selectRoot:boolean) {
-  
+
       var box_list = [];
       if(this.axModel.box_list) {
           box_list = this.axModel.box_list;
       }
-  
+
       var boxByGroups = _.groupBy(box_list, function(box:BoxListEntity) { return box.group})
-  
-  
+
+
       var groups:TreeNode[] = _.map(boxByGroups, function(elements:BoxListEntity[],group:number) {
         var mainNode = AxDesignerService.boxListEntityToNode(elements.find(x => x.is_main));
         var children:TreeNode[] = elements.filter(x => !x.is_main).map(box => AxDesignerService.boxListEntityToNode(box))
-  
+
         if(children.length > 0) {
           children[children.length - 1].last = true;
         }
-        
+
         mainNode.children = children;
         return mainNode;
       });
-  
+
       if(groups.length > 0) {
         groups[groups.length - 1].last = true;
       }
-  
+
       var root = { children: groups, image: this.axModel.background, last: true}
-  
+
       this._root.next(root);
-  
+
       if(selectRoot) {
         this.setSelectedNode(root);
       }
@@ -236,14 +236,14 @@ export class AxDesignerService {
     full():boolean {
         return [0,1,2].every(x => this.isGroupFull(x))
     }
-  
-  
+
+
     removeAll() {
         this.axModel.box_list.length = 0;
         this._loadNodes(true);
     }
     newComponent(node:TreeNode) {
-        
+
         if(node.box && !this.isGroupFull(node.box.group)) {
             this.global.nativeGlobal().newComponent(node.box.group)
         } else {

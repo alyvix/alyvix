@@ -9,7 +9,7 @@ export const environment = {
   production: false,
   globalType: DevGlobalRef,
   globalTypeSelector: DevSelectorGlobalRef,
-  workingOn: "selector",
+  workingOn: "editor",
   assets: "/assets"
 };
 

@@ -14,7 +14,7 @@ import { GlobalRef, GroupsFlag } from "src/app/ax-designer/ax-global";
 })
 export class TComponent implements OnInit {
 
-  constructor(private alyvixApi: AlyvixApiService, @Inject('GlobalRef') private global: GlobalRef, ) { }
+  constructor(private alyvixApi: AlyvixApiService, @Inject('GlobalRefDesigner') private global: GlobalRef, ) { }
 
   _node:TreeNode
   loading:boolean

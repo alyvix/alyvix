@@ -7,6 +7,7 @@ import { HotkeysService } from 'angular2-hotkeys';
 import { SelectorModule } from './app/ax-selector/selector.module';
 import { SelectorDatastoreService } from './app/ax-selector/selector-datastore.service';
 import { DesignerDatastoreService } from './app/ax-designer/designer-datastore.service';
+import { EditorModule } from './app/ax-editor/editor.module';
 
 
 if (environment.production) {
@@ -14,8 +15,9 @@ if (environment.production) {
 }
 
 
-var designer: void | NgModuleRef<DesignerModule>
-var selector: void | NgModuleRef<SelectorModule>
+let designer: void | NgModuleRef<DesignerModule>
+let selector: void | NgModuleRef<SelectorModule>
+let editor: void | NgModuleRef<SelectorModule>
 
 function loadAlyvixDesigner() {
   platformBrowserDynamic().bootstrapModule(DesignerModule).catch(err => console.log(err)).then(module => designer = module)
@@ -23,6 +25,10 @@ function loadAlyvixDesigner() {
 
 function loadAlyvixSelector() {
   platformBrowserDynamic().bootstrapModule(SelectorModule).catch(err => console.log(err)).then(module => selector = module)
+}
+
+function loadAlyvixEditor() {
+  platformBrowserDynamic().bootstrapModule(EditorModule).catch(err => console.log(err)).then(module => editor = module)
 }
 
 function reloadAlyvixSelector(objectName: string) {
@@ -58,6 +64,7 @@ function changeResolution(resolution) {
 }
 
 
+(window as any).loadAlyvixEditor = loadAlyvixEditor;
 (window as any).loadAlyvixDesigner = loadAlyvixDesigner;
 (window as any).unloadAlyvixDesigner = unloadAlyvixDesigner;
 (window as any).loadAlyvixSelector = loadAlyvixSelector;
@@ -77,6 +84,8 @@ if (!environment.production) {
     loadAlyvixDesigner();
   } else if(environment.workingOn == "selector") {
     loadAlyvixSelector();
+  } else if(environment.workingOn == "editor") {
+    loadAlyvixEditor();
   }
 
   //loadAlyvixSelector();

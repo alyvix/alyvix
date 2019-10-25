@@ -34,7 +34,7 @@ export class AxTableComponent implements OnInit {
 
   constructor(
     private _sanitizer: DomSanitizer,
-    @Inject('GlobalRef') private global: GlobalRef,
+    @Inject('GlobalRefSelector') private global: GlobalRef,
     private datastore:SelectorDatastoreService,
     private changeDetecor: ChangeDetectorRef) {}
 

@@ -14,7 +14,7 @@ import * as fastDeepEqual from 'fast-deep-equal';
 })
 export class IComponent implements OnInit {
 
-  constructor(@Inject('GlobalRef') private global: GlobalRef,) { }
+  constructor(@Inject('GlobalRefDesigner') private global: GlobalRef,) { }
 
   _node:TreeNode
 
@@ -31,7 +31,7 @@ export class IComponent implements OnInit {
 
   mode:I
 
-  
+
   match:I = {'colors': true, 'likelihood': 0.9}
   color:I = {'colors': true, 'likelihood': 0.7}
   shape:I = {'colors': false, 'likelihood': 0.7}

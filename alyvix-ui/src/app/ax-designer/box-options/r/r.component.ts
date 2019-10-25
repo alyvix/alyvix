@@ -13,7 +13,7 @@ import * as _ from 'lodash';
 })
 export class RComponent implements OnInit {
 
-  constructor(@Inject('GlobalRef') private global: GlobalRef,) { }
+  constructor(@Inject('GlobalRefDesigner') private global: GlobalRef,) { }
 
   _node:TreeNode
 
@@ -31,7 +31,7 @@ export class RComponent implements OnInit {
 
 
   ngOnInit() {
-    
+
   }
 
   onNodeChange() {
@@ -45,6 +45,6 @@ export class RComponent implements OnInit {
     this.mode = event;
   }
 
- 
+
 
 }
