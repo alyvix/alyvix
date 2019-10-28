@@ -25,7 +25,7 @@ export class ScreenComponent implements OnInit {
   processes: string[] = [];
 
 
-  @ViewChild('selectProcess') selectProcess: ElementRef;
+  @ViewChild('selectProcess',{static: true}) selectProcess: ElementRef;
 
   ngOnInit() {
     if(!this.axService.axModel.call) {

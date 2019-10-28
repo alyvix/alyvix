@@ -43,7 +43,7 @@ export class AxSelectorComponent implements OnInit {
   }
 
 
-  @ViewChild(AxTableComponent) table;
+  @ViewChild(AxTableComponent,{static:true}) table;
   onResized(event: ResizedEvent) {
     if (this.table)
       this.table.onResized(event);
@@ -59,7 +59,7 @@ export class AxSelectorComponent implements OnInit {
     this.files = this.files.filter(f => f.id !== i.id);
   }
 
-  @ViewChild('file') _file;
+  @ViewChild('file',{static: true}) _file;
   loadFile() {
     this._file.nativeElement.click();
   }

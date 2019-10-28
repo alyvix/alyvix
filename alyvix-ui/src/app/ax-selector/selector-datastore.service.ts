@@ -21,7 +21,7 @@ export interface AxFile {
 export class SelectorDatastoreService {
 
   private editedRow: BehaviorSubject<RowVM> = new BehaviorSubject<RowVM>(null);
-  private maps:{[key:string]: {[key:string]: string}};
+  private originalLibrary:AxSelectorObjects;
 
   constructor(
     private apiService: AlyvixApiService
@@ -51,13 +51,15 @@ export class SelectorDatastoreService {
       if(library) {
         data = this.modelToData(library);
       }
-      this.maps = library.maps;
+      this.originalLibrary = library;
+
       return data;
     }));
   }
 
   private prepareModelForSubmission(data:RowVM[]):AxSelectorObjects {
-    const model:AxSelectorObjects = { objects: {}, maps: this.maps};
+    const model:AxSelectorObjects = this.originalLibrary;
+    model.objects = {};
     data.forEach( d => {
       model.objects[d.name] = d.object;
     });

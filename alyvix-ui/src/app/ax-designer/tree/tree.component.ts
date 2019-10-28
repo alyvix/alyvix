@@ -19,11 +19,11 @@ export class TreeComponent implements OnInit {
   root:TreeNode
   options = {};
 
-  
 
 
 
-  node:TreeNode;  
+
+  node:TreeNode;
 
   ngOnInit() {
     this.axDesignerService.getSelectedNode().subscribe(n => this.node = n);
@@ -92,7 +92,7 @@ export class TreeComponent implements OnInit {
     }
     return false;
   }}
-  
+
 
   onContextMenu($event: MouseEvent, item: TreeNode): void {
     this.axDesignerService.setSelectedNode(item);
@@ -103,8 +103,8 @@ export class TreeComponent implements OnInit {
   }
 
 
-  @ViewChild("mainContextMenu") public mainContextMenu: ContextMenuComponent;
+  @ViewChild("mainContextMenu",{static: true}) public mainContextMenu: ContextMenuComponent;
 
-  @ViewChild("childContextMenu") public childContextMenu: ContextMenuComponent;
+  @ViewChild("childContextMenu",{static: true}) public childContextMenu: ContextMenuComponent;
 
 }

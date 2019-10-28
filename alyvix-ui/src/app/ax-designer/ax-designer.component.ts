@@ -21,10 +21,10 @@ export class AxDesignerComponent implements OnInit {
 
   axModel:AxModel;
 
-  @ViewChild('pullDown') pullDown: ElementRef;
-  @ViewChild('treeContainer') treeContainer: ElementRef;
+  @ViewChild('pullDown',{static: true}) pullDown: ElementRef;
+  @ViewChild('treeContainer', {static: true}) treeContainer: ElementRef;
 
-  @ViewChild("first") first: ElementRef;
+  @ViewChild("first", {static: true}) first: ElementRef;
   // object_name: FormControl = new FormControl('', [
   //   Validators.required
   //   Validators.

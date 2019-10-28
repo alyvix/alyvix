@@ -105,7 +105,7 @@ export class AxTableComponent implements OnInit {
     return this._sanitizer.bypassSecurityTrustResourceUrl("data:image/png;base64,"+image);
   }
 
-  @ViewChild('tableContainer') tableContainer: ElementRef;
+  @ViewChild('tableContainer',{static: true}) tableContainer: ElementRef;
   onResized(event: ResizedEvent) {
     this.tableContainer.nativeElement.style.height = (event.newHeight - 44 - 70 - 27) + "px"
   }

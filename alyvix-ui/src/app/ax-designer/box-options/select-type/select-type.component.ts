@@ -9,7 +9,7 @@ import { TreeNode } from '../../ax-designer-service';
 export class SelectTypeComponent implements OnInit,AfterViewInit {
 
 
-  
+
 
   _node:TreeNode
 
@@ -26,9 +26,9 @@ export class SelectTypeComponent implements OnInit,AfterViewInit {
 
   loading:boolean = true;
 
-  @ViewChild("iElement") iElement: ElementRef;
-  @ViewChild("rElement") rElement: ElementRef;
-  @ViewChild("tElement") tElement: ElementRef;
+  @ViewChild("iElement",{static:true}) iElement: ElementRef;
+  @ViewChild("rElement",{static:true}) rElement: ElementRef;
+  @ViewChild("tElement",{static:true}) tElement: ElementRef;
 
   changeType(event) {
     console.log(event.srcElement.value);

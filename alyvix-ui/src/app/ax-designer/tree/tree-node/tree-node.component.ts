@@ -3,7 +3,6 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { AxDesignerService, TreeNode } from '../../ax-designer-service';
 import { environment } from 'src/environments/environment';
 import { AxModel } from 'src/app/ax-model/model';
-import { stringify } from '@angular/core/src/util';
 
 export interface GroupColors{
   main:string
@@ -101,7 +100,7 @@ export class TreeNodeComponent implements OnInit,DoCheck {
   thumbnailWidth:number = 0;
   thumbnailHeight:number = 0;
 
-  @ViewChild("canvas") canvas: ElementRef;
+  @ViewChild("canvas",{static:true}) canvas: ElementRef;
 
   icon(type) {
     switch(type) {
