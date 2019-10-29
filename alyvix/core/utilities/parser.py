@@ -90,7 +90,7 @@ class ParserManager:
 
         object_json = self._lm.add_chunk(object_name, self._chunk)
 
-        engine_manager = EngineManager(object_json, args=args, verbose=self._verbose)
+        engine_manager = EngineManager(object_json, args=args, maps=self._script_maps, verbose=self._verbose)
         result = engine_manager.execute()
 
         self._objects_result.append(result)

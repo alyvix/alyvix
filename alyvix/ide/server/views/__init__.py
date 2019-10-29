@@ -1211,17 +1211,23 @@ def check_date_api():
         ret_dict = {"result": False}
 
         if date_time is not None:
+
+            date_now = datetime.datetime.now()
+            if date_time.hour == 0 and date_time.minute == 0 and date_time.second == 0:
+                date_time = date_time.replace(hour=date_now.hour, minute=date_now.minute, second=date_now.second,
+                                              microsecond=date_now.microsecond)
+
             if logic == "last_hour":
-                if date_time >= datetime.datetime.now() - datetime.timedelta(hours=1):
+                if date_time >= date_now - datetime.timedelta(hours=1):
                     ret_dict = {"result": True}
             elif logic == "last_day":
-                if date_time >= datetime.datetime.now() - datetime.timedelta(days=1):
+                if date_time >= date_now - datetime.timedelta(days=1):
                     ret_dict = {"result": True}
             elif logic == "last_week":
-                if date_time >= datetime.datetime.now() - datetime.timedelta(days=7):
+                if date_time >= date_now - datetime.timedelta(days=7):
                     ret_dict = {"result": True}
             elif logic == "last_month":
-                if date_time >= datetime.datetime.now() - datetime.timedelta(days=31):
+                if date_time >= date_now - datetime.timedelta(days=31):
                     ret_dict = {"result": True}
 
 

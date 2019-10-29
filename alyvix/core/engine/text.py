@@ -425,20 +425,27 @@ class TextManager():
                             extract_text = date_time.strftime("%Y%m%d%H%M%S")
 
                         if extract_text != "":
+
+                            date_now = datetime.datetime.now()
+                            if date_time.hour == 0 and date_time.minute == 0 and date_time.second == 0:
+                                date_time = date_time.replace(hour=date_now.hour, minute=date_now.minute,
+                                                              second=date_now.second,
+                                                              microsecond=date_now.microsecond)
+
                             if logic == "date_last_hour":
-                                if date_time >= datetime.datetime.now() - datetime.timedelta(hours=1):
+                                if date_time >= date_now - datetime.timedelta(hours=1):
                                     s_text.check = True
                                     s_text.extract_text = extract_text
                             elif logic == "date_last_day":
-                                if date_time >= datetime.datetime.now() - datetime.timedelta(days=1):
+                                if date_time >= date_now - datetime.timedelta(days=1):
                                     s_text.check = True
                                     s_text.extract_text = extract_text
                             elif logic == "date_last_week":
-                                if date_time >= datetime.datetime.now() - datetime.timedelta(days=7):
+                                if date_time >= date_now - datetime.timedelta(days=7):
                                     s_text.check = True
                                     s_text.extract_text = extract_text
                             elif logic == "date_last_month":
-                                if date_time >= datetime.datetime.now() - datetime.timedelta(days=31):
+                                if date_time >= date_now - datetime.timedelta(days=31):
                                     s_text.check = True
                                     s_text.extract_text = extract_text
 
