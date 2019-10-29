@@ -61,6 +61,8 @@ class ParserManager:
                             self._iter_on_sections(section_name=flow_key)
                         else:
                             self._objects.append(flow_key)
+            elif key in self._script_sections:
+                self._iter_on_sections(section_name=key)
             else:
                 if key[0] == "#":
                     continue
@@ -154,13 +156,15 @@ class ParserManager:
                             self._execute_section(section_name=flow_key, args=arguments)
                         else:
                             self.execute_object(flow_key, args=arguments)
+            elif key in self._script_sections:
+                self._execute_section(section_name=key)
             else:
                 if key[0] == "#":
                     continue
                 self.execute_object(key, args=arguments)
 
     def execute_script(self):
-        #aaa = self.get_all_objects()
+        aaa = self.get_all_objects()
         self._executed_object = []
 
         try:

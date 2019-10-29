@@ -58,7 +58,7 @@ class TextManager():
         self._gray_screen = None
         self._scaling_factor = None
 
-        self._scale_for_tesseract = 1.7
+        self._scale_for_tesseract = 3
 
         self._regexp = ""
 
