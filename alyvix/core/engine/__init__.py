@@ -707,6 +707,7 @@ class EngineManager(object):
                                     sub_results = tm.scrape(roi=roi)
                                     scraped_text = sub_results[0].scraped_text
                                     tmp_text_scraped += scraped_text + ";"
+                                    tmp_text_extracted += "" + ";"
 
 
                         if len(sub_results) > 0:
@@ -834,8 +835,10 @@ class EngineManager(object):
 
                         scraped_text += component.scraped_text + ";"
 
-                        #if component.extract_text is not None:
-                        extract_text += component.extract_text + ";"
+                        if component.extract_text is None:
+                            extract_text += ";"
+                        else:
+                            extract_text += component.extract_text + ";"
                         #check = 1
             except:
                 pass
@@ -1360,8 +1363,8 @@ class EngineManager(object):
                 popen_input.append(exe)
                 if args is not None:
                     popen_input.extend(shlex.split(args))
-
-                print("Run " + exe)
+                if self._verbose >= 1:
+                    print("Run " + exe)
 
                 proc = subprocess.Popen(popen_input)
 
@@ -1379,7 +1382,8 @@ class EngineManager(object):
                     try:
 
                         if proc.name() == process_name and proc.username() == logged_user:
-                            print("Kill " + process_name)
+                            if self._verbose >= 1:
+                                print("Kill " + process_name)
 
                             p = psutil.Process(proc.pid)
                             p.kill()

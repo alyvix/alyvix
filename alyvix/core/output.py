@@ -23,6 +23,8 @@ class OutputManager:
         w, h = sm.get_resolution()
         scaling_factor = sm.get_scaling_factor()
 
+        json_exit = False
+
         for object in object_list:
 
 
@@ -62,8 +64,8 @@ class OutputManager:
                 object_dict["measure"]["annotation"] = None
 
             json_object["objects"][object.object_name] = object_dict
-            json_object["run"] = {"host": chunk["host"], "user": chunk["user"],
-                                  "test": chunk["test"], "code": chunk["code"]}
+        json_object["run"] = {"host": chunk["host"], "user": chunk["user"],
+                              "test": chunk["test"], "code": chunk["code"]}
 
         return json_object
 

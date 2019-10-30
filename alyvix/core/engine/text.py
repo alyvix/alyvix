@@ -161,8 +161,8 @@ class TextManager():
                 regexp += '[e3]'
             elif char in ['f', 't', '7']:
                 regexp += '[ft7]'
-            elif char in ['i', 'l', '1']:
-                regexp += '[il1]'
+            elif char in ['i', 'l', '1','|']:
+                regexp += '[il1|]'
             elif char in ['s', '5']:
                 regexp += '[s5]'
             elif char in ['z', '2', 'k']:
@@ -819,6 +819,7 @@ class TextManager():
                         int(bbox[2] / self._scale_for_tesseract),
                         int(bbox[3] / self._scale_for_tesseract))
 
+                symbol = symbol.replace("—", "-")
                 text_list.append(((bbox), symbol, conf))
                 text += " " + symbol
                 text_for_finder += " " + symbol
