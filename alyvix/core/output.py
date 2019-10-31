@@ -4,6 +4,8 @@ import base64
 import copy
 import time
 import os
+from collections import MutableMapping
+from contextlib import suppress
 from datetime import datetime
 from alyvix.tools.screen import ScreenManager
 
@@ -14,8 +16,18 @@ class OutputManager:
     def set_verbose(self, verbose):
         self._verbose = verbose
 
-    def _build_json(self, json_object, chunk, object_list):
 
+    def _delete_keys_from_dict(self, dictionary, keys):
+        for key in keys:
+            with suppress(KeyError):
+                del dictionary[key]
+        for value in dictionary.values():
+            if isinstance(value, MutableMapping):
+                self._delete_keys_from_dict(value, keys)
+
+    def _build_json(self, json_object, chunk, object_list, exit, duration):
+
+        self._delete_keys_from_dict(json_object, ["measure"])
 
         objects = []
 
@@ -65,7 +77,9 @@ class OutputManager:
 
             json_object["objects"][object.object_name] = object_dict
         json_object["run"] = {"host": chunk["host"], "user": chunk["user"],
-                              "test": chunk["test"], "code": chunk["code"]}
+                              "test": chunk["test"], "code": chunk["code"],
+                              "duration_s": round(duration,3),
+                              "exit": exit}
 
         return json_object
 
@@ -107,8 +121,8 @@ class OutputManager:
                 cv2.imwrite(file_path + os.sep + filename, object.annotation)
 
 
-    def save(self, filename, json_object, chunk, object_list):
+    def save(self, filename, json_object, chunk, object_list, exit, duration):
 
         with open(filename, 'w') as f:
-            json.dump(self._build_json(json_object, chunk, object_list), f, indent=4,
+            json.dump(self._build_json(json_object, chunk, object_list, exit, duration), f, indent=4,
                       sort_keys=True, ensure_ascii=False)

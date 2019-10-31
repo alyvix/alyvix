@@ -140,6 +140,8 @@ if filename is not None:
 
     state=0
 
+    t_start = time.time()
+
     if len(objects_names) == 0:
 
         pm = ParserManager(library_json=library_json, chunk= chunk, engine_arguments=engine_arguments, verbose=verbose)
@@ -174,8 +176,6 @@ if filename is not None:
                     print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(result.timeout) + "s")
                     timed_out_objects.append(result.object_name)
                 elif result.output is False and result.has_to_break is True:
-                    print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(
-                        result.timeout) + "s")
                     timed_out_objects.append(result.object_name)
                     state = 2
 
@@ -282,10 +282,14 @@ if filename is not None:
                 print(result.object_name + " NOT EXECUTED")
                 result.exit = True
 
-    if state == 0:
-        print (filename_no_extension + " ends ok")
+    t_end = time.time() - t_start
+
+    exit = False
+    if len(timed_out_objects) == 0:
+        print (filename_no_extension + " ends OK, it takes " + '{:.3f}'.format(t_end) + "s.")
+        exit = True
     else:
-        print (filename_no_extension + " TIMED OUT")
+        print (filename_no_extension + " TIMED OUT because of "+ timed_out_objects[0] +", it takes " + '{:.3f}'.format(t_end) + "s.")
 
     om = OutputManager()
     #json_output = om.build_json(chunk, objects_result)
@@ -298,4 +302,4 @@ if filename is not None:
     date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_UTC" + time.strftime("%z")
 
     filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
-    om.save(filename, lm.get_json(), chunk, objects_result)
+    om.save(filename, lm.get_json(), chunk, objects_result, exit, t_end)
