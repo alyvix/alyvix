@@ -151,7 +151,15 @@ class ParserManager:
                     selected_map = key["for"]
 
                     for map_key in self._script_maps[selected_map]:
-                        arguments = [self._script_maps[selected_map][map_key]]
+
+                        map_value = self._script_maps[selected_map][map_key]
+                        arguments = []
+
+                        if isinstance(map_value, list):
+                            arguments.extend(self._script_maps[selected_map][map_key])
+                        else:
+                            arguments.append(self._script_maps[selected_map][map_key])
+
                         if flow_key in self._script_sections:
                             self._execute_section(section_name=flow_key, args=arguments)
                         else:
@@ -170,6 +178,11 @@ class ParserManager:
         try:
             self._execute_section()
         except ValueError as e:
-            self._execute_section(section_name="fail")
-
-        self._execute_section(section_name="exit")
+            try:
+                self._execute_section(section_name="fail")
+            except ValueError as e:
+                pass
+        try:
+            self._execute_section(section_name="exit")
+        except ValueError as e:
+            pass

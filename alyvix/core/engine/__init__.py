@@ -408,91 +408,91 @@ class EngineManager(object):
 
             mouse_dict = component.mouse
 
-            if mouse_dict["type"] is None:
-                continue
-
-            time.sleep(0.2)
-
-            point_dx = 0
-            point_dy = 0
-
-            try:
-                if (mouse_dict["features"]["point"]["dx"] != 0 or mouse_dict["features"]["point"]["dy"] != 0):
-                    point_dx = mouse_dict["features"]["point"]["dx"]
-                    point_dy = mouse_dict["features"]["point"]["dy"]
-            except:
-                pass
-
-            position_x = int(component.x + (component.w / 2))
-            position_y = int(component.y + (component.h / 2))
-
-            if point_dx != 0 or point_dy != 0:
-                position_x = component.x + point_dx
-                position_y = component.y + point_dy
-
-            mouse_type = mouse_dict["type"]
-
-            if mouse_type == "move":
+            if mouse_dict["type"] is not None:
 
 
-                self._mouse_manager.move(position_x, position_y)
+                time.sleep(0.2)
 
-            elif mouse_type == "click":
-                click_amount = mouse_dict["features"]["amount"]
-
-                click_button = self._mouse_manager.left_button
-
-                if mouse_dict["features"]["button"] == "right":
-                    click_button = self._mouse_manager.right_button
-
-                self._mouse_manager.click(position_x, position_y, click_button, click_amount,
-                                          mouse_dict["features"]["delays_ms"])
-
-            elif mouse_type == "scroll":
-                scroll_amount = mouse_dict["features"]["amount"]
-
-                scroll_direction = mouse_dict["features"]["direction"]
-
-                if scroll_direction == "down":
-                    self._mouse_manager.scroll(position_x, position_y, scroll_amount,
-                                               self._mouse_manager.wheel_down, mouse_dict["features"]["delays_ms"])
-                elif scroll_direction == "up":
-                    self._mouse_manager.scroll(position_x, position_y, scroll_amount,
-                                               self._mouse_manager.wheel_up, mouse_dict["features"]["delays_ms"])
-                elif scroll_direction == "left":
-                    self._mouse_manager.scroll(position_x, position_y, scroll_amount,
-                                               self._mouse_manager.wheel_left, mouse_dict["features"]["delays_ms"])
-                elif scroll_direction == "right":
-                    self._mouse_manager.scroll(position_x, position_y, scroll_amount,
-                                               self._mouse_manager.wheel_right, mouse_dict["features"]["delays_ms"])
-
-            elif mouse_type == "hold":
-                self._mouse_manager.hold(position_x, position_y)
-
-            elif mouse_type == "release":
+                point_dx = 0
+                point_dy = 0
 
                 try:
-                    release_direction = mouse_dict["features"]["direction"]
-                    release_pixels = mouse_dict["features"]["pixels"]
-
-                    x1 = position_x
-                    y1 = position_y
-
-                    if release_direction == "down":
-                        x2 = x1
-                        y2 = position_y + release_pixels
-                    elif release_direction == "up":
-                        x2 = x1
-                        y2 = position_y - release_pixels
-                    elif release_direction == "left":
-                        x2 = position_x - release_pixels
-                        y2 = y1
-                    elif release_direction == "right":
-                        x2 = position_x + release_pixels
-                        y2 = y1
-                    self._mouse_manager.drag(x1, y1, x2, y2, self._mouse_manager.left_button)
+                    if (mouse_dict["features"]["point"]["dx"] != 0 or mouse_dict["features"]["point"]["dy"] != 0):
+                        point_dx = mouse_dict["features"]["point"]["dx"]
+                        point_dy = mouse_dict["features"]["point"]["dy"]
                 except:
-                    self._mouse_manager.release(position_x, position_y)
+                    pass
+
+                position_x = int(component.x + (component.w / 2))
+                position_y = int(component.y + (component.h / 2))
+
+                if point_dx != 0 or point_dy != 0:
+                    position_x = component.x + point_dx
+                    position_y = component.y + point_dy
+
+                mouse_type = mouse_dict["type"]
+
+                if mouse_type == "move":
+
+
+                    self._mouse_manager.move(position_x, position_y)
+
+                elif mouse_type == "click":
+                    click_amount = mouse_dict["features"]["amount"]
+
+                    click_button = self._mouse_manager.left_button
+
+                    if mouse_dict["features"]["button"] == "right":
+                        click_button = self._mouse_manager.right_button
+
+                    self._mouse_manager.click(position_x, position_y, click_button, click_amount,
+                                              mouse_dict["features"]["delays_ms"])
+
+                elif mouse_type == "scroll":
+                    scroll_amount = mouse_dict["features"]["amount"]
+
+                    scroll_direction = mouse_dict["features"]["direction"]
+
+                    if scroll_direction == "down":
+                        self._mouse_manager.scroll(position_x, position_y, scroll_amount,
+                                                   self._mouse_manager.wheel_down, mouse_dict["features"]["delays_ms"])
+                    elif scroll_direction == "up":
+                        self._mouse_manager.scroll(position_x, position_y, scroll_amount,
+                                                   self._mouse_manager.wheel_up, mouse_dict["features"]["delays_ms"])
+                    elif scroll_direction == "left":
+                        self._mouse_manager.scroll(position_x, position_y, scroll_amount,
+                                                   self._mouse_manager.wheel_left, mouse_dict["features"]["delays_ms"])
+                    elif scroll_direction == "right":
+                        self._mouse_manager.scroll(position_x, position_y, scroll_amount,
+                                                   self._mouse_manager.wheel_right, mouse_dict["features"]["delays_ms"])
+
+                elif mouse_type == "hold":
+                    self._mouse_manager.hold(position_x, position_y)
+
+                elif mouse_type == "release":
+
+                    try:
+                        release_direction = mouse_dict["features"]["direction"]
+                        release_pixels = mouse_dict["features"]["pixels"]
+
+                        x1 = position_x
+                        y1 = position_y
+
+                        if release_direction == "down":
+                            x2 = x1
+                            y2 = position_y + release_pixels
+                        elif release_direction == "up":
+                            x2 = x1
+                            y2 = position_y - release_pixels
+                        elif release_direction == "left":
+                            x2 = position_x - release_pixels
+                            y2 = y1
+                        elif release_direction == "right":
+                            x2 = position_x + release_pixels
+                            y2 = y1
+                        self._mouse_manager.drag(x1, y1, x2, y2, self._mouse_manager.left_button)
+                    except:
+                        self._mouse_manager.release(position_x, position_y)
 
             keyboard_dict = component.keyboard
 

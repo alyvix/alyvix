@@ -27,7 +27,22 @@ class OutputManager:
 
     def _build_json(self, json_object, chunk, object_list, exit, duration):
 
-        self._delete_keys_from_dict(json_object, ["measure"])
+        for object in json_object["objects"]:
+            try:
+                del json_object["objects"][object]["measure"]["accuracy_ms"]
+                del json_object["objects"][object]["measure"]["annotation"]
+                del json_object["objects"][object]["measure"]["exit"]
+                del json_object["objects"][object]["measure"]["group"]
+
+                del json_object["objects"][object]["measure"]["perfomance_ms"]
+                del json_object["objects"][object]["measure"]["records"]
+
+                del json_object["objects"][object]["measure"]["resolution"]
+                del json_object["objects"][object]["measure"]["scaling_factor"]
+                del json_object["objects"][object]["measure"]["screenshot"]
+                del json_object["objects"][object]["measure"]["timestamp"]
+            except:
+                pass
 
         objects = []
 
