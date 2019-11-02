@@ -73,9 +73,11 @@ class Result():
 
 class EngineManager(object):
 
-    def __init__(self, object_json, args=None, maps={}, verbose=0):
+    def __init__(self, object_json, args=None, maps={}, executed_objects=[], verbose=0):
 
         self._result = Result()
+
+        self._executed_objects = executed_objects
 
         self._result.object_name = list(object_json.keys())[0]
 
@@ -517,6 +519,89 @@ class EngineManager(object):
                     except:
                         pass #not enought arguments
 
+                #args_in_string = re.findall("\\{arg[0-9]+\\}", keyboard_string,re.IGNORECASE)
+                extract_args = re.findall("\\{.*\\.extract\\}", keyboard_string, re.IGNORECASE)
+
+                for arg_pattern in extract_args:
+
+                    try:
+                        obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                        obj_name = obj_name.split(".")[0]
+
+                        extract_value = None
+                        for executed_obj in self._executed_objects:
+
+                            if executed_obj.object_name == obj_name:
+                                extract_value = executed_obj.records["extract"]
+
+                        if extract_value is not None:
+                            keyboard_string = keyboard_string.replace(arg_pattern, extract_value)
+                    except:
+                        pass  # not enought arguments
+
+                text_args = re.findall("\\{.*\\.text\\}", keyboard_string, re.IGNORECASE)
+
+                for arg_pattern in text_args:
+
+                    try:
+                        obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                        obj_name = obj_name.split(".")[0]
+
+                        text_value = None
+                        for executed_obj in self._executed_objects:
+
+                            if executed_obj.object_name == obj_name:
+                                text_value = executed_obj.records["text"]
+
+                        if text_value is not None:
+                            keyboard_string = keyboard_string.replace(arg_pattern, text_value)
+                    except:
+                        pass  # not enought arguments
+
+                check_args = re.findall("\\{.*\\.check\\}", keyboard_string, re.IGNORECASE)
+
+                for arg_pattern in check_args:
+
+                    try:
+                        obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                        obj_name = obj_name.split(".")[0]
+
+                        check_value = None
+                        for executed_obj in self._executed_objects:
+
+                            if executed_obj.object_name == obj_name:
+                                check_value = executed_obj.records["check"]
+
+                        if check_value is not None:
+                            keyboard_string = keyboard_string.replace(arg_pattern, str(check_value))
+                    except:
+                        pass  # not enought arguments
+
+                maps_args = re.findall("\\{.*\\..*\\}", keyboard_string, re.IGNORECASE)
+
+                for arg_pattern in maps_args:
+
+                    try:
+                        map_arg = arg_pattern.lower().replace("{", "").replace("}", "")
+                        map_name = map_arg.split(".")[0]
+                        map_key = map_arg.split(".")[1]
+
+                        map_value = self._maps[map_name][map_key]
+
+                        if isinstance(map_value, list):
+                            str_value = ""
+                            for obj in map_value:
+                                str_value += str(obj) + " "
+
+                            str_value = str_value[:-1]
+                        else:
+                            str_value = str(map_value)
+
+                        keyboard_string = keyboard_string.replace(arg_pattern, str_value)
+                    except:
+                        pass  # not enought arguments
+
+
 
                 self._keyboard_manager.send(keyboard_string, False, keyboard_delay, keyboard_duration)
 
@@ -673,7 +758,8 @@ class EngineManager(object):
                                         tmp_text_extracted += extract_text + ";"
 
                                 else:
-                                    tm.set_regexp(box["features"]["T"]["regexp"], self._arguments)
+                                    tm.set_regexp(box["features"]["T"]["regexp"], self._arguments, maps=self._maps,
+                                                  executed_objects=self._executed_objects)
                                     sub_results = tm.find(box["features"]["T"], roi=roi)
 
                                     scraped_text = sub_results[0].scraped_text

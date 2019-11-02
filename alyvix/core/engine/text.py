@@ -131,7 +131,7 @@ class TextManager():
     def set_scaling_factor(self, scaling_factor):
         self._scaling_factor = scaling_factor
 
-    def set_regexp(self, regexp, args = None):
+    def set_regexp(self, regexp, args = None, maps={}, executed_objects=[]):
         self._regexp = regexp
 
         args_in_string = re.findall("\\{[1-9]\d*\\}", self._regexp, re.IGNORECASE)
@@ -142,6 +142,88 @@ class TextManager():
                 i = int(arg_pattern.lower().replace("{", "").replace("}", ""))
 
                 self._regexp = self._regexp.replace(arg_pattern, args[i - 1])
+            except:
+                pass  # not enought arguments
+
+        # args_in_string = re.findall("\\{arg[0-9]+\\}", keyboard_string,re.IGNORECASE)
+        extract_args = re.findall("\\{.*\\.extract\\}", self._regexp, re.IGNORECASE)
+
+        for arg_pattern in extract_args:
+
+            try:
+                obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                obj_name = obj_name.split(".")[0]
+
+                extract_value = None
+                for executed_obj in executed_objects:
+
+                    if executed_obj.object_name == obj_name:
+                        extract_value = executed_obj.records["extract"]
+
+                if extract_value is not None:
+                    self._regexp = self._regexp.replace(arg_pattern, extract_value)
+            except:
+                pass  # not enought arguments
+
+        text_args = re.findall("\\{.*\\.text\\}", self._regexp, re.IGNORECASE)
+
+        for arg_pattern in text_args:
+
+            try:
+                obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                obj_name = obj_name.split(".")[0]
+
+                text_value = None
+                for executed_obj in executed_objects:
+
+                    if executed_obj.object_name == obj_name:
+                        text_value = executed_obj.records["text"]
+
+                if text_value is not None:
+                    self._regexp = self._regexp.replace(arg_pattern, text_value)
+            except:
+                pass  # not enought arguments
+
+        check_args = re.findall("\\{.*\\.check\\}", self._regexp, re.IGNORECASE)
+
+        for arg_pattern in check_args:
+
+            try:
+                obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                obj_name = obj_name.split(".")[0]
+
+                check_value = None
+                for executed_obj in executed_objects:
+
+                    if executed_obj.object_name == obj_name:
+                        check_value = executed_obj.records["check"]
+
+                if check_value is not None:
+                    self._regexp = self._regexp.replace(arg_pattern, str(check_value))
+            except:
+                pass  # not enought arguments
+
+        maps_args = re.findall("\\{.*\\..*\\}", self._regexp, re.IGNORECASE)
+
+        for arg_pattern in maps_args:
+
+            try:
+                map_arg = arg_pattern.lower().replace("{", "").replace("}", "")
+                map_name = map_arg.split(".")[0]
+                map_key = map_arg.split(".")[1]
+
+                map_value = maps[map_name][map_key]
+
+                if isinstance(map_value, list):
+                    str_value = ""
+                    for obj in map_value:
+                        str_value += str(obj) + " "
+
+                    str_value = str_value[:-1]
+                else:
+                    str_value = str(map_value)
+
+                self._regexp = self._regexp.replace(arg_pattern, str_value)
             except:
                 pass  # not enought arguments
 

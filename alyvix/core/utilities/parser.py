@@ -15,7 +15,8 @@ class ParserManager:
         self._objects_result = []
 
         self._objects = []
-        self._executed_object = []
+        self._executed_object_name = []
+        self._executed_object_instance = []
 
         self._script_case = copy.deepcopy(library_json["script"]["case"])
         self._script_sections = copy.deepcopy(library_json["script"]["sections"])
@@ -81,7 +82,7 @@ class ParserManager:
         return self._objects
 
     def get_executed_objects(self):
-        return self._executed_object
+        return self._executed_object_name
 
     def execute_object(self, object_name, args=None):
         if self._lm.check_if_exist(object_name) is False:
@@ -90,11 +91,13 @@ class ParserManager:
 
         object_json = self._lm.add_chunk(object_name, self._chunk)
 
-        engine_manager = EngineManager(object_json, args=args, maps=self._script_maps, verbose=self._verbose)
+        engine_manager = EngineManager(object_json, args=args, maps=self._script_maps,
+                                       executed_objects=self._objects_result, verbose=self._verbose)
+
         result = engine_manager.execute()
 
         self._objects_result.append(result)
-        self._executed_object.append(object_name)
+        self._executed_object_name.append(object_name)
 
         if result.performance_ms == -1 and result.has_to_break is True:
             if self._verbose >= 1:
@@ -173,7 +176,7 @@ class ParserManager:
 
     def execute_script(self):
         aaa = self.get_all_objects()
-        self._executed_object = []
+        self._executed_object_name = []
 
         try:
             self._execute_section()

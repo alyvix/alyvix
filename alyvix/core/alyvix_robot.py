@@ -218,7 +218,8 @@ if filename is not None:
 
             object_json = lm.add_chunk(object_name, chunk)
 
-            engine_manager = EngineManager(object_json, args=engine_arguments, maps=maps, verbose=verbose)
+            engine_manager = EngineManager(object_json, args=engine_arguments,
+                                           maps=maps, executed_objects=objects_result, verbose=verbose)
             result = engine_manager.execute()
 
             objects_result.append(result)
