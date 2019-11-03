@@ -5,9 +5,9 @@ import copy
 import os.path
 from datetime import datetime
 from socket import gethostname
-from core.output import OutputManager
+from alyvix.core.output import OutputManager
 from alyvix.core.engine import EngineManager, Result
-from core.utilities.parser import ParserManager
+from alyvix.core.utilities.parser import ParserManager
 from alyvix.tools.library import LibraryManager
 
 def eprint(*args, **kwargs):
