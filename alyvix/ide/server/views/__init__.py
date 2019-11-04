@@ -112,7 +112,11 @@ def detachedProcessFunction(wait_time):
 @app.route("/table", methods=['GET', 'POST'])
 def index():
     return render_template('table.html', variables={})
-    
+
+@app.route("/panel", methods=['GET', 'POST'])
+def panel():
+    return render_template('panel.html', variables={})
+
 @app.route("/drawing", methods=['GET', 'POST'])
 def drawing():
     global library_dict
@@ -1165,10 +1169,12 @@ def check_number_api():
         logic = json_data["logic"]
 
         try:
-            result = re.search(r'\d+', scraped_text).group()
+            result = re.search(r'(-[ ]{0,}\d+|\d+)', scraped_text).group()
+
+            int_result = int(result.replace(" ",""))
 
             if logic == "more_than_zero":
-                if int(result) > 0:
+                if int_result > 0:
                     ret_dict = {"result": True}
                 else:
                     ret_dict = {"result": False}

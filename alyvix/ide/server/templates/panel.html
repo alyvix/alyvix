@@ -1,0 +1,26 @@
+<!DOCTYPE html> 
+<html>
+<head> 
+ <link rel="stylesheet" type="text/css" href="static/css/draw.css">
+    <script src="static/js/jquery-3.3.1.min.js"></script>
+    <script src="static/js/rect.js"></script>
+    <link rel="stylesheet" type="text/css" href="static/codebase/fonts/font_roboto/roboto.css"/>
+    <link rel="stylesheet" type="text/css" href="static/codebase/dhtmlx.css"/>
+    <link rel="stylesheet" type="text/css" href="static/css/treetable.css"/>
+    <link rel="stylesheet" href="static/alyvix-ui/styles.css"></head>
+
+    <script src="static/js/jquery-ui.min.js"></script> 
+    <script src="static/codebase/dhtmlx.js"></script>
+    </head>
+    <body>
+        <div id="layoutObj" style="position: relative; width: 800px; height: 600px;"></div>
+        <script>
+var myLayout = new dhtmlXLayoutObject({
+    parent: document.getElementById("layoutObj"),
+    pattern: "3L"
+});
+// the old way still works
+//var myLayout = new dhtmlXLayoutObject("layoutObj", "3L", "dhx_skyblue");
+        </script>
+    </body>
+</html>

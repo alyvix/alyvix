@@ -58,7 +58,7 @@ class TextManager():
         self._gray_screen = None
         self._scaling_factor = None
 
-        self._scale_for_tesseract = 3
+        self._scale_for_tesseract = 2
 
         self._regexp = ""
 
@@ -538,16 +538,21 @@ class TextManager():
 
                     if s_text.scraped_text != "":
 
+                        """
                         scraped_text_one_space = re.sub(r'\s+', ' ', s_text.scraped_text.lower()).strip()
 
-                        result = re.search(r'\d+', scraped_text_one_space)
+                        result = re.search(r'-\d+', scraped_text_one_space)
+                        """
+                        result = re.search(r'(-[ ]{0,}\d+|\d+)', s_text.scraped_text)
 
                         if result is not None:
 
                             result = result.group(0)
 
+                            int_result = int(result.replace(" ",""))
+
                             if logic == "number_more_than_zero":
-                                if int(result) > 0:
+                                if int_result > 0:
                                     s_text.check = True
                                     s_text.extract_text = result
 
