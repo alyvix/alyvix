@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     #2 time.sleep(100)
 
-    url = "http://127.0.0.1:" + str(server_port) + "/selector"
+    url = "http://127.0.0.1:" + str(server_port) + "/panel"
 
     if args.window is True:
 
