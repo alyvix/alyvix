@@ -103,6 +103,10 @@ class ViewerManager(ViewerManagerBase):
         win32gui.SetActiveWindow(hwnd)
         win32gui.BringWindowToTop(hwnd)
 
+    def resize_event(self):
+        print("resize")
+        a = 10
+        pass
 
     def load_url(self, url, window_handle):
         browser = cef.GetBrowserByWindowHandle(window_handle)
@@ -153,6 +157,7 @@ class ViewerManager(ViewerManagerBase):
             win32con.WM_CLOSE: self.close_window,
             win32con.WM_DESTROY: self.exit_app,
             win32con.WM_SIZE: WindowUtils.OnSize,
+            #win32con.WM_DISPLAYCHANGE: self.resize_event,
             win32con.WM_SETFOCUS: WindowUtils.OnSetFocus,
             win32con.WM_ERASEBKGND: WindowUtils.OnEraseBackground
         }
@@ -165,14 +170,26 @@ class ViewerManager(ViewerManagerBase):
             win32con.WM_ERASEBKGND: WindowUtils.OnEraseBackground
         }
 
+        if father == "ide":
+            title = "Alyvix Ide"
+            class_name = "alyvix.ide"
+            fullscreen = False
+            w = 1000
+            h = 600
+        elif father == "designer":
+            title = "Alyvix Designer"
+            class_name = "alyvix.designer"
+            fullscreen = True
+            w = 800
+            h = 800
 
-        self._hwnd_1 = self.create_window(title="Alyvix Designer",
-                                      class_name="alyvix.designerr",
-                                      width=800,
-                                      height=800,
+        self._hwnd_1 = self.create_window(title=title,
+                                      class_name=class_name,
+                                      width=w,
+                                      height=h,
                                       window_proc=window_proc,
                                       icon="resources/chromium.ico",
-                                      fullscreen=True)
+                                      fullscreen=fullscreen)
 
         window_info = cef.WindowInfo()
         window_info.SetAsChild(self._hwnd_1)
@@ -184,7 +201,7 @@ class ViewerManager(ViewerManagerBase):
                                           height=int(460*scaling_factor),
                                           window_proc=window_proc_2,
                                           icon="resources/chromium.ico",
-                                          fullscreen=False)
+                                          fullscreen=fullscreen)
 
             window_info_2 = cef.WindowInfo()
             window_info_2.SetAsChild(self._hwnd_2)
@@ -309,9 +326,23 @@ class ViewerManager(ViewerManagerBase):
             window_style = (win32con.WS_OVERLAPPEDWINDOW | win32con.WS_CLIPCHILDREN
                         | win32con.WS_VISIBLE)
 
+            width = win32api.GetSystemMetrics(0)
+            height = win32api.GetSystemMetrics(1)
+
+            if class_name == "alyvix.ide":
+                xpos = 5
+                ypos = 5
+                width = width - 10
+                height = height - 10
             window_handle = win32gui.CreateWindow(class_name, title, window_style,
                                               xpos, ypos, width, height,
                                               0, 0, wndclass.hInstance, None)
+
+
+            if class_name == "alyvix.ide":
+                win32gui.ShowWindow(window_handle, win32con.SW_MAXIMIZE)
+
+
 
 
         assert (window_handle != 0)
@@ -350,6 +381,10 @@ class ViewerManager(ViewerManagerBase):
         try:
             browser = cef.GetBrowserByWindowHandle(self._hwnd_1)
             browser.CloseBrowser(True)
+
+            if win32gui.GetClassName(window_handle) == "alyvix.ide":
+                #selector_close_api close the web server without do anything else
+                aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
             #browser = None
         except:
             pass
