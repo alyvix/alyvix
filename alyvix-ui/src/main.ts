@@ -8,6 +8,7 @@ import { SelectorModule } from './app/ax-selector/selector.module';
 import { SelectorDatastoreService } from './app/ax-selector/selector-datastore.service';
 import { DesignerDatastoreService } from './app/ax-designer/designer-datastore.service';
 import { EditorModule } from './app/ax-editor/editor.module';
+import { AxModelMock } from './app/ax-model/mock';
 
 
 if (environment.production) {
@@ -72,6 +73,15 @@ function changeResolution(resolution) {
 (window as any).unloadAlyvixSelector = unloadAlyvixSelector;
 (window as any).setExePath = setExePath;
 (window as any).changeResolution = changeResolution;
+
+(window as any).axModelMock =  function() {
+  return AxModelMock.get();
+};
+
+(window as any).flagsMock =  function() {
+  return AxModelMock.flags();
+};
+
 
 /* TO TEST
 var node = document.createElement("app-root");

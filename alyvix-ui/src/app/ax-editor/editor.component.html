@@ -1,11 +1,35 @@
 
+<div class="container-header">
+  <div class="header">
+      aaaa
+  </div>
+  <div class="container-editor" #container>
+    <div class="variable_width">
+        <rsz-layout class="top-panel" [directions]="['none']" [rFlex]="true">
+            <div [style.height.px]="topLeftHeight" class="editor-menu-panel">
+              <rsz-layout class="" [directions]="['right']" [rFlex]="true">
+                  <div class="inner-cell objects">
+                    <p>Objects</p>
+                  </div>
+              </rsz-layout>
+              <rsz-layout class="" [directions]="['none']" [rFlex]="true">
+                <div class="inner-cell">
+                  <p>Editor</p>
+                </div>
+              </rsz-layout>
+            </div>
+          </rsz-layout>
+          <rsz-layout (resizing)="resizing($event)" class="selector-panel" [directions]="['top']" [rFlex]="true">
+              <div [style.height.px]="selectorHeight" class="selector-panel-container">
+                <ax-selector></ax-selector>
+              </div>
+          </rsz-layout>
+
+    </div>
+    <div class="designer-right">
+      <ax-designer></ax-designer>
+    </div>
+  </div>
 
 
-<div class="container">
-  <div class="variable_width">
-    <ax-selector></ax-selector>
-  </div>
-  <div class="designer-left">
-    <ax-designer></ax-designer>
-  </div>
 </div>

@@ -1,26 +1,94 @@
 <!DOCTYPE html> 
 <html>
 <head> 
- <link rel="stylesheet" type="text/css" href="static/css/draw.css">
-    <script src="static/js/jquery-3.3.1.min.js"></script>
-    <script src="static/js/rect.js"></script>
-    <link rel="stylesheet" type="text/css" href="static/codebase/fonts/font_roboto/roboto.css"/>
-    <link rel="stylesheet" type="text/css" href="static/codebase/dhtmlx.css"/>
-    <link rel="stylesheet" type="text/css" href="static/css/treetable.css"/>
+    <title>Alyvix Editor</title>
     <link rel="stylesheet" href="static/alyvix-ui/styles.css"></head>
-
-    <script src="static/js/jquery-ui.min.js"></script> 
-    <script src="static/codebase/dhtmlx.js"></script>
-    </head>
-    <body>
-        <div id="layoutObj" style="position: relative; width: 800px; height: 600px;"></div>
+</head>
+<body style="height: 100vh;" onload="loadAlyvixEditor();" onunload="unloadAlyvixEditor();">
+        <script type="text/javascript" src="static/alyvix-ui/runtime.js"></script><script type="text/javascript" src="static/alyvix-ui/polyfills.js"></script><script type="text/javascript" src="static/alyvix-ui/main.js"></script>
         <script>
-var myLayout = new dhtmlXLayoutObject({
-    parent: document.getElementById("layoutObj"),
-    pattern: "3L"
-});
-// the old way still works
-//var myLayout = new dhtmlXLayoutObject("layoutObj", "3L", "dhx_skyblue");
+
+            //SELECTOR
+            function new_button(delay) {
+                throw new Error("Method not implemented.");
+            }
+            function cancel_button() {
+                throw new Error("Method not implemented.");
+            }
+            function edit(object_name, resolution) {
+                throw new Error("Method not implemented.");
+            };
+
+            var current_library_name = "TODO";
+            var res_string = "TODO";
+
+            //DESIGNER
+            function axModel() {
+                console.log("axModel() Method not implemented.");
+                return axModelMock();
+            } //:AxModel;
+
+            function lastElement() {
+                console.log("lastElement() Method not implemented.");
+                return null;
+            } //:BoxListEntity;
+
+            function newComponent(group) {
+                throw new Error("Method not implemented.");
+            }
+            function setPoint(i) {
+                console.log("setPoint(i) Method not implemented.");
+            }
+
+            function setRectangles() {
+                console.log("setRectangles() Method not implemented.");
+            }
+
+            function save() {
+                throw new Error("Method not implemented.");
+            }
+
+            function cancel() {
+                throw new Error("Method not implemented.");
+            }
+
+            function getGroupsFlag() {
+                console.log("getGroupsFlag() Method not implemented.");
+                return flagsMock();
+            }//:GroupsFlag
+
+            function setGroupFlags(flags) {
+                console.log("setGroupFlags() Method not implemented.");
+            }
+
+            function getSelectedNode() {
+                console.log("getSelectedNode() Method not implemented.");
+                return null;
+            }//:number
+
+            function setSelectedNode(i) {
+                console.log("setSelectedNode() Method not implemented.");
+            }
+
+            function get_rect_type(rect) {
+                throw new Error("Method not implemented.");
+            } //:RectType
+
+
+            function set_rect_type(type,rect) {
+                console.log("set_rect_type Method not implemented.");
+            }
+
+            function setTypeNode(s) {
+                console.log("setTypeNode Method not implemented.");
+            }
+
+            function uuidv4() {
+                console.log("uuidv4 Method not implemented.");
+            } // :string
+
         </script>
+        <app-root></app-root>
+        <!-- inject angular-ui -->
     </body>
 </html>
