@@ -81,6 +81,8 @@ class EngineManager(object):
 
         self._result.object_name = list(object_json.keys())[0]
 
+        self._first_attempt_finished = False
+
         try:
             self._result.group = object_json[self._result.object_name]["measure"]["group"]
         except:
@@ -951,6 +953,7 @@ class EngineManager(object):
             self._tmp_text_extracted = tmp_text_extracted
 
         self.total_threads -= 1
+        self._first_attempt_finished = True
         self.lock.release()
 
     def _get_annotation_screen(self, index=None):
@@ -1590,7 +1593,11 @@ class EngineManager(object):
 
                 return self._result
 
-            if time.time() - self._t0 > timeout:
+            self.lock.acquire()
+            first_attempt_finished = self._first_attempt_finished
+            self.lock.release()
+
+            if time.time() - self._t0 > timeout and first_attempt_finished is True:
 
                 self._timedout = True
 
