@@ -1,0 +1,30 @@
+
+
+.ax-header-container {
+  display: flex;
+  padding: 17px 20px;
+  .ax-header-title{
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 16px;
+    font-family: 'Roboto';
+    letter-spacing: 3px;
+    line-height: 25px;
+    width: 200px;
+  }
+
+  ul {
+    margin: 0;
+    list-style-type:none;
+    display: inline-block;
+    li {
+      margin: 0 5px;
+      list-style: none;
+      display: inline-block;
+    }
+  }
+
+  i {
+    color: white;
+  }
+}

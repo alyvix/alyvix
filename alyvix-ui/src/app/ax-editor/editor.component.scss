@@ -14,6 +14,7 @@ $headerHeight: 60px;
   .container-editor {
     display: flex;
     height: calc(100vh - #{$headerHeight});
+    overflow: hidden;
 
     .designer-right {
       width: 420px;
@@ -32,7 +33,7 @@ $headerHeight: 60px;
       box-sizing: border-box;
 
 
-      // TODO 
+      // TODO
       .rg-top{
         top: 0px;
         left: 0;
@@ -73,8 +74,27 @@ $headerHeight: 60px;
       height: 100%;
     }
 
-    .objects {
-      min-width: 300px;
+    .objects-collapsed {
+      margin-top: -10px;
+      background-color: $blue;
+      height: 75px;
+      width: 18px;
+      cursor: pointer;
+
+
+      p {
+        position:absolute;
+        top:45px;
+        left: 2px;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: 11px;
+        color: white;
+        font-family: 'Roboto';
+        transform: rotate(-90deg);
+        transform-origin: 0 0;
+      }
     }
+
   }
 }

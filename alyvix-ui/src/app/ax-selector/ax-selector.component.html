@@ -11,7 +11,7 @@
           <a class="ax-selector-tab btn add" (click)="loadFile()">+</a>
           <input type="file" accept=".alyvix" #file (change)="onFileAdd()" style="display: none">
       </div>
-      <ax-table [(data)]="selected.data" [readonly]="selected.readonly" (import)="onImport($event)"></ax-table>
+      <ax-table [(data)]="selected.data" [readonly]="selected.readonly" (import)="onImport($event)" [editor]="editor"></ax-table>
     </div>
 
 </div>

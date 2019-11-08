@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, Inject } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, Inject, Input } from '@angular/core';
 import { AxModel, BoxListEntity } from '../ax-model/model';
 import { AxDesignerService, TreeNode } from './ax-designer-service';
 import { GlobalRef } from './ax-global';
@@ -21,6 +21,7 @@ export class AxDesignerComponent implements OnInit {
 
   axModel:AxModel;
 
+  @Input() editor:boolean = false;
   @ViewChild('pullDown',{static: true}) pullDown: ElementRef;
   @ViewChild('treeContainer', {static: true}) treeContainer: ElementRef;
 

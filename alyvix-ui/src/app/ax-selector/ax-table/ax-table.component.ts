@@ -47,6 +47,8 @@ export class AxTableComponent implements OnInit {
   @Input()
   readonly: boolean;
 
+  @Input() editor:boolean;
+
   @Output() dataChange:EventEmitter<RowVM[]> = new EventEmitter<RowVM[]>();
   @Input()
   set data(data: RowVM[]) {

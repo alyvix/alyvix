@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Inject } from '@angular/core';
+import { Component, OnInit, ViewChild, Inject, Input } from '@angular/core';
 import { ResizedEvent } from 'angular-resize-event';
 import { AxTableComponent, RowVM } from './ax-table/ax-table.component';
 import { environment } from 'src/environments/environment';
@@ -26,6 +26,9 @@ export class AxSelectorComponent implements OnInit {
     @Inject('GlobalRefSelector') private global: GlobalRef
   ) { }
 
+
+  @Input() editor:boolean = false;
+
   selected: AxFile = {id: '', data: [], name: '', readonly: false };
   main: AxFile = {id: '', data: [], name: '', readonly: false };
   files: AxFile[] = [];
@@ -35,6 +38,7 @@ export class AxSelectorComponent implements OnInit {
 
 
   ngOnInit(): void {
+    console.log("editor:" + this.editor);
     this.debugJson = !environment.production && environment.workingOn === 'selector'
     this.datastore.getData().subscribe(data => {
       this.main = {id:Utils.uuidv4(), data: data, name: this.global.nativeGlobal().current_library_name, readonly: false };

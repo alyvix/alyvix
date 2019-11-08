@@ -1,15 +1,20 @@
 
 <div class="container-header">
   <div class="header">
-      aaaa
+      <ax-header></ax-header>
   </div>
   <div class="container-editor" #container>
     <div class="variable_width">
         <rsz-layout class="top-panel" [directions]="['none']" [rFlex]="true">
             <div [style.height.px]="topLeftHeight" class="editor-menu-panel">
-              <rsz-layout class="" [directions]="['right']" [rFlex]="true">
-                  <div class="inner-cell objects">
-                    <p>Objects</p>
+              <rsz-layout  [directions]="['right']" [rFlex]="true" (resizing)="resizingVertical($event)">
+                  <div [style.width.px]="objectsWidth" class="inner-cell objects">
+                    <div *ngIf="!objectCollapsed">
+                        <p>Objects</p>
+                    </div>
+                    <div class="objects-collapsed" *ngIf="objectCollapsed" (click)="expandObjects()">
+                        <p>Objects</p>
+                    </div>
                   </div>
               </rsz-layout>
               <rsz-layout class="" [directions]="['none']" [rFlex]="true">
@@ -21,13 +26,13 @@
           </rsz-layout>
           <rsz-layout (resizing)="resizing($event)" class="selector-panel" [directions]="['top']" [rFlex]="true">
               <div [style.height.px]="selectorHeight" class="selector-panel-container">
-                <ax-selector></ax-selector>
+                <ax-selector [editor]="true"></ax-selector>
               </div>
           </rsz-layout>
 
     </div>
     <div class="designer-right">
-      <ax-designer></ax-designer>
+      <ax-designer [editor]="true"></ax-designer>
     </div>
   </div>
 

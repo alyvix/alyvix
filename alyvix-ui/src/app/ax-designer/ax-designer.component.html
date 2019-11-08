@@ -42,7 +42,7 @@
   <div class="pull-down pure-g" #pullDown>
 
     <ax-box-options *ngIf="!hideOptionsOnDrag()" [node]="selectedNode"></ax-box-options>
-    <div class="pure-u-1-1 distribute">
+    <div class="pure-u-1-1 distribute" *ngIf="!editor">
         <div>
           <button (click)="save()" class="btn btn-primary">OK</button>&nbsp;<button (click)="cancel()" class="btn">Cancel</button>
         </div>

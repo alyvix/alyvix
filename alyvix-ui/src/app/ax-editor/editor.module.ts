@@ -29,6 +29,7 @@ import { HotkeyModule } from 'angular2-hotkeys';
 import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { environment } from 'src/environments/environment';
 import { NgxResizableModule } from '@3dgenomes/ngx-resizable';
+import { AxHeaderComponent } from './ax-header/ax-header.component';
 
 
 
@@ -50,6 +51,7 @@ import { NgxResizableModule } from '@3dgenomes/ngx-resizable';
     TreeNodeComponent,
     SelectTypeComponent,
     ScreenComponent,
+    AxHeaderComponent,
   ],
   imports: [
     NgxResizableModule,
