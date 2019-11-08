@@ -176,7 +176,7 @@ class ViewerManager(ViewerManagerBase):
             fullscreen = False
             w = 1000
             h = 600
-        elif father == "designer":
+        else: #father == "designer":
             title = "Alyvix Designer"
             class_name = "alyvix.designer"
             fullscreen = True
@@ -201,7 +201,7 @@ class ViewerManager(ViewerManagerBase):
                                           height=int(460*scaling_factor),
                                           window_proc=window_proc_2,
                                           icon="resources/chromium.ico",
-                                          fullscreen=fullscreen)
+                                          fullscreen=False)
 
             window_info_2 = cef.WindowInfo()
             window_info_2.SetAsChild(self._hwnd_2)
@@ -326,14 +326,14 @@ class ViewerManager(ViewerManagerBase):
             window_style = (win32con.WS_OVERLAPPEDWINDOW | win32con.WS_CLIPCHILDREN
                         | win32con.WS_VISIBLE)
 
-            width = win32api.GetSystemMetrics(0)
-            height = win32api.GetSystemMetrics(1)
+            width_s = win32api.GetSystemMetrics(0)
+            height_s = win32api.GetSystemMetrics(1)
 
             if class_name == "alyvix.ide":
                 xpos = 5
                 ypos = 5
-                width = width - 10
-                height = height - 10
+                width = width_s - 10
+                height = height_s - 10
             window_handle = win32gui.CreateWindow(class_name, title, window_style,
                                               xpos, ypos, width, height,
                                               0, 0, wndclass.hInstance, None)

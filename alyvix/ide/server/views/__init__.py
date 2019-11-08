@@ -113,8 +113,8 @@ def detachedProcessFunction(wait_time):
 def index():
     return render_template('table.html', variables={})
 
-@app.route("/panel", methods=['GET', 'POST'])
-def panel():
+@app.route("/panel2", methods=['GET', 'POST'])
+def panel2():
     return render_template('panel.html', variables={})
 
 @app.route("/drawing", methods=['GET', 'POST'])
@@ -137,6 +137,10 @@ def drawing():
                            maps=map_dict,
                            script=script,
                            loaded_boxes=current_boxes)
+
+@app.route("/panel", methods=['GET', 'POST'])
+def panel():
+    return render_template('panel.html', variables={})
 
 @app.route("/designer_open_file_api")
 def designer_open_file_api():
