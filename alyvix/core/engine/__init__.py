@@ -68,7 +68,7 @@ class Result():
         self.group = None
         self.thresholds = {"warning_s": None, "critical_s": None}
         self.output = True
-        self.exit = False
+        self.exit = "false"
 
 
 class EngineManager(object):
@@ -130,6 +130,10 @@ class EngineManager(object):
         self._group_0 = []
         self._group_1 = []
         self._group_2 = []
+
+        self._g0_found = False
+        self._g1_found = False
+        self._g2_found = False
 
         for box in self._object_definition['boxes']:
             if box['group'] == 0:
@@ -855,6 +859,7 @@ class EngineManager(object):
 
             if 1 + len(subs_group_0) == len(self._group_0):
                 len_g0_found_ok = True
+                self._g0_found = True
                 break
 
         for main_subs_group_1 in return_group_1:
@@ -863,6 +868,7 @@ class EngineManager(object):
 
             if 1 + len(subs_group_1) == len(self._group_1):
                 len_g1_found_ok = True
+                self._g1_found = True
                 break
 
         for main_subs_group_2 in return_group_2:
@@ -871,6 +877,7 @@ class EngineManager(object):
 
             if 1 + len(subs_group_2) == len(self._group_2):
                 len_g2_found_ok = True
+                self._g2_found = True
                 break
 
         if self._disappear_mode is False and self.stop_threads is False and\
@@ -1040,10 +1047,11 @@ class EngineManager(object):
 
 
             tmp_main_and_subs = []
+
             for main_and_sub in mains_and_subs:
 
                 main = main_and_sub[0]
-
+                add_tmp_main_and_subs = True
                 subs = []
 
                 for sub_def in self._object_definition['boxes']:
@@ -1059,6 +1067,16 @@ class EngineManager(object):
                                 break
 
                         if sub_found is False:
+
+                            if sub_def["group"] == 0 and self._g0_found is True:
+                                add_tmp_main_and_subs = False
+
+                            if sub_def["group"] == 1 and self._g1_found is True:
+                                add_tmp_main_and_subs = False
+
+                            if sub_def["group"] == 2 and self._g2_found is True:
+                                add_tmp_main_and_subs = False
+
                             dummy_sub = DummyResult()
                             dummy_sub.type = sub_def["type"]
                             dummy_sub.group = sub_def["group"]
@@ -1074,8 +1092,8 @@ class EngineManager(object):
                             dummy_sub.roi.unlimited_up = sub_def["roi_unlimited_up"]
                             dummy_sub.roi.unlimited_down = sub_def["roi_unlimited_down"]
                             subs.append(dummy_sub)
-
-                tmp_main_and_subs.append((main, subs))
+                if add_tmp_main_and_subs:
+                    tmp_main_and_subs.append((main, subs))
 
             mains_and_subs = tmp_main_and_subs
 
@@ -1400,6 +1418,10 @@ class EngineManager(object):
 
 
         self._screens = []
+
+        self._g0_found = False
+        self._g1_found = False
+        self._g2_found = False
 
         self._timedout = False
 

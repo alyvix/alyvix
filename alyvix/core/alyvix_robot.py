@@ -48,6 +48,7 @@ filename = None
 engine_arguments = []
 objects_names = []
 verbose = 0
+sys_exit = 0
 
 for i in range(0, len(sys.argv)):
     if sys.argv[i] == "-f" or sys.argv[i] == "--filename":
@@ -170,19 +171,25 @@ if filename is not None:
                 if result.output is True:
                     print(date_formatted + ": " + result.object_name + " measures " + str(performance) + "s " +
                           "(+/-" + '{:.3f}'.format(accuracy) + ") OK")
-                result.exit = True
+                result.exit = "true"
             else:
                 if result.output is True and result.has_to_break is True:
                     print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(result.timeout) + "s")
                     timed_out_objects.append(result.object_name)
+                    result.exit = "fail"
+                    sys_exit = 2
                 elif result.output is True and result.has_to_break is False:
                     print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(result.timeout) + "s")
-
+                    result.exit = "false"
                 elif result.output is False and result.has_to_break is True:
                     timed_out_objects.append(result.object_name)
+                    result.exit = "fail"
+                    sys_exit = 2
+                elif result.output is False and result.has_to_break is False:
+                    result.exit = "false"
                     #state = 2
 
-                result.exit = False
+
 
 
         all_objects = pm.get_all_objects()
@@ -200,7 +207,7 @@ if filename is not None:
                 dummy_result.timestamp = -1
                 dummy_result.performance_ms = -1
                 dummy_result.accuracy_ms = -1
-                dummy_result.exit = True
+                dummy_result.exit = "not_executed"
 
                 objects_result.append(dummy_result)
 
@@ -247,7 +254,7 @@ if filename is not None:
                     result.timestamp = -1
                     result.performance_ms = -1
                     result.accuracy_ms = -1
-
+                    result.exit = "not_executed"
                     objects_result.append(result)
                 cnt += 1
         """
@@ -275,25 +282,36 @@ if filename is not None:
                     if result.output is True:
                         print(date_formatted + ": " + result.object_name + " measures " + str(performance) + "s " +
                               "(+/-" + '{:.3f}'.format(accuracy) + ") OK")
-                    result.exit = True
+                    result.exit = "true"
                 else:
-                    if result.output is True:
+                    if result.output is True and result.has_to_break is True:
                         print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(
                             result.timeout) + "s")
-                    result.exit = False
+                        result.exit = "fail"
+                        sys_exit = 2
+                    elif result.output is True and result.has_to_break is False:
+                        print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(
+                            result.timeout) + "s")
+                        result.exit = "false"
+                    elif result.output is False and result.has_to_break is True:
+                        result.exit = "fail"
+                        sys_exit = 2
+                    elif result.output is False and result.has_to_break is False:
+                        result.exit = "false"
 
             else:
                 print(result.object_name + " NOT EXECUTED")
-                result.exit = True
+                result.exit = "not_executed"
 
     t_end = time.time() - t_start
 
-    exit = False
-    if len(timed_out_objects) == 0:
+
+    if sys_exit == 0:
         print (filename_no_extension + " ends OK, it takes " + '{:.3f}'.format(t_end) + "s.")
-        exit = True
+        exit = "true"
     else:
-        print (filename_no_extension + " TIMED OUT because of "+ timed_out_objects[0] +", it takes " + '{:.3f}'.format(t_end) + "s.")
+        print (filename_no_extension + " ends FAILED because of " + timed_out_objects[0] +", it takes " + '{:.3f}'.format(t_end) + "s.")
+        exit = "false"
 
     om = OutputManager()
     #json_output = om.build_json(chunk, objects_result)
