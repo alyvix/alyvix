@@ -138,9 +138,12 @@ def drawing():
                            script=script,
                            loaded_boxes=current_boxes)
 
+
+
 @app.route("/panel", methods=['GET', 'POST'])
 def panel():
-    return render_template('panel.html', variables={})
+
+    return render_template('panel.html')
 
 @app.route("/designer_open_file_api")
 def designer_open_file_api():
