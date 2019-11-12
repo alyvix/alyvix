@@ -143,7 +143,122 @@ def drawing():
 @app.route("/panel", methods=['GET', 'POST'])
 def panel():
 
-    return render_template('panel.html')
+    text = en.drawing
+
+    sm = ScreenManager()
+    resolution = sm.get_resolution()
+    res_w = resolution[0]
+    res_h = resolution[1]
+    resolution_string = str(res_w) + "*" + str(res_h) + "@" + str(int(scaling_factor * 100))
+
+    filename_path = os.path.dirname(current_filename)
+    filename_no_path = os.path.basename(current_filename)
+    filename_no_extension = os.path.splitext(filename_no_path)[0]
+
+    #ide_button_edit_api quando nel selector si cambia selezione
+
+    return render_template('panel.html', new_url_api='http://127.0.0.1:' + str(current_port) + '/ide_button_new_api',
+                           close_url_api='http://127.0.0.1:' + str(
+                               current_port) + '/ide_close_api',
+                           close_and_shutdown_url_api='http://127.0.0.1:' + str(
+                               current_port) + '/ide_shutdown_and_close_api',
+                           selector_save_json_api='http://127.0.0.1:' + str(
+                               current_port) + '/ide_save_json_api',
+                           edit_url_api='http://127.0.0.1:' + str(
+                               current_port) + '/ide_button_edit_api',
+                           res_w=res_w, res_h=res_h, scaling_factor=int(scaling_factor * 100),
+                           res_string=resolution_string, current_library_name=filename_no_extension)
+
+
+@app.route("/ide_selector_index_changed_api", methods=['GET', 'POST'])
+def ide_selector_index_changed_api():
+
+    global library_dict
+    global library_dict_in_editing
+
+    global current_objectname
+    global background_image
+    global base64png
+    global img_h
+    global img_w
+    global popen_process
+    global autocontoured_rects
+    global measure
+
+
+    object_name = request.args.get('object_name')
+    resolution = request.args.get('resolution')
+
+    browser_class.hide(browser_class._hwnd_2)
+
+    while True:
+        if browser_class.IsWindowVisible(browser_class._hwnd_2) is False \
+                and browser_class.IsIconic(browser_class._hwnd_2) is False:
+            break
+
+
+
+    screen_manager = ScreenManager()
+
+    scaling_factor = screen_manager.get_scaling_factor()
+
+    np_array = np.frombuffer(base64.b64decode(library_dict["objects"][object_name]["components"][resolution]["screen"]), np.uint8)
+
+    background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+
+    png_image = cv2.imencode('.png', background_image)
+
+    base64png = base64.b64encode(png_image[1]).decode('ascii')
+    img_h = int(background_image.shape[0] / scaling_factor)
+    img_w = int(background_image.shape[1] / scaling_factor)
+
+
+    object_res = copy.deepcopy(library_dict["objects"][object_name]["components"][resolution])
+
+    library_dict_in_editing = {"objects":{}}
+    library_dict_in_editing["objects"][object_name] = {"components": {}}
+    library_dict_in_editing["objects"][object_name]["components"][resolution] = object_res
+    #library_dict_in_editing["objects"][object_name]["measure"] = copy.deepcopy(library_dict["objects"][object_name]["measure"])
+    library_dict_in_editing["objects"][object_name]["detection"] = copy.deepcopy(library_dict["objects"][object_name]["detection"])
+    library_dict_in_editing["objects"][object_name]["date_modified"] = copy.deepcopy(library_dict["objects"][object_name]["date_modified"])
+    library_dict_in_editing["objects"][object_name]["call"] = copy.deepcopy(library_dict["objects"][object_name]["call"])
+    measure = copy.deepcopy(library_dict["objects"][object_name]["measure"])
+
+    current_objectname = object_name
+
+    url = "http://127.0.0.1:" + str(current_port) + "/drawing"
+
+    #browser_class.show(browser_class._hwnd_1)
+
+    #browser_class._browser_1.LoadUrl(url)
+
+
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
+@app.route("/draaawing", methods=['GET', 'POST'])
+def draaawing():
+    global library_dict
+    text = en.drawing
+
+
+    lm = LibraryManager()
+    lm.set_json(library_dict)
+    curr_call = lm.get_call(current_objectname)
+    curr_measure = lm.get_measure(current_objectname)
+    map_dict = lm.get_map()
+    script = lm.get_script()
+    return render_template('drawing.html', base64url = "data:image/png;base64," + base64png, img_h=img_h, img_w=img_w,
+                           autocontoured_rects=autocontoured_rects, text=en.drawing,
+                           object_name=current_objectname,
+                           measure=curr_measure,
+                           call=curr_call,
+                           maps=map_dict,
+                           script=script,
+                           loaded_boxes=current_boxes)
+
+
+
 
 @app.route("/designer_open_file_api")
 def designer_open_file_api():
@@ -992,6 +1107,7 @@ def get_library_api():
 
     ret_dict = copy.deepcopy(library_dict)
 
+    """
     #check if dict is empty
     if bool(ret_dict) == True:
 
@@ -1009,19 +1125,6 @@ def get_library_api():
 
             #original_screens[obj] = {}
             original_screens[id] = {}
-
-            """
-            resolutions = list(components.keys())
-    
-            higher_height = 0
-            higher_res = ""
-            for res in resolutions:
-                height = int(res.split('@')[0].split('*')[1])
-    
-                if height > higher_height:
-                    higher_height = height
-                    higher_res = res
-            """
 
             for cmp in components:
                 original_screens[id][cmp] = {}
@@ -1047,7 +1150,7 @@ def get_library_api():
 
             id += 1
 
-
+    """
     return jsonify(ret_dict)
 
 
