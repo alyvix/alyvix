@@ -252,7 +252,7 @@ class LibraryManager:
 
         return detection_dict
 
-    def build_objects_for_ide(self, object_name, library=None):
+    def build_objects_for_ide(self, object_name, library=None, resolution=None):
 
         self.boxes = []
 
@@ -291,7 +291,10 @@ class LibraryManager:
         except:
             measure_dict = {}
 
-        resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
+        if resolution is None:
+            resolution_string = str(w) + "*" + str(h) + "@" + str(int(scaling_factor * 100))
+        else:
+            resolution_string = resolution
 
         try:
             if library is None:

@@ -157,16 +157,7 @@ def panel():
 
     #ide_button_edit_api quando nel selector si cambia selezione
 
-    return render_template('panel.html', new_url_api='http://127.0.0.1:' + str(current_port) + '/ide_button_new_api',
-                           close_url_api='http://127.0.0.1:' + str(
-                               current_port) + '/ide_close_api',
-                           close_and_shutdown_url_api='http://127.0.0.1:' + str(
-                               current_port) + '/ide_shutdown_and_close_api',
-                           selector_save_json_api='http://127.0.0.1:' + str(
-                               current_port) + '/ide_save_json_api',
-                           edit_url_api='http://127.0.0.1:' + str(
-                               current_port) + '/ide_button_edit_api',
-                           res_w=res_w, res_h=res_h, scaling_factor=int(scaling_factor * 100),
+    return render_template('panel.html', res_w=res_w, res_h=res_h, scaling_factor=int(scaling_factor * 100),
                            res_string=resolution_string, current_library_name=filename_no_extension)
 
 
@@ -175,63 +166,83 @@ def ide_selector_index_changed_api():
 
     global library_dict
     global library_dict_in_editing
-
     global current_objectname
     global background_image
     global base64png
     global img_h
     global img_w
-    global popen_process
     global autocontoured_rects
     global measure
 
 
     object_name = request.args.get('object_name')
+    current_objectname = object_name
     resolution = request.args.get('resolution')
 
-    browser_class.hide(browser_class._hwnd_2)
+    lm = LibraryManager()
 
-    while True:
-        if browser_class.IsWindowVisible(browser_class._hwnd_2) is False \
-                and browser_class.IsIconic(browser_class._hwnd_2) is False:
-            break
+    lm.set_json(library_dict)
+
+    alyvix_file_dict = lm.build_objects_for_ide(current_objectname, resolution=resolution)
+
+    if bool(alyvix_file_dict):
+
+        np_array = np.frombuffer(base64.b64decode(alyvix_file_dict["screen"]), np.uint8)
+
+        background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+        contouring_manager = ContouringManager(
+            canny_threshold1=250 * 0.2,
+            canny_threshold2=250 * 0.3,
+            canny_apertureSize=3,
+            hough_threshold=10,
+            hough_minLineLength=30,
+            hough_maxLineGap=1,
+            line_angle_tolerance=0,
+            ellipse_width=2,
+            ellipse_height=2,
+            text_roi_emptiness=0.45,
+            text_roi_proportion=1.3,
+            image_roi_emptiness=0.1,
+            vline_hw_proportion=2,
+            vline_w_maxsize=10,
+            hline_wh_proportion=2,
+            hline_h_maxsize=10,
+            rect_w_minsize=5,
+            rect_h_minsize=5,
+            rect_w_maxsize_01=800,
+            rect_h_maxsize_01=100,
+            rect_w_maxsize_02=100,
+            rect_h_maxsize_02=800,
+            rect_hw_proportion=2,
+            rect_hw_w_maxsize=10,
+            rect_wh_proportion=2,
+            rect_wh_h_maxsize=10,
+            hrect_proximity=10,
+            vrect_proximity=10,
+            vrect_others_proximity=40,
+            hrect_others_proximity=80)
+
+        contouring_manager.auto_contouring(background_image, scaling_factor)
+
+        autocontoured_rects = []
+        autocontoured_rects.extend(contouring_manager.getImageBoxes())
+        autocontoured_rects.extend(contouring_manager.getRectBoxes())
+        autocontoured_rects.extend(contouring_manager.getTextBoxes())
+
+        #url = "http://127.0.0.1:" + str(current_port) + "/create_thumbnail"
+
+        thumbnail_dict = get_thumbnail(alyvix_file_dict["boxes"], alyvix_file_dict["screen"])
 
 
+        return_dict = {"background": alyvix_file_dict["screen"], "file_dict":alyvix_file_dict,
+                       "autocontoured_rects": autocontoured_rects,
+                       "thumbnails": thumbnail_dict}
 
-    screen_manager = ScreenManager()
+        return jsonify(return_dict)
+    else:
+        return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
 
-    scaling_factor = screen_manager.get_scaling_factor()
-
-    np_array = np.frombuffer(base64.b64decode(library_dict["objects"][object_name]["components"][resolution]["screen"]), np.uint8)
-
-    background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
-
-
-    png_image = cv2.imencode('.png', background_image)
-
-    base64png = base64.b64encode(png_image[1]).decode('ascii')
-    img_h = int(background_image.shape[0] / scaling_factor)
-    img_w = int(background_image.shape[1] / scaling_factor)
-
-
-    object_res = copy.deepcopy(library_dict["objects"][object_name]["components"][resolution])
-
-    library_dict_in_editing = {"objects":{}}
-    library_dict_in_editing["objects"][object_name] = {"components": {}}
-    library_dict_in_editing["objects"][object_name]["components"][resolution] = object_res
-    #library_dict_in_editing["objects"][object_name]["measure"] = copy.deepcopy(library_dict["objects"][object_name]["measure"])
-    library_dict_in_editing["objects"][object_name]["detection"] = copy.deepcopy(library_dict["objects"][object_name]["detection"])
-    library_dict_in_editing["objects"][object_name]["date_modified"] = copy.deepcopy(library_dict["objects"][object_name]["date_modified"])
-    library_dict_in_editing["objects"][object_name]["call"] = copy.deepcopy(library_dict["objects"][object_name]["call"])
-    measure = copy.deepcopy(library_dict["objects"][object_name]["measure"])
-
-    current_objectname = object_name
-
-    url = "http://127.0.0.1:" + str(current_port) + "/drawing"
-
-    #browser_class.show(browser_class._hwnd_1)
-
-    #browser_class._browser_1.LoadUrl(url)
 
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
@@ -1359,8 +1370,6 @@ def create_thumbnail():
         #thumbnail_fixed_height = int(30 * scaling_factor)
         #border = int(4*scaling_factor)
 
-        thumbnail_fixed_height = 30
-        border = 4
 
         json_data = json.loads(request.data)
 
@@ -1371,222 +1380,234 @@ def create_thumbnail():
         background_string = json_data["background"]
         background_string = background_string[22:]
 
-        np_array = np.frombuffer(base64.b64decode(background_string), np.uint8)
-
-        ori_background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
-
-        new_width = int(ori_background_image.shape[1] /scaling_factor)
-        new_height = int(ori_background_image.shape[0]/ scaling_factor)
-        dim = (new_width, new_height)
-
-        # resize image
-        #background_image = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
-
-        background_h = new_height #background_image.shape[0]
-        background_w = new_width #background_image.shape[1]
-
-        thumbnail_fixed_width = int((background_w * thumbnail_fixed_height)/background_h)
-
-        w_h_factor = background_w/background_h #thumbnail_fixed_width/thumbnail_fixed_height
+        return get_thumbnail(dict_list, background_string, from_url=True)
 
 
-        result_list = []
+def get_thumbnail(dict_list, background_string, from_url=False):
 
-        #del(dict_list[-1])
 
-        thumbnail_list = []
+    thumbnail_fixed_height = 30
+    border = 4
 
-        cnt = 0
-        for element in dict_list:
-            x = element["x"]
-            y = element["y"]
-            w = element["w"]
-            h = element["h"]
+    np_array = np.frombuffer(base64.b64decode(background_string), np.uint8)
 
-            thumbnail_w = w
-            thumbnail_h = h
-            thumbnail_x = x
-            thumbnail_y = y
+    ori_background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-            new_x = 0
-            new_y = 0
+    new_width = int(ori_background_image.shape[1] /scaling_factor)
+    new_height = int(ori_background_image.shape[0]/ scaling_factor)
+    dim = (new_width, new_height)
 
-            do_resize = True
+    # resize image
+    #background_image = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
 
-            if thumbnail_h  + (border*2) <= thumbnail_fixed_height and thumbnail_w  + (border*2) <= thumbnail_fixed_width:
-                thumbnail_w = thumbnail_fixed_width
-                thumbnail_h = thumbnail_fixed_height
-                x_factor = 1
-                y_factor = 1
+    background_h = new_height #background_image.shape[0]
+    background_w = new_width #background_image.shape[1]
 
-                do_resize = False
+    thumbnail_fixed_width = int((background_w * thumbnail_fixed_height)/background_h)
 
+    w_h_factor = background_w/background_h #thumbnail_fixed_width/thumbnail_fixed_height
+
+
+    result_list = []
+
+    #del(dict_list[-1])
+
+    thumbnail_list = []
+
+    cnt = 0
+    for element in dict_list:
+        x = element["x"]
+        y = element["y"]
+        w = element["w"]
+        h = element["h"]
+
+        thumbnail_w = w
+        thumbnail_h = h
+        thumbnail_x = x
+        thumbnail_y = y
+
+        new_x = 0
+        new_y = 0
+
+        do_resize = True
+
+        if thumbnail_h  + (border*2) <= thumbnail_fixed_height and thumbnail_w  + (border*2) <= thumbnail_fixed_width:
+            thumbnail_w = thumbnail_fixed_width
+            thumbnail_h = thumbnail_fixed_height
+            x_factor = 1
+            y_factor = 1
+
+            do_resize = False
+
+        else:
+
+            #bounding_box_h = thumbnail_fixed_height
+            #bounding_box_w = thumbnail_fixed_width
+
+            if thumbnail_h >= thumbnail_w:
+                bounding_box_h = thumbnail_h
+                bounding_box_w = int(bounding_box_h * w_h_factor)
             else:
+                bounding_box_w = thumbnail_w
 
-                #bounding_box_h = thumbnail_fixed_height
-                #bounding_box_w = thumbnail_fixed_width
+                # l'altezza viene aggiustata proporzionalmente in base alla larghezza
+                # però poi se l'altezza viene abbassata potrebbe troncare parte dell'oggetto
+                bounding_box_h = int(thumbnail_w / w_h_factor)
 
-                if thumbnail_h >= thumbnail_w:
-                    bounding_box_h = thumbnail_h
-                    bounding_box_w = int(bounding_box_h * w_h_factor)
-                else:
-                    bounding_box_w = thumbnail_w
+            # nel seguente ciclo ci preoccupiamo di esser sicuri che le dimensioni del thumbnail contengano
+            # l'oggetto, rispettando le proporzioni dello schermo
 
-                    # l'altezza viene aggiustata proporzionalmente in base alla larghezza
-                    # però poi se l'altezza viene abbassata potrebbe troncare parte dell'oggetto
-                    bounding_box_h = int(thumbnail_w / w_h_factor)
+            while True:
 
-                # nel seguente ciclo ci preoccupiamo di esser sicuri che le dimensioni del thumbnail contengano
-                # l'oggetto, rispettando le proporzioni dello schermo
+                if bounding_box_w <= thumbnail_w or bounding_box_h <= thumbnail_h : # in case height will be truncated
+                    # incrementiamo di 10 pixel a step per velocizzare la creazione del thumbnailS
 
-                while True:
+                    top_bottom_border = border * (bounding_box_h / thumbnail_fixed_height)
+                    left_right_border = border * (bounding_box_w / thumbnail_fixed_width)
 
-                    if bounding_box_w <= thumbnail_w or bounding_box_h <= thumbnail_h : # in case height will be truncated
-                        # incrementiamo di 10 pixel a step per velocizzare la creazione del thumbnailS
+                    if bounding_box_h - h < top_bottom_border * 2:
 
-                        top_bottom_border = border * (bounding_box_h / thumbnail_fixed_height)
-                        left_right_border = border * (bounding_box_w / thumbnail_fixed_width)
+                        top_bottom_border = (top_bottom_border * 2) - (bounding_box_h - h)
 
-                        if bounding_box_h - h < top_bottom_border * 2:
+                    else:
+                        top_bottom_border = top_bottom_border * 2
 
-                            top_bottom_border = (top_bottom_border * 2) - (bounding_box_h - h)
+                    if bounding_box_w - w < left_right_border * 2:
 
-                        else:
-                            top_bottom_border = top_bottom_border * 2
+                        left_right_border = (left_right_border * 2) - (bounding_box_w - w)
 
-                        if bounding_box_w - w < left_right_border * 2:
+                    else:
+                        left_right_border = left_right_border * 2
 
-                            left_right_border = (left_right_border * 2) - (bounding_box_w - w)
-
-                        else:
-                            left_right_border = left_right_border * 2
-
-                        bounding_box_w = bounding_box_w + left_right_border
-                        bounding_box_h = bounding_box_h + top_bottom_border
+                    bounding_box_w = bounding_box_w + left_right_border
+                    bounding_box_h = bounding_box_h + top_bottom_border
 
 
-                        if w >= h:
+                    if w >= h:
 
-                            bounding_box_w += left_right_border
-                            bounding_box_h = bounding_box_w / w_h_factor
-                        else:
-                            bounding_box_h += top_bottom_border
-                            bounding_box_w = bounding_box_h* w_h_factor
+                        bounding_box_w += left_right_border
+                        bounding_box_h = bounding_box_w / w_h_factor
+                    else:
+                        bounding_box_h += top_bottom_border
+                        bounding_box_w = bounding_box_h* w_h_factor
 
-                        if bounding_box_w > background_w or bounding_box_h > background_h:
-                            bounding_box_w = background_w
-                            bounding_box_h = background_h
+                    if bounding_box_w > background_w or bounding_box_h > background_h:
+                        bounding_box_w = background_w
+                        bounding_box_h = background_h
 
-                            thumbnail_w = bounding_box_w
-                            thumbnail_h = bounding_box_h
-
-                            do_resize = True
-                            break
-
-                    elif bounding_box_w > thumbnail_w and bounding_box_h > thumbnail_h:
-
-                        #thumbnail_w = bounding_box_w
-                        #thumbnail_h = bounding_box_h
-
-
-                        thumbnail_w = int(bounding_box_w)
-                        thumbnail_h = int(bounding_box_h)
+                        thumbnail_w = bounding_box_w
+                        thumbnail_h = bounding_box_h
 
                         do_resize = True
                         break
 
-            #ora dobbiamo centrare l'oggetto nel thumbnail
-            offset_x = thumbnail_w - w
-            offset_y = thumbnail_h - h
+                elif bounding_box_w > thumbnail_w and bounding_box_h > thumbnail_h:
 
-            thumbnail_x -= int(offset_x/2)
-            thumbnail_y -= int(offset_y / 2)
-
-            new_x += int(offset_x/2)
-            new_y += int(offset_y/2)
+                    #thumbnail_w = bounding_box_w
+                    #thumbnail_h = bounding_box_h
 
 
+                    thumbnail_w = int(bounding_box_w)
+                    thumbnail_h = int(bounding_box_h)
 
-            x_factor = thumbnail_w / thumbnail_fixed_width
-            y_factor = thumbnail_h / thumbnail_fixed_height
+                    do_resize = True
+                    break
 
-            if thumbnail_x < 0 and thumbnail_x + thumbnail_w > background_w:
-                offset = thumbnail_x
-                thumbnail_x = 0
-                new_x = new_x + offset
+        #ora dobbiamo centrare l'oggetto nel thumbnail
+        offset_x = thumbnail_w - w
+        offset_y = thumbnail_h - h
 
+        thumbnail_x -= int(offset_x/2)
+        thumbnail_y -= int(offset_y / 2)
 
-            elif thumbnail_x + thumbnail_w > background_w:
-                offset = (thumbnail_x + thumbnail_w) - background_w
-                thumbnail_x = thumbnail_x - offset
-                new_x = new_x + offset
-
-            elif thumbnail_x < 0:
-                offset = thumbnail_x
-                thumbnail_x = 0
-                new_x = new_x + offset
-
-            if thumbnail_y + thumbnail_h > background_h:
-                offset = (thumbnail_y + thumbnail_h) - background_h
-                thumbnail_y = thumbnail_y - offset
-                new_y = new_y + offset
-
-            if thumbnail_y < 0:
-                offset = thumbnail_y
-                thumbnail_y = 0
-                new_y = new_y + offset
-
-            thumbnail_x = int(thumbnail_x * scaling_factor)
-            thumbnail_y = int(thumbnail_y * scaling_factor)
-            thumbnail_w = int(thumbnail_w * scaling_factor)
-            thumbnail_h = int(thumbnail_h * scaling_factor)
-
-            thumbnail = ori_background_image[thumbnail_y:thumbnail_y + thumbnail_h,thumbnail_x:thumbnail_x + thumbnail_w]
-
-            #dim = (int(thumbnail_fixed_width/scaling_factor), int(thumbnail_fixed_height/scaling_factor))
-            dim = (int(thumbnail_fixed_width*scaling_factor), int(thumbnail_fixed_height*scaling_factor))
-
-            # resize image
-            if do_resize:
-                resized = cv2.resize(thumbnail, dim, interpolation=cv2.INTER_CUBIC)
-            else:
-                resized = thumbnail.copy()
+        new_x += int(offset_x/2)
+        new_y += int(offset_y/2)
 
 
-            x = int(new_x / x_factor)
-            y = int(new_y / y_factor)
-            h = int(h / y_factor)
-            w = int(w / x_factor)
 
-            #cv2.rectangle(resized, (x, y), (x + w, y + h), (0, 0, 255), 1)
+        x_factor = thumbnail_w / thumbnail_fixed_width
+        y_factor = thumbnail_h / thumbnail_fixed_height
 
-            #cv2.imwrite("D:\\screenshot\\" + str(cnt) + "_thumbnail.png", resized)
-
-            png_image = cv2.imencode('.png', resized)
-
-            base64png = base64.b64encode(png_image[1]).decode('ascii')
-
-            thumbnail_dict = {'image':base64png, 'image_w':int(thumbnail_fixed_width*scaling_factor),
-                              'image_h': int(thumbnail_fixed_height*scaling_factor), 'x': x, 'y': y,
-                              'w': w, 'h': h, 'group': element["group"],
-                              'is_main': element["is_main"]}
+        if thumbnail_x < 0 and thumbnail_x + thumbnail_w > background_w:
+            offset = thumbnail_x
+            thumbnail_x = 0
+            new_x = new_x + offset
 
 
-            result_list.append(thumbnail_dict)
+        elif thumbnail_x + thumbnail_w > background_w:
+            offset = (thumbnail_x + thumbnail_w) - background_w
+            thumbnail_x = thumbnail_x - offset
+            new_x = new_x + offset
 
-            cnt += 1
+        elif thumbnail_x < 0:
+            offset = thumbnail_x
+            thumbnail_x = 0
+            new_x = new_x + offset
 
-        #result_list = sorted(result_list, key=itemgetter('group'))
+        if thumbnail_y + thumbnail_h > background_h:
+            offset = (thumbnail_y + thumbnail_h) - background_h
+            thumbnail_y = thumbnail_y - offset
+            new_y = new_y + offset
 
-        resized = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
+        if thumbnail_y < 0:
+            offset = thumbnail_y
+            thumbnail_y = 0
+            new_y = new_y + offset
+
+        thumbnail_x = int(thumbnail_x * scaling_factor)
+        thumbnail_y = int(thumbnail_y * scaling_factor)
+        thumbnail_w = int(thumbnail_w * scaling_factor)
+        thumbnail_h = int(thumbnail_h * scaling_factor)
+
+        thumbnail = ori_background_image[thumbnail_y:thumbnail_y + thumbnail_h,thumbnail_x:thumbnail_x + thumbnail_w]
+
+        #dim = (int(thumbnail_fixed_width/scaling_factor), int(thumbnail_fixed_height/scaling_factor))
+        dim = (int(thumbnail_fixed_width*scaling_factor), int(thumbnail_fixed_height*scaling_factor))
+
+        # resize image
+        if do_resize:
+            resized = cv2.resize(thumbnail, dim, interpolation=cv2.INTER_CUBIC)
+        else:
+            resized = thumbnail.copy()
+
+
+        x = int(new_x / x_factor)
+        y = int(new_y / y_factor)
+        h = int(h / y_factor)
+        w = int(w / x_factor)
+
+        #cv2.rectangle(resized, (x, y), (x + w, y + h), (0, 0, 255), 1)
+
+        #cv2.imwrite("D:\\screenshot\\" + str(cnt) + "_thumbnail.png", resized)
+
         png_image = cv2.imencode('.png', resized)
+
         base64png = base64.b64encode(png_image[1]).decode('ascii')
-        thumbnail_dict_screen = {'image': base64png, 'image_w': int(thumbnail_fixed_width*scaling_factor),
-                                 'image_h': int(thumbnail_fixed_height*scaling_factor)}
 
-        thumbnails_dict = {'thumbnails': result_list, 'screen':  thumbnail_dict_screen}
+        thumbnail_dict = {'image':base64png, 'image_w':int(thumbnail_fixed_width*scaling_factor),
+                          'image_h': int(thumbnail_fixed_height*scaling_factor), 'x': x, 'y': y,
+                          'w': w, 'h': h, 'group': element["group"],
+                          'is_main': element["is_main"]}
 
+
+        result_list.append(thumbnail_dict)
+
+        cnt += 1
+
+    #result_list = sorted(result_list, key=itemgetter('group'))
+
+    resized = cv2.resize(ori_background_image, dim, interpolation=cv2.INTER_CUBIC)
+    png_image = cv2.imencode('.png', resized)
+    base64png = base64.b64encode(png_image[1]).decode('ascii')
+    thumbnail_dict_screen = {'image': base64png, 'image_w': int(thumbnail_fixed_width*scaling_factor),
+                             'image_h': int(thumbnail_fixed_height*scaling_factor)}
+
+    thumbnails_dict = {'thumbnails': result_list, 'screen':  thumbnail_dict_screen}
+
+    if from_url:
         return jsonify(thumbnails_dict)
+    else:
+        return thumbnails_dict
 
     pass
 
