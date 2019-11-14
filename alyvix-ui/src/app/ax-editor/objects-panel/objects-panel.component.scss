@@ -1,0 +1,39 @@
+@import '../../../variables.scss';
+
+.ax-objects{
+
+  padding:  20px 30px 20px 10px;
+  ul{
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    font-family: $font;
+    list-style: none;
+    margin-bottom: 10px;
+    li {
+      padding-left: 16px;
+      letter-spacing: 2px;
+      margin: 3px 0;
+      line-height: 16px;
+    }
+
+    li:before {
+      content: "\203A"; /* Insert content that looks like bullets */
+      font-size: 25px;
+      line-height: 16px;
+      font-weight: bolder;
+      padding-right: 8px;
+    }
+    button{
+      position: absolute;
+      right: 5px;
+      &.light{
+        color: $gray;
+        &:hover{
+          color: #000;
+        }
+      }
+    }
+  }
+
+}

@@ -10,7 +10,7 @@
               <rsz-layout  [directions]="['right']" [rFlex]="true" (resizing)="resizingVertical($event)">
                   <div [style.width.px]="objectsWidth" class="inner-cell objects">
                     <div *ngIf="!objectCollapsed">
-                        <p>Objects</p>
+                        <app-objects-panel></app-objects-panel>
                     </div>
                     <div class="objects-collapsed" *ngIf="objectCollapsed" (click)="expandObjects()">
                         <p>Objects</p>
@@ -19,7 +19,7 @@
               </rsz-layout>
               <rsz-layout class="" [directions]="['none']" [rFlex]="true">
                 <div class="inner-cell">
-                  <p>Editor</p>
+                  <app-central-panel></app-central-panel>
                 </div>
               </rsz-layout>
             </div>

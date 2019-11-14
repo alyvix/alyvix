@@ -1,0 +1,58 @@
+@import '../../../../../variables.scss';
+.step-container{
+  display: flex;
+  flex-direction: column;
+
+  .step-box{
+
+
+    height: 50px;
+    display: flex;
+
+    .step-condition{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #333;
+      width: 50px;
+      height: 50px;
+      padding: 5px;
+
+      div{
+        text-align: center;
+        color: white;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+
+      &.step-main-condition{
+
+      }
+    }
+
+    .step-parameter{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 50px;
+      padding: 0 20px;
+      background-color: $yellow;
+      div{
+        text-align: center;
+        font-weight: bold;
+      }
+      &.step-run-parameter{
+        background-color: $green;
+      }
+    }
+
+  }
+
+  .arrow{
+    width: 0;
+    height: 0;
+    border-left: 25px solid transparent;
+    border-right: 25px solid transparent;
+    border-top: 10px solid #333;
+  }
+}

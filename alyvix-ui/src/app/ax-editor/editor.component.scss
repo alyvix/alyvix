@@ -74,6 +74,10 @@ $headerHeight: 60px;
       height: 100%;
     }
 
+    .objects{
+      border-right: 2px solid $gray;
+    }
+
     .objects-collapsed {
       margin-top: -10px;
       background-color: $blue;

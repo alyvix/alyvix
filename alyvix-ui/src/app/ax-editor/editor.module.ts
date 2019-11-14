@@ -30,6 +30,10 @@ import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { environment } from 'src/environments/environment';
 import { NgxResizableModule } from '@3dgenomes/ngx-resizable';
 import { AxHeaderComponent } from './ax-header/ax-header.component';
+import { CentralPanelComponent } from './central-panel/central-panel.component';
+import { ScriptEditorComponent } from './central-panel/script-editor/script-editor.component';
+import { StepComponent } from './central-panel/script-editor/step/step.component';
+import { ObjectsPanelComponent } from './objects-panel/objects-panel.component';
 
 
 
@@ -52,6 +56,10 @@ import { AxHeaderComponent } from './ax-header/ax-header.component';
     SelectTypeComponent,
     ScreenComponent,
     AxHeaderComponent,
+    CentralPanelComponent,
+    ScriptEditorComponent,
+    StepComponent,
+    ObjectsPanelComponent,
   ],
   imports: [
     NgxResizableModule,
