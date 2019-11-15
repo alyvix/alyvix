@@ -219,9 +219,15 @@ if filename is not None:
 
         for object_name in objects_names:
 
+            if lm.check_valid_object_name(object_name) is False:
+                print(object_name + " contains invalid characters, only alphanumeric characters and -_' ' (space) are allowed.")
+                sys.exit(2)
+
             if lm.check_if_exist(object_name) is False:
                 print(object_name + " does NOT exist")
                 sys.exit(2)
+
+        for object_name in objects_names:
 
             object_json = lm.add_chunk(object_name, chunk)
 

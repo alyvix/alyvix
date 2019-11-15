@@ -230,6 +230,21 @@ def ide_selector_index_changed_api():
         autocontoured_rects.extend(contouring_manager.getRectBoxes())
         autocontoured_rects.extend(contouring_manager.getTextBoxes())
 
+        object_res = copy.deepcopy(library_dict["objects"][object_name]["components"][resolution])
+
+        library_dict_in_editing = {"objects": {}}
+        library_dict_in_editing["objects"][object_name] = {"components": {}}
+        library_dict_in_editing["objects"][object_name]["components"][resolution] = object_res
+        # library_dict_in_editing["objects"][object_name]["measure"] = copy.deepcopy(library_dict["objects"][object_name]["measure"])
+        library_dict_in_editing["objects"][object_name]["detection"] = copy.deepcopy(
+            library_dict["objects"][object_name]["detection"])
+        library_dict_in_editing["objects"][object_name]["date_modified"] = copy.deepcopy(
+            library_dict["objects"][object_name]["date_modified"])
+        library_dict_in_editing["objects"][object_name]["call"] = copy.deepcopy(
+            library_dict["objects"][object_name]["call"])
+        measure = copy.deepcopy(library_dict["objects"][object_name]["measure"])
+
+
         #url = "http://127.0.0.1:" + str(current_port) + "/create_thumbnail"
 
         thumbnail_dict = get_thumbnail(alyvix_file_dict["boxes"], alyvix_file_dict["screen"])

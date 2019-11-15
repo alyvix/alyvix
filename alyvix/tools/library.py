@@ -21,6 +21,7 @@
 import json
 import base64
 import cv2
+import re
 import numpy as np
 import os
 import sys
@@ -110,6 +111,16 @@ class LibraryManager:
             invalid_char = ["\"", "/", ":", "*", "?", "<", ">", "\\", "|"]
 
             return invalid_char
+
+    def check_valid_object_name(self, name):
+
+        invalid_chars = re.findall(r'[^a-zA-Z-_]', name)
+
+        if len(invalid_chars) > 0:
+            return False
+        else:
+            return True
+
 
     def load_file(self, filename):
 
