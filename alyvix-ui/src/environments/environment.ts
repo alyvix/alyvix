@@ -1,5 +1,5 @@
-import { DevGlobalRef } from "src/app/ax-designer/ax-global";
-import { DevSelectorGlobalRef } from "src/app/ax-selector/global";
+import { MockDesignerGlobal } from "src/app/ax-designer/ax-global";
+import { MockSelectorGlobal } from "src/app/ax-selector/global";
 
 // This file can be replaced during build by using the `fileReplacements` array.
 // `ng build ---prod` replaces `environment.ts` with `environment.prod.ts`.
@@ -7,8 +7,8 @@ import { DevSelectorGlobalRef } from "src/app/ax-selector/global";
 
 export const environment = {
   production: false,
-  globalType: DevGlobalRef,
-  globalTypeSelector: DevSelectorGlobalRef,
+  globalTypeDesigner: MockDesignerGlobal,
+  globalTypeSelector: MockSelectorGlobal,
   workingOn: "editor",
   assets: "/assets"
 };

@@ -1,6 +1,8 @@
 import { AxModel, BoxListEntity } from "../ax-model/model";
 import { AxModelMock } from "../ax-model/mock";
 import { Utils } from "../utils";
+import { Observable } from "rxjs";
+import { of } from 'rxjs';
 
 export interface GroupsFlag{
     created:boolean[]
@@ -15,8 +17,8 @@ export enum RectType{
     Button = "button"
 }
 
-export interface AxGlobal{
-    axModel():AxModel;
+export interface DesignerGlobal{
+    axModel():Observable<AxModel>;
 
     lastElement():BoxListEntity;
 
@@ -41,7 +43,7 @@ export interface AxGlobal{
     uuidv4():string
 }
 
-export class MockGlobal implements AxGlobal{
+export class MockDesignerGlobal implements DesignerGlobal{
     uuidv4(): string {
         return Utils.uuidv4();
     }
@@ -94,19 +96,26 @@ export class MockGlobal implements AxGlobal{
 
 
 
-    axModel(): AxModel {
-        return AxModelMock.get();
+    axModel(): Observable<AxModel> {
+        return of(AxModelMock.get());
     }
 }
 
-export interface GlobalRef{
-    nativeGlobal():AxGlobal
+export class DesignerGlobalRef implements DesignerGlobal {
+  axModel(): Observable<AxModel> { return of((window as any).axModel()); }
+  lastElement(): BoxListEntity { return (window as any).lastElement(); }
+  newComponent(group: number) { return (window as any).newComponent(group); }
+  setPoint(i: number) { return (window as any).setPoint(i); }
+  setRectangles() { return (window as any).setRectangles(); }
+  save() { return (window as any).save(); }
+  cancel() { return (window as any).cancel(); }
+  getGroupsFlag(): GroupsFlag { return (window as any).getGroupsFlag(); }
+  setGroupFlags(flags: GroupsFlag) { return (window as any).setGroupFlags(flags); }
+  getSelectedNode(): number { return (window as any).getSelectedNode(); }
+  setSelectedNode(i: number) { return (window as any).setSelectedNode(i); }
+  get_rect_type(rect: BoxListEntity): RectType { return (window as any).get_rect_type(rect); }
+  set_rect_type(type: RectType, rect: BoxListEntity) { return (window as any).set_rect_type(type,rect); }
+  setTypeNode(s: string) { return (window as any).setTypeNode(s); }
+  uuidv4(): string { return (window as any).uuidv4(); }
 }
 
-export class AxEmbeddedGlobalRef implements GlobalRef {
-    nativeGlobal(): AxGlobal { return window as any as AxGlobal; }
-}
-
-export class DevGlobalRef implements GlobalRef{
-    nativeGlobal(): AxGlobal { return new MockGlobal }
-}

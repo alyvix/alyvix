@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, ViewChild, ElementRef, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { AxSelectorObject, AxSelectorObjects, AxSelectorComponentGroups } from 'src/app/ax-model/model';
 import { DomSanitizer } from '@angular/platform-browser';
-import { GlobalRef } from '../global';
+import { SelectorGlobal } from '../global';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
 import { environment } from 'src/environments/environment';
 import { ResizedEvent } from 'angular-resize-event';
@@ -34,7 +34,8 @@ export class AxTableComponent implements OnInit {
 
   constructor(
     private _sanitizer: DomSanitizer,
-    @Inject('GlobalRefSelector') private global: GlobalRef,
+    @Inject('GlobalRefSelector') private global: SelectorGlobal,
+    private api:AlyvixApiService,
     private datastore:SelectorDatastoreService,
     private changeDetecor: ChangeDetectorRef) {}
 
@@ -81,7 +82,7 @@ export class AxTableComponent implements OnInit {
   selectedRows: RowVM[] = [];
   resolutions: string[]
 
-  currentResolution: string = this.global.nativeGlobal().res_string;
+  currentResolution: string = this.global.res_string;
   selectedResolution = this.currentResolution;
   searchElementQuery = '';
 
@@ -119,7 +120,7 @@ export class AxTableComponent implements OnInit {
   }
 
   cancel() {
-      this.global.nativeGlobal().cancel_button()
+      this.api.selectorCancel()
   }
 
   edit() {
@@ -128,7 +129,7 @@ export class AxTableComponent implements OnInit {
       this.datastore.saveData(this.data,false).subscribe(x => {
         console.log(x);
         if (x.success) {
-          this.global.nativeGlobal().edit(this.selectedRows[0].name, this.selectedRows[0].selectedResolution);
+          this.api.selectorEdit(this.selectedRows[0].name, this.selectedRows[0].selectedResolution);
         }
       });
     }
@@ -139,7 +140,7 @@ export class AxTableComponent implements OnInit {
   newObject() {
     this.datastore.saveData(this.data,false).subscribe(x => {
       if (x.success) {
-        this.global.nativeGlobal().new_button(this.delay);
+        this.api.selectorNew(this.delay);
       }
     });
   }
@@ -187,7 +188,7 @@ export class AxTableComponent implements OnInit {
     }
     this.changeDetecor.markForCheck();
     this.changeDetecor.detectChanges();
-
+    this.datastore.setSelected(this.selectedRows);
   }
 
   selectAll() {

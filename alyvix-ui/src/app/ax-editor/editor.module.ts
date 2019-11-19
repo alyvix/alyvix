@@ -34,6 +34,7 @@ import { CentralPanelComponent } from './central-panel/central-panel.component';
 import { ScriptEditorComponent } from './central-panel/script-editor/script-editor.component';
 import { StepComponent } from './central-panel/script-editor/step/step.component';
 import { ObjectsPanelComponent } from './objects-panel/objects-panel.component';
+import { EditorDesignerGlobal } from './designer-global';
 
 
 
@@ -84,7 +85,7 @@ import { ObjectsPanelComponent } from './objects-panel/objects-panel.component';
   ],
   providers: [
     {provide: 'GlobalRefSelector', useClass: environment.globalTypeSelector},
-    {provide: 'GlobalRefDesigner', useClass: environment.globalType}
+    {provide: 'GlobalRefDesigner', useClass: EditorDesignerGlobal}
   ],
   bootstrap: [EditorComponent]
 })

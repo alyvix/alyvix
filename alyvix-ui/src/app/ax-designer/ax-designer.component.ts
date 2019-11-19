@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef, Inject, Input } from '@angular/core';
 import { AxModel, BoxListEntity } from '../ax-model/model';
 import { AxDesignerService, TreeNode } from './ax-designer-service';
-import { GlobalRef } from './ax-global';
+import { DesignerGlobal } from './ax-global';
 import { ResizedEvent } from 'angular-resize-event';
 import { TouchSequence } from 'selenium-webdriver';
 import { KeyShortcutsService } from './key-shortcuts.service';

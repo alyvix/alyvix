@@ -2563,3 +2563,186 @@ class RectManager{
         rect.roi_y = rect.roi_y - y_offset;
     }
 }
+
+
+
+function set_rect_type(type, rect)  //default rect type
+        {
+            console.log("set rect type");
+            var rect_features = rect.features["R"];
+            
+            var rect_half_w = Math.floor(rect.w/2);
+            var rect_half_h = Math.floor(rect.h/2);
+                
+            if(type == "box")  //INPUT BOX
+            {
+                
+                if (rect.is_main == true)
+                {
+                    rect_features["width"] = {"min":rect.w - rect_half_w, "max":screen_w};
+                    rect_features["height"] = {"min":rect.h - 10, "max":rect.h + 10};  
+                }
+                else
+                {
+                    rect_features["width"] = {"min":rect.w - rect_half_w, "max":rect.roi_w};
+                    rect_features["height"] = {"min":rect.h - 10, "max":rect.h + 10};  
+                }
+                
+                rect.rect_type = "box";
+            }
+            else if (type == "window") //WINDOW
+            {
+                
+                if (rect.is_main == true)
+                {
+                    rect_features["width"] = {"min":rect.w - rect_half_w, "max":screen_w};
+                    rect_features["height"] = {"min":rect.h - rect_half_h, "max":screen_h}; 
+                }
+                else
+                {
+                    rect_features["width"] = {"min":rect.w - rect_half_w, "max":rect.roi_w};
+                    rect_features["height"] = {"min":rect.h - rect_half_h, "max":rect.roi_h}; 
+                }
+                
+                rect.rect_type = "window";
+            }
+            else //BUTTON
+            {
+                var min_w = rect.w - 9;
+                var min_h = rect.h - 9;
+                
+                if (min_w < 4) min_w = 4;
+                
+                if (min_h < 4) min_h = 4;
+                
+                rect_features["width"] = {"min":min_w, "max": rect.w + 9};
+                rect_features["height"] = {"min":min_h, "max":rect.h + 9};
+                
+                rect.rect_type = "button";
+            
+            }
+            
+            draw(rectManager.last_mouse_event);
+        }
+        
+        function get_rect_type(rect)
+        {     
+            console.log("get rect type");
+            var is_box = false;
+            var is_window = false;
+            var is_button = false;
+            
+            var rect_features = rect.features["R"];
+            
+            var rect_half_w = Math.floor(rect.w/2);
+            var rect_half_h = Math.floor(rect.h/2);
+            
+            if (jQuery.isEmptyObject(rect_features))
+            {
+                if(rect.w >= rect.h * 8 && rect.h >= 15 && rect.h <= 50)  //INPUT BOX
+                {
+                    if (rect.is_main == true)
+                    {
+                        rect_features["width"] = {"min":rect.w - rect_half_w, "max":screen_w};
+                    }
+                    else
+                    {
+                        rect_features["width"] = {"min":rect.w - rect_half_w, "max":rect.roi_w};
+ 
+                    }
+                    
+                    rect_features["height"] = {"min":rect.h - 10, "max":rect.h + 10}; 
+                    
+                    is_box = true;
+                }
+                else if (rect.w >= 120 && rect.h >= 120) //WINDOW
+                {
+                    if (rect.is_main == true)
+                    {
+                        rect_features["width"] = {"min":rect.w - rect_half_w, "max":screen_w};
+                        rect_features["height"] = {"min":rect.h - rect_half_h, "max":screen_h}; 
+                    }
+                    else
+                    {
+                        rect_features["width"] = {"min":rect.w - rect_half_w, "max":rect.roi_w};
+                        rect_features["height"] = {"min":rect.h - rect_half_h, "max":rect.roi_h}; 
+                    }
+                    
+                    is_window = true;
+                }
+                else //BUTTON
+                {
+                    var min_w = rect.w - 9;
+                    var min_h = rect.h - 9;
+                    
+                    if (min_w < 4) min_w = 4;
+                    
+                    if (min_h < 4) min_h = 4;
+                    
+                    rect_features["width"] = {"min":min_w, "max": rect.w + 9};
+                    rect_features["height"] = {"min":min_h, "max":rect.h + 9};
+                    
+                    is_button = true;
+                }
+            }
+            else
+            {
+                var min_w = rect_features["width"]["min"];
+                var max_w = rect_features["width"]["max"];
+
+                var min_h = rect_features["height"]["min"];
+                var max_h = rect_features["height"]["max"]; 
+
+                if (rect.is_main == true)
+                {
+                    if (min_w == rect.w - rect_half_w && max_w == screen_w && min_h == rect.h - 10, max_h == rect.h + 10)
+                    {
+                        is_box = true;
+                    }
+                    else if (min_w == rect.w - rect_half_w && max_w == screen_w && min_h == rect.h - rect_half_h && max_h == screen_h)
+                    {  
+                        is_window = true;
+                    }
+                    else
+                    {
+                        is_button = true;
+                    }
+                }
+                else
+                {
+                    if (min_w == rect.w - rect_half_w && max_w == rect.roi_w && min_h == rect.h - 10, max_h == rect.h + 10)
+                    {
+                        is_box = true;
+                    }
+                    else if (min_w == rect.w - rect_half_w && max_w == rect.roi_w && min_h == rect.h - rect_half_h && max_h == rect.roi_h)
+                    {  
+                        is_window = true;
+                    }
+                    else
+                    {
+                        is_button = true;
+                    }
+                }
+            }
+            
+            draw(rectManager.last_mouse_event);
+            
+            if (is_box)
+            {
+                rect.rect_type = "box";
+                return "box";
+            }
+            
+            if (is_window){
+                rect.rect_type = "window";
+                return "window";
+            }
+            
+            if (is_button){
+                rect.rect_type = "button";
+                return "button";
+            } 
+            
+                
+
+        }

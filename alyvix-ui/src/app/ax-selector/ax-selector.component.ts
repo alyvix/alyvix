@@ -7,7 +7,7 @@ import { Utils } from '../utils';
 import { AxSelectorComponentGroups, AxSelectorObjects } from '../ax-model/model';
 import { empty } from 'rxjs';
 import { SelectorUtils } from './selector-utils';
-import { GlobalRef } from './global';
+import { SelectorGlobal } from './global';
 import { connectableObservableDescriptor } from 'rxjs/internal/observable/ConnectableObservable';
 import { SelectorDatastoreService, AxFile } from './selector-datastore.service';
 
@@ -23,7 +23,7 @@ export class AxSelectorComponent implements OnInit {
 
   constructor(
     private datastore: SelectorDatastoreService,
-    @Inject('GlobalRefSelector') private global: GlobalRef
+    @Inject('GlobalRefSelector') private global: SelectorGlobal
   ) { }
 
 
@@ -41,7 +41,7 @@ export class AxSelectorComponent implements OnInit {
     console.log("editor:" + this.editor);
     this.debugJson = !environment.production && environment.workingOn === 'selector'
     this.datastore.getData().subscribe(data => {
-      this.main = {id:Utils.uuidv4(), data: data, name: this.global.nativeGlobal().current_library_name, readonly: false };
+      this.main = {id:Utils.uuidv4(), data: data, name: this.global.current_library_name, readonly: false };
       this.selected = this.main;
     });
   }

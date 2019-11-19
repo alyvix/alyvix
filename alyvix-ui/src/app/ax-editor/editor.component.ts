@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, Inject } from '@angular/core';
+import { DesignerGlobal } from '../ax-designer/ax-global';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,7 @@ export class EditorComponent implements OnInit {
 
   objectCollapsed = false;
 
-  constructor() { }
+  constructor(@Inject('GlobalRefDesigner') private global: DesignerGlobal,) { }
 
   containerHeight():number {
     return this.container.nativeElement.clientHeight;
@@ -53,8 +54,13 @@ export class EditorComponent implements OnInit {
     }
   }
 
+  hasDesigner = false;
+
   ngOnInit() {
-    this.topLeftHeight = this.container.nativeElement.offsetHeight - 300
+    this.topLeftHeight = this.container.nativeElement.offsetHeight - 300;
+    this.global.axModel().subscribe(model => {
+      this.hasDesigner = model ? true : false;
+    });
   }
 
 }

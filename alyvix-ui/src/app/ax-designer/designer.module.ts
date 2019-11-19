@@ -51,7 +51,7 @@ import {AutocompleteLibModule} from 'angular-ng-autocomplete';
     ReactiveFormsModule,
     AutocompleteLibModule
   ],
-  providers: [{provide: 'GlobalRefDesigner', useClass: environment.globalType}],
+  providers: [{provide: 'GlobalRefDesigner', useClass: environment.globalTypeDesigner}],
   bootstrap: [DesignerComponent]
 })
 export class DesignerModule { }

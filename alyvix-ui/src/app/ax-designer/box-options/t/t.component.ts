@@ -5,7 +5,7 @@ import { AlyvixApiService } from 'src/app/alyvix-api.service';
 import { map, switchMap, mapTo, catchError, debounce } from 'rxjs/operators';
 import { Validation } from 'src/app/utils/validators';
 import { timer, of, Observable } from 'rxjs';
-import { GlobalRef, GroupsFlag } from "src/app/ax-designer/ax-global";
+import { DesignerGlobal, GroupsFlag } from "src/app/ax-designer/ax-global";
 
 @Component({
   selector: 'ax-designer-t',
@@ -14,7 +14,7 @@ import { GlobalRef, GroupsFlag } from "src/app/ax-designer/ax-global";
 })
 export class TComponent implements OnInit {
 
-  constructor(private alyvixApi: AlyvixApiService, @Inject('GlobalRefDesigner') private global: GlobalRef, ) { }
+  constructor(private alyvixApi: AlyvixApiService, @Inject('GlobalRefDesigner') private global: DesignerGlobal, ) { }
 
   _node:TreeNode
   loading:boolean
@@ -110,7 +110,7 @@ export class TComponent implements OnInit {
       })
     }
 
-    this.global.nativeGlobal().setTypeNode("T");
+    this.global.setTypeNode("T");
   }
 
   changeScrapMode(mode) {
@@ -146,11 +146,11 @@ export class TComponent implements OnInit {
   }
 
   ngOnInit() {
-    const maps = this.global.nativeGlobal().axModel().maps;
-    console.log(maps);
-    if(maps) {
-      this.maps = Object.keys(maps);
-    }
+    this.global.axModel().subscribe(axModel => {
+      if(axModel.maps) {
+        this.maps = Object.keys(axModel.maps);
+      }
+    });
   }
 
 }

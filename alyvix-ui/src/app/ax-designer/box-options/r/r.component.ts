@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Injectable, Inject  } from '@angular/core';
 import { TreeNode } from '../../ax-designer-service';
 import { R, WidthOrHeight, BoxListEntity } from 'src/app/ax-model/model';
-import { GlobalRef, GroupsFlag, RectType } from "src/app/ax-designer/ax-global";
+import { DesignerGlobal, GroupsFlag, RectType } from "src/app/ax-designer/ax-global";
 
 import * as _ from 'lodash';
 
@@ -13,7 +13,7 @@ import * as _ from 'lodash';
 })
 export class RComponent implements OnInit {
 
-  constructor(@Inject('GlobalRefDesigner') private global: GlobalRef,) { }
+  constructor(@Inject('GlobalRefDesigner') private global: DesignerGlobal,) { }
 
   _node:TreeNode
 
@@ -35,13 +35,13 @@ export class RComponent implements OnInit {
   }
 
   onNodeChange() {
-    this.mode = this.global.nativeGlobal().get_rect_type(this.node.box);
-	  //this.global.nativeGlobal().setTypeNode("R");
+    this.mode = this.global.get_rect_type(this.node.box);
+	  //this.global.setTypeNode("R");
   }
 
   updateMode(event:RectType) {
-    //this.global.nativeGlobal().setTypeNode("R");
-    this.global.nativeGlobal().set_rect_type(event,this.node.box);
+    //this.global.setTypeNode("R");
+    this.global.set_rect_type(event,this.node.box);
     this.mode = event;
   }
 

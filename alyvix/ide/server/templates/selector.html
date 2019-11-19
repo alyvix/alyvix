@@ -6,50 +6,11 @@
 <script src="static/js/jquery-3.3.1.min.js"></script>
 <script>
 
-    var res_h = {{res_h}};
-    var res_w = {{res_w}};
-    var scaling_factor = {{scaling_factor}};
+
     var res_string = "{{res_string}}";
-    
     var current_library_name = "{{current_library_name}}";
     
-    /*function reloadAlyvixSelector(text)
-    {
-        alert(text);
-    }*/
 
-    function new_button(delay)
-    {
-        $.ajax({
-            url: "{{new_url_api}}?delay=" +  delay,
-            type: "GET"
-        });
-    }
-    
-    function cancel_button()
-    {
-        $.ajax({
-            url: "{{close_and_shutdown_url_api}}",
-            type: "GET"
-        });
-    }
-
-    function edit(object_name, resolution) {
-        $.ajax({
-            url: "{{edit_url_api}}?object_name=" + object_name + "&resolution=" + resolution,
-            type: "GET"
-        });
-        console.log(object_name);
-        console.log(resolution);
-    }
-    
-    function add_button()
-    {
-        $.ajax({
-            url: "{{selector_save_json_api}}",
-            type: "GET"
-        });
-    }
 </script>
 </head>
 <body style="height: 100vh;" onload="loadAlyvixSelector();" onunload="unloadAlyvixSelector();">

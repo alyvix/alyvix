@@ -3,7 +3,6 @@ import { AxSelectorObjects, AxSelectorComponentGroups } from '../ax-model/model'
 import { RowVM } from './ax-table/ax-table.component';
 import { Utils } from '../utils';
 import { AlyvixApiService } from '../alyvix-api.service';
-import { GlobalRef } from './global';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -20,6 +19,7 @@ export interface AxFile {
 })
 export class SelectorDatastoreService {
 
+  private selectedRows: BehaviorSubject<RowVM[]> = new BehaviorSubject<RowVM[]>(null);
   private editedRow: BehaviorSubject<RowVM> = new BehaviorSubject<RowVM>(null);
   private originalLibrary:AxSelectorObjects;
 
@@ -27,6 +27,14 @@ export class SelectorDatastoreService {
     private apiService: AlyvixApiService
     ) { }
 
+
+  setSelected(rows:RowVM[]) {
+    this.selectedRows.next(rows);
+  }
+
+  getSelected():Observable<RowVM[]> {
+    return this.selectedRows;
+  }
 
   editRow():Observable<RowVM> {
     return this.editedRow;

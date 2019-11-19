@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { BoxListEntity, AxSelectorObjects } from './ax-model/model';
+import { BoxListEntity, AxSelectorObjects, DesignerModel } from './ax-model/model';
 import { map, retry, catchError } from 'rxjs/operators';
 
 export interface ScrapedText{
@@ -76,6 +76,28 @@ export class AlyvixApiService {
 
   checkTextNumber(request:ScrapedValidation):Observable<ValidationResult> {
     return this.httpClient.post<ValidationResult>("/check_number_api",request);
+  }
+
+  selectorNew(delay: number) {
+    return this.httpClient.get<any>('/selector_button_new_api?delay=' +  delay).subscribe(x => {
+      console.log('new');
+    });
+  }
+
+  selectorCancel() {
+    return this.httpClient.get<any>('/selector_shutdown_and_close_api').subscribe(x => {
+      console.log('cancel');
+    });
+  }
+
+  selectorEdit(object_name:string, resolution:string) {
+    return this.httpClient.get<any>('/selector_button_edit_api?object_name=' + object_name + '&resolution=' + resolution).subscribe(x => {
+      console.log('cancel');
+    });
+  }
+
+  designerParameters(object_name:string,resolution:string):Observable<DesignerModel> {
+    return this.httpClient.get<DesignerModel>('/ide_selector_index_changed_api?object_name=' + object_name + '&resolution=' + resolution);
   }
 
 

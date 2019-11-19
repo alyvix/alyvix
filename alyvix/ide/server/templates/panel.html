@@ -3,21 +3,19 @@
 <head> 
     <title>Alyvix Editor</title>
     <link rel="stylesheet" href="static/alyvix-ui/styles.css"></head>
+    <script src="static/js/draw.js"></script>
+    <script src="static/js/rect.js"></script>
 </head>
 <body style="height: 100vh;" onload="loadAlyvixEditor();" onunload="unloadAlyvixEditor();">
         <script type="text/javascript" src="static/alyvix-ui/runtime.js"></script><script type="text/javascript" src="static/alyvix-ui/polyfills.js"></script><script type="text/javascript" src="static/alyvix-ui/main.js"></script>
         <script>
 
-            //SELECTOR
-            // function new_button(delay) {
-            //     throw new Error("Method not implemented.");
-            // }
-            // function cancel_button() {
-            //     throw new Error("Method not implemented.");
-            // }
-            // function edit(object_name, resolution) {
-            //     throw new Error("Method not implemented.");
-            // };
+            var canvas = null; //TODO ANDREA
+            var ctx = null;
+            var rectManager = new RectManager();
+            var screen_w = 0;
+            var screen_h = 0;
+            var boxes = []
 
             var res_h = {{res_h}};
             var res_w = {{res_w}};
@@ -25,6 +23,12 @@
             var res_string = "{{res_string}}";
 
             var current_library_name = "{{current_library_name}}";
+
+            //EDITOR
+            function setCanvas(c) {
+                canvas = c;
+                ctx = canvas.getContext('2d');
+            } 
 
             //DESIGNER
             function axModel() {

@@ -9,6 +9,27 @@ export interface AxModel {
     script?: any;
   }
 
+  export interface DesignerModel {
+    file_dict: FileDict;
+    thumbnails: {
+      screen: Thumbnail,
+      thumbnails: Thumbnail[]
+    };
+
+  }
+ export interface FileDict{
+   boxes: BoxListEntity[];
+   call: AxSystemCall;
+    detection: Detection;
+    img_h: number;
+    img_w: number;
+    measure?:Measure;
+    object_name: string;
+    screen: string;
+ }
+
+
+
   export interface AxSelectorObjects {
     objects: {[key:string]: AxSelectorObject};
     maps?: {[key:string]: {[key:string]: string}};
@@ -120,15 +141,15 @@ export interface AxModel {
     keyboard?: Keyboard;
   }
   export interface Thumbnail {
-    group: number;
-    h: number;
+    group?: number;
+    h?: number;
     image: string;
     image_h: number;
     image_w: number;
-    is_main: boolean;
-    w: number;
-    x: number;
-    y: number;
+    is_main?: boolean;
+    w?: number;
+    x?: number;
+    y?: number;
   }
   export interface Features {
     I: I;

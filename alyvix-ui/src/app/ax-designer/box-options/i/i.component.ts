@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Injectable, Inject  } from '@angular/core';
 import { TreeNode } from '../../ax-designer-service';
 import { I } from 'src/app/ax-model/model';
-import { GlobalRef, GroupsFlag } from "src/app/ax-designer/ax-global";
+import { DesignerGlobal, GroupsFlag } from "src/app/ax-designer/ax-global";
 
 import * as fastDeepEqual from 'fast-deep-equal';
 
@@ -14,7 +14,7 @@ import * as fastDeepEqual from 'fast-deep-equal';
 })
 export class IComponent implements OnInit {
 
-  constructor(@Inject('GlobalRefDesigner') private global: GlobalRef,) { }
+  constructor(@Inject('GlobalRefDesigner') private global: DesignerGlobal,) { }
 
   _node:TreeNode
 
@@ -50,7 +50,7 @@ export class IComponent implements OnInit {
       this.mode = this.match;
       this.node.box.features.I = this.match;
     }
-    this.global.nativeGlobal().setTypeNode("I");
+    this.global.setTypeNode("I");
   }
 
 }
