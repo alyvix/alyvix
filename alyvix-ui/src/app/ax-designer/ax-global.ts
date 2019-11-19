@@ -23,20 +23,20 @@ export interface AxGlobal{
     newComponent(group:number):any
     setPoint(i:number):any
 
-    setRectangles():any
-    save():any
-    cancel():any
+    setRectangles():any //can be mocked no effect on UI
+    save():any //API call can be done directly by UI
+    cancel():any //API call can be done directly by UI
 
-    getGroupsFlag():GroupsFlag
-    setGroupFlags(flags:GroupsFlag)
+    getGroupsFlag():GroupsFlag //can be mocked no effect on UI
+    setGroupFlags(flags:GroupsFlag) //can be mocked no effect on UI
 
-    getSelectedNode():number
-    setSelectedNode(i:number)
+    getSelectedNode():number //can be mocked no effect on UI
+    setSelectedNode(i:number) //can be mocked no effect on UI
 
-    get_rect_type(rect:BoxListEntity):RectType
-    set_rect_type(type:RectType,rect:BoxListEntity)
+    get_rect_type(rect:BoxListEntity):RectType //can be integrated in angular
+    set_rect_type(type:RectType,rect:BoxListEntity) //can be integrated in angular
 
-    setTypeNode(s:string)
+    setTypeNode(s:string) //can be mocked no effect on ui
 
     uuidv4():string
 }

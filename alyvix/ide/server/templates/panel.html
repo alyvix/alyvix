@@ -9,83 +9,92 @@
         <script>
 
             //SELECTOR
-            function new_button(delay) {
-                throw new Error("Method not implemented.");
-            }
-            function cancel_button() {
-                throw new Error("Method not implemented.");
-            }
-            function edit(object_name, resolution) {
-                throw new Error("Method not implemented.");
-            };
+            // function new_button(delay) {
+            //     throw new Error("Method not implemented.");
+            // }
+            // function cancel_button() {
+            //     throw new Error("Method not implemented.");
+            // }
+            // function edit(object_name, resolution) {
+            //     throw new Error("Method not implemented.");
+            // };
 
             var current_library_name = "TODO";
             var res_string = "TODO";
 
             //DESIGNER
             function axModel() {
+                // get from /ide_selector_index_changed_api
                 console.log("axModel() Method not implemented.");
                 return axModelMock();
             } //:AxModel;
 
-            function lastElement() {
-                console.log("lastElement() Method not implemented.");
+            function lastElement() { 
+                // get from /ide_selector_index_changed_api
                 return null;
             } //:BoxListEntity;
 
-            function newComponent(group) {
+            var selected_box = 0;
+
+            function getSelectedNode() {
+                return selected_box;
+            }//:number
+
+            function setSelectedNode(i) {
+                selected_box = i;
+            }
+
+            function newComponent(group) {  // TODO Alan 
                 throw new Error("Method not implemented.");
             }
-            function setPoint(i) {
+            function setPoint(i) { // TODO Alan
                 console.log("setPoint(i) Method not implemented.");
             }
 
-            function setRectangles() {
-                console.log("setRectangles() Method not implemented.");
-            }
+            //TODO Andrea callback method fullScreenCloses()
 
             function save() {
+                //Hidden in panel
                 throw new Error("Method not implemented.");
             }
 
             function cancel() {
+                //Hidden in panel
                 throw new Error("Method not implemented.");
             }
 
-            function getGroupsFlag() {
-                console.log("getGroupsFlag() Method not implemented.");
-                return flagsMock();
-            }//:GroupsFlag
-
-            function setGroupFlags(flags) {
-                console.log("setGroupFlags() Method not implemented.");
-            }
-
-            function getSelectedNode() {
-                console.log("getSelectedNode() Method not implemented.");
-                return null;
-            }//:number
-
-            function setSelectedNode(i) {
-                console.log("setSelectedNode() Method not implemented.");
-            }
-
-            function get_rect_type(rect) {
+            function get_rect_type(rect) { // TODO Andrea Extract and call draw
                 throw new Error("Method not implemented.");
             } //:RectType
 
 
-            function set_rect_type(type,rect) {
+            function set_rect_type(type,rect) { // TODO Andrea Extract and call draw
                 console.log("set_rect_type Method not implemented.");
             }
 
-            function setTypeNode(s) {
+            function uuidv4() { // TODO Andrea extract
+                console.log("uuidv4 Method not implemented.");
+            } // :string
+
+
+            function setRectangles() { // copy from drawing.html
+                console.log("setRectangles() Method not implemented.");
+            }
+
+            function getGroupsFlag() { // copy from drawing.html
+                console.log("getGroupsFlag() Method not implemented.");
+                return flagsMock();
+            }//:GroupsFlag
+
+            function setGroupFlags(flags) { // copy from drawing.html
+                console.log("setGroupFlags() Method not implemented.");
+            }
+
+            function setTypeNode(s) { // copy from drawing.html
                 console.log("setTypeNode Method not implemented.");
             }
 
-            function uuidv4() {
-                console.log("uuidv4 Method not implemented.");
-            } // :string
+
 
         </script>
         <app-root></app-root>
