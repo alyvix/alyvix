@@ -632,7 +632,7 @@ def ide_button_new_api():
 
     current_objectname = object
 
-    url = "http://127.0.0.1:" + str(current_port) + "/drawing?father=ide"
+    url = "http://127.0.0.1:" + str(current_port) + "/drawing?ide=true"
 
     browser_class._browser_1.LoadUrl(url)
 
@@ -860,6 +860,8 @@ def save_json():
     global library_dict
     global browser_class
     global library_dict_in_editing
+    global img_h
+    global img_w
 
     if request.method == 'POST':
 
@@ -914,11 +916,19 @@ def save_json():
 
         curr_components = curr_object_dict.get("components", {})
 
+        background = background.replace("data:image/png;base64,", "")
+
+        #np_array = np.frombuffer(base64.b64decode(background), np.uint8)
+        #background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+        #img_h = background_image.shape[0]
+        #img_w = background_image.shape[1]
+
         resolution_string = str(int(img_w*scaling_factor)) + "*" + str(int(img_h*scaling_factor)) + "@" + str(int(scaling_factor*100))
 
         curr_components[resolution_string] = {}
 
-        curr_components[resolution_string]["screen"] = background.replace("data:image/png;base64,","")
+        curr_components[resolution_string]["screen"] = background
 
         main_0 = {}
         subs_0 = []
@@ -1599,7 +1609,8 @@ def create_thumbnail():
 
 
 def get_thumbnail(dict_list, background_string, from_url=False):
-
+    global img_h
+    global img_w
 
     thumbnail_fixed_height = 30
     border = 4
@@ -1607,6 +1618,10 @@ def get_thumbnail(dict_list, background_string, from_url=False):
     np_array = np.frombuffer(base64.b64decode(background_string), np.uint8)
 
     ori_background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+    img_h = ori_background_image.shape[0]
+    img_w = ori_background_image.shape[1]
+
 
     new_width = int(ori_background_image.shape[1] /scaling_factor)
     new_height = int(ori_background_image.shape[0]/ scaling_factor)
