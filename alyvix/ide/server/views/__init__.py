@@ -521,6 +521,192 @@ def selector_edit_api():
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
+
+
+@app.route("/ide_button_new_api", methods=['GET', 'POST'])
+def ide_button_new_api():
+
+    global current_objectname
+    global background_image
+    global base64png
+    global img_h
+    global img_w
+    global popen_process
+    global autocontoured_rects
+    global measure
+
+    browser_class.hide(browser_class._hwnd_3)
+
+    while True:
+        if browser_class.IsWindowVisible(browser_class._hwnd_3) is False \
+                and browser_class.IsIconic(browser_class._hwnd_3) is False:
+            break
+
+    time.sleep(0.5)
+
+    delay = int(request.args.get('delay'))
+
+    screen_manager = ScreenManager()
+
+    scaling_factor = screen_manager.get_scaling_factor()
+
+    if delay != 0: #and lm.check_if_exist(object) is False:
+
+        seconds = delay #// 1
+        #milliseconds = args.delay - seconds
+
+        #print("Counting down")
+
+        for i in range(seconds):
+            #print(str(seconds - i))
+            time.sleep(1)
+
+        #print("Frame grabbing!")
+
+        background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+    elif delay == 0: #and lm.check_if_exist(object) is False:
+        #print("Frame grabbing!")
+
+        background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+
+    png_image = cv2.imencode('.png', background_image)
+
+    base64png = base64.b64encode(png_image[1]).decode('ascii')
+    img_h = int(background_image.shape[0] / scaling_factor)
+    img_w = int(background_image.shape[1] / scaling_factor)
+
+    contouring_manager = ContouringManager(
+        canny_threshold1=250 * 0.2,
+        canny_threshold2=250 * 0.3,
+        canny_apertureSize=3,
+        hough_threshold=10,
+        hough_minLineLength=30,
+        hough_maxLineGap=1,
+        line_angle_tolerance=0,
+        ellipse_width=2,
+        ellipse_height=2,
+        text_roi_emptiness=0.45,
+        text_roi_proportion=1.3,
+        image_roi_emptiness=0.1,
+        vline_hw_proportion=2,
+        vline_w_maxsize=10,
+        hline_wh_proportion=2,
+        hline_h_maxsize=10,
+        rect_w_minsize=5,
+        rect_h_minsize=5,
+        rect_w_maxsize_01=800,
+        rect_h_maxsize_01=100,
+        rect_w_maxsize_02=100,
+        rect_h_maxsize_02=800,
+        rect_hw_proportion=2,
+        rect_hw_w_maxsize=10,
+        rect_wh_proportion=2,
+        rect_wh_h_maxsize=10,
+        hrect_proximity=10,
+        vrect_proximity=10,
+        vrect_others_proximity=40,
+        hrect_others_proximity=80)
+
+    contouring_manager.auto_contouring(background_image, scaling_factor)
+
+    autocontoured_rects = []
+    autocontoured_rects.extend(contouring_manager.getImageBoxes())
+    autocontoured_rects.extend(contouring_manager.getRectBoxes())
+    autocontoured_rects.extend(contouring_manager.getTextBoxes())
+
+
+    #viewer_process = threading.Thread(target=process_viewer, args=(current_port,))
+    #viewer_process.start()
+
+    object_start_index = 1
+    object = default_object_name + str(object_start_index)
+
+    lm = LibraryManager()
+    lm.set_json(library_dict)
+    while True:
+        if lm.check_if_exist(object) is False:
+            break
+
+        object_start_index += 1
+        object = default_object_name + str(object_start_index)
+
+    current_objectname = object
+
+    url = "http://127.0.0.1:" + str(current_port) + "/drawing"
+
+    browser_class._browser_1.LoadUrl(url)
+
+    browser_class.show(browser_class._hwnd_1)
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route("/ide_button_edit_api", methods=['GET', 'POST'])
+def ide_edit_api():
+
+    global library_dict
+    global library_dict_in_editing
+
+    global current_objectname
+    global background_image
+    global base64png
+    global img_h
+    global img_w
+    global popen_process
+    global autocontoured_rects
+    global measure
+
+
+    object_name = request.args.get('object_name')
+    resolution = request.args.get('resolution')
+
+    browser_class.hide(browser_class._hwnd_3)
+
+    while True:
+        if browser_class.IsWindowVisible(browser_class._hwnd_3) is False \
+                and browser_class.IsIconic(browser_class._hwnd_3) is False:
+            break
+
+
+
+    screen_manager = ScreenManager()
+
+    scaling_factor = screen_manager.get_scaling_factor()
+
+    np_array = np.frombuffer(base64.b64decode(library_dict["objects"][object_name]["components"][resolution]["screen"]), np.uint8)
+
+    background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+
+    png_image = cv2.imencode('.png', background_image)
+
+    base64png = base64.b64encode(png_image[1]).decode('ascii')
+    img_h = int(background_image.shape[0] / scaling_factor)
+    img_w = int(background_image.shape[1] / scaling_factor)
+
+
+    object_res = copy.deepcopy(library_dict["objects"][object_name]["components"][resolution])
+
+    library_dict_in_editing = {"objects":{}}
+    library_dict_in_editing["objects"][object_name] = {"components": {}}
+    library_dict_in_editing["objects"][object_name]["components"][resolution] = object_res
+    #library_dict_in_editing["objects"][object_name]["measure"] = copy.deepcopy(library_dict["objects"][object_name]["measure"])
+    library_dict_in_editing["objects"][object_name]["detection"] = copy.deepcopy(library_dict["objects"][object_name]["detection"])
+    library_dict_in_editing["objects"][object_name]["date_modified"] = copy.deepcopy(library_dict["objects"][object_name]["date_modified"])
+    library_dict_in_editing["objects"][object_name]["call"] = copy.deepcopy(library_dict["objects"][object_name]["call"])
+    measure = copy.deepcopy(library_dict["objects"][object_name]["measure"])
+
+    current_objectname = object_name
+
+    url = "http://127.0.0.1:" + str(current_port) + "/drawing"
+
+    browser_class.show(browser_class._hwnd_1)
+
+    browser_class._browser_1.LoadUrl(url)
+
+
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
+
 @app.route("/selector_close_api", methods=['GET'])
 def selector_close_api():
 
