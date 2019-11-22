@@ -1246,23 +1246,25 @@ def save_json():
             datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
 
-        if browser_class._browser_2 is None:
+        if browser_class._browser_2 is not None:
+
+            library_dict_in_editing = None
+
+            browser_class._browser_2.ExecuteJavascript("reloadAlyvixSelector('" + object_name + "')")
+            browser_class.show(browser_class._hwnd_2)
+
+        elif browser_class._browser_3 is not None:
+            library_dict_in_editing = None
+
+            browser_class._browser_3.ExecuteJavascript("reloadAlyvixIde('" + object_name + "')")
+            browser_class.show(browser_class._hwnd_3)
+        else:
+
             with open(current_filename, 'w') as f:
                 json.dump(current_json, f, indent=4, sort_keys=True, ensure_ascii=False)
 
             browser_class.close()
-        else:
 
-            library_dict_in_editing = None
-
-            """
-            vm = selector_vm #ViewerManager()
-            vm.set_win_handler(viewer_handler_selector)
-            vm.load_url('http://127.0.0.1:' + str(current_port) + '/selector', viewer_handler_selector)
-            #vm.show()
-            """
-            browser_class._browser_2.ExecuteJavascript("reloadAlyvixSelector('" + object_name + "')")
-            browser_class.show(browser_class._hwnd_2)
         aaa = "asas"
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
