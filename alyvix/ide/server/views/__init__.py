@@ -632,7 +632,7 @@ def ide_button_new_api():
 
     current_objectname = object
 
-    url = "http://127.0.0.1:" + str(current_port) + "/drawing"
+    url = "http://127.0.0.1:" + str(current_port) + "/drawing?father=ide"
 
     browser_class._browser_1.LoadUrl(url)
 
@@ -697,7 +697,7 @@ def ide_edit_api():
 
     current_objectname = object_name
 
-    url = "http://127.0.0.1:" + str(current_port) + "/drawing"
+    url = "http://127.0.0.1:" + str(current_port) + "/drawing?father=ide"
 
     browser_class.show(browser_class._hwnd_1)
 
