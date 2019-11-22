@@ -102,11 +102,8 @@ export class AlyvixApiService {
     });
   }
 
-  editObjectFullScreen(object_name:string, resolution:string, action:string, value:number) {
-
-    return this.httpClient.get<any>('/ide_button_edit_api?ide=true&object_name=' + object_name + '&resolution=' + resolution + '&action=' + action + '&value=' + value).subscribe(x => {
-      console.log('cancel');
-    });
+  editObjectFullScreen(object_name:string, resolution:string, action:string, value:number):Observable<any> {
+    return this.httpClient.get<any>('/ide_button_edit_api?ide=true&object_name=' + object_name + '&resolution=' + resolution + '&action=' + action + '&value=' + value);
   }
 
   designerParameters(object_name:string,resolution:string):Observable<DesignerModel> {

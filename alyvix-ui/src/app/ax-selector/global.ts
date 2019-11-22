@@ -1,3 +1,5 @@
+import { Mock } from "protractor/built/driverProviders";
+import { AxModelMock } from "../ax-model/mock";
 
 
 
@@ -8,7 +10,7 @@ export interface SelectorGlobal{
 
 export class MockSelectorGlobal implements SelectorGlobal{
     current_library_name = 'test_long_filename';
-    res_string: string = '1920*1080@100';
+    res_string: string = AxModelMock.resolution;
 }
 
 export class SelectorGlobalRef implements SelectorGlobal {

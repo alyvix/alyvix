@@ -5,6 +5,8 @@ import { SelectorMock } from "./mockSelector";
 
 export class AxModelMock {
 
+    static resolution = '1920*1200@100';
+
     static getSelector():AxSelectorObjects {
         return SelectorMock.selectorMock;
     }

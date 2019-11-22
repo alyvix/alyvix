@@ -9,6 +9,7 @@ import { SelectorDatastoreService } from './app/ax-selector/selector-datastore.s
 import { DesignerDatastoreService } from './app/ax-designer/designer-datastore.service';
 import { EditorModule } from './app/ax-editor/editor.module';
 import { AxModelMock } from './app/ax-model/mock';
+import { EditorService } from './app/ax-editor/editor.service';
 
 
 if (environment.production) {
@@ -18,7 +19,7 @@ if (environment.production) {
 
 let designer: void | NgModuleRef<DesignerModule>
 let selector: void | NgModuleRef<SelectorModule>
-let editor: void | NgModuleRef<SelectorModule>
+let editor: void | NgModuleRef<EditorModule>
 
 function loadAlyvixDesigner() {
   platformBrowserDynamic().bootstrapModule(DesignerModule).catch(err => console.log(err)).then(module => designer = module)
@@ -65,7 +66,10 @@ function changeResolution(resolution) {
 }
 
 function reloadAlyvixIde(objectName: string) {
-  console.log("reloadAlyvixIde");
+  if(editor) {
+    const service = editor.injector.get(EditorService);
+    service.reloadObject(objectName);
+  }
 }
 
 

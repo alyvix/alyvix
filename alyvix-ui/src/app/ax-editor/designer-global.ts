@@ -9,6 +9,7 @@ import { SelectorGlobal } from "../ax-selector/global";
 import { of, Observable, BehaviorSubject } from 'rxjs';
 import { EditorGlobal } from "./editor-global";
 import { AxDesignerService } from "../ax-designer/ax-designer-service";
+import { EditorService } from "./editor.service";
 
 @Injectable({
   providedIn: 'root',
@@ -17,18 +18,20 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
 
   private _model:BehaviorSubject<AxModel> = new BehaviorSubject<AxModel>(null);
   private _background:BehaviorSubject<string> = new BehaviorSubject<string>(null);
+  private row:RowVM;
 
   constructor(
     private api:AlyvixApiService,
     private selectorDatastore:SelectorDatastoreService,
+    private editorService:EditorService,
     @Inject('GlobalRefSelector') private global: SelectorGlobal,
     @Inject('GlobalRefEditor') private editorGlobal: EditorGlobal,) {
     super();
     console.log("new instance of EditorDesignerGlobal")
     this.selectorDatastore.getSelected().subscribe(rows => {
 
-      if(this._model.value) {
-        this.api.saveObject(this._model.value).subscribe(x => {
+      if(this._model.value && !this.editorService.designerFullscreen) {
+        this.api.saveObject(this.modelWithDetection()).subscribe(x => {
           console.log("object saved");
         });
       }
@@ -49,23 +52,43 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     return this._background;
   }
 
+  private modelWithDetection():AxModel {
+    const model = this._model.value;
+    if (model && this.row) {
+      model.detection.break = this.row.object.detection.break;
+      model.detection.timeout_s = this.row.object.detection.timeout_s;
+    }
+    return model;
+  }
+
   newComponent(group:number) {
-    if(this._model.value) {
-      this.api.saveObject(this._model.value).subscribe(x => {
-        this.api.editObjectFullScreen(this._model.value.object_name,this.global.res_string,"newComponent",group);
+    console.log("new Component")
+    const model = this.modelWithDetection();
+    if(model) {
+      this.api.saveObject(model).subscribe(x => {
+        this.api.editObjectFullScreen(this._model.value.object_name,this.global.res_string,"newComponent",group).subscribe(x => {
+          this.editorService.designerFullscreen = true;
+          this._model.next(null);
+        });
+
       });
     }
   }
 
   setPoint(i:number) {
-    if(this._model.value) {
-      this.api.saveObject(this._model.value).subscribe(x => {
-        this.api.editObjectFullScreen(this._model.value.object_name,this.global.res_string,"setPoint",i);
+    const model = this.modelWithDetection();
+    if(model) {
+      this.api.saveObject(model).subscribe(x => {
+        this.api.editObjectFullScreen(this._model.value.object_name,this.global.res_string,"setPoint",i).subscribe(x => {
+          this.editorService.designerFullscreen = true;
+          this._model.next(null);
+        });
       });
     }
   }
 
   reloadDesignerModel(row:RowVM) {
+    this.row = row;
     return this.api.designerParameters(row.name,this.global.res_string).subscribe(x => {
       const model:AxModel = {
         box_list: x.file_dict.boxes.map((box, i) => {
