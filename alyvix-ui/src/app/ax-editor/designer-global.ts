@@ -18,9 +18,6 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
   constructor(private api:AlyvixApiService, private selectorDatastore:SelectorDatastoreService, @Inject('GlobalRefSelector') private global: SelectorGlobal,) {
     super();
     this.selectorDatastore.getSelected().subscribe(rows => {
-      console.log(rows);
-      console.log(this.global.res_string);
-      console.log("tttt")
       if(rows && rows.length === 1 && rows[0].selectedResolution === this.global.res_string) {
         this.reloadDesignerModel(rows[0]);
       }
@@ -32,7 +29,6 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     return this._model;
   }
   reloadDesignerModel(row:RowVM) {
-    console.log("reloadDesignerModel");
     return this.api.designerParameters(row.name,this.global.res_string).subscribe(x => {
       const model:AxModel = {
         box_list: x.file_dict.boxes.map((box, i) => {
@@ -40,11 +36,10 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
           return box;
         }),
         object_name: x.file_dict.object_name,
-        background: x.file_dict.screen,
+        background: 'data:image/png;base64,' + x.file_dict.screen,
         detection: x.file_dict.detection,
         call: x.file_dict.call
       };
-      console.log(model.background);
       this._model.next(model);
     })
   }
