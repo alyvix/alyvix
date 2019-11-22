@@ -7,6 +7,7 @@ export interface AxModel {
     measure?:Measure;
     maps?: {[key:string]: {[key:string]: string}};
     script?: any;
+    designerFromEditor?: boolean
   }
 
   export interface DesignerModel {

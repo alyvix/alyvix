@@ -14,6 +14,9 @@
 	<script src="static/codebase/dhtmlx.js"></script>
   <script><!--
   
+        var urlParams = new URLSearchParams(window.location.search);
+        var ide = urlParams.get("ide") ? true : false;
+
         var False = false;
         var True = true;
         var None = null;
@@ -81,7 +84,16 @@
         //Interface to alyvix-ui project
         function axModel() {
             if(!model.box_list) {
-                model = {object_name:object_name, detection: detection, box_list:boxes, background: background_base64_string, measure:measure, call:call, maps:maps, script:script} 
+                model = {
+                    object_name:object_name,
+                    detection: detection,
+                    box_list:boxes,
+                    background: background_base64_string,
+                    measure:measure,
+                    call:call,
+                    maps:maps,
+                    script:script
+                } 
             }
             return model;
         }
@@ -213,8 +225,10 @@
             var image_h = screen_dict['image_h'];
             var background_color_screen = "#808080";
             var border_color_screen = "#808080";
-
-            createWindow();
+            
+            if(!ide) { //don't open designer window in IDE mode
+              createWindow();
+            }
         }
 
 		function createWindow() {
@@ -677,6 +691,18 @@
                 
             $("body").css({ "background-size": screen_w.toString() + "px " + screen_h.toString() + "px"});  
             draw();
+
+            
+            switch(urlParams.get("action")) {
+              case 'setPoint': 
+                setPoint(parseInt(urlParams.get("value")));
+                break;
+              case 'newComponent':
+                newComponent(parseInt(urlParams.get("value")));
+                break;
+              default: break;
+            }
+
         });
         
         

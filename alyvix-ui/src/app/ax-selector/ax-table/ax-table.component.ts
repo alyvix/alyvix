@@ -140,7 +140,7 @@ export class AxTableComponent implements OnInit {
   newObject() {
     this.datastore.saveData(this.data,false).subscribe(x => {
       if (x.success) {
-        this.api.selectorNew(this.delay);
+        this.api.newObject(this.delay);
       }
     });
   }

@@ -27,7 +27,10 @@ import { CopyClipboardDirective } from '../directives/copy-clipboard.directive';
     HttpClientModule,
     FormsModule
   ],
-  providers: [{provide: 'GlobalRefSelector', useClass: environment.globalTypeSelector}],
+  providers: [
+    {provide: 'GlobalRefSelector', useClass: environment.globalTypeSelector},
+    {provide: 'subSystem', useValue: 'selector'}
+  ],
   bootstrap: [SelectorComponent]
 })
 export class SelectorModule { }

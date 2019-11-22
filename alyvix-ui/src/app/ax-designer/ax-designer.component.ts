@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, Inject, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, Inject, Input, DoCheck } from '@angular/core';
 import { AxModel, BoxListEntity } from '../ax-model/model';
 import { AxDesignerService, TreeNode } from './ax-designer-service';
 import { DesignerGlobal } from './ax-global';
@@ -9,17 +9,29 @@ import { FormControl, Validators } from '@angular/forms';
 import { Validation } from '../utils/validators';
 import { AlyvixApiService } from '../alyvix-api.service';
 import { map } from 'rxjs/operators';
+import * as fastDeepEqual from 'fast-deep-equal';
+import * as _ from 'lodash';
 
 @Component({
   selector: 'ax-designer',
   templateUrl: './ax-designer.component.html',
   styleUrls: ['./ax-designer.component.scss']
 })
-export class AxDesignerComponent implements OnInit {
+export class AxDesignerComponent implements OnInit,DoCheck {
+  ngDoCheck(): void {
+    if(this.editor) {
+      this.axDesignerService.updateAx();
+      // if(!fastDeepEqual(this.axModel,this.axModelOriginal)) {
+      //   this.axModelOriginal = _.cloneDeep(this.axModel);
+      //   this.axDesignerService.updateAx();
+      // }
+    }
+  }
 
   constructor(private axDesignerService:AxDesignerService, private keyShortcuts:KeyShortcutsService, private alyvixApi:AlyvixApiService) { }
 
   axModel:AxModel;
+  //axModelOriginal:AxModel;
 
   @Input() editor:boolean = false;
   @ViewChild('pullDown',{static: true}) pullDown: ElementRef;
@@ -102,6 +114,7 @@ export class AxDesignerComponent implements OnInit {
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectNode(n));
     this.axDesignerService.getDragging().subscribe(d => this.dragging = d);
     this.axModel = this.axDesignerService.getModel();
+    //this.axModelOriginal = _.cloneDeep(this.axModel);
     this.object_name.setValue(this.axModel.object_name);
     this.originalName = this.axModel.object_name;
     this.first.nativeElement.focus();

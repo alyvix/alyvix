@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { BoxListEntity, AxSelectorObjects, DesignerModel } from './ax-model/model';
+import { BoxListEntity, AxSelectorObjects, DesignerModel, AxModel } from './ax-model/model';
 import { map, retry, catchError } from 'rxjs/operators';
 
 export interface ScrapedText{
@@ -37,7 +37,7 @@ export interface SetLibraryRequest{
 })
 export class AlyvixApiService {
 
-  constructor(private httpClient:HttpClient) { }
+  constructor(private httpClient:HttpClient, @Inject("subSystem") private subSystem:string) { }
 
   getScrapedText(box: BoxListEntity):Observable<ScrapedText> {
     return this.httpClient.post<ScrapedText>("/get_scraped_txt",box)
@@ -78,8 +78,14 @@ export class AlyvixApiService {
     return this.httpClient.post<ValidationResult>("/check_number_api",request);
   }
 
-  selectorNew(delay: number) {
-    return this.httpClient.get<any>('/selector_button_new_api?delay=' +  delay).subscribe(x => {
+  newObject(delay: number) {
+
+    let baseUrl = '/selector_button_new_api';
+    if (this.subSystem === 'editor') {
+      baseUrl = '/ide_button_new_api';
+    }
+
+    return this.httpClient.get<any>(baseUrl + '?delay=' +  delay).subscribe(x => {
       console.log('new');
     });
   }
@@ -96,8 +102,26 @@ export class AlyvixApiService {
     });
   }
 
+  editObjectFullScreen(object_name:string, resolution:string, action:string, value:number) {
+
+    return this.httpClient.get<any>('/ide_button_edit_api?ide=true&object_name=' + object_name + '&resolution=' + resolution + '&action=' + action + '&value=' + value).subscribe(x => {
+      console.log('cancel');
+    });
+  }
+
   designerParameters(object_name:string,resolution:string):Observable<DesignerModel> {
     return this.httpClient.get<DesignerModel>('/ide_selector_index_changed_api?object_name=' + object_name + '&resolution=' + resolution);
+  }
+
+  saveObject(model:AxModel):Observable<any> {
+    model.designerFromEditor = (this.subSystem === 'editor');
+    return this.httpClient.post<any>('/save_json',model);
+  }
+
+  closeDesiger() {
+    return this.httpClient.get<any>('/cancel_event').subscribe(x => {
+      console.log("designer closed");
+    })
   }
 
 

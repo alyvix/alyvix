@@ -64,6 +64,10 @@ function changeResolution(resolution) {
   console.log(resolution)
 }
 
+function reloadAlyvixIde(objectName: string) {
+  console.log("reloadAlyvixIde");
+}
+
 
 (window as any).loadAlyvixEditor = loadAlyvixEditor;
 (window as any).loadAlyvixDesigner = loadAlyvixDesigner;
@@ -73,6 +77,7 @@ function changeResolution(resolution) {
 (window as any).unloadAlyvixSelector = unloadAlyvixSelector;
 (window as any).setExePath = setExePath;
 (window as any).changeResolution = changeResolution;
+(window as any).reloadAlyvixIde = reloadAlyvixIde;
 
 (window as any).axModelMock =  function() {
   return AxModelMock.get();

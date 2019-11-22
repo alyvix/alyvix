@@ -8,6 +8,7 @@ import { RowVM } from "../ax-selector/ax-table/ax-table.component";
 import { SelectorGlobal } from "../ax-selector/global";
 import { of, Observable, BehaviorSubject } from 'rxjs';
 import { EditorGlobal } from "./editor-global";
+import { AxDesignerService } from "../ax-designer/ax-designer-service";
 
 @Injectable({
   providedIn: 'root',
@@ -23,9 +24,18 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     @Inject('GlobalRefSelector') private global: SelectorGlobal,
     @Inject('GlobalRefEditor') private editorGlobal: EditorGlobal,) {
     super();
+    console.log("new instance of EditorDesignerGlobal")
     this.selectorDatastore.getSelected().subscribe(rows => {
+
+      if(this._model.value) {
+        this.api.saveObject(this._model.value).subscribe(x => {
+          console.log("object saved");
+        });
+      }
       if(rows && rows.length === 1 && rows[0].selectedResolution === this.global.res_string) {
         this.reloadDesignerModel(rows[0]);
+      } else {
+        this._model.next(null);
       }
     })
   }
@@ -39,6 +49,22 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     return this._background;
   }
 
+  newComponent(group:number) {
+    if(this._model.value) {
+      this.api.saveObject(this._model.value).subscribe(x => {
+        this.api.editObjectFullScreen(this._model.value.object_name,this.global.res_string,"newComponent",group);
+      });
+    }
+  }
+
+  setPoint(i:number) {
+    if(this._model.value) {
+      this.api.saveObject(this._model.value).subscribe(x => {
+        this.api.editObjectFullScreen(this._model.value.object_name,this.global.res_string,"setPoint",i);
+      });
+    }
+  }
+
   reloadDesignerModel(row:RowVM) {
     return this.api.designerParameters(row.name,this.global.res_string).subscribe(x => {
       const model:AxModel = {
@@ -47,7 +73,7 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
           return box;
         }),
         object_name: x.file_dict.object_name,
-        background: 'data:image/png;base64,' + x.file_dict.screen,
+        background: 'data:image/png;base64,' + x.background,
         detection: x.file_dict.detection,
         call: x.file_dict.call
       };

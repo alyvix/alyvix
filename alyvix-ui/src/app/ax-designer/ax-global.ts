@@ -26,9 +26,7 @@ export interface DesignerGlobal{
     newComponent(group:number):any
     setPoint(i:number):any
 
-    setRectangles():any //can be mocked no effect on UI
-    save():any //API call can be done directly by UI
-    cancel():any //API call can be done directly by UI
+    setRectangles():any
 
     getGroupsFlag():GroupsFlag //can be mocked no effect on UI
     setGroupFlags(flags:GroupsFlag) //can be mocked no effect on UI
@@ -36,8 +34,8 @@ export interface DesignerGlobal{
     getSelectedNode():number //can be mocked no effect on UI
     setSelectedNode(i:number) //can be mocked no effect on UI
 
-    get_rect_type(rect:BoxListEntity):RectType //can be integrated in angular
-    set_rect_type(type:RectType,rect:BoxListEntity) //can be integrated in angular
+    get_rect_type(rect:BoxListEntity):RectType
+    set_rect_type(type:RectType,rect:BoxListEntity)
 
     setTypeNode(s:string) //can be mocked no effect on ui
 
@@ -70,12 +68,7 @@ export class MockDesignerGlobal implements DesignerGlobal{
     setRectangles() {
 
     }
-    save() {
-        throw new Error("Method not implemented.");
-    }
-    cancel() {
-        throw new Error("Method not implemented.");
-    }
+
     setPoint(i: number) {
         throw new Error("Method not implemented.");
     }
@@ -113,8 +106,6 @@ export class DesignerGlobalRef implements DesignerGlobal {
   newComponent(group: number) { return (window as any).newComponent(group); }
   setPoint(i: number) { return (window as any).setPoint(i); }
   setRectangles() { return (window as any).setRectangles(); }
-  save() { return (window as any).save(); }
-  cancel() { return (window as any).cancel(); }
   getGroupsFlag(): GroupsFlag { return (window as any).getGroupsFlag(); }
   setGroupFlags(flags: GroupsFlag) { return (window as any).setGroupFlags(flags); }
   getSelectedNode(): number { return (window as any).getSelectedNode(); }

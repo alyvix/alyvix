@@ -9,6 +9,7 @@ import { moveItemInArray } from '@angular/cdk/drag-drop';
 import * as _ from 'lodash';
 import * as fastDeepEqual from 'fast-deep-equal';
 import { HotkeysService, Hotkey } from "angular2-hotkeys";
+import { AlyvixApiService } from "../alyvix-api.service";
 
 
 
@@ -25,43 +26,49 @@ export interface TreeNode {
 export class AxDesignerService {
 
 
-  constructor(@Inject('GlobalRefDesigner') private global: DesignerGlobal) {
+  constructor(
+    @Inject('GlobalRefDesigner') private global: DesignerGlobal,
+    @Inject("subSystem") private subSystem:string,
+    private api: AlyvixApiService
+  ) {
     this.global.axModel().subscribe(axModel => {
-      console.log("AAAA")
-      console.log(axModel);
-      this.axModel = axModel;
-      console.log(axModel)
-      if (axModel.box_list) {
-        axModel.box_list.forEach(box => {
-          if (!box.features.I.likelihood) {
-            box.features.I = { 'colors': true, 'likelihood': 0.9 }
-          }
-        })
+      if(axModel) {
+        console.log("AAAA")
+        console.log(axModel);
+        this.axModel = axModel;
+        console.log(axModel)
+        if (axModel.box_list) {
+          axModel.box_list.forEach(box => {
+            if (!box.features.I.likelihood) {
+              box.features.I = { 'colors': true, 'likelihood': 0.9 }
+            }
+          })
+        }
+
+        this.flags = this.global.getGroupsFlag();
+
+        var iSelectedNode = this.global.getSelectedNode() //needs to be done before loadNodes because loadNodes call setSelectedNode
+
+        var lastElement = this.global.lastElement()
+
+
+        this._loadNodes(true);
+
+        var selectedNode: TreeNode = null;
+        if (lastElement) {
+
+          selectedNode = this.findNode(lastElement)
+          this.global.setSelectedNode(this.indexOfBox(lastElement))
+
+        } else if (iSelectedNode >= 0) {
+          this.global.setSelectedNode(iSelectedNode);
+          var node = axModel.box_list[iSelectedNode];
+          selectedNode = this.findNode(node)
+
+        }
+        if (selectedNode)
+          this._selectedNode.next(selectedNode)
       }
-
-      this.flags = this.global.getGroupsFlag();
-
-      var iSelectedNode = this.global.getSelectedNode() //needs to be done before loadNodes because loadNodes call setSelectedNode
-
-      var lastElement = this.global.lastElement()
-
-
-      this._loadNodes(true);
-
-      var selectedNode: TreeNode = null;
-      if (lastElement) {
-
-        selectedNode = this.findNode(lastElement)
-        this.global.setSelectedNode(this.indexOfBox(lastElement))
-
-      } else if (iSelectedNode >= 0) {
-        this.global.setSelectedNode(iSelectedNode);
-        var node = axModel.box_list[iSelectedNode];
-        selectedNode = this.findNode(node)
-
-      }
-      if (selectedNode)
-        this._selectedNode.next(selectedNode)
     });
 
 
@@ -321,7 +328,7 @@ export class AxDesignerService {
     }
   }
 
-  updateAx() {
+  public updateAx() {
     this.axModel.box_list = this.flatBoxList();
     this.global.setRectangles();
   }
@@ -329,11 +336,15 @@ export class AxDesignerService {
 
   save() {
     this.updateAx();
-    this.global.save();
+    this.api.saveObject(this.axModel).subscribe(x => {
+      if (this.subSystem === 'designer') {
+        this.api.closeDesiger();
+      }
+    });
   }
 
   cancel() {
-    this.global.cancel();
+    this.api.closeDesiger();
   }
 
 

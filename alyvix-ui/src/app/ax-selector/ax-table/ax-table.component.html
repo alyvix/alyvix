@@ -134,7 +134,7 @@
         <span class="inline-label">Delay [s]</span>
         <input class="small" [(ngModel)]="delay" type="number" (click)="preventClick($event)"  min="0" />
       Add</button>
-    <button class="btn btn-secondary" [disabled]="hasError()" *ngIf="singleSelection() && isSelectedInWorkingResolution()" (click)="edit()">Edit</button>
+    <button class="btn btn-secondary" [disabled]="hasError()" *ngIf="singleSelection() && isSelectedInWorkingResolution() && !editor" (click)="edit()">Edit</button>
     <button class="btn btn-secondary" [disabled]="hasError()" *ngIf="isSomethingSelected()" (click)="duplicate()">Duplicate</button>
     <button class="btn btn-danger" [disabled]="hasError()" *ngIf="isSomethingSelected()" (click)="remove()">Remove</button>
 </ng-template>

@@ -217,17 +217,10 @@ class RectManager{
             }
         }
         
-        /*if (e.keyCode === 27)
-        {
-            if (boxes.length == 0)
-            {
-                $.ajax({
-                    url: "/cancel_event",
-                    type: "GET"
-                });
-                return;
-            }
-        }*/
+        if (e.keyCode === 27 && ide) {  //esc pressed
+            console.log("close and go back to editor");
+            save();
+        }
         
         if((e.key == "o" && this.key_ctrl_pressed == true) || e.keyCode === 27 || e.keyCode === 13){
         

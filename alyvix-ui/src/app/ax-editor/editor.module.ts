@@ -89,6 +89,7 @@ import { MonitorComponent } from './central-panel/monitor/monitor.component';
     {provide: 'GlobalRefSelector', useClass: environment.globalTypeSelector},
     {provide: 'GlobalRefDesigner', useClass: EditorDesignerGlobal},
     {provide: 'GlobalRefEditor', useClass: environment.globalTypeEditor},
+    {provide: 'subSystem', useValue: 'editor'}
   ],
   bootstrap: [EditorComponent]
 })
