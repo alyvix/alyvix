@@ -865,7 +865,7 @@ def save_json():
 
         current_json = {}
 
-        if browser_class._hwnd_2 is None:
+        if browser_class._hwnd_2 is None and browser_class._hwnd_3 is None:
             try:
                 with open(current_filename) as f:
                     current_json = json.load(f)
@@ -1267,6 +1267,7 @@ def save_json():
             if from_ide is None:
 
                 browser_class.show(browser_class._hwnd_3)
+                browser_class.hide(browser_class._hwnd_1)
         else:
 
             with open(current_filename, 'w') as f:
