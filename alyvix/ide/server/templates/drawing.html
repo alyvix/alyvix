@@ -106,7 +106,8 @@
             rectManager.set_rectangles(model.box_list);
             rectManager.set_intent({"type":"set_interaction_point", "features":{"index": i}});
             rectManager.set_group(model.box_list[i].group);
-            dhxWins.forEachWindow(function(win){win.close();});
+            if(dhxWins)
+                dhxWins.forEachWindow(function(win){win.close();});
         }
 
         function newComponent(group) {
@@ -114,7 +115,8 @@
             rectManager.set_rectangles(model.box_list);
             rectManager.set_intent({"type":"capturing", "features":{}});
             rectManager.set_group(group);
-            dhxWins.forEachWindow(function(win){win.close();});
+            if(dhxWins)
+                dhxWins.forEachWindow(function(win){win.close();});
         }
 
         
@@ -182,11 +184,13 @@
                 data: jsonData,
                 contentType: "application/json; charset=utf-8",
                 success: function(dat) { 
-                        $.ajax({
-                            url: "/cancel_event",
-                            type: "GET",
-                            //success: function(dat) { alert("JSON SAVED");}
-                        });
+                        if(!ide) {
+                            $.ajax({
+                                url: "/cancel_event",
+                                type: "GET",
+                                //success: function(dat) { alert("JSON SAVED");}
+                            });
+                        }
                     
                         console.log("JSON SAVED");
                     }
@@ -587,6 +591,18 @@
                 }
                 
                 rectManager.set_rectangles(boxes);
+                axModel();
+            
+                switch(urlParams.get("action")) {
+                case 'setPoint': 
+                    setPoint(parseInt(urlParams.get("value")));
+                    break;
+                case 'newComponent':
+                    newComponent(parseInt(urlParams.get("value")));
+                    break;
+                default: break;
+                }
+
                 draw();
             }
             else
@@ -693,15 +709,8 @@
             draw();
 
             
-            switch(urlParams.get("action")) {
-              case 'setPoint': 
-                setPoint(parseInt(urlParams.get("value")));
-                break;
-              case 'newComponent':
-                newComponent(parseInt(urlParams.get("value")));
-                break;
-              default: break;
-            }
+
+            
 
         });
         

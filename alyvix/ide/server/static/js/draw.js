@@ -4,8 +4,6 @@ function setRectangles() {
     boxes = model.box_list;
     rectManager.set_rectangles(model.box_list);
     draw(rectManager.last_mouse_event);
-    console.log("update rectangles")
-    console.log(boxes);
 }
 
 function fix_dpi() {
@@ -33,7 +31,6 @@ function fix_dpi() {
 
 
 function draw(e=null) {
-    console.log("draw");
     if (ctx==null) return; 
 
     //call the dpi fix every time 
