@@ -1,0 +1,65 @@
+@import "../../../variables.scss";
+
+.ax-main-container{
+  height: 100%;
+  width: 100%;
+
+  .ax-main-main{
+
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: stretch;
+    flex-direction: column;
+
+    .ax-main-content{
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+
+
+    .ax-main-tabs{
+      height: 20px;
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      border-bottom: 2px solid $blue;
+    }
+
+    .ax-main-tab{
+      min-width: 120px;
+      padding: 3px 10px;
+      display: flex;
+      font-size: 80%;
+      font-weight: bolder;
+      cursor: pointer;
+
+      &.selected{
+
+        background-color: $blue;
+        a {
+          color: white;
+          &:hover {
+            color:$lightblue;
+          }
+        }
+      }
+
+
+      a {
+        width: 100%;
+        cursor: pointer;
+        &:hover {
+          color:$blue;
+        }
+      }
+
+
+    }
+  }
+
+}
+
+

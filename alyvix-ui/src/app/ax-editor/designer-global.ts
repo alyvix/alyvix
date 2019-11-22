@@ -7,15 +7,21 @@ import { AxModel, BoxListEntity } from "../ax-model/model";
 import { RowVM } from "../ax-selector/ax-table/ax-table.component";
 import { SelectorGlobal } from "../ax-selector/global";
 import { of, Observable, BehaviorSubject } from 'rxjs';
+import { EditorGlobal } from "./editor-global";
 
 @Injectable({
   providedIn: 'root',
 })
 export class EditorDesignerGlobal extends environment.globalTypeDesigner {
 
-  _model:BehaviorSubject<AxModel> = new BehaviorSubject<AxModel>(null);
+  private _model:BehaviorSubject<AxModel> = new BehaviorSubject<AxModel>(null);
+  private _background:BehaviorSubject<string> = new BehaviorSubject<string>(null);
 
-  constructor(private api:AlyvixApiService, private selectorDatastore:SelectorDatastoreService, @Inject('GlobalRefSelector') private global: SelectorGlobal,) {
+  constructor(
+    private api:AlyvixApiService,
+    private selectorDatastore:SelectorDatastoreService,
+    @Inject('GlobalRefSelector') private global: SelectorGlobal,
+    @Inject('GlobalRefEditor') private editorGlobal: EditorGlobal,) {
     super();
     this.selectorDatastore.getSelected().subscribe(rows => {
       if(rows && rows.length === 1 && rows[0].selectedResolution === this.global.res_string) {
@@ -28,6 +34,11 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
   axModel(): Observable<AxModel> {
     return this._model;
   }
+
+  background(): Observable<string> {
+    return this._background;
+  }
+
   reloadDesignerModel(row:RowVM) {
     return this.api.designerParameters(row.name,this.global.res_string).subscribe(x => {
       const model:AxModel = {
@@ -40,6 +51,8 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
         detection: x.file_dict.detection,
         call: x.file_dict.call
       };
+      this._background.next('data:image/png;base64,'+ x.background);
+      this.editorGlobal.setBoxes(model.box_list);
       this._model.next(model);
     })
   }

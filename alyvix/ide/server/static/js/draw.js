@@ -1,5 +1,13 @@
 var dpi = window.devicePixelRatio || 1;
 
+function setRectangles() {
+    boxes = model.box_list;
+    rectManager.set_rectangles(model.box_list);
+    draw(rectManager.last_mouse_event);
+    console.log("update rectangles")
+    console.log(boxes);
+}
+
 function fix_dpi() {
     if (ctx==null) return;
     //create a style object that returns width and height

@@ -16,6 +16,7 @@
             var screen_w = 0;
             var screen_h = 0;
             var boxes = []
+            var model = {box_list: []};
 
             var res_h = {{res_h}};
             var res_w = {{res_w}};
@@ -30,17 +31,11 @@
                 ctx = canvas.getContext('2d');
             } 
 
-            //DESIGNER
-            function axModel() {
-                // get from /ide_selector_index_changed_api
-                console.log("axModel() Method not implemented.");
-                return axModelMock();
-            } //:AxModel;
+            function setBoxes(b) {
+                boxes = b;
+                model.box_list = b;
+            }
 
-            function lastElement() { 
-                // get from /ide_selector_index_changed_api
-                return null;
-            } //:BoxListEntity;
 
             var selected_box = 0;
 
@@ -71,23 +66,12 @@
                 throw new Error("Method not implemented.");
             }
 
-            function get_rect_type(rect) { // TODO Andrea Extract and call draw
-                throw new Error("Method not implemented.");
-            } //:RectType
-
-
-            function set_rect_type(type,rect) { // TODO Andrea Extract and call draw
-                console.log("set_rect_type Method not implemented.");
-            }
 
             function uuidv4() { // TODO Andrea extract
                 console.log("uuidv4 Method not implemented.");
             } // :string
 
 
-            function setRectangles() { // copy from drawing.html
-                console.log("setRectangles() Method not implemented.");
-            }
 
             function getGroupsFlag() { // copy from drawing.html
                 console.log("getGroupsFlag() Method not implemented.");

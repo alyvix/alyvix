@@ -105,13 +105,7 @@
             dhxWins.forEachWindow(function(win){win.close();});
         }
 
-        function setRectangles() {
-            boxes = model.box_list;
-            rectManager.set_rectangles(model.box_list);
-            draw(rectManager.last_mouse_event);
-            console.log("update rectangles")
-            console.log(boxes);
-        }
+        
 
         function getGroupsFlag() {
             return {

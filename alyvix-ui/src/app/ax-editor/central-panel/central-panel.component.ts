@@ -7,9 +7,17 @@ import { Component, OnInit } from '@angular/core';
 })
 export class CentralPanelComponent implements OnInit {
 
+  tabs = ['Script','Monitor'];
+
+  selected = this.tabs[0];
+
   constructor() { }
 
   ngOnInit() {
+  }
+
+  selectTab(tab) {
+    this.selected = tab;
   }
 
 }

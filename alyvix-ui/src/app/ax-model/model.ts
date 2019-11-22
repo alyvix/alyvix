@@ -15,7 +15,7 @@ export interface AxModel {
       screen: Thumbnail,
       thumbnails: Thumbnail[]
     };
-
+    background:string;
   }
  export interface FileDict{
    boxes: BoxListEntity[];

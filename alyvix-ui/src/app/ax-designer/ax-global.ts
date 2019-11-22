@@ -19,6 +19,7 @@ export enum RectType{
 
 export interface DesignerGlobal{
     axModel():Observable<AxModel>;
+    background():Observable<string>;
 
     lastElement():BoxListEntity;
 
@@ -99,6 +100,11 @@ export class MockDesignerGlobal implements DesignerGlobal{
     axModel(): Observable<AxModel> {
         return of(AxModelMock.get());
     }
+
+    background():Observable<string> {
+      return of("");
+    }
+
 }
 
 export class DesignerGlobalRef implements DesignerGlobal {
@@ -117,5 +123,8 @@ export class DesignerGlobalRef implements DesignerGlobal {
   set_rect_type(type: RectType, rect: BoxListEntity) { return (window as any).set_rect_type(type,rect); }
   setTypeNode(s: string) { return (window as any).setTypeNode(s); }
   uuidv4(): string { return (window as any).uuidv4(); }
+  background():Observable<string> {
+    return of("");
+  }
 }
 

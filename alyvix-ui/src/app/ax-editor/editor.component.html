@@ -4,7 +4,7 @@
       <ax-header></ax-header>
   </div>
   <div class="container-editor" #container>
-    <div class="variable_width">
+    <div class="variable_width" [style.width.px]="leftWidth">
         <rsz-layout class="top-panel" [directions]="['none']" [rFlex]="true">
             <div [style.height.px]="topLeftHeight" class="editor-menu-panel">
               <rsz-layout  [directions]="['right']" [rFlex]="true" (resizing)="resizingVertical($event)">
@@ -17,8 +17,8 @@
                     </div>
                   </div>
               </rsz-layout>
-              <rsz-layout class="" [directions]="['none']" [rFlex]="true">
-                <div class="inner-cell">
+              <rsz-layout  [directions]="['none']" [rFlex]="true">
+                <div [style.width.px]="leftWidth - objectsWidth" [style.height.px]="topLeftHeight" class="inner-cell">
                   <app-central-panel></app-central-panel>
                 </div>
               </rsz-layout>

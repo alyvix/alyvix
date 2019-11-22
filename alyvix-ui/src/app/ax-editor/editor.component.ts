@@ -13,6 +13,8 @@ export class EditorComponent implements OnInit {
   selectorHeight = 300;
   topLeftHeight = 50;
   objectsWidth = 300;
+  designerWidth = 420;
+  leftWidth:number;
 
   objectCollapsed = false;
 
@@ -61,6 +63,7 @@ export class EditorComponent implements OnInit {
     this.global.axModel().subscribe(model => {
       this.hasDesigner = model ? true : false;
     });
+    this.leftWidth = this.container.nativeElement.offsetWidth  - this.designerWidth;
   }
 
 }

@@ -35,6 +35,7 @@ import { ScriptEditorComponent } from './central-panel/script-editor/script-edit
 import { StepComponent } from './central-panel/script-editor/step/step.component';
 import { ObjectsPanelComponent } from './objects-panel/objects-panel.component';
 import { EditorDesignerGlobal } from './designer-global';
+import { MonitorComponent } from './central-panel/monitor/monitor.component';
 
 
 
@@ -61,6 +62,7 @@ import { EditorDesignerGlobal } from './designer-global';
     ScriptEditorComponent,
     StepComponent,
     ObjectsPanelComponent,
+    MonitorComponent,
   ],
   imports: [
     NgxResizableModule,
@@ -85,7 +87,8 @@ import { EditorDesignerGlobal } from './designer-global';
   ],
   providers: [
     {provide: 'GlobalRefSelector', useClass: environment.globalTypeSelector},
-    {provide: 'GlobalRefDesigner', useClass: EditorDesignerGlobal}
+    {provide: 'GlobalRefDesigner', useClass: EditorDesignerGlobal},
+    {provide: 'GlobalRefEditor', useClass: environment.globalTypeEditor},
   ],
   bootstrap: [EditorComponent]
 })

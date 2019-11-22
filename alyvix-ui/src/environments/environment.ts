@@ -1,5 +1,6 @@
 import { MockDesignerGlobal } from "src/app/ax-designer/ax-global";
 import { MockSelectorGlobal } from "src/app/ax-selector/global";
+import { MockEditorGlobal } from "src/app/ax-editor/editor-global";
 
 // This file can be replaced during build by using the `fileReplacements` array.
 // `ng build ---prod` replaces `environment.ts` with `environment.prod.ts`.
@@ -9,6 +10,7 @@ export const environment = {
   production: false,
   globalTypeDesigner: MockDesignerGlobal,
   globalTypeSelector: MockSelectorGlobal,
+  globalTypeEditor: MockEditorGlobal,
   workingOn: "editor",
   assets: "/assets"
 };
