@@ -697,7 +697,9 @@ def ide_edit_api():
 
     current_objectname = object_name
 
-    url = "http://127.0.0.1:" + str(current_port) + "/drawing?father=ide"
+    qstring = str(request.query_string, 'utf-8')
+
+    url = "http://127.0.0.1:" + str(current_port) + "/drawing?" + qstring
 
     browser_class.show(browser_class._hwnd_1)
 
