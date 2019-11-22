@@ -1255,9 +1255,18 @@ def save_json():
 
         elif browser_class._browser_3 is not None:
             library_dict_in_editing = None
-
             browser_class._browser_3.ExecuteJavascript("reloadAlyvixIde('" + object_name + "')")
-            browser_class.show(browser_class._hwnd_3)
+
+            from_ide = None
+
+            try:
+                from_ide = json_data['designerFromEditor']
+            except:
+                pass
+
+            if from_ide is None:
+
+                browser_class.show(browser_class._hwnd_3)
         else:
 
             with open(current_filename, 'w') as f:
