@@ -169,17 +169,21 @@ if filename is not None:
                 performance = round(result.performance_ms / 1000, 3)
                 accuracy = round(result.accuracy_ms / 1000, 3)
                 if result.output is True:
+                    print(date_formatted + ": " + result.object_name + "DETECTED in " + str(performance) + "s " +
+                          "(+/-" + '{:.3f}'.format(accuracy) + ")")
+                    """
                     print(date_formatted + ": " + result.object_name + " measures " + str(performance) + "s " +
                           "(+/-" + '{:.3f}'.format(accuracy) + ") OK")
+                    """
                 result.exit = "true"
             else:
                 if result.output is True and result.has_to_break is True:
-                    print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(result.timeout) + "s")
+                    print(date_formatted + ": " + result.object_name + " FAILED after " + str(result.timeout) + "s")
                     timed_out_objects.append(result.object_name)
                     result.exit = "fail"
                     sys_exit = 2
                 elif result.output is True and result.has_to_break is False:
-                    print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(result.timeout) + "s")
+                    print(date_formatted + ": " + result.object_name + " SKIPPED after " + str(result.timeout) + "s")
                     result.exit = "false"
                 elif result.output is False and result.has_to_break is True:
                     timed_out_objects.append(result.object_name)
