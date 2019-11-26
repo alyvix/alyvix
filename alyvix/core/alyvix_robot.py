@@ -43,6 +43,19 @@ def print_error_help(string):
     eprint(string)
     sys.exit(2)
 
+def get_timestamp_formatted():
+    timestamp = time.time()
+    date_from_ts = datetime.fromtimestamp(timestamp)
+    # millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
+    try:
+        millis_from_ts = date_from_ts.strftime("%f")[: -3]
+    except:
+        millis_from_ts = "000"
+
+    date_formatted = date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts)
+
+    return date_formatted
+
 filename = None
 
 engine_arguments = []
@@ -111,8 +124,17 @@ if filename is not None:
 
     library_json = lm.get_json()
 
+    timestamp = time.time()
+    start_time = timestamp
 
-    print(filename_no_extension + " starts")
+    date_from_ts = datetime.fromtimestamp(timestamp)
+    try:
+        millis_from_ts = date_from_ts.strftime("%f")[: -3]
+    except:
+        millis_from_ts = "000"
+    date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) + "_UTC" + time.strftime("%z")
+
+    print(date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts) + ": " + filename_no_extension + " starts")
 
     username = os.environ['username']
 
@@ -124,16 +146,9 @@ if filename is not None:
 
     code = ""
 
-    timestamp = time.time()
 
     #< host > _ < user > _ < test > _ < YYYYMMDD_hhmmss_lll >
 
-    date_from_ts = datetime.fromtimestamp(timestamp)
-    try:
-        millis_from_ts = date_from_ts.strftime("%f")[: -3]
-    except:
-        millis_from_ts = "000"
-    date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) + "_UTC" + time.strftime("%z")
 
     code = hostname + "_" + username + "_" + filename_no_extension + "_" + date_formatted
 
@@ -169,12 +184,8 @@ if filename is not None:
                 performance = round(result.performance_ms / 1000, 3)
                 accuracy = round(result.accuracy_ms / 1000, 3)
                 if result.output is True:
-                    print(date_formatted + ": " + result.object_name + "DETECTED in " + str(performance) + "s " +
+                    print(date_formatted + ": " + result.object_name + " DETECTED in " + str(performance) + "s " +
                           "(+/-" + '{:.3f}'.format(accuracy) + ")")
-                    """
-                    print(date_formatted + ": " + result.object_name + " measures " + str(performance) + "s " +
-                          "(+/-" + '{:.3f}'.format(accuracy) + ") OK")
-                    """
                 result.exit = "true"
             else:
                 if result.output is True and result.has_to_break is True:
@@ -215,7 +226,7 @@ if filename is not None:
 
                 objects_result.append(dummy_result)
 
-                print(object + " NOT EXECUTED")
+                #print(object + " NOT EXECUTED")
 
 
     else:
@@ -223,10 +234,11 @@ if filename is not None:
 
         for object_name in objects_names:
 
+            """
             if lm.check_valid_object_name(object_name) is False:
                 print(object_name + " contains invalid characters, only alphanumeric characters and -_' ' (space) are allowed.")
                 sys.exit(2)
-
+            """
             if lm.check_if_exist(object_name) is False:
                 print(object_name + " does NOT exist")
                 sys.exit(2)
@@ -243,13 +255,13 @@ if filename is not None:
 
             if result.performance_ms == -1 and result.has_to_break is True:
                 if verbose >= 1:
-                    print("Alyvix breaks " + result.object_name + " after " + str(result.timeout) + "s")
+                    print(get_timestamp_formatted() + ": Alyvix breaks " + result.object_name + " after " + str(result.timeout) + "s")
                 timed_out_objects.append(result.object_name)
                 state = 2
                 break
             elif result.performance_ms == -1 and result.has_to_break is False:
                 if verbose >= 1:
-                    print("Alyvix skips " + result.object_name + " after " + str(result.timeout) + "s")
+                    print(get_timestamp_formatted() + ": Alyvix skips " + result.object_name + " after " + str(result.timeout) + "s")
 
         if len(objects_result) < len(objects_names):
 
@@ -290,18 +302,16 @@ if filename is not None:
                     performance = round(result.performance_ms / 1000, 3)
                     accuracy = round(result.accuracy_ms / 1000, 3)
                     if result.output is True:
-                        print(date_formatted + ": " + result.object_name + " measures " + str(performance) + "s " +
-                              "(+/-" + '{:.3f}'.format(accuracy) + ") OK")
+                        print(date_formatted + ": " + result.object_name + " DETECTED in " + str(performance) + "s " +
+                              "(+/-" + '{:.3f}'.format(accuracy) + ")")
                     result.exit = "true"
                 else:
                     if result.output is True and result.has_to_break is True:
-                        print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(
-                            result.timeout) + "s")
+                        print(date_formatted + ": " + result.object_name + " FAILED after " + str(result.timeout) + "s")
                         result.exit = "fail"
                         sys_exit = 2
                     elif result.output is True and result.has_to_break is False:
-                        print(date_formatted + ": " + result.object_name + " TIMED OUT after " + str(
-                            result.timeout) + "s")
+                        print(date_formatted + ": " + result.object_name + " SKIPPED after " + str(result.timeout) + "s")
                         result.exit = "false"
                     elif result.output is False and result.has_to_break is True:
                         result.exit = "fail"
@@ -310,17 +320,17 @@ if filename is not None:
                         result.exit = "false"
 
             else:
-                print(result.object_name + " NOT EXECUTED")
+                #print(result.object_name + " NOT EXECUTED")
                 result.exit = "not_executed"
 
     t_end = time.time() - t_start
 
 
     if sys_exit == 0:
-        print (filename_no_extension + " ends OK, it takes " + '{:.3f}'.format(t_end) + "s.")
+        print (get_timestamp_formatted() + ": " + filename_no_extension + " ends OK, it takes " + '{:.3f}'.format(t_end) + "s.")
         exit = "true"
     else:
-        print (filename_no_extension + " ends FAILED because of " + timed_out_objects[0] +", it takes " + '{:.3f}'.format(t_end) + "s.")
+        print (get_timestamp_formatted() + ": " + filename_no_extension + " ends FAILED because of " + timed_out_objects[0] +", it takes " + '{:.3f}'.format(t_end) + "s.")
         exit = "false"
 
     om = OutputManager()
@@ -329,6 +339,10 @@ if filename is not None:
     if verbose >= 2:
         om.save_screenshots(filename_path, objects_result, prefix=filename_no_extension)
 
+    print("    NOT EXECUTED objects:")
+    for result in objects_result:
+        if result.timestamp == -1:
+            print("        " + result.object_name)
 
     date_from_ts = datetime.fromtimestamp(timestamp)
     date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_UTC" + time.strftime("%z")

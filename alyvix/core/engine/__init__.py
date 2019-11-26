@@ -30,6 +30,7 @@ import threading
 import psutil
 import os
 import numpy as np
+from datetime import datetime
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.library import LibraryManager
 from .image import ImageManager
@@ -174,6 +175,18 @@ class EngineManager(object):
 
         self.lock = threading.Lock()
 
+    def _get_timestamp_formatted(self):
+        timestamp = time.time()
+        date_from_ts = datetime.fromtimestamp(timestamp)
+        # millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
+        try:
+            millis_from_ts = date_from_ts.strftime("%f")[: -3]
+        except:
+            millis_from_ts = "000"
+
+        date_formatted = date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts)
+
+        return date_formatted
 
     def _compress(self, current_color_screen):
         return cv2.imencode('.png', current_color_screen)[1]
@@ -1448,7 +1461,8 @@ class EngineManager(object):
         self._disappear_mode = False
 
         if self._verbose >= 1:
-            print("Alyvix looks for " + self._result.object_name)
+
+            print(self._get_timestamp_formatted() + ": Alyvix looks for " + self._result.object_name)
 
         #sm = ScreenManager()
 
@@ -1475,7 +1489,7 @@ class EngineManager(object):
                 if args is not None:
                     popen_input.extend(shlex.split(args))
                 if self._verbose >= 1:
-                    print("Run " + exe)
+                    print(self._get_timestamp_formatted() + ": Run " + exe)
 
                 proc = subprocess.Popen(popen_input)
 
@@ -1494,7 +1508,7 @@ class EngineManager(object):
 
                         if proc.name() == process_name and proc.username() == logged_user:
                             if self._verbose >= 1:
-                                print("Kill " + process_name)
+                                print(self._get_timestamp_formatted() + ": Kill " + process_name)
 
                             p = psutil.Process(proc.pid)
                             p.kill()
@@ -1552,7 +1566,7 @@ class EngineManager(object):
             if self._objects_appeared is True and disappear_mode is False:
 
                 if self._verbose >= 1:
-                    print("Alyvix detected " + self._result.object_name)
+                    print(self._get_timestamp_formatted() + ": Alyvix detected " + self._result.object_name)
 
                 if detection_type =='appear':
                     #cv2.imwrite("D:\\programdata\\log\\" + str(time.time()) + "_find.png", self._uncompress(self._screens[-2][0]))

@@ -1,5 +1,7 @@
 import sys
 import copy
+import time
+from datetime import datetime
 from alyvix.core.engine import EngineManager
 from alyvix.tools.library import LibraryManager
 
@@ -25,6 +27,19 @@ class ParserManager:
             self._script_maps = copy.deepcopy(library_json["maps"])
         except:
             pass
+
+    def _get_timestamp_formatted(self):
+        timestamp = time.time()
+        date_from_ts = datetime.fromtimestamp(timestamp)
+        # millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
+        try:
+            millis_from_ts = date_from_ts.strftime("%f")[: -3]
+        except:
+            millis_from_ts = "000"
+
+        date_formatted = date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts)
+
+        return date_formatted
 
     def _iter_on_sections(self, section_name = None):
         if section_name is not None:
@@ -101,11 +116,11 @@ class ParserManager:
 
         if result.performance_ms == -1 and result.has_to_break is True:
             if self._verbose >= 1:
-                print("Alyvix breaks " + result.object_name + " after " + str(result.timeout) + "s")
+                print(self._get_timestamp_formatted() + ": Alyvix breaks " + result.object_name + " after " + str(result.timeout) + "s")
             raise ValueError()
         elif result.performance_ms == -1 and result.has_to_break is False:
             if self._verbose >= 1:
-                print("Alyvix skips " + result.object_name + " after " + str(result.timeout) + "s")
+                print(self._get_timestamp_formatted() + ": Alyvix skips " + result.object_name + " after " + str(result.timeout) + "s")
             return False
         elif result.performance_ms != -1:
             return True
