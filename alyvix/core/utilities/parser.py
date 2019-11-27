@@ -26,7 +26,7 @@ class ParserManager:
         try:
             self._script_maps = copy.deepcopy(library_json["maps"])
         except:
-            pass
+            self._script_maps = {}
 
     def _get_timestamp_formatted(self):
         timestamp = time.time()
@@ -115,12 +115,16 @@ class ParserManager:
         self._executed_object_name.append(object_name)
 
         if result.performance_ms == -1 and result.has_to_break is True:
+            """
             if self._verbose >= 1:
                 print(self._get_timestamp_formatted() + ": Alyvix breaks " + result.object_name + " after " + str(result.timeout) + "s")
+            """
             raise ValueError()
         elif result.performance_ms == -1 and result.has_to_break is False:
+            """
             if self._verbose >= 1:
                 print(self._get_timestamp_formatted() + ": Alyvix skips " + result.object_name + " after " + str(result.timeout) + "s")
+            """
             return False
         elif result.performance_ms != -1:
             return True

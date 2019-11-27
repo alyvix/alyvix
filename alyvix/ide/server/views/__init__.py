@@ -1619,12 +1619,13 @@ def get_thumbnail(dict_list, background_string, from_url=False):
 
     ori_background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-    img_h = ori_background_image.shape[0]
-    img_w = ori_background_image.shape[1]
-
 
     new_width = int(ori_background_image.shape[1] /scaling_factor)
     new_height = int(ori_background_image.shape[0]/ scaling_factor)
+
+    img_h = new_height
+    img_w = new_width
+
     dim = (new_width, new_height)
 
     # resize image

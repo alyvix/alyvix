@@ -59,6 +59,7 @@ class Result():
         self.detection_type = None
         self.has_to_break = None
         self.timestamp = None
+        self.end_timestamp = None
         self.performance_ms = None
         self.accuracy_ms = None
         self.screenshot = None
@@ -1462,7 +1463,7 @@ class EngineManager(object):
 
         if self._verbose >= 1:
 
-            print(self._get_timestamp_formatted() + ": Alyvix looks for " + self._result.object_name)
+            print(self._get_timestamp_formatted() + ": Alyvix looks at " + self._result.object_name)
 
         #sm = ScreenManager()
 
@@ -1489,7 +1490,7 @@ class EngineManager(object):
                 if args is not None:
                     popen_input.extend(shlex.split(args))
                 if self._verbose >= 1:
-                    print(self._get_timestamp_formatted() + ": Run " + exe)
+                    print(self._get_timestamp_formatted() + ": Alyvix calls " + exe)
 
                 proc = subprocess.Popen(popen_input)
 
@@ -1508,7 +1509,7 @@ class EngineManager(object):
 
                         if proc.name() == process_name and proc.username() == logged_user:
                             if self._verbose >= 1:
-                                print(self._get_timestamp_formatted() + ": Kill " + process_name)
+                                print(self._get_timestamp_formatted() + ": Alyvix kills " + process_name)
 
                             p = psutil.Process(proc.pid)
                             p.kill()
@@ -1586,6 +1587,7 @@ class EngineManager(object):
                     if self._result.performance_ms < 0:
                         self._result.performance_ms *= -1
 
+                    self._result.end_timestamp = time.time()
                     return self._result
 
                     #return (appear_time, appear_accuracy)
@@ -1627,6 +1629,7 @@ class EngineManager(object):
                 if self._result.performance_ms < 0:
                     self._result.performance_ms *= -1
 
+                self._result.end_timestamp = time.time()
                 return self._result
 
             self.lock.acquire()
@@ -1634,6 +1637,12 @@ class EngineManager(object):
             self.lock.release()
 
             if time.time() - self._t0 > timeout and first_attempt_finished is True:
+
+                if self._verbose >= 1:
+                    if has_to_break is True:
+                        print(self._get_timestamp_formatted() + ": Alyvix failed at " + self._result.object_name)
+                    else:
+                        print(self._get_timestamp_formatted() + ": Alyvix skipped " + self._result.object_name)
 
                 self._timedout = True
 
@@ -1660,6 +1669,7 @@ class EngineManager(object):
                 self._result.annotation = self._annotation_screen
                 self._result.timeout = timeout
 
+                self._result.end_timestamp = time.time()
                 return self._result
 
 

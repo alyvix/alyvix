@@ -63,6 +63,8 @@ objects_names = []
 verbose = 0
 sys_exit = 0
 
+not_executed_cnt = 0
+
 for i in range(0, len(sys.argv)):
     if sys.argv[i] == "-f" or sys.argv[i] == "--filename":
         filename = sys.argv[i+1]
@@ -171,7 +173,7 @@ if filename is not None:
 
         # OBJECT RUNNED OR IN TIMEDOUT
         for result in objects_result:
-            date_from_ts = datetime.fromtimestamp(result.timestamp)
+            date_from_ts = datetime.fromtimestamp(result.end_timestamp)
             # millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
             try:
                 millis_from_ts = date_from_ts.strftime("%f")[: -3]
@@ -224,6 +226,8 @@ if filename is not None:
                 dummy_result.accuracy_ms = -1
                 dummy_result.exit = "not_executed"
 
+                not_executed_cnt += 1
+
                 objects_result.append(dummy_result)
 
                 #print(object + " NOT EXECUTED")
@@ -254,14 +258,19 @@ if filename is not None:
             objects_result.append(result)
 
             if result.performance_ms == -1 and result.has_to_break is True:
+                """
                 if verbose >= 1:
                     print(get_timestamp_formatted() + ": Alyvix breaks " + result.object_name + " after " + str(result.timeout) + "s")
+                """
                 timed_out_objects.append(result.object_name)
                 state = 2
                 break
             elif result.performance_ms == -1 and result.has_to_break is False:
+                pass
+                """
                 if verbose >= 1:
                     print(get_timestamp_formatted() + ": Alyvix skips " + result.object_name + " after " + str(result.timeout) + "s")
+                """
 
         if len(objects_result) < len(objects_names):
 
@@ -277,6 +286,7 @@ if filename is not None:
                     result.performance_ms = -1
                     result.accuracy_ms = -1
                     result.exit = "not_executed"
+                    not_executed_cnt += 1
                     objects_result.append(result)
                 cnt += 1
         """
@@ -289,7 +299,7 @@ if filename is not None:
             # YYYYMMDD_hhmmss_lll : <object_name> measures <performance_ms> (+/-<accuracy>)
             if result.timestamp != -1:
 
-                date_from_ts = datetime.fromtimestamp(result.timestamp)
+                date_from_ts = datetime.fromtimestamp(result.end_timestamp)
                 # millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
                 try:
                     millis_from_ts = date_from_ts.strftime("%f")[: -3]
@@ -339,13 +349,15 @@ if filename is not None:
     if verbose >= 2:
         om.save_screenshots(filename_path, objects_result, prefix=filename_no_extension)
 
-    print("    NOT EXECUTED objects:")
-    for result in objects_result:
-        if result.timestamp == -1:
-            print("        " + result.object_name)
+    if not_executed_cnt > 0:
+        print("    NOT EXECUTED objects:")
+        for result in objects_result:
+            if result.timestamp == -1:
+                print("        " + result.object_name)
 
     date_from_ts = datetime.fromtimestamp(timestamp)
     date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_UTC" + time.strftime("%z")
 
     filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
     om.save(filename, lm.get_json(), chunk, objects_result, exit, t_end)
+    sys.exit(sys_exit)
