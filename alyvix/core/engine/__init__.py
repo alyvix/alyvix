@@ -754,28 +754,28 @@ class EngineManager(object):
 
                                     sub_results = tm.scrape(roi=roi, logic=logic)
                                     scraped_text = sub_results[0].scraped_text
-                                    tmp_text_scraped += scraped_text + ";"
+                                    tmp_text_scraped += scraped_text + ","
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
-                                        tmp_text_extracted += "" + ";"
+                                        tmp_text_extracted += "" + ","
                                     else:
                                         extract_text = sub_results[0].extract_text
-                                        tmp_text_extracted += extract_text + ";"
+                                        tmp_text_extracted += extract_text + ","
 
                                 elif box["features"]["T"]["detection"] == "number":
                                     logic = "number_" + box["features"]["T"]["logic"]
 
                                     sub_results = tm.scrape(roi=roi, logic=logic)
                                     scraped_text = sub_results[0].scraped_text
-                                    tmp_text_scraped += scraped_text + ";"
+                                    tmp_text_scraped += scraped_text + ","
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
-                                        tmp_text_extracted += "" + ";"
+                                        tmp_text_extracted += "" + ","
                                     else:
                                         extract_text = sub_results[0].extract_text
-                                        tmp_text_extracted += extract_text + ";"
+                                        tmp_text_extracted += extract_text + ","
 
                                 else:
                                     tm.set_regexp(box["features"]["T"]["regexp"], self._arguments, maps=self._maps,
@@ -783,14 +783,14 @@ class EngineManager(object):
                                     sub_results = tm.find(box["features"]["T"], roi=roi)
 
                                     scraped_text = sub_results[0].scraped_text
-                                    tmp_text_scraped += scraped_text + ";"
+                                    tmp_text_scraped += scraped_text + ","
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
-                                        tmp_text_extracted += "" + ";"
+                                        tmp_text_extracted += "" + ","
                                     else:
                                         extract_text = sub_results[0].extract_text
-                                        tmp_text_extracted += extract_text + ";"
+                                        tmp_text_extracted += extract_text + ","
 
                             elif box["features"]["T"]["type"] == "map":
 
@@ -801,19 +801,19 @@ class EngineManager(object):
                                     map_dict = self._maps[map_name]
                                     sub_results = tm.scrape(roi=roi, map_dict=map_dict)
                                     scraped_text = sub_results[0].scraped_text
-                                    tmp_text_scraped += scraped_text + ";"
+                                    tmp_text_scraped += scraped_text + ","
 
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
-                                        tmp_text_extracted += "" + ";"
+                                        tmp_text_extracted += "" + ","
                                     else:
                                         extract_text = sub_results[0].extract_text
-                                        tmp_text_extracted += extract_text + ";"
+                                        tmp_text_extracted += extract_text + ","
                                 else:
                                     sub_results = tm.scrape(roi=roi)
                                     scraped_text = sub_results[0].scraped_text
-                                    tmp_text_scraped += scraped_text + ";"
-                                    tmp_text_extracted += "" + ";"
+                                    tmp_text_scraped += scraped_text + ","
+                                    tmp_text_extracted += scraped_text + ","
 
 
                         if len(sub_results) > 0:
@@ -841,6 +841,10 @@ class EngineManager(object):
                         a = "a"
                         break
                     """
+            tmp_text_scraped = tmp_text_scraped[:-1]
+            tmp_text_extracted = tmp_text_extracted[:-1]
+            tmp_text_scraped += ";"
+            tmp_text_extracted += ";"
 
 
 
@@ -942,12 +946,12 @@ class EngineManager(object):
                 for component in self._components_appeared:
                     if component.type == "T":
 
-                        scraped_text += component.scraped_text + ";"
+                        scraped_text += component.scraped_text + ","
 
                         if component.extract_text is None:
-                            extract_text += ";"
+                            extract_text += ","
                         else:
-                            extract_text += component.extract_text + ";"
+                            extract_text += component.extract_text + ","
                         #check = 1
             except:
                 pass
