@@ -114,7 +114,7 @@ class LibraryManager:
 
     def check_valid_object_name(self, name):
 
-        invalid_chars = re.findall(r'[^a-zA-Z-_]', name)
+        invalid_chars = re.findall(r'[^a-zA-Z-_ 0-9]', name)
 
         if len(invalid_chars) > 0:
             return False
@@ -214,11 +214,19 @@ class LibraryManager:
     def get_script(self):
 
         try:
-            map_dict = self._json_object["script"]
+            script_dict = self._json_object["script"]
         except:
-            return {}
+            return {
+                        "case": [
 
-        return map_dict
+                        ],
+                        "sections": {
+                            "exit": [],
+                            "fail": []
+                        }
+                    }
+
+        return script_dict
 
     def get_call(self, object_name):
 

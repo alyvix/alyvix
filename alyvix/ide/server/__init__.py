@@ -60,9 +60,11 @@ class ServerManager():
         views.current_port = port
 
         #app.run(port=port)
+        views.loglevel = log_level
         http_server = WSGIServer(('127.0.0.1', port), app, log=server_log)
         views.server_process = http_server
         http_server.serve_forever()
+
 
     def set_window(self, window):
         views.win32_window = window
@@ -142,4 +144,7 @@ class ServerManager():
 
     def set_boxes(self, boxes):
         views.current_boxes = boxes
+
+    def set_output_pipeline(self, output_pipeline):
+        views.output_pipeline = output_pipeline
 

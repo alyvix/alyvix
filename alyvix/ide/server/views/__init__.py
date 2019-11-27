@@ -93,6 +93,7 @@ viewer_handler_designer = None
 popen_process = None
 current_port = None
 
+
 viewer_manager = None
 
 viewer_process = None
@@ -100,6 +101,10 @@ viewer_process = None
 default_object_name = "VisualObject"
 
 browser_class = None
+
+output_pipeline = None
+
+loglevel=None
 
 def detachedProcessFunction(wait_time):
     i=0
@@ -365,22 +370,26 @@ def selector_button_new_api():
 
     scaling_factor = screen_manager.get_scaling_factor()
 
+    if loglevel == 0:
+        os.dup2(output_pipeline[0], 1)
+        os.dup2(output_pipeline[1], 2)
+
     if delay != 0: #and lm.check_if_exist(object) is False:
 
         seconds = delay #// 1
         #milliseconds = args.delay - seconds
 
-        #print("Counting down")
+        print("Counting down")
 
         for i in range(seconds):
-            #print(str(seconds - i))
+            print(str(seconds - i))
             time.sleep(1)
 
-        #print("Frame grabbing!")
+        print("Frame grabbing!")
 
         background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
     elif delay == 0: #and lm.check_if_exist(object) is False:
-        #print("Frame grabbing!")
+        print("Frame grabbing!")
 
         background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
 
@@ -452,6 +461,11 @@ def selector_button_new_api():
     browser_class._browser_1.LoadUrl(url)
 
     browser_class.show(browser_class._hwnd_1)
+
+    if loglevel == 0:
+        null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
+        os.dup2(null_fds[0], 1)
+        os.dup2(null_fds[1], 2)
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -903,7 +917,15 @@ def save_json():
         curr_output = curr_measure.get("output", True)
         curr_thresholds = curr_measure.get("thresholds", {})
 
-        curr_script = current_json.get("script", {})
+        curr_script = current_json.get("script",{
+                        "case": [
+
+                        ],
+                        "sections": {
+                            "exit": [],
+                            "fail": []
+                        }
+                    })
         curr_maps = current_json.get("maps", {})
 
         curr_object_list_dict = current_json.get("objects", {})
@@ -1293,7 +1315,15 @@ def selector_save_json_api():
 
     global library_dict
 
-    curr_script = library_dict.get("script", {})
+    curr_script = library_dict.get("script", {
+                        "case": [
+
+                        ],
+                        "sections": {
+                            "exit": [],
+                            "fail": []
+                        }
+                    })
 
     library_dict["script"] = curr_script
 
@@ -1425,7 +1455,15 @@ def set_library_api():
             objects[obj]["date_modified"] = datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") +\
                                             " UTC" + time.strftime("%z")
 
-    curr_script = json_string["library"].get("script", {})
+    curr_script = json_string["library"].get("script", {
+                        "case": [
+
+                        ],
+                        "sections": {
+                            "exit": [],
+                            "fail": []
+                        }
+                    })
     curr_maps = json_string["library"].get("maps", {})
 
     json_string["library"]["script"] = curr_script

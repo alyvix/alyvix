@@ -18,6 +18,13 @@ import threading
 
 #os.environ["FLASK_ENV"] = "development"
 
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
+
+def enablePrint():
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -50,7 +57,7 @@ parser.add_argument('--verbose', '-v', help="dummy description for help", type=i
 args = parser.parse_args()
 
 
-def run_server(port, background_image, scaling_factor, object, filename, verbose, json_dict, viewer_manager):
+def run_server(port, background_image, scaling_factor, object, filename, verbose, json_dict, viewer_manager, output_pipeline):
     #screen_manager = ScreenManager()
     server_manager = ServerManager()
 
@@ -61,6 +68,7 @@ def run_server(port, background_image, scaling_factor, object, filename, verbose
     server_manager.set_file_name(filename)
     server_manager.set_json(json_dict)
     server_manager.set_browser_class(viewer_manager)
+    server_manager.set_output_pipeline(output_pipeline)
 
     server_manager.run(port, verbose)
 
@@ -127,6 +135,10 @@ if __name__ == '__main__':
     else:
         object = args.object
 
+    if lm.check_valid_object_name(object) is False:
+        print(object + " contains invalid characters, only alphanumeric characters and -_' ' (space) are allowed.")
+        sys.exit(2)
+
     screen_manager = ScreenManager()
 
     if args.delay != 0 and lm.check_if_exist(object) is False:
@@ -176,8 +188,10 @@ if __name__ == '__main__':
 
     viewer_manager = ViewerManager()
 
+    output_pipeline = os.dup(1), os.dup(2)
+
     #http_process = Process(target=run_server, args=(server_port, scaling_factor, filename, args.verbose,lm.get_json()))
-    http_process = threading.Thread(target=run_server, args=(server_port, background_image, scaling_factor, object, filename, args.verbose,lm.get_json(), viewer_manager))
+    http_process = threading.Thread(target=run_server, args=(server_port, background_image, scaling_factor, object, filename, args.verbose,lm.get_json(), viewer_manager,output_pipeline))
     http_process.start()
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -200,8 +214,6 @@ if __name__ == '__main__':
         if args.verbose == 0:
             # open 2 fds
             null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
-            # save the current file descriptors to a tuple
-            save = os.dup(1), os.dup(2)
             # put /dev/null fds on 1 and 2
             os.dup2(null_fds[0], 1)
             os.dup2(null_fds[1], 2)
@@ -210,8 +222,8 @@ if __name__ == '__main__':
 
         if args.verbose == 0:
             # restore file descriptors so I can print the results
-            os.dup2(save[0], 1)
-            os.dup2(save[1], 2)
+            os.dup2(output_pipeline[0], 1)
+            os.dup2(output_pipeline[1], 2)
             # close the temporary fds
             os.close(null_fds[0])
             os.close(null_fds[1])
