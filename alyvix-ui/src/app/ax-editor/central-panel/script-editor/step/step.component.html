@@ -1,17 +1,17 @@
 
 <div class="step-container">
   <div class="step-box">
-    <div class="step-condition step-main-condition">
-      <div>if true</div>
+    <div class="step-condition step-main-condition" (dblclick)="nextCondition()">
+      <div >{{condition}}</div>
     </div>
-    <div class="step-parameter">
-      wp_neteye_popup
+    <div class="step-parameter" #firstParameter="cdkDropList" cdkDropList (cdkDropListDropped)="dropped($event)" (cdkDropListEntered)="enter($event)" [cdkDropListConnectedTo]="objectLists">
+      {{step.name}}
     </div>
-    <div class="step-condition">
+    <div class="step-condition" *ngIf="secondParameterEnabled">
       <div>run</div>
     </div>
-    <div class="step-parameter step-run-parameter">
-      wp_neteye_popup_solve
+    <div class="step-parameter step-run-parameter" [hidden]="!secondParameterEnabled" #secondParameter="cdkDropList" cdkDropList [cdkDropListConnectedTo]="objectLists"  (cdkDropListEntered)="enter($event)" (cdkDropListDropped)="droppedSecond($event)">
+      {{secondParameterValue}}
     </div>
   </div>
   <div class="arrow"></div>

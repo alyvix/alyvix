@@ -10,7 +10,7 @@
     <div>Resolution</div>
     <div>Screen</div>
 </div>
-<div class="ax-selector-table" [ngClass]="{'read-write': !readonly}" #tableContainer>
+<div class="ax-selector-table" [ngClass]="{'read-write': !readonly}" #tableContainer cdkDropList  [cdkDropListConnectedTo]="objectLists" [cdkDropListData]="'object'">
     <cdk-table [dataSource]="filteredData">
 
         <!-- Name Definition -->
@@ -90,7 +90,7 @@
         </ng-container>
 
         <!-- Header and Row Declarations -->
-        <cdk-row (click)="selectRow($event,row)" [ngClass]="{'selected': isSelected(row)}" *cdkRowDef="let row; columns: selectorColumns"></cdk-row>
+        <cdk-row (click)="selectRow($event,row)" [ngClass]="{'selected': isSelected(row)}" *cdkRowDef="let row; columns: selectorColumns" cdkDrag></cdk-row>
     </cdk-table>
 </div>
 

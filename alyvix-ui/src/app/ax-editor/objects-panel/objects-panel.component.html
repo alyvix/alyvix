@@ -1,23 +1,22 @@
 <div class="ax-objects">
   <ul>
-    <li>
-      MAIN
-    </li>
-    <li>
-      SECTIONS <button class="btn">Add</button>
-      <ul>
-        <li>FAIL</li>
-        <li>EXIT</li>
-        <li>section_name <button class="btn light">Remove</button></li>
+    <li> MAIN</li>
+    <li> FAIL</li>
+    <li> EXIT</li>
+  </ul>
+
+  <h3>SECTIONS <button class="btn">Add</button></h3>
+
+
+      <ul cdkDropList  (cdkDropListDropped)="dropped($event)" [cdkDropListConnectedTo]="objectLists" name="sections" [cdkDropListData]="'object'">
+        <li><span cdkDrag [cdkDragData]="'section_name'">section_name</span> <button class="btn light">Remove</button></li>
       </ul>
-    </li>
-    <li>
-      MAPS <button class="btn">Add</button>
-      <ul>
-        <li>map_name <button class="btn light">Remove</button></li>
-        <li>test2 <button class="btn light">Remove</button></li>
+
+  <h3>MAPS <button class="btn">Add</button></h3>
+      <ul cdkDropList (cdkDropListDropped)="dropped($event)" [cdkDropListConnectedTo]="objectLists" name="maps" [cdkDropListData]="'map'">
+        <li><span cdkDrag [cdkDragData]="'map_name'">map_name</span> <button class="btn light">Remove</button></li>
+        <li><span cdkDrag [cdkDragData]="'test2'">test2</span> <button class="btn light">Remove</button></li>
 
       </ul>
-    </li>
-  </ul>
+
 </div>

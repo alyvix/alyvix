@@ -1,7 +1,4 @@
 
-<div class="steps">
-  <script-step></script-step>
-  <script-step></script-step>
-  <script-step></script-step>
-  <script-step></script-step>
+<div class="steps" #actions="cdkDropList" cdkDropList (cdkDropListDropped)="dropped($event)" [cdkDropListData]="'actions'">
+  <script-step *ngFor="let step of steps" [step]="step" cdkDrag></script-step>
 </div>

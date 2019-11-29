@@ -512,3 +512,17 @@ hr {
   justify-content: space-between;
 }
 
+.steps{
+
+  .cdk-drag-placeholder {
+    height: 1px;
+    border: 1px solid gray;
+    margin: 10px 0 20px 0;
+    text-align: center;
+    font-weight: bold;
+    letter-spacing: 2px;
+    line-height: 50px;
+  }
+
+}
+

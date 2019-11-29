@@ -3,16 +3,28 @@
 .ax-objects{
 
   padding:  20px 30px 20px 10px;
+  font-family: $font;
+  letter-spacing: 2px;
+  width: 100%;
+  overflow-x: hidden;
+
+  h3 {
+    font-size: 15px;
+    margin-bottom: 0px;
+    margin-top: 20px;
+  }
+
   ul{
     width: 100%;
     padding: 0;
     margin: 0;
-    font-family: $font;
+
     list-style: none;
     margin-bottom: 10px;
+
     li {
       padding-left: 16px;
-      letter-spacing: 2px;
+
       margin: 3px 0;
       line-height: 16px;
     }

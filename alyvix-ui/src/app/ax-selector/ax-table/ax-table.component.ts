@@ -11,6 +11,8 @@ import * as _ from 'lodash';
 import { Utils } from 'src/app/utils';
 import { SelectorUtils } from '../selector-utils';
 import { SelectorDatastoreService } from '../selector-datastore.service';
+import { CdkDropList } from '@angular/cdk/drag-drop';
+import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
 
 export interface RowVM{
   name:string
@@ -37,11 +39,15 @@ export class AxTableComponent implements OnInit {
     @Inject('GlobalRefSelector') private global: SelectorGlobal,
     private api:AlyvixApiService,
     private datastore:SelectorDatastoreService,
-    private changeDetecor: ChangeDetectorRef) {}
+    private changeDetecor: ChangeDetectorRef,
+    private objectRegistry:ObjectsRegistryService
+    ) {}
 
 
   production: boolean = environment.production;
   private _data: RowVM[] = [];
+
+  objectLists:CdkDropList[] = [];
 
   @Output() import = new EventEmitter<RowVM[]>();
 
@@ -399,6 +405,12 @@ export class AxTableComponent implements OnInit {
         this.changeDetecor.markForCheck();
         this.changeDetecor.detectChanges();
       }
-    })
+    });
+
+    this.objectRegistry.objectList().subscribe(x => {
+      setTimeout(() => {
+        this.objectLists = x;
+      }, 200);
+    });
   }
 }

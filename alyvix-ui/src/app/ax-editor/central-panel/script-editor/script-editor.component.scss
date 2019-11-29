@@ -1,3 +1,6 @@
 .steps{
   margin: 30px;
+  min-height: calc(100% - 60px);
+  display: flex;
+  flex-direction: column;
 }

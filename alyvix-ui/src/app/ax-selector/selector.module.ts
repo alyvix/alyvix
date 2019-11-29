@@ -10,6 +10,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { AxTableComponent } from './ax-table/ax-table.component';
 import { CopyClipboardDirective } from '../directives/copy-clipboard.directive';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 
 
@@ -25,7 +26,8 @@ import { CopyClipboardDirective } from '../directives/copy-clipboard.directive';
     CdkTableModule,
     AngularResizedEventModule,
     HttpClientModule,
-    FormsModule
+    FormsModule,
+    DragDropModule
   ],
   providers: [
     {provide: 'GlobalRefSelector', useClass: environment.globalTypeSelector},

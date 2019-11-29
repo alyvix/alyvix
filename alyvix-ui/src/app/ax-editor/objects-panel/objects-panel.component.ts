@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { CdkDropList } from '@angular/cdk/drag-drop';
+import { ObjectsRegistryService } from '../objects-registry.service';
 
 @Component({
   selector: 'app-objects-panel',
@@ -7,9 +9,24 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ObjectsPanelComponent implements OnInit {
 
-  constructor() { }
+  constructor(private objectRegistry:ObjectsRegistryService) { }
+
+
+
+  objectLists:CdkDropList[] = [];
+
 
   ngOnInit() {
+
+    this.objectRegistry.objectList().subscribe(x => {
+      setTimeout(() => {
+        this.objectLists = x;
+      }, 200);
+    });
+  }
+
+  dropped(event) {
+    console.log(event);
   }
 
 }

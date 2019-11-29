@@ -26,7 +26,7 @@
       }
 
       &.step-main-condition{
-
+        cursor: pointer;
       }
     }
 
@@ -36,6 +36,7 @@
       align-items: center;
       height: 50px;
       padding: 0 20px;
+      min-width: 100px;
       background-color: $yellow;
       div{
         text-align: center;
