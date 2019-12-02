@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, ViewChild, OnDestroy } from '@angular/core';
-import { CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
 
 
@@ -18,7 +18,7 @@ export class StepComponent implements OnInit,OnDestroy {
   @ViewChild('firstParameter', {static: true}) firstParameter:CdkDropList;
   @ViewChild('secondParameter', {static: true}) secondParameter:CdkDropList;
 
-
+  objectLists:CdkDropList[] = [];
 
   constructor(private objectRegistry:ObjectsRegistryService) { }
 
@@ -76,6 +76,11 @@ export class StepComponent implements OnInit,OnDestroy {
 
   ngOnInit() {
     this.objectRegistry.addObjectList(this.firstParameter);
+    this.objectRegistry.objectList().subscribe(x => {
+      setTimeout(() => {
+        this.objectLists = x;
+      }, 200);
+    });
   }
 
   ngOnDestroy(): void {
@@ -86,6 +91,11 @@ export class StepComponent implements OnInit,OnDestroy {
   enter(event) {
     console.log("enter child");
     console.log(event);
+  }
+
+
+  canDropObject(drag: CdkDrag, drop: CdkDropList) {
+    return drag.dropContainer.data === 'object';
   }
 
 }

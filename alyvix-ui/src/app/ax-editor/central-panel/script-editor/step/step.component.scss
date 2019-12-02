@@ -2,6 +2,7 @@
 .step-container{
   display: flex;
   flex-direction: column;
+  z-index: 9999;
 
   .step-box{
 
@@ -38,6 +39,14 @@
       padding: 0 20px;
       min-width: 100px;
       background-color: $yellow;
+      &.cdk-drop-list-dragging{
+        span {
+          display: none;
+        }
+        span.cdk-drag-placeholder{
+          display: inline;
+        }
+      }
       div{
         text-align: center;
         font-weight: bold;

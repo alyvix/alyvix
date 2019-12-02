@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ObjectsRegistryService } from '../../objects-registry.service';
-import { CdkDropList, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDropList, CdkDragDrop, moveItemInArray, CdkDrag } from '@angular/cdk/drag-drop';
 import { Step } from './step/step.component';
 
 @Component({
@@ -18,8 +18,8 @@ export class ScriptEditorComponent implements OnInit {
   constructor(private objectRegistry:ObjectsRegistryService) { }
 
   ngOnInit() {
-    this.objectRegistry.addObjectList(this.actions);
     //this.steps.push({name: 'bla', type: 'map'});
+    this.objectRegistry.addObjectList(this.actions);
   }
 
   dropped(event: CdkDragDrop<any,any>) {
@@ -39,6 +39,13 @@ export class ScriptEditorComponent implements OnInit {
   enter(event) {
     console.log("enter parent");
     console.log(event);
+  }
+
+  canDrop(drag: CdkDrag, drop: CdkDropList) {
+    console.log('canDrop')
+    console.log(drag);
+    console.log(drop);
+    return true;
   }
 
 }
