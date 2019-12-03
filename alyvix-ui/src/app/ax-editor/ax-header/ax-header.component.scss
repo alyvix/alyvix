@@ -3,6 +3,7 @@
 .ax-header-container {
   display: flex;
   padding: 17px 20px;
+  justify-content: space-between;
   .ax-header-title{
     text-transform: uppercase;
     font-weight: bold;
@@ -10,7 +11,7 @@
     font-family: 'Roboto';
     letter-spacing: 3px;
     line-height: 25px;
-    width: 200px;
+    min-width: 200px;
   }
 
   ul {

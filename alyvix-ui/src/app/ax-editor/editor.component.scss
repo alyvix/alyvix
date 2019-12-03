@@ -21,6 +21,20 @@ $headerHeight: 60px;
       border-left: 2px $gray solid;
       height: 100%;
       box-sizing: border-box;
+
+      .message{
+        display: flex;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: 14px;
+        font-family: 'Roboto';
+        letter-spacing: 2px;
+      }
+
     }
     .variable_width {
       -webkit-box-flex: 1;

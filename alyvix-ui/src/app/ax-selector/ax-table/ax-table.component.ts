@@ -202,12 +202,14 @@ export class AxTableComponent implements OnInit {
     this.filteredData.forEach(r => this.selectedRows.push(r));
     this.changeDetecor.markForCheck();
     this.changeDetecor.detectChanges();
+    this.datastore.setSelected(this.selectedRows);
   }
 
   deselectAll() {
     this.selectedRows = [];
     this.changeDetecor.markForCheck();
     this.changeDetecor.detectChanges();
+    this.datastore.setSelected(this.selectedRows);
   }
 
   selectedNames(): string {
@@ -363,6 +365,10 @@ export class AxTableComponent implements OnInit {
     } else {
       return false;
     }
+  }
+
+  isSelectedResolutionWorkingResolution():boolean {
+    return this.selectedResolution === this.currentResolution;
   }
 
   singleSelection():boolean {

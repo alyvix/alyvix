@@ -27,9 +27,7 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     @Inject('GlobalRefSelector') private global: SelectorGlobal,
     @Inject('GlobalRefEditor') private editorGlobal: EditorGlobal,) {
     super();
-    console.log("new instance of EditorDesignerGlobal")
     this.selectorDatastore.getSelected().subscribe(rows => {
-
       if(this._model.value && !this.editorService.designerFullscreen) {
         this.api.saveObject(this.modelWithDetection()).subscribe(x => {
           console.log("object saved");

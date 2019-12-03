@@ -117,7 +117,8 @@ export class AxDesignerComponent implements OnInit,DoCheck {
     //this.axModelOriginal = _.cloneDeep(this.axModel);
     this.object_name.setValue(this.axModel.object_name);
     this.originalName = this.axModel.object_name;
-    this.first.nativeElement.focus();
+    if(this.first)
+      this.first.nativeElement.focus();
     this.scrollToNode();
   }
 

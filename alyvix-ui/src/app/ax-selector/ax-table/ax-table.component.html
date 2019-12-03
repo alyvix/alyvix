@@ -11,7 +11,7 @@
     <div>Screen</div>
 </div>
 <div class="ax-selector-table" [ngClass]="{'read-write': !readonly}" #tableContainer >
-    <cdk-table [dataSource]="filteredData" cdkDropList  [cdkDropListConnectedTo]="objectLists" [cdkDropListData]="'object'">
+    <cdk-table [dataSource]="filteredData" cdkDropList  [cdkDropListConnectedTo]="objectLists" [cdkDropListData]="'object'" [cdkDropListDisabled]="!editor || !isSelectedResolutionWorkingResolution()">
 
         <!-- Name Definition -->
         <ng-container cdkColumnDef="name">

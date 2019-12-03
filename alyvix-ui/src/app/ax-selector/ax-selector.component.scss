@@ -30,7 +30,9 @@
         &.primary{
           background-color: $blue;
           a {
-            color: white;
+            span{
+              color: white;
+            }
           }
         }
         background-color: $lightblue;
