@@ -537,3 +537,23 @@ hr {
 
 }
 
+
+.object-preview {
+  display: none;
+}
+
+.cdk-drag-dragging, .cdk-drag-preview, .cdk-drag-placeholder{
+  .cdk-cell {
+    display: none;
+    &.cdk-column-name{
+      display: inline;
+      .object-preview {
+        display: inline;
+      }
+      input {
+        display: none;
+      }
+    }
+  }
+}
+

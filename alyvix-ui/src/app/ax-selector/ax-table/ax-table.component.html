@@ -10,13 +10,13 @@
     <div>Resolution</div>
     <div>Screen</div>
 </div>
-<div class="ax-selector-table" [ngClass]="{'read-write': !readonly}" #tableContainer cdkDropList  [cdkDropListConnectedTo]="objectLists" [cdkDropListData]="'object'">
-    <cdk-table [dataSource]="filteredData">
+<div class="ax-selector-table" [ngClass]="{'read-write': !readonly}" #tableContainer >
+    <cdk-table [dataSource]="filteredData" cdkDropList  [cdkDropListConnectedTo]="objectLists" [cdkDropListData]="'object'">
 
         <!-- Name Definition -->
         <ng-container cdkColumnDef="name">
-
             <cdk-cell *cdkCellDef="let row">
+              <span class="object-preview">{{row.name}}</span>
               <input #nameInput #name="ngModel" [disabled]="readonly" type="text" class="primary" [ngClass]="{'ng-invalid': nameExists(row.name,nameInput.value) || !isNameValid(nameInput) }" spellcheck="false" [ngModel]="row.name" (ngModelChange)="changeName(row,$event,!isNameValid(nameInput) || nameExists(row.name,nameInput.value))" (change)="onChangeName(row,$event)" pattern="[a-zA-Z0-9_\- ]+" />
 
               <div *ngIf="!isNameValid(nameInput) && (name.dirty || name.touched)" class="name-popover">
@@ -90,7 +90,7 @@
         </ng-container>
 
         <!-- Header and Row Declarations -->
-        <cdk-row (click)="selectRow($event,row)" [ngClass]="{'selected': isSelected(row)}" *cdkRowDef="let row; columns: selectorColumns" cdkDrag></cdk-row>
+        <cdk-row (click)="selectRow($event,row)" [ngClass]="{'selected': isSelected(row)}" *cdkRowDef="let row; columns: selectorColumns" cdkDrag [cdkDragData]="row.name"></cdk-row>
     </cdk-table>
 </div>
 
