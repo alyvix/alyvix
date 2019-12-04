@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { EditorService, LeftSelection } from '../editor.service';
 import { AxScriptFlow } from 'src/app/ax-model/model';
+import { MapRowVM } from 'src/app/ax-selector/selector-datastore.service';
 
 
 
@@ -41,6 +42,12 @@ export class CentralPanelComponent implements OnInit {
   scriptChanged(flow:AxScriptFlow[]) {
     if (this.selected.onChangeSteps) {
       this.selected.onChangeSteps(flow);
+    }
+  }
+
+  mapChanged(map:MapRowVM[]) {
+    if(this.selected.onChangeMap) {
+      this.selected.onChangeMap(map);
     }
   }
 

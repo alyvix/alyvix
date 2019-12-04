@@ -1,0 +1,19 @@
+
+<div class="map-table-container">
+  <table class="map-table" cdk-table [dataSource]="dataSource" [trackBy]="id">
+      <ng-container *ngFor="let x of valuesColumns; let last = last" cdkColumnDef="{{x}}">
+        <th cdk-header-cell *cdkHeaderCellDef> {{x}} </th>
+        <td cdk-cell *cdkCellDef="let element"> <input (ngModelChange)="tableChanged(element,$event,x)" [ngModel]="element[x]" /> </td>
+      </ng-container>
+
+      <ng-container cdkColumnDef="key">
+        <th cdk-header-cell *cdkHeaderCellDef></th>
+        <td cdk-cell *cdkCellDef="let element" class="key"> <input (ngModelChange)="tableChanged(element,$event,'key')" [ngModel]="element.key" /> </td>
+      </ng-container>
+
+    <tr cdk-header-row *cdkHeaderRowDef="displayedColumns"></tr>
+    <tr cdk-row *cdkRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+  <button class="btn light" (click)="addRow()">Add row</button>
+  <button class="btn light" (click)="addColumn()">Add column</button>
+</div>

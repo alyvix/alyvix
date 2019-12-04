@@ -11,7 +11,7 @@ export interface LeftSelection{
   steps?:AxScriptFlow[];
   map?: MapRowVM[];
   onChangeSteps?: (step:AxScriptFlow[]) => any;
-  onChangeMap?: (step:MapRowVM[]) => any;
+  onChangeMap?: (map:MapRowVM[]) => any;
 }
 
 @Injectable({

@@ -37,6 +37,7 @@ import { ObjectsPanelComponent } from './objects-panel/objects-panel.component';
 import { EditorDesignerGlobal } from './designer-global';
 import { MonitorComponent } from './central-panel/monitor/monitor.component';
 import { PriDragDropModule } from 'pri-ng-dragdrop';
+import { MapEditorComponent } from './central-panel/map-editor/map-editor.component';
 
 
 
@@ -64,6 +65,7 @@ import { PriDragDropModule } from 'pri-ng-dragdrop';
     StepComponent,
     ObjectsPanelComponent,
     MonitorComponent,
+    MapEditorComponent,
   ],
   imports: [
     NgxResizableModule,

@@ -51,7 +51,7 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   selectMap(map:MapsVM) {
-    this.selected = {name:map.name, type: 'map', map: map.rows};
+    this.selected = {name:map.name, type: 'map', map: map.rows, onChangeMap: rows => map.rows = rows};
     this.editorService.setLeftSelection(this.selected);
   }
 

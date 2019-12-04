@@ -6,14 +6,15 @@
     <div class="ax-main-tabs">
         <div class="ax-main-tab"  *ngFor="let tab of tabs" [ngClass]="{'selected': isSelectedTab(tab)}" (click)="selectTab(tab)">
             <a (click)="selectTab(tab)" >
-              <span *ngIf="selected.type == 'object'">Script:</span>
-              <span *ngIf="selected.type == 'map'">Map:</span>
+              <span *ngIf="tab.type == 'object'">Script:</span>
+              <span *ngIf="tab.type == 'map'">Map:</span>
               {{tab.name}}</a>
         </div>
     </div>
     <div class="ax-main-content">
       <app-script-editor (change)="scriptChanged($event)" *ngIf="selected.type == 'object'" [steps]="selected.steps"></app-script-editor>
       <app-monitor *ngIf="selected.type == 'monitor'"></app-monitor>
+      <app-map-editor [rows]="selected.map" (mapChange)="mapChanged($event)"></app-map-editor>
     </div>
   </div>
 
