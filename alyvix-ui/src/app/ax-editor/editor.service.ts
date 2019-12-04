@@ -21,6 +21,8 @@ export class EditorService {
 
   private _selection:BehaviorSubject<LeftSelection> = new BehaviorSubject<LeftSelection>(null);
 
+  private beforeSavePromises:(() => Promise<any>)[] = [];
+
 
   constructor(
     private selectorDatastore:SelectorDatastoreService
@@ -47,6 +49,23 @@ export class EditorService {
   getLeftSelection():Observable<LeftSelection> {
     return this._selection;
   }
+
+  addBeforeSave(bs:() => Promise<any>) {
+    this.beforeSavePromises.push(bs);
+  }
+
+  private beforeSave():Promise<any> {
+    return Promise.all(this.beforeSavePromises.map(x => x()));
+  }
+
+  save() {
+    let self = this;
+    this.beforeSave().then(function() {
+      self.selectorDatastore.save();
+    })
+  }
+
+
 
 
 

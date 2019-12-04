@@ -46,6 +46,7 @@ export interface SectionVM{
 })
 export class SelectorDatastoreService {
 
+  private data: RowVM[] = null;
   private selectedRows: BehaviorSubject<RowVM[]> = new BehaviorSubject<RowVM[]>(null);
   private editedRow: BehaviorSubject<RowVM> = new BehaviorSubject<RowVM>(null);
   private script: BehaviorSubject<ScriptVM> = new BehaviorSubject<ScriptVM>(ScriptEmpty);
@@ -73,21 +74,32 @@ export class SelectorDatastoreService {
     return this.script;
   }
 
+  setScripts(s:ScriptVM) {
+    this.script.next(s);
+  }
+
+  setMaps(m:MapsVM[]) {
+    this.maps.next(m);
+  }
+
   editRow():Observable<RowVM> {
     return this.editedRow;
   }
 
   reload(objectName) {
-    console.log("reload selector")
     this.apiService.getLibrary().subscribe( library => {
       const updatedRow = this.modelToData(library).find(x => x.name === objectName);
       if (updatedRow) {
-        console.log("updated row")
-        console.log(updatedRow);
         this.editedRow.next(updatedRow);
       }
     });
   }
+
+  setData(data:RowVM[]) {
+    this.data = data;
+  }
+
+
 
   getData():Observable<RowVM[]> {
     return this.apiService.getLibrary().pipe(map(library => {
@@ -99,7 +111,6 @@ export class SelectorDatastoreService {
       this.originalLibrary = library;
       this.script.next(this.scriptModelToVm(library.script));
       this.maps.next(this.mapModelToVm(library.maps));
-
       return data;
     }));
   }
@@ -110,11 +121,34 @@ export class SelectorDatastoreService {
     data.forEach( d => {
       model.objects[d.name] = d.object;
     });
+    model.script = {
+      case: this.script.value.main,
+      sections: {
+        exit: this.script.value.exit,
+        fail: this.script.value.fail,
+      }
+    };
+    this.script.value.sections.forEach(s => {
+      model.script.sections[s.name] = s.instructions;
+    });
+    model.maps = {};
+    this.maps.value.forEach(m => {
+      model.maps[m.name] = {};
+      m.rows.forEach(r => {
+        model.maps[m.name][r.name] = r.value || r.values;
+      })
+    });
     return model;
   }
 
-  saveData(data:RowVM[],close_selector):Observable<any> {
+  saveData(data:RowVM[],close_selector:boolean):Observable<any> {
     return this.apiService.setLibrary({library: this.prepareModelForSubmission(data), close_selector: close_selector});
+  }
+
+  save() {
+    console.log({library: this.prepareModelForSubmission(this.data), close_selector: true})
+
+    //return this.apiService.setLibrary();
   }
 
 

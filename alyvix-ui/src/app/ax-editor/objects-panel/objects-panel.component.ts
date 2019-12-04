@@ -47,6 +47,14 @@ export class ObjectsPanelComponent implements OnInit {
         this.selectMain();
       }
     });
+    this.editorService.addBeforeSave(() => {
+      let self = this;
+      return new Promise(function(resolve) {
+        self.selectorDatastore.setMaps(self.maps);
+        self.selectorDatastore.setScripts(self.script);
+        resolve();
+      })
+    })
 
   }
 
