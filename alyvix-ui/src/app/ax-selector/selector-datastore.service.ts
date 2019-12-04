@@ -1,10 +1,12 @@
 import { Injectable, Inject } from '@angular/core';
-import { AxSelectorObjects, AxSelectorComponentGroups } from '../ax-model/model';
+import { AxSelectorObjects, AxSelectorComponentGroups, AxScript, AxMaps, AxScriptFlow } from '../ax-model/model';
 import { RowVM } from './ax-table/ax-table.component';
 import { Utils } from '../utils';
 import { AlyvixApiService } from '../alyvix-api.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { Key } from 'protractor';
+import { isArray } from 'util';
 
 
 export interface AxFile {
@@ -14,6 +16,31 @@ export interface AxFile {
   readonly: boolean;
 }
 
+export interface MapsVM{
+  name:string;
+  rows: MapRowVM[];
+}
+
+export interface MapRowVM{
+  name: string;
+  value?: string;
+  values?: string[];
+}
+
+export interface ScriptVM{
+  main: AxScriptFlow[];
+  exit: AxScriptFlow[];
+  fail: AxScriptFlow[];
+  sections: SectionVM[];
+}
+
+export const ScriptEmpty:ScriptVM = {main:[],exit:[],fail:[],sections:[]};
+
+export interface SectionVM{
+  name: string;
+  instructions: AxScriptFlow[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -21,6 +48,8 @@ export class SelectorDatastoreService {
 
   private selectedRows: BehaviorSubject<RowVM[]> = new BehaviorSubject<RowVM[]>(null);
   private editedRow: BehaviorSubject<RowVM> = new BehaviorSubject<RowVM>(null);
+  private script: BehaviorSubject<ScriptVM> = new BehaviorSubject<ScriptVM>(ScriptEmpty);
+  private maps: BehaviorSubject<MapsVM[]> = new BehaviorSubject<MapsVM[]>([]);
   private originalLibrary:AxSelectorObjects;
 
   constructor(
@@ -34,6 +63,14 @@ export class SelectorDatastoreService {
 
   getSelected():Observable<RowVM[]> {
     return this.selectedRows;
+  }
+
+  getMaps():Observable<MapsVM[]> {
+    return this.maps;
+  }
+
+  getScripts():Observable<ScriptVM> {
+    return this.script;
   }
 
   editRow():Observable<RowVM> {
@@ -60,6 +97,8 @@ export class SelectorDatastoreService {
         data = this.modelToData(library);
       }
       this.originalLibrary = library;
+      this.script.next(this.scriptModelToVm(library.script));
+      this.maps.next(this.mapModelToVm(library.maps));
 
       return data;
     }));
@@ -92,6 +131,44 @@ export class SelectorDatastoreService {
          return {name: key, object: value, selectedResolution: this.firstResolution(value.components), id: Utils.uuidv4()};
       }
     );
+  }
+
+  private mapModelToVm(maps:AxMaps):MapsVM[] {
+    if(!maps) return [];
+    return Object.entries(maps).map( ([key, value]) => {
+      return {
+        name: key,
+        rows: Object.entries(value).map(([key,value]) => {
+          let base = {
+            name: key
+          };
+          if(isArray(value)) base['values'] = value;
+          else base['value'] = value;
+          return base;
+        })
+      };
+    });
+  }
+
+  private scriptModelToVm(script:AxScript):ScriptVM {
+    if(!script) return ScriptEmpty;
+
+    return {
+      main: script.case,
+      exit: (script.sections['exit'] || []),
+      fail: (script.sections['fail'] || []),
+      sections: ( script.sections ?
+        Object.entries(script.sections)
+          .filter(([key,value]) => key !== 'exit' && key !== 'fail')
+          .map(([key,value]) => {
+            return {
+              name: key,
+              instructions: value
+            }
+        }) : []
+      )
+    };
+
   }
 
   private firstResolution(component: {[key:string]:AxSelectorComponentGroups}):string {

@@ -1,7 +1,8 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, Input } from '@angular/core';
 import { ObjectsRegistryService } from '../../objects-registry.service';
 import { CdkDropList, CdkDragDrop, moveItemInArray, CdkDrag } from '@angular/cdk/drag-drop';
 import { Step } from './step/step.component';
+import { AxScriptFlow, AxScriptFlowObj } from 'src/app/ax-model/model';
 
 @Component({
   selector: 'app-script-editor',
@@ -13,12 +14,31 @@ export class ScriptEditorComponent implements OnInit {
 
   @ViewChild('actions', {static: true}) actions:CdkDropList;
 
-  steps: Step[] = [];
+  _steps:Step[] = []
+
+  @Input() set steps(steps: AxScriptFlow[]) {
+    if(steps) {
+      steps.map(s => {
+        if(typeof s === 'string') {
+          this._steps.push({name: s, type: 'object', condition: 'run'});
+        } else {
+          if(s.if_true) {
+            this._steps.push({name: s.if_true, type: 'object', condition: 'if true', parameter: s.flow});
+          } else if(s.if_false) {
+            this._steps.push({name: s.if_false, type: 'object', condition: 'if false', parameter: s.flow});
+          } else if(s.for) {
+            this._steps.push({name: s.for, type: 'map', condition: 'for', parameter: s.flow});
+          }
+        }
+      });
+    }
+  }
+
+
 
   constructor(private objectRegistry:ObjectsRegistryService) { }
 
   ngOnInit() {
-    //this.steps.push({name: 'bla', type: 'map'});
     this.objectRegistry.addObjectList(this.actions);
   }
 
@@ -31,7 +51,7 @@ export class ScriptEditorComponent implements OnInit {
         break;
       case 'object':
       case 'map':
-        this.steps.push({name: event.item.data, type: event.previousContainer.data});
+        this._steps.push({name: event.item.data, type: event.previousContainer.data});
         break;
     }
   }

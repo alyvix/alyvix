@@ -1,22 +1,30 @@
 <div class="ax-objects">
   <ul>
-    <li> MAIN</li>
-    <li> FAIL</li>
-    <li> EXIT</li>
+    <li (click)="select('MAIN',script.main)" [ngClass]="{'selected': isSelected('MAIN')}"> MAIN</li>
+    <li (click)="select('FAIL',script.fail)" [ngClass]="{'selected': isSelected('FAIL')}"> FAIL</li>
+    <li (click)="select('EXIT',script.exit)" [ngClass]="{'selected': isSelected('EXIT')}"> EXIT</li>
   </ul>
 
-  <h3>SECTIONS <button class="btn">Add</button></h3>
+  <h3>SECTIONS <button class="btn" (click)="addSection()">Add</button></h3>
 
 
-      <ul cdkDropList  (cdkDropListDropped)="dropped($event)" [cdkDropListConnectedTo]="objectLists" name="sections" [cdkDropListData]="'object'">
-        <li><span cdkDrag [cdkDragData]="'section_name'">section_name</span> <button class="btn light">Remove</button></li>
-        <li><span cdkDrag [cdkDragData]="'section_name2'">section_name2</span> <button class="btn light">Remove</button></li>
+      <ul cdkDropList  [cdkDropListConnectedTo]="objectLists" name="sections" [cdkDropListData]="'object'">
+        <li *ngFor="let section of script.sections" cdkDrag [cdkDragData]="section.name" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
+          <span *cdkDragPlaceholder><li>{{section.name}}</li></span>
+          <span *cdkDragPreview>{{section.name}}</span>
+          <input [(ngModel)]="section.name" />
+          <button class="btn light" (click)="removeSection(section)">Remove</button>
+        </li>
       </ul>
 
-  <h3>MAPS <button class="btn">Add</button></h3>
-      <ul cdkDropList (cdkDropListDropped)="dropped($event)" [cdkDropListConnectedTo]="objectLists" name="maps" [cdkDropListData]="'map'">
-        <li><span cdkDrag [cdkDragData]="'map_name'">map_name</span> <button class="btn light">Remove</button></li>
-        <li><span cdkDrag [cdkDragData]="'test2'">test2</span> <button class="btn light">Remove</button></li>
+  <h3>MAPS <button class="btn" (click)="addMap()">Add</button></h3>
+      <ul cdkDropList [cdkDropListConnectedTo]="objectLists" name="maps" [cdkDropListData]="'map'">
+        <li *ngFor="let map of maps" cdkDrag [cdkDragData]="map.name" (click)="selectMap(map)" [ngClass]="{'selected': isSelectedMap(map)}">
+          <span *cdkDragPlaceholder><li>{{map.name}}</li></span>
+          <span *cdkDragPreview>{{map.name}}</span>
+          <input [(ngModel)]="map.name" />
+          <button class="btn light" (click)="removeMap(map)">Remove</button>
+        </li>
       </ul>
 
 </div>

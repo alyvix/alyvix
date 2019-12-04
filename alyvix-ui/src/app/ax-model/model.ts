@@ -1,3 +1,4 @@
+
 export interface AxModel {
     object_name: string;
     detection: Detection;
@@ -33,10 +34,26 @@ export interface AxModel {
 
   export interface AxSelectorObjects {
     objects: {[key:string]: AxSelectorObject};
-    maps?: {[key:string]: {[key:string]: string}};
-    script?: any;
+    maps?: AxMaps;
+    script?: AxScript;
     run?:any;
   }
+
+  export interface AxScript{
+    case?: AxScriptFlow[];
+    sections?: {[key: string]: AxScriptFlow[]};
+  }
+
+  export type AxScriptFlow = string | AxScriptFlowObj;
+  export interface AxScriptFlowObj{
+    flow?:string;
+    if_true?:string;
+    if_false?:string;
+    for?:string;
+  }
+
+  export type AxMaps = {[key:string]: AxMap};
+  export type AxMap = {[key:string]: string | string[]};
 
   export interface AxSelectorObject {
     components: {[key:string]:AxSelectorComponentGroups},

@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { EditorService, LeftSelection } from '../editor.service';
+
+
 
 @Component({
   selector: 'app-central-panel',
@@ -7,17 +10,31 @@ import { Component, OnInit } from '@angular/core';
 })
 export class CentralPanelComponent implements OnInit {
 
-  tabs = ['Script','Monitor'];
+  baseTabs: LeftSelection[] = [{name: 'Monitor', type:'monitor'}];
 
-  selected = this.tabs[0];
+  tabs: LeftSelection[] = this.baseTabs;
 
-  constructor() { }
+  selected: LeftSelection = this.tabs[0];
 
-  ngOnInit() {
+
+  constructor(private editorService:EditorService) {
   }
 
-  selectTab(tab) {
+  ngOnInit() {
+    this.editorService.getLeftSelection().subscribe(s => {
+      if(s) {
+        this.tabs = [s].concat(this.baseTabs);
+        this.selected = s;
+      }
+    })
+  }
+
+  selectTab(tab:LeftSelection) {
     this.selected = tab;
+  }
+
+  isSelectedTab(tab:LeftSelection):boolean {
+    return this.selected.name === tab.name;
   }
 
 }

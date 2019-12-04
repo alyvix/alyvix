@@ -543,6 +543,11 @@ hr {
 }
 
 .cdk-drag-dragging, .cdk-drag-preview, .cdk-drag-placeholder{
+
+  li{
+    list-style: none;
+  }
+
   .cdk-cell {
     display: none;
     &.cdk-column-name{

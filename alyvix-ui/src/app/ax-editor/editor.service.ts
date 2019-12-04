@@ -1,10 +1,23 @@
 import { Injectable } from '@angular/core';
-import { SelectorDatastoreService } from '../ax-selector/selector-datastore.service';
+import { SelectorDatastoreService, MapsVM, MapRowVM } from '../ax-selector/selector-datastore.service';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { AxScriptFlow } from '../ax-model/model';
+
+
+export interface LeftSelection{
+  name:string;
+  type:string;
+  steps?:AxScriptFlow[];
+  map?: MapRowVM[];
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class EditorService {
+
+  private _selection:BehaviorSubject<LeftSelection> = new BehaviorSubject<LeftSelection>(null);
+
 
   constructor(
     private selectorDatastore:SelectorDatastoreService
@@ -23,4 +36,16 @@ export class EditorService {
       this.reloading = false;
     }
   }
+
+  setLeftSelection(s:LeftSelection) {
+    this._selection.next(s);
+  }
+
+  getLeftSelection():Observable<LeftSelection> {
+    return this._selection;
+  }
+
+
+
+
 }

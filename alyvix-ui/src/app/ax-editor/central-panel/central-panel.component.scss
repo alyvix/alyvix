@@ -41,8 +41,14 @@
         background-color: $blue;
         a {
           color: white;
+          span {
+            color: white;
+          }
           &:hover {
             color:$lightblue;
+            span {
+              color: $lightblue;
+            }
           }
         }
       }

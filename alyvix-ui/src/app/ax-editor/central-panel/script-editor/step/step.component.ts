@@ -6,6 +6,8 @@ import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.servi
 export interface Step{
   name: string;
   type: string;
+  condition?:string;
+  parameter?:string;
 }
 @Component({
   selector: 'script-step',

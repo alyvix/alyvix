@@ -1,11 +1,11 @@
+<div class="script-editor-container">
+  <div cdkDropList #actions="cdkDropList" (cdkDropListDropped)="dropped($event)" [cdkDropListData]="'actions'" class="action-list" [cdkDropListAutoScrollDisabled]="true">
+    <div *ngFor="let step of _steps" cdkDrag>
+      <span *cdkDragPreview>{{step.name}}</span>
+      <div *cdkDragPlaceholder><script-step [step]="step"></script-step></div>
+      <script-step [step]="step"></script-step>
+    </div>
+  </div>
 
-<div cdkDropList #actions="cdkDropList" (cdkDropListDropped)="dropped($event)" [cdkDropListData]="'actions'" class="action-list" [cdkDropListAutoScrollDisabled]="true">
-  <ul>
-    <li *ngFor="let step of steps" cdkDrag><i class="fas fa-bars"></i></li>
-  </ul>
 </div>
-<div class="steps">
-  <script-step *ngFor="let step of steps" [step]="step"></script-step>
-</div>
-
 

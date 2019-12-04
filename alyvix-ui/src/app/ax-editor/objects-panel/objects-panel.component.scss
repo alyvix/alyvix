@@ -2,7 +2,7 @@
 
 .ax-objects{
 
-  padding:  20px 30px 20px 10px;
+  padding:  20px 10px 20px 10px;
   font-family: $font;
   letter-spacing: 2px;
   width: 100%;
@@ -24,21 +24,41 @@
 
     li {
       padding-left: 16px;
-
       margin: 3px 0;
       line-height: 16px;
+
+
+      &.selected{
+        background-color: $lightblue;
+      }
+
+      &:before {
+        content: "\203A"; /* Insert content that looks like bullets */
+        font-size: 25px;
+        line-height: 16px;
+        font-weight: bolder;
+        padding-right: 8px;
+      }
+
+      input{
+        border: 0px;
+        font-family: $font;
+        letter-spacing: 2px;
+        background-color: transparent;
+        &:hover, &:focus{
+          outline: none;
+          border-bottom: 1px solid $blue;
+          background: $lightblue;
+        }
+      }
+
     }
 
-    li:before {
-      content: "\203A"; /* Insert content that looks like bullets */
-      font-size: 25px;
-      line-height: 16px;
-      font-weight: bolder;
-      padding-right: 8px;
-    }
+
     button{
       position: absolute;
-      right: 5px;
+      right: 10px;
+      background-color: transparent;
       &.light{
         color: $gray;
         &:hover{
