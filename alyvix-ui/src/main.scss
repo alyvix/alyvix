@@ -542,23 +542,43 @@ hr {
   display: none;
 }
 
-.cdk-drag-dragging, .cdk-drag-preview, .cdk-drag-placeholder{
+.pri-drag-placeholder{
 
   li{
     list-style: none;
   }
 
-  .cdk-cell {
-    display: none;
-    &.cdk-column-name{
-      display: inline;
-      .object-preview {
-        display: inline;
+}
+
+.action-list {
+  .pri-drag-placeholder{
+    li{
+      height: 30px;
+      display: flex;
+      padding-left: 50px;
+      align-items: center;
+      font-family: 'Roboto';
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+  }
+
+  .drop-zone{
+    .pri-drag-placeholder{
+      li{
+        height: 50px;
       }
-      input {
-        display: none;
+    }
+  }
+
+  .step-container{
+    .pri-drag-placeholder{
+      li{
+        display: inline;
+        padding-left: 0;
+        font-weight: bold;
+        letter-spacing: 2px;
       }
     }
   }
 }
-

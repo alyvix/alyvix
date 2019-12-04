@@ -1,9 +1,11 @@
 import { Component, OnInit, Input, ViewChild, OnDestroy } from '@angular/core';
 import { CdkDragDrop, CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
-
+import { PriBaseDropList } from 'pri-ng-dragdrop/lib/entities/pri.base.drop.list';
+import { PriDropEventArgs } from 'pri-ng-dragdrop';
 
 export interface Step{
+  id: string;
   name: string;
   type: string;
   condition?:string;
@@ -17,10 +19,10 @@ export interface Step{
 export class StepComponent implements OnInit,OnDestroy {
 
 
-  @ViewChild('firstParameter', {static: true}) firstParameter:CdkDropList;
-  @ViewChild('secondParameter', {static: true}) secondParameter:CdkDropList;
 
-  objectLists:CdkDropList[] = [];
+  firstParameterId:string = 'list-' + Math.random().toString(36).substring(2);
+  secondParameterId:string = 'list-' + Math.random().toString(36).substring(2);
+
 
   constructor(private objectRegistry:ObjectsRegistryService) { }
 
@@ -41,7 +43,7 @@ export class StepComponent implements OnInit,OnDestroy {
     this.secondParameterEnabled = (step.type === 'map');
     this.condition = this.conditions[step.type][0];
     if (this.secondParameterEnabled) {
-      setTimeout(() => this.objectRegistry.addObjectList(this.secondParameter), 200);
+      setTimeout(() => this.objectRegistry.addObjectList(this.secondParameterId), 200);
     }
   }
 
@@ -62,42 +64,29 @@ export class StepComponent implements OnInit,OnDestroy {
         this.secondParameterEnabled = true;
     }
     if (this.secondParameterEnabled) {
-      setTimeout(() => this.objectRegistry.addObjectList(this.secondParameter), 200);
+      setTimeout(() => this.objectRegistry.addObjectList(this.secondParameterId), 200);
     }
   }
 
-  dropped(event: CdkDragDrop<any,any>) {
-   this.step = {name: event.item.data, type: event.previousContainer.data};
+  dropped(event: PriDropEventArgs) {
+   this.step.name = event.itemData.name;
   }
 
-  droppedSecond(event: CdkDragDrop<any,any>) {
-    console.log('second');
-    console.log(event);
-   this.secondParameterValue = event.item.data;
+  droppedSecond(event: PriDropEventArgs) {
+   this.secondParameterValue = event.itemData.name;
   }
 
   ngOnInit() {
-    this.objectRegistry.addObjectList(this.firstParameter);
-    this.objectRegistry.objectList().subscribe(x => {
-      setTimeout(() => {
-        this.objectLists = x;
-      }, 200);
-    });
+    this.objectRegistry.addObjectList(this.firstParameterId);
   }
 
   ngOnDestroy(): void {
-    this.objectRegistry.removeObjectList(this.firstParameter);
-    this.objectRegistry.removeObjectList(this.secondParameter);
+    this.objectRegistry.removeObjectList(this.firstParameterId);
+    this.objectRegistry.removeObjectList(this.secondParameterId);
   }
 
-  enter(event) {
-    console.log("enter child");
-    console.log(event);
-  }
-
-
-  canDropObject(drag: CdkDrag, drop: CdkDropList) {
-    return drag.dropContainer.data === 'object';
+  readonly canDropObject = (listData: any, itemData: Step) => {
+    return itemData.type === 'object';
   }
 
 }

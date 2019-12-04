@@ -30,6 +30,7 @@
     "ng2-validation": "^4.2.0",
     "ngx-contextmenu": "^5.2.0",
     "node-sass": "^4.13.0",
+    "pri-ng-dragdrop": "^0.1.4",
     "purecss": "^1.0.1",
     "rxjs": "^6.5.3",
     "typeface-roboto": "0.0.75",

@@ -13,6 +13,7 @@ import { SelectorUtils } from '../selector-utils';
 import { SelectorDatastoreService } from '../selector-datastore.service';
 import { CdkDropList } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
+import { Step } from 'src/app/ax-editor/central-panel/script-editor/step/step.component';
 
 export interface RowVM{
   name:string
@@ -47,7 +48,7 @@ export class AxTableComponent implements OnInit {
   production: boolean = environment.production;
   private _data: RowVM[] = [];
 
-  objectLists:CdkDropList[] = [];
+  objectLists:string[] = [];
 
   @Output() import = new EventEmitter<RowVM[]>();
 
@@ -373,6 +374,15 @@ export class AxTableComponent implements OnInit {
 
   singleSelection():boolean {
     return this.selectedRows.length === 1;
+  }
+
+  toStep(row:RowVM):Step {
+    return {
+      id: Utils.uuidv4(),
+      name: row.name,
+      type: 'object',
+      condition: 'run'
+    };
   }
 
 

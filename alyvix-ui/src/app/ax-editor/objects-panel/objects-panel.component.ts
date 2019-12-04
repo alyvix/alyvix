@@ -1,9 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { CdkDropList } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from '../objects-registry.service';
 import { LeftSelection, EditorService } from '../editor.service';
 import { SelectorDatastoreService, MapsVM, SectionVM, ScriptEmpty,ScriptVM } from 'src/app/ax-selector/selector-datastore.service';
 import { AxScriptFlow } from 'src/app/ax-model/model';
+import { Step } from '../central-panel/script-editor/step/step.component';
+import { type } from 'os';
+import { Utils } from 'src/app/utils';
+
 
 
 @Component({
@@ -21,7 +24,7 @@ export class ObjectsPanelComponent implements OnInit {
 
 
 
-  objectLists:CdkDropList[] = [];
+  objectLists:string[] = [];
 
   maps:MapsVM[] = [];
   script:ScriptVM = ScriptEmpty;
@@ -89,6 +92,24 @@ export class ObjectsPanelComponent implements OnInit {
   removeSection(section) {
     if(confirm('Are you sure to delete section: '+ section + '?')) {
       this.script.sections = this.script.sections.filter(x => x !== section);
+    }
+  }
+
+  mapToStep(map: MapsVM):Step {
+    return {
+      id: Utils.uuidv4(),
+      name: map.name,
+      type: 'map',
+      condition: 'for'
+    };
+  }
+
+  sectionToStep(section: SectionVM):Step {
+    return {
+      id: Utils.uuidv4(),
+      name: section.name,
+      type: 'object',
+      condition: 'run'
     }
   }
 

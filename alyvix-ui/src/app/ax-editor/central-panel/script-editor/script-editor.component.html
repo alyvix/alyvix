@@ -1,11 +1,12 @@
 <div class="script-editor-container">
-  <div cdkDropList #actions="cdkDropList" (cdkDropListDropped)="dropped($event)" [cdkDropListData]="'actions'" class="action-list" [cdkDropListAutoScrollDisabled]="true">
-    <div *ngFor="let step of _steps" cdkDrag>
-      <span *cdkDragPreview>{{step.name}}</span>
-      <div *cdkDragPlaceholder><script-step [step]="step"></script-step></div>
+  <div priDropList="{{listId}}" (priDropListDrop)="dropped($event)" [priDropListData]="'actions'" class="action-list">
+    <div *ngFor="let step of _steps; last as isLast" priDragItem [priDragItemData]="step">
       <script-step [step]="step"></script-step>
     </div>
+    <div priDropList="{{lastListId}}" (priDropListDrop)="droppedEnd($event)" class="drop-zone"></div>
   </div>
+
+
 
 </div>
 

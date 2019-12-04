@@ -36,6 +36,7 @@ import { StepComponent } from './central-panel/script-editor/step/step.component
 import { ObjectsPanelComponent } from './objects-panel/objects-panel.component';
 import { EditorDesignerGlobal } from './designer-global';
 import { MonitorComponent } from './central-panel/monitor/monitor.component';
+import { PriDragDropModule } from 'pri-ng-dragdrop';
 
 
 
@@ -78,6 +79,7 @@ import { MonitorComponent } from './central-panel/monitor/monitor.component';
     HttpClientModule,
     FormsModule,
     DragDropModule,
+    PriDragDropModule,
     AngularResizedEventModule,
     ContextMenuModule.forRoot(),
     HotkeyModule.forRoot({cheatSheetHotkey: "ctrl+h"}),

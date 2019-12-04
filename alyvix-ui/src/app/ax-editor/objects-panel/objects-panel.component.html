@@ -8,20 +8,20 @@
   <h3>SECTIONS <button class="btn" (click)="addSection()">Add</button></h3>
 
 
-      <ul cdkDropList  [cdkDropListConnectedTo]="objectLists" name="sections" [cdkDropListData]="'object'">
-        <li *ngFor="let section of script.sections" cdkDrag [cdkDragData]="section.name" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
-          <span *cdkDragPlaceholder><li>{{section.name}}</li></span>
-          <span *cdkDragPreview>{{section.name}}</span>
+      <ul priDropList   [priDropListConnectedTo]="objectLists" name="sections" [priDropListData]="'object'">
+        <li *ngFor="let section of script.sections" priDragItem [priDragItemData]="sectionToStep(section)" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
+          <span *priDragPlaceholder><li>{{section.name}}</li></span>
+          <span *priDragPreview>{{section.name}}</span>
           <input [(ngModel)]="section.name" />
           <button class="btn light" (click)="removeSection(section)">Remove</button>
         </li>
       </ul>
 
   <h3>MAPS <button class="btn" (click)="addMap()">Add</button></h3>
-      <ul cdkDropList [cdkDropListConnectedTo]="objectLists" name="maps" [cdkDropListData]="'map'">
-        <li *ngFor="let map of maps" cdkDrag [cdkDragData]="map.name" (click)="selectMap(map)" [ngClass]="{'selected': isSelectedMap(map)}">
-          <span *cdkDragPlaceholder><li>{{map.name}}</li></span>
-          <span *cdkDragPreview>{{map.name}}</span>
+      <ul priDropList  [priDropListConnectedTo]="objectLists" name="maps" [priDropListData]="'map'">
+        <li *ngFor="let map of maps" priDragItem [priDragItemData]="mapToStep(map)" (click)="selectMap(map)" [ngClass]="{'selected': isSelectedMap(map)}">
+          <span *priDragPlaceholder><li>{{map.name}}</li></span>
+          <span *priDragPreview>{{map.name}}</span>
           <input [(ngModel)]="map.name" />
           <button class="btn light" (click)="removeMap(map)">Remove</button>
         </li>

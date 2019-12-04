@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { AxTableComponent } from './ax-table/ax-table.component';
 import { CopyClipboardDirective } from '../directives/copy-clipboard.directive';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { PriDragDropModule } from 'pri-ng-dragdrop';
 
 
 
@@ -27,7 +28,8 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     AngularResizedEventModule,
     HttpClientModule,
     FormsModule,
-    DragDropModule
+    DragDropModule,
+    PriDragDropModule
   ],
   providers: [
     {provide: 'GlobalRefSelector', useClass: environment.globalTypeSelector},

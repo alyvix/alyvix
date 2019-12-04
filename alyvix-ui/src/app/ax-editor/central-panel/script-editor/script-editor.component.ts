@@ -1,33 +1,39 @@
-import { Component, OnInit, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, OnDestroy } from '@angular/core';
 import { ObjectsRegistryService } from '../../objects-registry.service';
-import { CdkDropList, CdkDragDrop, moveItemInArray, CdkDrag } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, moveItemInArray, CdkDrag } from '@angular/cdk/drag-drop';
 import { Step } from './step/step.component';
 import { AxScriptFlow, AxScriptFlowObj } from 'src/app/ax-model/model';
+import { PriBaseDropList } from 'pri-ng-dragdrop/lib/entities/pri.base.drop.list';
+import { PriDropEventArgs } from 'pri-ng-dragdrop';
+import { Utils } from 'src/app/utils';
 
 @Component({
   selector: 'app-script-editor',
   templateUrl: './script-editor.component.html',
   styleUrls: ['./script-editor.component.scss']
 })
-export class ScriptEditorComponent implements OnInit {
+export class ScriptEditorComponent implements OnInit,OnDestroy {
 
 
-  @ViewChild('actions', {static: true}) actions:CdkDropList;
+
+  listId:string = "list-" + Math.random().toString(36).substring(2);
+  lastListId:string = "list-" + Math.random().toString(36).substring(2);
 
   _steps:Step[] = []
 
   @Input() set steps(steps: AxScriptFlow[]) {
+    this._steps = [];
     if(steps) {
       steps.map(s => {
         if(typeof s === 'string') {
-          this._steps.push({name: s, type: 'object', condition: 'run'});
+          this._steps.push({id: Utils.uuidv4(), name: s, type: 'object', condition: 'run'});
         } else {
           if(s.if_true) {
-            this._steps.push({name: s.if_true, type: 'object', condition: 'if true', parameter: s.flow});
+            this._steps.push({id: Utils.uuidv4(), name: s.if_true, type: 'object', condition: 'if true', parameter: s.flow});
           } else if(s.if_false) {
-            this._steps.push({name: s.if_false, type: 'object', condition: 'if false', parameter: s.flow});
+            this._steps.push({id: Utils.uuidv4(), name: s.if_false, type: 'object', condition: 'if false', parameter: s.flow});
           } else if(s.for) {
-            this._steps.push({name: s.for, type: 'map', condition: 'for', parameter: s.flow});
+            this._steps.push({id: Utils.uuidv4(), name: s.for, type: 'map', condition: 'for', parameter: s.flow});
           }
         }
       });
@@ -39,33 +45,41 @@ export class ScriptEditorComponent implements OnInit {
   constructor(private objectRegistry:ObjectsRegistryService) { }
 
   ngOnInit() {
-    this.objectRegistry.addObjectList(this.actions);
+    this.objectRegistry.addObjectList(this.listId);
+    this.objectRegistry.addObjectList(this.lastListId);
   }
 
-  dropped(event: CdkDragDrop<any,any>) {
+  ngOnDestroy(): void {
+    this.objectRegistry.removeObjectList(this.listId);
+    this.objectRegistry.removeObjectList(this.lastListId);
+  }
+
+  dropped(event: PriDropEventArgs) {
     console.log('actions');
     console.log(event);
-    switch(event.previousContainer.data) {
+    switch(event.sourceListData) {
       case 'actions':
-        moveItemInArray(this.steps, event.previousIndex, event.currentIndex);
+        const index = this._steps.findIndex(x => x.id === event.itemData.id)
+        console.log(index);
+        moveItemInArray(this._steps, index, event.dropIndex);
         break;
       case 'object':
       case 'map':
-        this._steps.push({name: event.item.data, type: event.previousContainer.data});
+        this._steps.splice(event.dropIndex, 0, event.itemData);
         break;
     }
   }
+
+  droppedEnd(event: PriDropEventArgs) {
+    this._steps.push(event.itemData);
+  }
+
+
 
   enter(event) {
     console.log("enter parent");
     console.log(event);
   }
 
-  canDrop(drag: CdkDrag, drop: CdkDropList) {
-    console.log('canDrop')
-    console.log(drag);
-    console.log(drop);
-    return true;
-  }
 
 }

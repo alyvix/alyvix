@@ -155,8 +155,8 @@ export class SelectorDatastoreService {
 
     return {
       main: script.case,
-      exit: (script.sections['exit'] || []),
-      fail: (script.sections['fail'] || []),
+      exit: (script.sections ? script.sections['exit'] : [] || []),
+      fail: (script.sections ? script.sections['fail'] : [] || []),
       sections: ( script.sections ?
         Object.entries(script.sections)
           .filter(([key,value]) => key !== 'exit' && key !== 'fail')
