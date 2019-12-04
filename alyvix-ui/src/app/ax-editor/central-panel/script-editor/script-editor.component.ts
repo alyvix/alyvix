@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Input, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { ObjectsRegistryService } from '../../objects-registry.service';
 import { CdkDragDrop, moveItemInArray, CdkDrag } from '@angular/cdk/drag-drop';
 import { Step } from './step/step.component';
@@ -21,6 +21,8 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
 
   _steps:Step[] = []
 
+  @Output() change:EventEmitter<AxScriptFlow[]> = new EventEmitter();
+
   @Input() set steps(steps: AxScriptFlow[]) {
     this._steps = [];
     if(steps) {
@@ -37,6 +39,7 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
           }
         }
       });
+      console.log(this._steps);
     }
   }
 
@@ -55,12 +58,9 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
   }
 
   dropped(event: PriDropEventArgs) {
-    console.log('actions');
-    console.log(event);
     switch(event.sourceListData) {
       case 'actions':
         const index = this._steps.findIndex(x => x.id === event.itemData.id)
-        console.log(index);
         moveItemInArray(this._steps, index, event.dropIndex);
         break;
       case 'object':
@@ -68,18 +68,44 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
         this._steps.splice(event.dropIndex, 0, event.itemData);
         break;
     }
+    this.emitChange();
   }
+
+  stepChange(step:Step) {
+    this.emitChange();
+  }
+
+  emitChange() {
+    const flow: AxScriptFlow[] = this._steps.map(s => {
+      switch (s.condition) {
+        case 'run':
+          return s.name;
+        case 'if true':
+          return {
+            flow: s.parameter,
+            if_true: s.name
+          };
+        case 'if false':
+          return {
+            flow: s.parameter,
+            if_false: s.name
+          };
+        case 'for':
+          return {
+            flow: s.parameter,
+            for: s.name
+          };
+      }
+    });
+    this.change.emit(flow);
+  }
+
+
 
   droppedEnd(event: PriDropEventArgs) {
     this._steps.push(event.itemData);
   }
 
-
-
-  enter(event) {
-    console.log("enter parent");
-    console.log(event);
-  }
 
 
 }

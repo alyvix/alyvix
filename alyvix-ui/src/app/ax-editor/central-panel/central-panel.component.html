@@ -12,7 +12,7 @@
         </div>
     </div>
     <div class="ax-main-content">
-      <app-script-editor *ngIf="selected.type == 'object'" [steps]="selected.steps"></app-script-editor>
+      <app-script-editor (change)="scriptChanged($event)" *ngIf="selected.type == 'object'" [steps]="selected.steps"></app-script-editor>
       <app-monitor *ngIf="selected.type == 'monitor'"></app-monitor>
     </div>
   </div>

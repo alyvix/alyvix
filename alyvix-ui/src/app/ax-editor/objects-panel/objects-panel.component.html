@@ -1,8 +1,8 @@
 <div class="ax-objects">
   <ul>
-    <li (click)="select('MAIN',script.main)" [ngClass]="{'selected': isSelected('MAIN')}"> MAIN</li>
-    <li (click)="select('FAIL',script.fail)" [ngClass]="{'selected': isSelected('FAIL')}"> FAIL</li>
-    <li (click)="select('EXIT',script.exit)" [ngClass]="{'selected': isSelected('EXIT')}"> EXIT</li>
+    <li (click)="selectMain()" [ngClass]="{'selected': isSelected('MAIN')}"> MAIN</li>
+    <li (click)="selectFail()" [ngClass]="{'selected': isSelected('FAIL')}"> FAIL</li>
+    <li (click)="selectExit()" [ngClass]="{'selected': isSelected('EXIT')}"> EXIT</li>
   </ul>
 
   <h3>SECTIONS <button class="btn" (click)="addSection()">Add</button></h3>
@@ -12,7 +12,7 @@
         <li *ngFor="let section of script.sections" priDragItem [priDragItemData]="sectionToStep(section)" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
           <span *priDragPlaceholder><li>{{section.name}}</li></span>
           <span *priDragPreview>{{section.name}}</span>
-          <input [(ngModel)]="section.name" />
+          <input [ngModel]="section.name" (ngModelChange)="changeSectionName(section,$event)" />
           <button class="btn light" (click)="removeSection(section)">Remove</button>
         </li>
       </ul>
@@ -22,7 +22,7 @@
         <li *ngFor="let map of maps" priDragItem [priDragItemData]="mapToStep(map)" (click)="selectMap(map)" [ngClass]="{'selected': isSelectedMap(map)}">
           <span *priDragPlaceholder><li>{{map.name}}</li></span>
           <span *priDragPreview>{{map.name}}</span>
-          <input [(ngModel)]="map.name" />
+          <input [(ngModel)]="map.name" (ngModelChange)="changeMapName(map,$event)"/>
           <button class="btn light" (click)="removeMap(map)">Remove</button>
         </li>
       </ul>

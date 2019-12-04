@@ -41,7 +41,13 @@ export class ObjectsPanelComponent implements OnInit {
     });
     this.editorService.setLeftSelection(this.selected);
     this.selectorDatastore.getMaps().subscribe(m => this.maps = m);
-    this.selectorDatastore.getScripts().subscribe(s => this.script = s);
+    this.selectorDatastore.getScripts().subscribe(s => {
+      if(s) {
+        this.script = s;
+        this.selectMain();
+      }
+    });
+
   }
 
   selectMap(map:MapsVM) {
@@ -49,13 +55,23 @@ export class ObjectsPanelComponent implements OnInit {
     this.editorService.setLeftSelection(this.selected);
   }
 
-  select(name:string, steps: AxScriptFlow[]) {
-    this.selected = {name:name, type: 'object', steps: steps};
+  selectMain() {
+    this.selected = {name:'MAIN', type: 'object', steps: this.script.main, onChangeSteps: s => this.script.main = s};
+    this.editorService.setLeftSelection(this.selected);
+  }
+
+  selectFail() {
+    this.selected = {name:'FAIL', type: 'object', steps: this.script.fail, onChangeSteps: s => this.script.fail = s};
+    this.editorService.setLeftSelection(this.selected);
+  }
+
+  selectExit() {
+    this.selected = {name:'EXIT', type: 'object', steps: this.script.exit, onChangeSteps: s => this.script.exit = s};
     this.editorService.setLeftSelection(this.selected);
   }
 
   selectSection(section:SectionVM) {
-    this.selected = {name:section.name, type: 'object', steps: section.instructions};
+    this.selected = {name:section.name, type: 'object', steps: section.instructions, onChangeSteps: s => section.instructions = s};
     this.editorService.setLeftSelection(this.selected);
   }
 
@@ -81,6 +97,11 @@ export class ObjectsPanelComponent implements OnInit {
     }
   }
 
+  changeMapName(map:MapsVM, name:string) {
+    map.name = name;
+    this.selectMap(map);
+  }
+
   addSection() {
     let i = 1;
     while(this.script.sections.find(x => x.name === 'Section'+i)) {
@@ -93,6 +114,11 @@ export class ObjectsPanelComponent implements OnInit {
     if(confirm('Are you sure to delete section: '+ section + '?')) {
       this.script.sections = this.script.sections.filter(x => x !== section);
     }
+  }
+
+  changeSectionName(section:SectionVM, name:string) {
+    section.name = name;
+    this.selectSection(section);
   }
 
   mapToStep(map: MapsVM):Step {

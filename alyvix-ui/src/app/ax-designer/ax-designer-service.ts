@@ -33,10 +33,7 @@ export class AxDesignerService {
   ) {
     this.global.axModel().subscribe(axModel => {
       if(axModel) {
-        console.log("AAAA")
-        console.log(axModel);
         this.axModel = axModel;
-        console.log(axModel)
         if (axModel.box_list) {
           axModel.box_list.forEach(box => {
             if (!box.features.I.likelihood) {
@@ -208,7 +205,6 @@ export class AxDesignerService {
     }
 
     var root = { children: groups, image: this.axModel.background, last: true }
-    console.log(root);
     this._root.next(root);
 
     if (selectRoot) {

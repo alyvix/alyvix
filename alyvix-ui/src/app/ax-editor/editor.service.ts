@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { SelectorDatastoreService, MapsVM, MapRowVM } from '../ax-selector/selector-datastore.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AxScriptFlow } from '../ax-model/model';
+import { Step } from './central-panel/script-editor/step/step.component';
 
 
 export interface LeftSelection{
@@ -9,6 +10,8 @@ export interface LeftSelection{
   type:string;
   steps?:AxScriptFlow[];
   map?: MapRowVM[];
+  onChangeSteps?: (step:AxScriptFlow[]) => any;
+  onChangeMap?: (step:MapRowVM[]) => any;
 }
 
 @Injectable({

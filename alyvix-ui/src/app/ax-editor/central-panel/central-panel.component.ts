@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { EditorService, LeftSelection } from '../editor.service';
+import { AxScriptFlow } from 'src/app/ax-model/model';
 
 
 
@@ -35,6 +36,12 @@ export class CentralPanelComponent implements OnInit {
 
   isSelectedTab(tab:LeftSelection):boolean {
     return this.selected.name === tab.name;
+  }
+
+  scriptChanged(flow:AxScriptFlow[]) {
+    if (this.selected.onChangeSteps) {
+      this.selected.onChangeSteps(flow);
+    }
   }
 
 }

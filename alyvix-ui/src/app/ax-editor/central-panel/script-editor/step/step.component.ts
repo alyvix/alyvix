@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CdkDragDrop, CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
 import { PriBaseDropList } from 'pri-ng-dragdrop/lib/entities/pri.base.drop.list';
@@ -37,11 +37,14 @@ export class StepComponent implements OnInit,OnDestroy {
 
   private _step:Step;
 
+  @Output() stepChange: EventEmitter<Step> = new EventEmitter();
+
   @Input()
   set step(step: Step) {
     this._step = step;
-    this.secondParameterEnabled = (step.type === 'map');
-    this.condition = this.conditions[step.type][0];
+    this.secondParameterEnabled = !(step.condition === 'run');
+    this.condition = step.condition;
+    this.secondParameterValue = step.parameter;
     if (this.secondParameterEnabled) {
       setTimeout(() => this.objectRegistry.addObjectList(this.secondParameterId), 200);
     }
@@ -66,14 +69,19 @@ export class StepComponent implements OnInit,OnDestroy {
     if (this.secondParameterEnabled) {
       setTimeout(() => this.objectRegistry.addObjectList(this.secondParameterId), 200);
     }
+    this.step.condition = this.condition;
+    this.stepChange.emit(this.step);
   }
 
   dropped(event: PriDropEventArgs) {
    this.step.name = event.itemData.name;
+   this.stepChange.emit(this.step);
   }
 
   droppedSecond(event: PriDropEventArgs) {
    this.secondParameterValue = event.itemData.name;
+   this.step.parameter = this.secondParameterValue;
+   this.stepChange.emit(this.step);
   }
 
   ngOnInit() {
