@@ -1443,7 +1443,6 @@ class EngineManager(object):
 
         self._timedout = False
 
-        self._t0 = 0
         self.stop_threads = False
         self._components_found = []
         self._components_appeared = []
@@ -1465,9 +1464,6 @@ class EngineManager(object):
 
         self._disappear_mode = False
 
-        if self._verbose >= 1:
-
-            print(self._get_timestamp_formatted() + ": Alyvix looks at " + self._result.object_name)
 
         #sm = ScreenManager()
 
@@ -1479,6 +1475,7 @@ class EngineManager(object):
 
         call = self._call
 
+
         if call["type"] == "run":
             try:
                 args = None
@@ -1489,14 +1486,16 @@ class EngineManager(object):
 
                 exe = call["features"]["path"]
 
-                popen_input = []
-                popen_input.append(exe)
-                if args is not None:
-                    popen_input.extend(shlex.split(args))
-                if self._verbose >= 1:
-                    print(self._get_timestamp_formatted() + ": Alyvix calls " + exe)
+                if exe != "":
 
-                proc = subprocess.Popen(popen_input)
+                    popen_input = []
+                    popen_input.append(exe)
+                    if args is not None:
+                        popen_input.extend(shlex.split(args))
+                    if self._verbose >= 1:
+                        print(self._get_timestamp_formatted() + ": Alyvix calls " + exe)
+
+                    proc = subprocess.Popen(popen_input)
 
 
             except:
@@ -1506,19 +1505,21 @@ class EngineManager(object):
             try:
                 process_name = call["features"]["process"]
 
-                logged_user = os.environ['userdomain'] + "\\" + os.environ.get("USERNAME")  # os.getlogin()
+                if process_name != "":
 
-                for proc in psutil.process_iter(attrs=['name', 'username']):
-                    try:
+                    logged_user = os.environ['userdomain'] + "\\" + os.environ.get("USERNAME")  # os.getlogin()
 
-                        if proc.name() == process_name and proc.username() == logged_user:
-                            if self._verbose >= 1:
-                                print(self._get_timestamp_formatted() + ": Alyvix kills " + process_name)
+                    for proc in psutil.process_iter(attrs=['name', 'username']):
+                        try:
 
-                            p = psutil.Process(proc.pid)
-                            p.kill()
-                    except:
-                        pass
+                            if proc.name() == process_name and proc.username() == logged_user:
+                                if self._verbose >= 1:
+                                    print(self._get_timestamp_formatted() + ": Alyvix kills " + process_name)
+
+                                p = psutil.Process(proc.pid)
+                                p.kill()
+                        except:
+                            pass
 
             except:
                 pass
@@ -1528,11 +1529,12 @@ class EngineManager(object):
 
             self._annotation_screen = self._annotation_screen
 
-            self._result.performance_ms = 0
+            self._result.performance_ms = (time.time() - self._t0) * 1000
             self._result.records["check"] = True
             self._result.accuracy_ms = 0
             self._result.screenshot = self._screen_with_objects
             self._result.annotation = self._annotation_screen
+            self._result.end_timestamp = time.time()
 
             return self._result
 
@@ -1544,12 +1546,16 @@ class EngineManager(object):
         disappear_time = 0
         disappear_accuracy = 0
 
+
         t_thread = time.time()
 
         self._t0 = time.time()
 
         self.total_threads = 0
 
+        if self._verbose >= 1:
+
+            print(self._get_timestamp_formatted() + ": Alyvix looks at " + self._result.object_name)
 
         while True:
 

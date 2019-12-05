@@ -134,6 +134,7 @@ def drawing():
     curr_measure = lm.get_measure(current_objectname)
     map_dict = lm.get_map()
     script = lm.get_script()
+    win_mouse_x, win_mouse_y = browser_class.get_mouse_pos(browser_class._hwnd_1)
     return render_template('drawing.html', base64url = "data:image/png;base64," + base64png, img_h=img_h, img_w=img_w,
                            autocontoured_rects=autocontoured_rects, text=en.drawing,
                            object_name=current_objectname,
@@ -141,7 +142,8 @@ def drawing():
                            call=curr_call,
                            maps=map_dict,
                            script=script,
-                           loaded_boxes=current_boxes)
+                           loaded_boxes=current_boxes,
+                           win_mouse_x=win_mouse_x,win_mouse_y=win_mouse_y)
 
 
 
@@ -531,6 +533,11 @@ def selector_edit_api():
     browser_class.show(browser_class._hwnd_1)
 
     browser_class._browser_1.LoadUrl(url)
+
+
+    #hwnd = win32gui.GetForegroundWindow()
+    #print(hwnd)
+    #print(win32gui.GetWindowText(browser_class._hwnd_1))
 
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
