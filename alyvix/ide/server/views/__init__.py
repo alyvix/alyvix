@@ -1326,6 +1326,8 @@ def save_all():
     with open(current_filename, 'w') as f:
         json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
 
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
 @app.route("/selector_save_json_api", methods=['GET', 'POST'])
 def selector_save_json_api():
 
@@ -1389,7 +1391,7 @@ def get_library_api():
 
     ret_dict = copy.deepcopy(library_dict)
 
-    """
+
     #check if dict is empty
     if bool(ret_dict) == True:
 
@@ -1432,7 +1434,7 @@ def get_library_api():
 
             id += 1
 
-    """
+
     return jsonify(ret_dict)
 
 
