@@ -44,6 +44,8 @@
         var maps = {{maps|tojson|safe}};
         var script = {{script|tojson|safe}};
         
+        var e_from_ide = {clientX: {{win_mouse_x}}, clientY: {{win_mouse_y}}};
+        
         var last_element = null;
         
         key_ctrl_pressed = false;
@@ -603,7 +605,7 @@
                 default: break;
                 }
 
-                draw();
+                draw(e_from_ide);
             }
             else
             {
@@ -710,7 +712,7 @@
             if(ide)
                 msg = 'PRESS ESC TO EXIT';
             $("#message").html(msg);
-            draw();
+            draw(e_from_ide);
 
             
 

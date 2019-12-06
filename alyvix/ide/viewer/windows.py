@@ -107,6 +107,17 @@ class ViewerManager(ViewerManagerBase):
         win32gui.SetActiveWindow(hwnd)
         win32gui.BringWindowToTop(hwnd)
 
+        self._browser_1.SetFocus(True)
+
+        #self._browser_1.ExecuteJavascript("drawFromIde(" + str(x) + ", " + str(y) + ")")
+
+    def get_mouse_pos(self, hwnd):
+        h_x, h_y = win32api.GetCursorPos()
+        x,y = win32gui.ScreenToClient(hwnd,(h_x, h_y))
+        return x,y
+        #print((h_x, h_y))
+        #print((x,y))
+
     def resize_event(self):
         print("resize")
         a = 10
