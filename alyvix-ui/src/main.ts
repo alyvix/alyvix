@@ -34,6 +34,7 @@ function loadAlyvixEditor() {
 }
 
 function reloadAlyvixSelector(objectName: string) {
+  console.log('reload selector ' + objectName);
   if (selector) {
     const selectorDatastore = selector.injector.get(SelectorDatastoreService);
     selectorDatastore.reload(objectName);
@@ -66,6 +67,7 @@ function changeResolution(resolution) {
 }
 
 function reloadAlyvixIde(objectName: string) {
+  console.log('reload editor ' + objectName);
   if(editor) {
     const service = editor.injector.get(EditorService);
     service.reloadObject(objectName);

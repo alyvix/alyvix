@@ -39,6 +39,9 @@
         var rows_html = [];
         
         var object_name = "{{object_name}}";
+
+        var background_base64_string = "{{base64url}}";
+        
         var measure = {{measure|tojson|safe}};
         var call = {{call|tojson|safe}};
         var maps = {{maps|tojson|safe}};
@@ -81,6 +84,7 @@
         }
 
 
+        var boxes = [];
         var model = {}
 
         //Interface to alyvix-ui project
@@ -99,6 +103,7 @@
             }
             return model;
         }
+        axModel();
 
         function setPoint(i) {
             boxes = model.box_list;
@@ -491,13 +496,12 @@
         var screen_w = 0;
         var screen_h = 0;
         
-        var boxes = []
         
         var id_counter=0;
 
         var rectManager = new RectManager();
         
-        var background_base64_string = "{{base64url}}";
+        
         
         {% for o in autocontoured_rects %}
         rectManager.autocontoured_rects.push(new Box({{o[0]}}, {{o[1]}}, {{o[2]}}, {{o[3]}}, 0, 0, 0, 0));
@@ -593,7 +597,6 @@
                 }
                 
                 rectManager.set_rectangles(boxes);
-                axModel();
             
                 switch(urlParams.get("action")) {
                 case 'setPoint': 

@@ -150,7 +150,11 @@ export class AxTableComponent implements OnInit {
   newObject() {
     this.datastore.saveData(this.data,false).subscribe(x => {
       if (x.success) {
-        this.api.newObject(this.delay);
+        this.api.newObject(this.delay).subscribe(x => {
+          if (this.editor) {
+            this.editorService.designerFullscreen = true;
+          }
+        });
       }
     });
   }

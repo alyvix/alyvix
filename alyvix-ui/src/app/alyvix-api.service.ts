@@ -78,16 +78,14 @@ export class AlyvixApiService {
     return this.httpClient.post<ValidationResult>("/check_number_api",request);
   }
 
-  newObject(delay: number) {
+  newObject(delay: number):Observable<any> {
 
     let baseUrl = '/selector_button_new_api';
     if (this.subSystem === 'editor') {
       baseUrl = '/ide_button_new_api';
     }
 
-    return this.httpClient.get<any>(baseUrl + '?delay=' +  delay).subscribe(x => {
-      console.log('new');
-    });
+    return this.httpClient.get<any>(baseUrl + '?delay=' +  delay);
   }
 
   selectorCancel() {
