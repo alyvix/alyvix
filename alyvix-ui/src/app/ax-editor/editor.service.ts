@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SelectorDatastoreService, MapsVM, MapRowVM } from '../ax-selector/selector-datastore.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, from } from 'rxjs';
 import { AxScriptFlow } from '../ax-model/model';
 import { Step } from './central-panel/script-editor/step/step.component';
 
@@ -58,11 +58,16 @@ export class EditorService {
     return Promise.all(this.beforeSavePromises.map(x => x()));
   }
 
-  save() {
+  save():Observable<any> {
     let self = this;
-    this.beforeSave().then(function() {
-      self.selectorDatastore.save();
-    })
+    const promise = new Promise( function(resolve) {
+      self.beforeSave().then(function() {
+        self.selectorDatastore.save().subscribe(x => {
+          resolve();
+        });
+      });
+    });
+    return from(promise);
   }
 
 

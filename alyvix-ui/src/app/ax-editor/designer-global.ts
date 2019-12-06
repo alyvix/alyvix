@@ -29,8 +29,10 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     super();
     this.selectorDatastore.getSelected().subscribe(rows => {
       if(this._model.value && !this.editorService.designerFullscreen) {
-        this.api.saveObject(this.modelWithDetection()).subscribe(x => {
-          console.log("object saved");
+        this.editorService.save().subscribe( y => {
+          this.api.saveObject(this.modelWithDetection()).subscribe(x => {
+            console.log("object saved");
+          });
         });
       }
       if(rows && rows.length === 1 && rows[0].selectedResolution === this.global.res_string) {
@@ -40,6 +42,7 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
       }
     })
   }
+
 
 
   axModel(): Observable<AxModel> {
@@ -63,12 +66,13 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     console.log("new Component")
     const model = this.modelWithDetection();
     if(model) {
-      this.api.saveObject(model).subscribe(x => {
-        this.api.editObjectFullScreen(this._model.value.object_name,this.global.res_string,"newComponent",group).subscribe(x => {
-          this.editorService.designerFullscreen = true;
-          this._model.next(null);
+      this.editorService.save().subscribe( y => {
+        this.api.saveObject(model).subscribe(x => {
+          this.api.editObjectFullScreen(this._model.value.object_name,this.global.res_string,"newComponent",group).subscribe(x => {
+            this.editorService.designerFullscreen = true;
+            this._model.next(null);
+          });
         });
-
       });
     }
   }
@@ -76,10 +80,12 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
   setPoint(i:number) {
     const model = this.modelWithDetection();
     if(model) {
-      this.api.saveObject(model).subscribe(x => {
-        this.api.editObjectFullScreen(this._model.value.object_name,this.global.res_string,"setPoint",i).subscribe(x => {
-          this.editorService.designerFullscreen = true;
-          this._model.next(null);
+      this.editorService.save().subscribe( y => {
+        this.api.saveObject(model).subscribe(x => {
+          this.api.editObjectFullScreen(this._model.value.object_name,this.global.res_string,"setPoint",i).subscribe(x => {
+            this.editorService.designerFullscreen = true;
+            this._model.next(null);
+          });
         });
       });
     }

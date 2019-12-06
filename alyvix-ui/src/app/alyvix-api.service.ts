@@ -119,6 +119,12 @@ export class AlyvixApiService {
     })
   }
 
+  saveAll(close:boolean) {
+    return this.httpClient.get<any>('/save_all?close_editor='+close).subscribe(x => {
+      console.log("save all");
+    })
+  }
+
 
 
 

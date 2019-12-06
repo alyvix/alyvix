@@ -41,7 +41,7 @@
         var object_name = "{{object_name}}";
 
         var background_base64_string = "{{base64url}}";
-        
+
         var measure = {{measure|tojson|safe}};
         var call = {{call|tojson|safe}};
         var maps = {{maps|tojson|safe}};
@@ -85,7 +85,7 @@
 
 
         var boxes = [];
-        var model = {}
+        var model = {}; 
 
         //Interface to alyvix-ui project
         function axModel() {
@@ -103,7 +103,7 @@
             }
             return model;
         }
-        axModel();
+        
 
         function setPoint(i) {
             boxes = model.box_list;
@@ -519,7 +519,10 @@
                 console.log(dat);
                 if ("autocontoured_rects" in dat ) build_objects_from_file(dat["file_dict"], dat["autocontoured_rects"]);
                 else build_objects_from_file(dat["file_dict"], null);
-                }
+                },
+            error: function() { //new object
+                axModel();
+            }
         });
         
         function build_objects_from_file(file_dict, autocontoured_rects){
@@ -597,6 +600,7 @@
                 }
                 
                 rectManager.set_rectangles(boxes);
+                axModel();
             
                 switch(urlParams.get("action")) {
                 case 'setPoint': 
