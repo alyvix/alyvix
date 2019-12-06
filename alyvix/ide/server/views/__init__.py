@@ -1284,35 +1284,46 @@ def save_json():
         current_json["objects"][object_name]["date_modified"] = \
             datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
+        save_from_ide_header = None
 
-        if browser_class._browser_2 is not None:
+        try:
+            save_from_ide_header = json_data['saveFromIdeHeader']
+        except:
+            pass
 
-            library_dict_in_editing = None
-
-            browser_class._browser_2.ExecuteJavascript("reloadAlyvixSelector('" + object_name + "')")
-            browser_class.show(browser_class._hwnd_2)
-
-        elif browser_class._browser_3 is not None:
-            library_dict_in_editing = None
-            browser_class._browser_3.ExecuteJavascript("reloadAlyvixIde('" + object_name + "')")
-
-            from_ide = None
-
-            try:
-                from_ide = json_data['designerFromEditor']
-            except:
-                pass
-
-            if from_ide is None:
-
-                browser_class.show(browser_class._hwnd_3)
-                browser_class.hide(browser_class._hwnd_1)
-        else:
+        if save_from_ide_header is not None:
 
             with open(current_filename, 'w') as f:
                 json.dump(current_json, f, indent=4, sort_keys=True, ensure_ascii=False)
+        else:
+            if browser_class._browser_2 is not None:
 
-            browser_class.close()
+                library_dict_in_editing = None
+
+                browser_class._browser_2.ExecuteJavascript("reloadAlyvixSelector('" + object_name + "')")
+                browser_class.show(browser_class._hwnd_2)
+
+            elif browser_class._browser_3 is not None:
+                library_dict_in_editing = None
+                browser_class._browser_3.ExecuteJavascript("reloadAlyvixIde('" + object_name + "')")
+
+                from_ide = None
+
+                try:
+                    from_ide = json_data['designerFromEditor']
+                except:
+                    pass
+
+                if from_ide is None:
+
+                    browser_class.show(browser_class._hwnd_3)
+                    browser_class.hide(browser_class._hwnd_1)
+            else:
+
+                with open(current_filename, 'w') as f:
+                    json.dump(current_json, f, indent=4, sort_keys=True, ensure_ascii=False)
+
+                browser_class.close()
 
         aaa = "asas"
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
