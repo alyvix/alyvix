@@ -136,7 +136,8 @@ if __name__ == '__main__':
         object = args.object
 
     if lm.check_valid_object_name(object) is False:
-        print(object + " contains invalid characters, only alphanumeric characters and -_' ' (space) are allowed.")
+        #print(object + " contains invalid characters, only alphanumeric characters and -_' ' (space) are allowed.")
+        print("An object name can only contain alphanumeric characters and -_' ' (space).")
         sys.exit(2)
 
     screen_manager = ScreenManager()
