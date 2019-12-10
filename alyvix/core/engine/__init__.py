@@ -1476,6 +1476,8 @@ class EngineManager(object):
         call = self._call
 
 
+        add_t_call = False
+        t_call = time.time()
         if call["type"] == "run":
             try:
                 args = None
@@ -1496,6 +1498,7 @@ class EngineManager(object):
                         print(self._get_timestamp_formatted() + ": Alyvix calls " + exe)
 
                     proc = subprocess.Popen(popen_input)
+                    add_t_call = True
 
 
             except:
@@ -1518,18 +1521,24 @@ class EngineManager(object):
 
                                 p = psutil.Process(proc.pid)
                                 p.kill()
+                                add_t_call = True
                         except:
                             pass
 
             except:
                 pass
 
+        t_call = time.time() - t_call
+
         if self._library_manager.check_if_empty_from_string(self._object_json):
             self._screen_with_objects = self._screen_manager.grab_desktop(self._screen_manager.get_color_mat)
 
             self._annotation_screen = self._annotation_screen
 
-            self._result.performance_ms = (time.time() - self._t0) * 1000
+            if add_t_call:
+                self._result.performance_ms = t_call * 1000
+            else:
+                self._result.performance_ms = 0
             self._result.records["check"] = True
             self._result.accuracy_ms = 0
             self._result.screenshot = self._screen_with_objects
@@ -1589,7 +1598,12 @@ class EngineManager(object):
 
                     self._exec_interactions()
 
-                    self._result.performance_ms = self._appear_time * 1000
+                    if add_t_call:
+                        self._result.performance_ms = (self._appear_time+t_call) * 1000
+                    else:
+                        self._result.performance_ms = self._appear_time * 1000
+
+                    #self._result.performance_ms = self._appear_time * 1000
                     self._result.accuracy_ms = self._appear_accuracy * 1000
                     self._result.screenshot = self._screen_with_objects
                     self._result.annotation = self._annotation_screen
@@ -1631,7 +1645,12 @@ class EngineManager(object):
                 self._annotation_screen = self._get_annotation_screen(first_index_found)
                 #self._annotation_screen  = self._get_annotation_screen(first_index_not_found)
 
-                self._result.performance_ms = self._disappear_time * 1000
+                if add_t_call:
+                    self._result.performance_ms = (self._disappear_time + t_call) * 1000
+                else:
+                    self._result.performance_ms = self._disappear_time * 1000
+
+                #self._result.performance_ms = self._disappear_time * 1000
                 self._result.accuracy_ms = self._disappear_accuracy * 1000
                 self._result.screenshot = self._screen_with_objects
                 self._result.annotation = self._annotation_screen
