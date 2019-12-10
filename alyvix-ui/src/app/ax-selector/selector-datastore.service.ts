@@ -51,6 +51,7 @@ export class SelectorDatastoreService {
   private editedRow: BehaviorSubject<RowVM> = new BehaviorSubject<RowVM>(null);
   private script: BehaviorSubject<ScriptVM> = new BehaviorSubject<ScriptVM>(ScriptEmpty);
   private maps: BehaviorSubject<MapsVM[]> = new BehaviorSubject<MapsVM[]>([]);
+  private _selectorHidden: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   private originalLibrary:AxSelectorObjects;
 
   constructor(
@@ -84,6 +85,14 @@ export class SelectorDatastoreService {
 
   editRow():Observable<RowVM> {
     return this.editedRow;
+  }
+
+  setSelectorHidden(h:boolean) {
+    this._selectorHidden.next(h);
+  }
+
+  getSelectorHidden():Observable<boolean> {
+    return this._selectorHidden;
   }
 
   reload(objectName) {

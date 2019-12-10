@@ -1,18 +1,22 @@
 <div class="ax-selector-container" (resized)="onResized($event)">
     <div class="ax-selector-main" >
-      <div class="ax-selector-tabs">
-          <div class="ax-selector-tab primary" style="cursor: pointer;" [ngClass]="{'selected': selected.name === main.name}" (click)="selectTab(main)"><a (click)="selectTab(main)">
-            <span *ngIf="editor">Selector</span>
-            <span *ngIf="!editor">Working case: {{main.name}}</span>
+      <div class="distribute">
+      <div class="ax-selector-tabs" [ngClass]="{'hide-selector': selectorHidden}">
+
+          <div class="ax-selector-tab primary" style="cursor: pointer;" [ngClass]="{'selected': selected.name === main.name}" (click)="selectTab(main)"><a >
+            <span >Working case: {{main.name}}</span>
           </a></div>
           <div class="ax-selector-tab secondary" [ngClass]="{'selected': selected.name === file.name}" *ngFor="let file of files" (click)="selectTab(file)" style="cursor: pointer;">
             <div  style="width: 100%;" class="distribute">
-              <div><a (click)="selectTab(file)" >{{file.name}}</a></div>
+              <div><a  >{{file.name}}</a></div>
               <div><a (click)="closeTab(file)"><i class="fas fa-times"></i></a></div>
             </div>
           </div>
           <a class="ax-selector-tab btn add" (click)="loadFile()">+</a>
           <input type="file" accept=".alyvix" #file (change)="onFileAdd()" style="display: none">
+
+      </div>
+      <div *ngIf="editor" class="ax-selector-tab primary selected" style="cursor: pointer; float: right; width: 75px; text-align: center; text-transform: uppercase" (click)="toggleSelector()"><a ><span *ngIf="!selectorHidden">HIDE</span><span *ngIf="selectorHidden">Selector</span></a></div>
       </div>
       <ax-table [(data)]="selected.data" [readonly]="selected.readonly" (import)="onImport($event)" [editor]="editor"></ax-table>
     </div>

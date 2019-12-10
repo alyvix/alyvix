@@ -1,30 +1,30 @@
 <div class="ax-objects">
-  <ul>
-    <li (click)="selectMain()" [ngClass]="{'selected': isSelected('MAIN')}"> MAIN</li>
-    <li (click)="selectFail()" [ngClass]="{'selected': isSelected('FAIL')}"> FAIL</li>
-    <li (click)="selectExit()" [ngClass]="{'selected': isSelected('EXIT')}"> EXIT</li>
-  </ul>
+  <div class="ax-object-list">
+    <div class="ax-object-element" (click)="selectMain()" [ngClass]="{'selected': isSelected('MAIN')}"> MAIN</div>
+    <div class="ax-object-element" (click)="selectFail()" [ngClass]="{'selected': isSelected('FAIL')}"> FAIL</div>
+    <div class="ax-object-element" (click)="selectExit()" [ngClass]="{'selected': isSelected('EXIT')}"> EXIT</div>
+    </div>
 
   <h3>SECTIONS <button class="btn" (click)="addSection()">Add</button></h3>
 
 
-      <ul priDropList   [priDropListConnectedTo]="objectLists" name="sections" [priDropListData]="'object'">
-        <li *ngFor="let section of script.sections" priDragItem [priDragItemData]="sectionToStep(section)" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
+      <div class="ax-object-list" priDropList   [priDropListConnectedTo]="objectLists" name="sections" [priDropListData]="'object'" [priDropListSorting]="false">
+        <div class="ax-object-element" *ngFor="let section of script.sections" priDragItem [priDragItemData]="sectionToStep(section)" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
           <span *priDragPlaceholder><li>{{section.name}}</li></span>
           <span *priDragPreview>{{section.name}}</span>
           <input [ngModel]="section.name" (ngModelChange)="changeSectionName(section,$event)" />
           <button class="btn light" (click)="removeSection(section)">Remove</button>
-        </li>
-      </ul>
+        </div>
+      </div>
 
   <h3>MAPS <button class="btn" (click)="addMap()">Add</button></h3>
-      <ul priDropList  [priDropListConnectedTo]="objectLists" name="maps" [priDropListData]="'map'">
-        <li *ngFor="let map of maps" priDragItem [priDragItemData]="mapToStep(map)" (click)="selectMap(map)" [ngClass]="{'selected': isSelectedMap(map)}">
-          <span *priDragPlaceholder><li>{{map.name}}</li></span>
+      <div class="ax-object-list" priDropList  [priDropListConnectedTo]="objectLists" name="maps" [priDropListData]="'map'" [priDropListSorting]="false">
+        <div class="ax-object-element" *ngFor="let map of maps" priDragItem [priDragItemData]="mapToStep(map)" (click)="selectMap(map)" [ngClass]="{'selected': isSelectedMap(map)}">
+          <span *priDragPlaceholder>{{map.name}}</span>
           <span *priDragPreview>{{map.name}}</span>
           <input [(ngModel)]="map.name" (ngModelChange)="changeMapName(map,$event)"/>
           <button class="btn light" (click)="removeMap(map)">Remove</button>
-        </li>
-      </ul>
+        </div>
+      </div>
 
 </div>

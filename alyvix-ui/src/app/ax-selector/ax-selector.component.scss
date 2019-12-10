@@ -17,6 +17,13 @@
       flex-direction: row;
       justify-content: flex-start;
       border-bottom: 2px solid $blue;
+
+      &.hide-selector {
+        .ax-selector-tab{
+          display: none;
+        }
+      }
+
     }
 
     .ax-selector-tab{

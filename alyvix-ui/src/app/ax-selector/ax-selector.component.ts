@@ -35,6 +35,12 @@ export class AxSelectorComponent implements OnInit {
   production: boolean = environment.production;
   debugJson:boolean = false;
 
+  selectorHidden = false;
+
+
+  toggleSelector() {
+    this.datastore.setSelectorHidden(!this.selectorHidden);
+  }
 
 
   ngOnInit(): void {
@@ -44,6 +50,7 @@ export class AxSelectorComponent implements OnInit {
       this.main = {id:Utils.uuidv4(), data: data, name: this.global.current_library_name, readonly: false };
       this.selected = this.main;
     });
+    this.datastore.getSelectorHidden().subscribe(x => this.selectorHidden = x);
   }
 
 

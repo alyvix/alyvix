@@ -9,11 +9,9 @@
             <div [style.height.px]="topLeftHeight" class="editor-menu-panel">
               <rsz-layout  [directions]="['right']" [rFlex]="true" (resizing)="resizingVertical($event)">
                   <div [style.width.px]="objectsWidth" class="inner-cell objects">
-                    <div *ngIf="!objectCollapsed">
-                        <app-objects-panel></app-objects-panel>
-                    </div>
-                    <div class="objects-collapsed" *ngIf="objectCollapsed" (click)="expandObjects()">
-                        <p>Objects</p>
+                    <div class="show-hide show-designer" (click)="toggleObjects()"><p *ngIf="!objectCollapsed">Hide</p><p *ngIf="objectCollapsed">Sections</p></div>
+                    <div class="object-panel">
+                      <app-objects-panel></app-objects-panel>
                     </div>
                   </div>
               </rsz-layout>
@@ -31,7 +29,8 @@
           </rsz-layout>
 
     </div>
-    <div class="designer-right">
+    <div class="designer-right" [ngClass]="{'hide-designer': designerCollapsed}">
+      <div class="show-hide show-designer" (click)="toggleDesigner()"><p *ngIf="!designerCollapsed">Hide</p><p *ngIf="designerCollapsed">Designer</p></div>
       <ax-designer [editor]="true" *ngIf="hasDesigner"></ax-designer>
       <div class="message" *ngIf="!hasDesigner">Select one object<br>for the current resolution</div>
     </div>
