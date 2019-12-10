@@ -16,21 +16,21 @@
           <option value="right">Right</option>
         </select>
      </div>
-  <div class="pure-u-5-24 form-group" *ngIf="_node.box.mouse.type== 'scroll' || _node.box.mouse.type== 'release'">
+  <div class="pure-u-5-24 form-group" *ngIf="_node.box.mouse.type == 'scroll' || _node.box.mouse.type== 'release'">
     <label>Direction</label>
     <select class="mousetrap" [(ngModel)]="_node.box.mouse.features.direction">
       <option *ngIf="_node.box.mouse.type== 'release'" value="none">None</option>
       <option value="up">Up</option>
       <option value="down">Down</option>
-      <option value="left">Left</option>
-      <option value="right">Right</option>
+      <option value="left" *ngIf="_node.box.mouse.type != 'scroll'">Left</option>
+      <option value="right" *ngIf="_node.box.mouse.type != 'scroll'">Right</option>
     </select>
   </div>
   <div class="pure-u-4-24 form-group" *ngIf="_node.box.mouse.type== 'scroll' || _node.box.mouse.type== 'click'">
     <label>Units</label>
     <input class="mousetrap" [(ngModel)]="_node.box.mouse.features.amount" (change)="amountChange()" type="number" style="width:50px" min="1">
   </div>
-  
+
   <div class="pure-u-3-24 form-group" *ngIf="_node.box.mouse.features.amount > 1 && ( _node.box.mouse.type== 'click' || _node.box.mouse.type== 'scroll' ) ">
       <label>Delays [ms]</label>
       <input class="mousetrap" [(ngModel)]="_node.box.mouse.features.delays_ms" (change)="delayChange()" type="number" style="width:50px"  min="1" >
@@ -39,6 +39,6 @@
     <label>Pixels [px]</label>
     <input  class="mousetrap" [(ngModel)]="_node.box.mouse.features.pixels" (change)="pixelsChange()"  type="number" style="width:50px"  min="1" >
   </div>
-  
+
 
 </div>
