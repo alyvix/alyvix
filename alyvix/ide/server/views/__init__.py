@@ -542,7 +542,66 @@ def selector_edit_api():
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
+@app.route("/ide_open_file_api")
+def ide_open_file_api():
+    import tempfile, base64, zlib
 
+    ICON = zlib.decompress(base64.b64decode('eJxjYGAEQgEBBiDJwZDBy'
+                                            'sAgxsDAoAHEQCEGBQaIOAg4sDIgACMUj4JRMApGwQgF/ykEAFXxQRc='))
+
+    _, ICON_PATH = tempfile.mkstemp()
+    with open(ICON_PATH, 'wb') as icon_file:
+        icon_file.write(ICON)
+
+    root = tk.Tk()
+    root.withdraw()
+    #icon = PhotoImage(height=16, width=16)
+    #icon.blank()
+    root.iconbitmap(default=ICON_PATH)
+    #root.call('wm', 'iconphoto', root._w, PhotoImage(r'server\static\img\icons\transparent_ico.gif'))
+    root.call('wm', 'attributes', '.', '-topmost', '1')
+    #root.tk.call('wm', 'iconphoto', root._w, icon)
+    file_path = filedialog.askopenfilename(filetypes=[("Alyvix Library","*.alyvix"), ("all files", "*.*")])
+    #print(file_path)
+
+    browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route("/ide_save_as_api")
+def ide_save_as_api():
+
+    global library_dict
+
+    import tempfile, base64, zlib
+
+    ICON = zlib.decompress(base64.b64decode('eJxjYGAEQgEBBiDJwZDBy'
+                                            'sAgxsDAoAHEQCEGBQaIOAg4sDIgACMUj4JRMApGwQgF/ykEAFXxQRc='))
+
+    _, ICON_PATH = tempfile.mkstemp()
+    with open(ICON_PATH, 'wb') as icon_file:
+        icon_file.write(ICON)
+
+    root = tk.Tk()
+    root.withdraw()
+    #icon = PhotoImage(height=16, width=16)
+    #icon.blank()
+    root.iconbitmap(default=ICON_PATH)
+    #root.call('wm', 'iconphoto', root._w, PhotoImage(r'server\static\img\icons\transparent_ico.gif'))
+    root.call('wm', 'attributes', '.', '-topmost', '1')
+    filename = filedialog.asksaveasfilename(initialdir="/", title="Select file",
+                                                 filetypes=(("Alyvix Library", "*.alyvix"), ("all files", "*.*")), defaultextension='.alyvix')
+    #print(filename)
+
+
+    with open(filename, 'w') as f:
+        json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
+@app.route("/ide_exit_api", methods=['GET', 'POST'])
+def ide_exit_api():
+    pass
 
 @app.route("/ide_button_new_api", methods=['GET', 'POST'])
 def ide_button_new_api():
