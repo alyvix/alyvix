@@ -1556,6 +1556,44 @@ def set_library_api():
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
+@app.route("/get_screen_for_selector", methods=['GET', 'POST'])
+def get_screen_for_selector():
+
+    global library_dict
+
+    object_name = request.args.get('object_name')
+    resolution_string = request.args.get('resolution_string')
+
+    try:
+        screen = library_dict["objects"][object_name]["components"][resolution_string]["screen"]
+
+        np_array = np.frombuffer(base64.b64decode(screen), np.uint8)
+        cv_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+
+    except:
+        cv_image = np.zeros((80,80,3), np.uint8)
+
+    #http://127.0.0.1:5000/get_screen_for_selector?object_name=VisualObject1&resolution_string=1920*1080@100
+    background_w = cv_image.shape[1]
+    background_h = cv_image.shape[0]
+    thumbnail_fixed_height = 80
+    thumbnail_fixed_width = int((background_w * thumbnail_fixed_height) / background_h)
+
+    dim = (thumbnail_fixed_width, thumbnail_fixed_height)
+
+    resized = cv2.resize(cv_image, dim, interpolation=cv2.INTER_CUBIC)
+
+    is_success, im_buf_arr = cv2.imencode(".png", resized)
+    byte_im = im_buf_arr.tobytes()
+
+    response = make_response(byte_im)
+    response.headers.set('Content-Type', 'image/jpeg')
+    response.headers.set(
+        'Content-Disposition', 'attachment', filename='thumbnail.png')
+    return response
+
+
 @app.route("/get_scraped_txt", methods=['GET', 'POST'])
 def get_scraped_txt():
     if request.method == 'POST':
