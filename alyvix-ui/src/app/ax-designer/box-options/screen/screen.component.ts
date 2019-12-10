@@ -49,16 +49,26 @@ export class ScreenComponent implements OnInit {
   }
 
   changeType(t) {
-    this.call.type = t;
     if(t === 'run') {
-      delete this.call.features.process;
+      if(this.call.features) {
+        delete this.call.features.process;
+      } else {
+        this.call.features = {};
+      }
       this.call.features.path = this.path;
       this.call.features.arguments = this.arguments;
     } else if(t === 'kill') {
-      delete this.call.features.arguments;
-      delete this.call.features.path;
+      if(this.call.features) {
+        delete this.call.features.arguments;
+        delete this.call.features.path;
+      } else {
+        this.call.features = {};
+      }
       this.call.features.process = this.process;
+    } else if(t === 'none') {
+      delete this.call.features;
     }
+    this.call.type = t;
   }
 
   changeProcess(event) {
