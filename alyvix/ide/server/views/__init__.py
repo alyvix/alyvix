@@ -544,6 +544,7 @@ def selector_edit_api():
 
 @app.route("/ide_open_file_api")
 def ide_open_file_api():
+    global library_dict
     import tempfile, base64, zlib
 
     ICON = zlib.decompress(base64.b64decode('eJxjYGAEQgEBBiDJwZDBy'
@@ -564,7 +565,13 @@ def ide_open_file_api():
     file_path = filedialog.askopenfilename(filetypes=[("Alyvix Library","*.alyvix"), ("all files", "*.*")])
     #print(file_path)
 
-    browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
+    lm = LibraryManager()
+    lm.load_file(file_path)
+    library_dict = lm.get_json()
+
+    browser_class._browser_3.Reload()
+
+    #browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -606,6 +613,20 @@ def ide_exit_api():
 @app.route("/ide_run_api", methods=['GET', 'POST'])
 def ide_run_api():
     pass
+
+@app.route("/ide_new_api", methods=['GET', 'POST'])
+def ide_new_api():
+    global library_dict
+
+    lm = LibraryManager()
+    lm.load_file(None)
+    library_dict = lm.get_json()
+
+    browser_class._browser_3.Reload()
+
+    #browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route("/ide_button_new_api", methods=['GET', 'POST'])
 def ide_button_new_api():
