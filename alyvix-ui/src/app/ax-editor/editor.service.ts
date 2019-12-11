@@ -21,6 +21,7 @@ export class EditorService {
 
   private _selection:BehaviorSubject<LeftSelection> = new BehaviorSubject<LeftSelection>(null);
   objectChanged:EventEmitter<string> = new EventEmitter()
+  runState:EventEmitter<string> = new EventEmitter()
 
   private objectSave:() => Observable<any>
 

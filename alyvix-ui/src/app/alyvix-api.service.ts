@@ -125,6 +125,26 @@ export class AlyvixApiService {
     })
   }
 
+  newCase() {
+    return this.httpClient.get<any>('/ide_new_api').subscribe(x => {});
+  }
+
+  openCase() {
+    return this.httpClient.get<any>('/ide_open_file_api').subscribe(x => {});
+  }
+
+  exitIde() {
+    return this.httpClient.get<any>('/ide_exit_api').subscribe(x => {})
+  }
+
+  saveAs() {
+    return this.httpClient.get<any>('/ide_save_as_api').subscribe(x => {})
+  }
+
+  run(action:string) {
+    return this.httpClient.get<any>('/ide_run_api?action='+action)
+  }
+
 
 
 

@@ -103,7 +103,17 @@ function reloadAlyvixSelector(objectName: string) {
 }
 
 function setRunState(state:string) {
-  console.log("new state: " + state);
+
+  const zone = ngZone();
+  if(zone) {
+    zone.run(() => {
+
+      if (editor) {
+        const editorService = editor.injector.get(EditorService);
+        editorService.runState.emit(state);
+      }
+    });
+  }
 }
 
 

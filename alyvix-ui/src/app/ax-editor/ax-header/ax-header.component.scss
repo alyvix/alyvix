@@ -1,4 +1,4 @@
-
+@import '../../../variables.scss';
 
 .ax-header-container {
   display: flex;
@@ -27,5 +27,17 @@
 
   i {
     color: white;
+  }
+
+  button{
+    &.run{
+      width: 80px;
+    }
+    &.running{
+      background-color: $red;
+    }
+    span {
+      color: white;
+    }
   }
 }
