@@ -545,6 +545,8 @@ def selector_edit_api():
 @app.route("/ide_open_file_api")
 def ide_open_file_api():
     global library_dict
+    global current_filename
+
     import tempfile, base64, zlib
 
     ICON = zlib.decompress(base64.b64decode('eJxjYGAEQgEBBiDJwZDBy'
@@ -568,6 +570,8 @@ def ide_open_file_api():
     lm = LibraryManager()
     lm.load_file(file_path)
     library_dict = lm.get_json()
+
+    current_filename = file_path
 
     browser_class._browser_3.Reload()
 
@@ -608,7 +612,8 @@ def ide_save_as_api():
 
 @app.route("/ide_exit_api", methods=['GET', 'POST'])
 def ide_exit_api():
-    pass
+    browser_class.close_browser_3()
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 @app.route("/ide_run_api", methods=['GET', 'POST'])
 def ide_run_api():
@@ -617,10 +622,25 @@ def ide_run_api():
 @app.route("/ide_new_api", methods=['GET', 'POST'])
 def ide_new_api():
     global library_dict
+    global current_filename
 
     lm = LibraryManager()
     lm.load_file(None)
     library_dict = lm.get_json()
+
+    filename_start_index = 1
+    default_library_name = "VisualTestCase"
+    filename = default_library_name + str(filename_start_index)
+
+    while True:
+        if os.path.isfile(filename + ".alyvix") is False:
+            filename = filename + ".alyvix"
+            break
+
+        filename_start_index += 1
+        filename = default_library_name + str(filename_start_index)
+
+    current_filename = filename
 
     browser_class._browser_3.Reload()
 
