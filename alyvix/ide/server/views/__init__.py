@@ -603,6 +603,10 @@ def ide_save_as_api():
 def ide_exit_api():
     pass
 
+@app.route("/ide_run_api", methods=['GET', 'POST'])
+def ide_run_api():
+    pass
+
 @app.route("/ide_button_new_api", methods=['GET', 'POST'])
 def ide_button_new_api():
 
