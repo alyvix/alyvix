@@ -217,7 +217,7 @@ class RectManager{
             }
         }
         
-        if (e.keyCode === 27 && ide) {  //esc pressed
+        if ((e.keyCode === 27 || (e.key == "o" && this.key_ctrl_pressed == true)) && ide) {  //esc pressed or ctrl-o
             console.log("close and go back to editor");
             save();
         }

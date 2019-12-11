@@ -1,11 +1,10 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { AxSelectorObjects, AxSelectorComponentGroups, AxScript, AxMaps, AxScriptFlow } from '../ax-model/model';
 import { RowVM } from './ax-table/ax-table.component';
 import { Utils } from '../utils';
 import { AlyvixApiService } from '../alyvix-api.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Key } from 'protractor';
 import { isArray } from 'util';
 
 
@@ -53,6 +52,10 @@ export class SelectorDatastoreService {
   private maps: BehaviorSubject<MapsVM[]> = new BehaviorSubject<MapsVM[]>([]);
   private _selectorHidden: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   private originalLibrary:AxSelectorObjects;
+  changedSelection:EventEmitter<RowVM[]> = new EventEmitter();
+  changedNameRow:EventEmitter<string> = new EventEmitter();
+  changedBreak:EventEmitter<boolean> = new EventEmitter();
+  changedTimeout:EventEmitter<number> = new EventEmitter();
 
   constructor(
     private apiService: AlyvixApiService

@@ -3,6 +3,7 @@ import { AxModelMock } from "../ax-model/mock";
 import { Utils } from "../utils";
 import { Observable } from "rxjs";
 import { of } from 'rxjs';
+import { NgZone, Injectable } from "@angular/core";
 
 export interface GroupsFlag{
     created:boolean[]
@@ -17,32 +18,45 @@ export enum RectType{
     Button = "button"
 }
 
-export interface DesignerGlobal{
-    axModel():Observable<AxModel>;
-    background():Observable<string>;
+export abstract class DesignerGlobal{
 
-    lastElement():BoxListEntity;
+    constructor(protected zone:NgZone) {
 
-    newComponent(group:number):any
-    setPoint(i:number):any
+    }
 
-    setRectangles():any
+    abstract axModel():Observable<AxModel>;
+    abstract background():Observable<string>;
 
-    getGroupsFlag():GroupsFlag //can be mocked no effect on UI
-    setGroupFlags(flags:GroupsFlag) //can be mocked no effect on UI
+    abstract lastElement():BoxListEntity;
 
-    getSelectedNode():number //can be mocked no effect on UI
-    setSelectedNode(i:number) //can be mocked no effect on UI
+    abstract newComponent(group:number):any
+    abstract setPoint(i:number):any
 
-    get_rect_type(rect:BoxListEntity):RectType
-    set_rect_type(type:RectType,rect:BoxListEntity)
+    abstract setRectangles():any
 
-    setTypeNode(s:string) //can be mocked no effect on ui
+    abstract getGroupsFlag():GroupsFlag //can be mocked no effect on UI
+    abstract setGroupFlags(flags:GroupsFlag) //can be mocked no effect on UI
 
-    uuidv4():string
+    abstract getSelectedNode():number //can be mocked no effect on UI
+    abstract setSelectedNode(i:number) //can be mocked no effect on UI
+
+    abstract get_rect_type(rect:BoxListEntity):RectType
+    abstract set_rect_type(type:RectType,rect:BoxListEntity)
+
+    abstract setTypeNode(s:string) //can be mocked no effect on ui
+
+    abstract uuidv4():string
 }
 
-export class MockDesignerGlobal implements DesignerGlobal{
+@Injectable({
+  providedIn: 'root'
+})
+export class MockDesignerGlobal extends DesignerGlobal{
+
+    constructor(zone: NgZone) {
+      super(zone);
+    }
+
     uuidv4(): string {
         return Utils.uuidv4();
     }
@@ -100,20 +114,28 @@ export class MockDesignerGlobal implements DesignerGlobal{
 
 }
 
-export class DesignerGlobalRef implements DesignerGlobal {
-  axModel(): Observable<AxModel> { return of((window as any).axModel()); }
-  lastElement(): BoxListEntity { return (window as any).lastElement(); }
-  newComponent(group: number) { return (window as any).newComponent(group); }
-  setPoint(i: number) { return (window as any).setPoint(i); }
-  setRectangles() { return (window as any).setRectangles(); }
-  getGroupsFlag(): GroupsFlag { return (window as any).getGroupsFlag(); }
-  setGroupFlags(flags: GroupsFlag) { return (window as any).setGroupFlags(flags); }
-  getSelectedNode(): number { return (window as any).getSelectedNode(); }
-  setSelectedNode(i: number) { return (window as any).setSelectedNode(i); }
-  get_rect_type(rect: BoxListEntity): RectType { return (window as any).get_rect_type(rect); }
-  set_rect_type(type: RectType, rect: BoxListEntity) { return (window as any).set_rect_type(type,rect); }
-  setTypeNode(s: string) { return (window as any).setTypeNode(s); }
-  uuidv4(): string { return (window as any).uuidv4(); }
+@Injectable({
+  providedIn: 'root'
+})
+export class DesignerGlobalRef extends DesignerGlobal {
+
+  constructor(zone: NgZone) {
+    super(zone);
+  }
+
+  axModel(): Observable<AxModel> { return this.zone.runOutsideAngular(() => of((window as any).axModel())) }
+  lastElement(): BoxListEntity { return this.zone.runOutsideAngular(() =>(window as any).lastElement()) }
+  newComponent(group: number) { return this.zone.runOutsideAngular(() =>(window as any).newComponent(group)) }
+  setPoint(i: number) { return this.zone.runOutsideAngular(() =>(window as any).setPoint(i)) }
+  setRectangles() { return this.zone.runOutsideAngular(() =>(window as any).setRectangles()) }
+  getGroupsFlag(): GroupsFlag { return this.zone.runOutsideAngular(() =>(window as any).getGroupsFlag()) }
+  setGroupFlags(flags: GroupsFlag) { return this.zone.runOutsideAngular(() =>(window as any).setGroupFlags(flags)) }
+  getSelectedNode(): number { return this.zone.runOutsideAngular(() =>(window as any).getSelectedNode()) }
+  setSelectedNode(i: number) { return this.zone.runOutsideAngular(() =>(window as any).setSelectedNode(i)) }
+  get_rect_type(rect: BoxListEntity): RectType { return this.zone.runOutsideAngular(() =>(window as any).get_rect_type(rect)) }
+  set_rect_type(type: RectType, rect: BoxListEntity) { return this.zone.runOutsideAngular(() =>(window as any).set_rect_type(type,rect)) }
+  setTypeNode(s: string) { return this.zone.runOutsideAngular(() =>(window as any).setTypeNode(s)) }
+  uuidv4(): string { return this.zone.runOutsideAngular(() =>(window as any).uuidv4()) }
   background():Observable<string> {
     return of("");
   }

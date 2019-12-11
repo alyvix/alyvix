@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, EventEmitter } from '@angular/core';
 import { SelectorDatastoreService, MapsVM, MapRowVM } from '../ax-selector/selector-datastore.service';
 import { BehaviorSubject, Observable, from } from 'rxjs';
 import { AxScriptFlow } from '../ax-model/model';
@@ -20,6 +20,9 @@ export interface LeftSelection{
 export class EditorService {
 
   private _selection:BehaviorSubject<LeftSelection> = new BehaviorSubject<LeftSelection>(null);
+  objectChanged:EventEmitter<string> = new EventEmitter()
+
+  private objectSave:() => Observable<any>
 
   private beforeSavePromises:(() => Promise<any>)[] = [];
 
@@ -28,18 +31,14 @@ export class EditorService {
     private selectorDatastore:SelectorDatastoreService
   ) { }
 
-  designerFullscreen = false;
 
-  private reloading = false;
+  setObjectSave(o:() => Observable<any>) {
+    this.objectSave = o;
+  }
 
   reloadObject(objectName:string) {
-    if(!this.reloading && this.designerFullscreen) {
-      this.reloading = true;
-      console.log(objectName);
-      this.selectorDatastore.reload(objectName);
-      this.designerFullscreen = false;
-      this.reloading = false;
-    }
+    this.selectorDatastore.reload(objectName);
+    this.objectChanged.emit(objectName);
   }
 
   setLeftSelection(s:LeftSelection) {
@@ -63,7 +62,7 @@ export class EditorService {
     const promise = new Promise( function(resolve) {
       self.beforeSave().then(function() {
         self.selectorDatastore.save().subscribe(x => {
-          resolve();
+          self.objectSave().subscribe( y => resolve());
         });
       });
     });

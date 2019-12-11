@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, Inject, Input, DoCheck } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, Inject, Input, DoCheck, ChangeDetectorRef } from '@angular/core';
 import { AxModel, BoxListEntity } from '../ax-model/model';
 import { AxDesignerService, TreeNode } from './ax-designer-service';
 import { DesignerGlobal } from './ax-global';
@@ -17,18 +17,15 @@ import * as _ from 'lodash';
   templateUrl: './ax-designer.component.html',
   styleUrls: ['./ax-designer.component.scss']
 })
-export class AxDesignerComponent implements OnInit,DoCheck {
-  ngDoCheck(): void {
-    // if(this.editor) {
-    //   this.axDesignerService.updateAx();
-    //   // if(!fastDeepEqual(this.axModel,this.axModelOriginal)) {
-    //   //   this.axModelOriginal = _.cloneDeep(this.axModel);
-    //   //   this.axDesignerService.updateAx();
-    //   // }
-    // }
-  }
+export class AxDesignerComponent implements OnInit {
 
-  constructor(private axDesignerService:AxDesignerService, private keyShortcuts:KeyShortcutsService, private alyvixApi:AlyvixApiService) { }
+
+  constructor(
+    private axDesignerService:AxDesignerService,
+    private keyShortcuts:KeyShortcutsService,
+    private alyvixApi:AlyvixApiService,
+    private changeDetecor: ChangeDetectorRef,
+    ) { }
 
   get axModel():AxModel {
     return this.axDesignerService.getModel();
@@ -119,6 +116,9 @@ export class AxDesignerComponent implements OnInit,DoCheck {
     //this.axModelOriginal = _.cloneDeep(this.axModel);
     this.object_name.setValue(this.axModel.object_name);
     this.originalName = this.axModel.object_name;
+    this.axDesignerService.getModelAsync().subscribe(m => {
+      this.changeDetecor.markForCheck();
+    })
     if(this.first)
       this.first.nativeElement.focus();
     this.scrollToNode();

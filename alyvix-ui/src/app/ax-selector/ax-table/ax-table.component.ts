@@ -68,6 +68,7 @@ export class AxTableComponent implements OnInit {
     }
     this.updateResolutions();
     this.changeResolution();
+    this.datastore.changedSelection.emit(this.selectedRows);
   }
 
   private updateResolutions() {
@@ -151,9 +152,7 @@ export class AxTableComponent implements OnInit {
     this.datastore.saveData(this.data,false).subscribe(x => {
       if (x.success) {
         this.api.newObject(this.delay).subscribe(x => {
-          if (this.editor) {
-            this.editorService.designerFullscreen = true;
-          }
+
         });
       }
     });
@@ -203,6 +202,7 @@ export class AxTableComponent implements OnInit {
     this.changeDetecor.markForCheck();
     this.changeDetecor.detectChanges();
     this.datastore.setSelected(this.selectedRows);
+    this.datastore.changedSelection.emit(this.selectedRows);
   }
 
   selectAll() {
@@ -336,6 +336,17 @@ export class AxTableComponent implements OnInit {
   onChangeName(row:RowVM,event) {
     event.srcElement.value = this.tempName;
     row.name = this.tempName;
+    this.datastore.changedNameRow.emit(row.name);
+  }
+
+  changeTimeout(row:RowVM,timeout:number) {
+    row.object.detection.timeout_s = timeout;
+    this.datastore.changedTimeout.emit(timeout);
+  }
+
+  changeBreak(row:RowVM,b:boolean) {
+    row.object.detection.break = b;
+    this.datastore.changedBreak.emit(b);
   }
 
   isSelected(row:RowVM):boolean {
@@ -411,8 +422,8 @@ export class AxTableComponent implements OnInit {
         this.editing = null;
         this.filterData();
         this.updateResolutions();
-        this.changeDetecor.markForCheck();
-        this.changeDetecor.detectChanges();
+        this.changeDetecor.markForCheck(); //probably can be removed since I ve introducted ngZone
+        this.changeDetecor.detectChanges(); //probably can be removed since I ve introducted ngZone
       } else if(r && this.data.find(d => d.name === r.name)) {
         const dataIndex = this._data.findIndex(d => d.name === r.name);
         if ( dataIndex >= 0 ) { this._data[dataIndex] = r; }
@@ -420,14 +431,14 @@ export class AxTableComponent implements OnInit {
         if ( selectedIndex >= 0 ) { this.selectedRows[selectedIndex] = r; }
         this.updateResolutions();
         this.changeResolution();
-        this.changeDetecor.markForCheck();
-        this.changeDetecor.detectChanges();
+        this.changeDetecor.markForCheck(); //probably can be removed since I ve introducted ngZone
+        this.changeDetecor.detectChanges(); //probably can be removed since I ve introducted ngZone
       } else if(r) {
         this._data.push(r);
         this.updateResolutions();
         this.changeResolution();
-        this.changeDetecor.markForCheck();
-        this.changeDetecor.detectChanges();
+        this.changeDetecor.markForCheck(); //probably can be removed since I ve introducted ngZone
+        this.changeDetecor.detectChanges(); //probably can be removed since I ve introducted ngZone
       }
     });
 

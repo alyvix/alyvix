@@ -48,12 +48,12 @@
 
             <!-- Timeout Definition -->
             <ng-container cdkColumnDef="timeout">
-                <cdk-cell *cdkCellDef="let row" class="small"><input type="number" [disabled]="readonly"  [(ngModel)]="row.object.detection.timeout_s" min="1" /></cdk-cell>
+                <cdk-cell *cdkCellDef="let row" class="small"><input type="number" [disabled]="readonly"  [ngModel]="row.object.detection.timeout_s" (ngModelChange)="changeTimeout(row,$event)" min="1" /></cdk-cell>
             </ng-container>
 
             <!-- Break Definition -->
             <ng-container cdkColumnDef="break">
-                <cdk-cell *cdkCellDef="let row" class="small"><input [disabled]="readonly" class="regular-checkbox" [(ngModel)]="row.object.detection.break" type="checkbox" /></cdk-cell>
+                <cdk-cell *cdkCellDef="let row" class="small"><input [disabled]="readonly" class="regular-checkbox" [ngModel]="row.object.detection.break" (ngModelChange)="changeBreak(row,$event)" type="checkbox" /></cdk-cell>
             </ng-container>
 
             <!-- Measure Definition -->

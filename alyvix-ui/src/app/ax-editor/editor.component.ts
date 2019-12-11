@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, Inject } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, Inject, ChangeDetectorRef } from '@angular/core';
 import { DesignerGlobal } from '../ax-designer/ax-global';
 import { SelectorDatastoreService } from '../ax-selector/selector-datastore.service';
 
@@ -20,7 +20,11 @@ export class EditorComponent implements OnInit {
   objectCollapsed = false;
   designerCollapsed = false;
 
-  constructor(@Inject('GlobalRefDesigner') private global: DesignerGlobal,private selectorDatastore:SelectorDatastoreService) { }
+  constructor(
+    @Inject('GlobalRefDesigner') private global: DesignerGlobal,
+    private selectorDatastore:SelectorDatastoreService,
+    private changeDetector: ChangeDetectorRef,
+    ) { }
 
   containerHeight():number {
     return this.container.nativeElement.clientHeight;
@@ -100,6 +104,7 @@ export class EditorComponent implements OnInit {
     this.topLeftHeight = this.container.nativeElement.offsetHeight - 300;
     this.global.axModel().subscribe(model => {
       this.hasDesigner = model ? true : false;
+      this.changeDetector.markForCheck();
     });
     this.leftWidth = this.container.nativeElement.offsetWidth  - this.designerWidth;
     this.selectorDatastore.getSelectorHidden().subscribe(hidden => this.setSelectorShow(hidden));

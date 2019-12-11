@@ -1,4 +1,4 @@
-import { enableProdMode, PlatformRef, NgModuleRef } from '@angular/core';
+import { enableProdMode, PlatformRef, NgModuleRef, NgZone } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 import { DesignerModule } from './app/ax-designer/designer.module';
@@ -21,6 +21,17 @@ let designer: void | NgModuleRef<DesignerModule>
 let selector: void | NgModuleRef<SelectorModule>
 let editor: void | NgModuleRef<EditorModule>
 
+function ngZone():NgZone {
+  if(editor) {
+    return editor.injector.get(NgZone);
+  } else if(selector) {
+    return selector.injector.get(NgZone);
+  } else if(designer) {
+    return designer.injector.get(NgZone);
+  }
+  return null;
+}
+
 function loadAlyvixDesigner() {
   platformBrowserDynamic().bootstrapModule(DesignerModule).catch(err => console.log(err)).then(module => designer = module)
 }
@@ -33,13 +44,7 @@ function loadAlyvixEditor() {
   platformBrowserDynamic().bootstrapModule(EditorModule).catch(err => console.log(err)).then(module => editor = module)
 }
 
-function reloadAlyvixSelector(objectName: string) {
-  console.log('reload selector ' + objectName);
-  if (selector) {
-    const selectorDatastore = selector.injector.get(SelectorDatastoreService);
-    selectorDatastore.reload(objectName);
-  }
-}
+
 
 function unloadAlyvixDesigner() {
   if (designer) {
@@ -56,9 +61,14 @@ function unloadAlyvixSelector() {
 }
 
 function setExePath(path) {
-  if(designer) {
-    const datastore = designer.injector.get(DesignerDatastoreService);
-    datastore.setSelectedFile(path);
+  const zone = ngZone();
+  if(zone) {
+    zone.run(() => {
+      if(designer) {
+        const datastore = designer.injector.get(DesignerDatastoreService);
+        datastore.setSelectedFile(path);
+      }
+    });
   }
 }
 
@@ -67,10 +77,28 @@ function changeResolution(resolution) {
 }
 
 function reloadAlyvixIde(objectName: string) {
-  console.log('reload editor ' + objectName);
-  if(editor) {
-    const service = editor.injector.get(EditorService);
-    service.reloadObject(objectName);
+  const zone = ngZone();
+  if(zone) {
+    zone.run(() => {
+      console.log('reload editor ' + objectName);
+      if(editor) {
+        const service = editor.injector.get(EditorService);
+        service.reloadObject(objectName);
+      }
+    });
+  }
+}
+
+function reloadAlyvixSelector(objectName: string) {
+  const zone = ngZone();
+  if(zone) {
+    zone.run(() => {
+      console.log('reload selector ' + objectName);
+      if (selector) {
+        const selectorDatastore = selector.injector.get(SelectorDatastoreService);
+        selectorDatastore.reload(objectName);
+      }
+    });
   }
 }
 

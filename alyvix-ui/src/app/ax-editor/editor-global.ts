@@ -1,4 +1,5 @@
 import { BoxListEntity } from "../ax-model/model";
+import { NgZone, Injectable } from "@angular/core";
 
 export interface EditorGlobal{
   res_h:number;
@@ -9,6 +10,9 @@ export interface EditorGlobal{
 
 }
 
+@Injectable({
+  providedIn: 'root'
+})
 export class MockEditorGlobal implements EditorGlobal{
   setBoxes(boxes: BoxListEntity[]) {
     console.log(boxes);
@@ -23,14 +27,20 @@ export class MockEditorGlobal implements EditorGlobal{
 
 }
 
+@Injectable({
+  providedIn: 'root'
+})
 export class EditorGlobalRef implements EditorGlobal {
+
+  constructor(private zone: NgZone) {}
+
   res_h: number = (window as any).res_h;
   res_w: number = (window as any).res_w;
   setCanvas(c: HTMLCanvasElement) {
-    (window as any).setCanvas(c);
+    this.zone.runOutsideAngular(() => (window as any).setCanvas(c));
   }
   setBoxes(c: BoxListEntity[]) {
-    (window as any).setBoxes(c);
+    this.zone.runOutsideAngular(() => (window as any).setBoxes(c));
   }
 
 }
