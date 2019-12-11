@@ -44,7 +44,9 @@ export class ObjectsPanelComponent implements OnInit {
     this.selectorDatastore.getScripts().subscribe(s => {
       if(s) {
         this.script = s;
-        this.selectMain();
+        if(!this.selected) {
+          this.selectMain();
+        }
       }
     });
     this.editorService.addBeforeSave(() => {
@@ -143,7 +145,7 @@ export class ObjectsPanelComponent implements OnInit {
     return {
       id: Utils.uuidv4(),
       name: section.name,
-      type: 'object',
+      type: 'section',
       condition: 'run',
       disabled: false
     }

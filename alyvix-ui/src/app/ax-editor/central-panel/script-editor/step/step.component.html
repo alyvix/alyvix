@@ -4,13 +4,13 @@
     <div class="step-condition step-main-condition" (dblclick)="nextCondition()">
       <div >{{condition}}</div>
     </div>
-    <div class="step-parameter condition" [ngClass]="step.type" priDropList="{{firstParameterId}}" (priDropListDrop)="dropped($event)">
+    <div class="step-parameter" [ngClass]="[step.type, step.condition != 'run' ? 'condition' : '' ]" priDropList="{{firstParameterId}}" (priDropListDrop)="dropped($event)">
       <span>{{step.name}}</span>
     </div>
     <div class="step-condition" *ngIf="secondParameterEnabled">
       <div>run</div>
     </div>
-    <div class="step-parameter step-run-parameter" [ngClass]="step.type" [hidden]="!secondParameterEnabled" priDropList="{{secondParameterId}}"  (priDropListDrop)="droppedSecond($event)" [priDropAllowedWhen]="canDropObject">
+    <div class="step-parameter step-run-parameter" [ngClass]="secondParameterType" [hidden]="!secondParameterEnabled" priDropList="{{secondParameterId}}"  (priDropListDrop)="droppedSecond($event)" [priDropAllowedWhen]="canDropObject">
         <span>{{secondParameterValue}}</span>
     </div>
   </div>

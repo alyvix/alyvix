@@ -102,6 +102,10 @@ function reloadAlyvixSelector(objectName: string) {
   }
 }
 
+function setRunState(state:string) {
+  console.log("new state: " + state);
+}
+
 
 (window as any).loadAlyvixEditor = loadAlyvixEditor;
 (window as any).loadAlyvixDesigner = loadAlyvixDesigner;
@@ -112,6 +116,7 @@ function reloadAlyvixSelector(objectName: string) {
 (window as any).setExePath = setExePath;
 (window as any).changeResolution = changeResolution;
 (window as any).reloadAlyvixIde = reloadAlyvixIde;
+(window as any).setRunState = setRunState;
 
 (window as any).axModelMock =  function() {
   return AxModelMock.get();

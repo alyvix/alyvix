@@ -10,6 +10,7 @@ export interface Step{
   type: string;
   condition?:string;
   parameter?:string;
+  parameterType?:string;
   disabled:boolean;
 }
 @Component({
@@ -29,12 +30,14 @@ export class StepComponent implements OnInit,OnDestroy {
 
   private conditions = {
     'object': ['run', 'if true', 'if false'],
+    'section': ['run', 'if true', 'if false'],
     'map': ['for']
   };
 
   condition = '';
   secondParameterEnabled = false;
   secondParameterValue = '';
+  secondParameterType = 'object';
 
   private _step:Step;
 
@@ -81,6 +84,7 @@ export class StepComponent implements OnInit,OnDestroy {
 
   droppedSecond(event: PriDropEventArgs) {
    this.secondParameterValue = event.itemData.name;
+   this.secondParameterType = evet.itemData.type;
    this.step.parameter = this.secondParameterValue;
    this.stepChange.emit(this.step);
   }
@@ -95,7 +99,7 @@ export class StepComponent implements OnInit,OnDestroy {
   }
 
   readonly canDropObject = (listData: any, itemData: Step) => {
-    return itemData.type === 'object';
+    return itemData.type === 'object' || itemData.type === 'section';
   }
 
 }

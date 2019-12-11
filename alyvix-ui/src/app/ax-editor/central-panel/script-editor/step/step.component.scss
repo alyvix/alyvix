@@ -56,10 +56,23 @@
       height: 50px;
       padding: 0 20px;
       min-width: 100px;
-      background-color: $yellow;
+
+
+      &.object{
+        background-color: $green;
+      }
+      &.section{
+        background-color: lighten($green, 30%);
+      }
       &.condition{
         &.map{
           background-color: orange;
+        }
+        &.object{
+          background-color: $yellow;
+        }
+        &.section{
+          background-color: lighten($yellow, 30%);
         }
       }
       &.cdk-drop-list-dragging{
@@ -73,9 +86,6 @@
       div{
         text-align: center;
         font-weight: bold;
-      }
-      &.step-run-parameter{
-        background-color: $green;
       }
     }
 

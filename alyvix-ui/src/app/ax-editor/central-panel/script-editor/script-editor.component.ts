@@ -6,6 +6,8 @@ import { AxScriptFlow, AxScriptFlowObj } from 'src/app/ax-model/model';
 import { PriBaseDropList } from 'pri-ng-dragdrop/lib/entities/pri.base.drop.list';
 import { PriDropEventArgs } from 'pri-ng-dragdrop';
 import { Utils } from 'src/app/utils';
+import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
+import { RowVM } from 'src/app/ax-selector/ax-table/ax-table.component';
 
 @Component({
   selector: 'app-script-editor',
@@ -21,6 +23,8 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
 
   _steps:Step[] = []
 
+  objects:RowVM[] = [];
+
   @Output() change:EventEmitter<AxScriptFlow[]> = new EventEmitter();
 
   @Input() set steps(steps: AxScriptFlow[]) {
@@ -31,16 +35,25 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
     }
   }
 
+  private objectOrSection(name:string):string {
+    if(!name) return null;
+    if(this.objects.find(x => x.name === name)) {
+      return 'object';
+    } else {
+      return 'section';
+    }
+  }
+
   private toStep(s:AxScriptFlow):Step {
     if(typeof s === 'string') {
-      return {id: Utils.uuidv4(), name: s, type: 'object', condition: 'run', disabled: false};
+      return {id: Utils.uuidv4(), name: s, type: this.objectOrSection(s), condition: 'run', disabled: false};
     } else {
       if(s.if_true) {
-        return {id: Utils.uuidv4(), name: s.if_true, type: 'object', condition: 'if true', parameter: s.flow, disabled: false};
+        return {id: Utils.uuidv4(), name: s.if_true, type: this.objectOrSection(s.if_true), condition: 'if true', parameter: s.flow, parameterType: this.objectOrSection(s.flow), disabled: false};
       } else if(s.if_false) {
-        return {id: Utils.uuidv4(), name: s.if_false, type: 'object', condition: 'if false', parameter: s.flow, disabled: false};
+        return {id: Utils.uuidv4(), name: s.if_false, type: this.objectOrSection(s.if_false), condition: 'if false', parameter: s.flow, parameterType: this.objectOrSection(s.flow), disabled: false};
       } else if(s.for) {
-        return {id: Utils.uuidv4(), name: s.for, type: 'map', condition: 'for', parameter: s.flow, disabled: false};
+        return {id: Utils.uuidv4(), name: s.for, type: 'map', condition: 'for', parameter: s.flow, parameterType: this.objectOrSection(s.flow), disabled: false};
       } else if(s.disable) {
         const disabled = this.toStep(s.disable);
         disabled.disabled = true;
@@ -51,11 +64,12 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
 
 
 
-  constructor(private objectRegistry:ObjectsRegistryService) { }
+  constructor(private objectRegistry:ObjectsRegistryService, private selectorDatastore:SelectorDatastoreService) { }
 
   ngOnInit() {
     this.objectRegistry.addObjectList(this.listId);
     this.objectRegistry.addObjectList(this.lastListId);
+    this.selectorDatastore.getData().subscribe(d => this.objects = d);
   }
 
   ngOnDestroy(): void {
@@ -70,6 +84,7 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
         moveItemInArray(this._steps, index, event.dropIndex);
         break;
       case 'object':
+      case 'section':
       case 'map':
         this._steps.splice(event.dropIndex, 0, event.itemData);
         break;
