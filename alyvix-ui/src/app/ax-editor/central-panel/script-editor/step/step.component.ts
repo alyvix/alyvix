@@ -84,7 +84,7 @@ export class StepComponent implements OnInit,OnDestroy {
 
   droppedSecond(event: PriDropEventArgs) {
    this.secondParameterValue = event.itemData.name;
-   this.secondParameterType = evet.itemData.type;
+   this.secondParameterType = event.itemData.type;
    this.step.parameter = this.secondParameterValue;
    this.stepChange.emit(this.step);
   }

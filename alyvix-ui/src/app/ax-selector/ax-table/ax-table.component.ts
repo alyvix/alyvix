@@ -115,6 +115,10 @@ export class AxTableComponent implements OnInit {
 
   objectKeys = Object.keys;
 
+  imageUrl(row:RowVM) {
+    return this._sanitizer.bypassSecurityTrustResourceUrl("/get_screen_for_selector?object_name="+row.name+"&resolution_string="+row.selectedResolution);
+  }
+
   imageFor(image:string) {
     return this._sanitizer.bypassSecurityTrustResourceUrl("data:image/png;base64,"+image);
   }

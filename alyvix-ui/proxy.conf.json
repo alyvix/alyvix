@@ -107,6 +107,36 @@
         "logLevel": "debug",
         "changeOrigin": true
       },
+      "/ide_new_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
+      "/ide_exit_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
+      "/ide_save_as_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
+      "/ide_run_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
+      "/get_screen_for_selector": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
       "/api/*": {
         "target": "http://localhost:5000",
         "secure": false,

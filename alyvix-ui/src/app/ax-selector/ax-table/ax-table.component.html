@@ -87,8 +87,9 @@
 
             <!-- Screen Definition -->
             <ng-container cdkColumnDef="screen">
-                <cdk-cell *cdkCellDef="let row" class="small"><img *ngIf="row.object.components[row.selectedResolution]"
-                        [src]="imageFor(row.object.components[row.selectedResolution].screen)">
+                <cdk-cell *cdkCellDef="let row" class="small">
+                  <img *ngIf="row.object.components[row.selectedResolution] && readonly" [src]="imageFor(row.object.components[row.selectedResolution].screen)">
+                  <img *ngIf="row.object.components[row.selectedResolution] && !readonly" [src]="imageUrl(row)">
                 </cdk-cell>
             </ng-container>
 
