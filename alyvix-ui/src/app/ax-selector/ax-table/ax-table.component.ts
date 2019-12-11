@@ -388,7 +388,8 @@ export class AxTableComponent implements OnInit {
       id: Utils.uuidv4(),
       name: row.name,
       type: 'object',
-      condition: 'run'
+      condition: 'run',
+      disabled: false
     };
   }
 

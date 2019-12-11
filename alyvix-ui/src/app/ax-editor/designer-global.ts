@@ -10,6 +10,7 @@ import { of, Observable, BehaviorSubject } from 'rxjs';
 import { EditorGlobal } from "./editor-global";
 import { AxDesignerService } from "../ax-designer/ax-designer-service";
 import { EditorService } from "./editor.service";
+import * as _ from 'lodash';
 
 @Injectable({
   providedIn: 'root',
@@ -29,18 +30,26 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     super();
     this.selectorDatastore.getSelected().subscribe(rows => {
       if(this._model.value && !this.editorService.designerFullscreen) {
-        this.editorService.save().subscribe( y => {
-          this.api.saveObject(this.modelWithDetection()).subscribe(x => {
-            console.log("object saved");
+          const model = this.modelWithDetection();
+          this.editorService.save().subscribe( y => { // I need to save the library to avoid having an unknown name saving the single object
+            this.api.saveObject(model).subscribe(x => {
+              this.loadNext(rows);
+            });
           });
-        });
-      }
-      if(rows && rows.length === 1 && rows[0].selectedResolution === this.global.res_string) {
-        this.reloadDesignerModel(rows[0]);
       } else {
-        this._model.next(null);
+        this.loadNext(rows);
       }
+
     })
+  }
+
+  private loadNext(rows:RowVM[]) {
+    if(rows && rows.length === 1 && rows[0].selectedResolution === this.global.res_string) {
+      this.reloadDesignerModel(rows[0]);
+    } else {
+      this.row = null;
+      this._model.next(null);
+    }
   }
 
 
@@ -56,10 +65,11 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
   private modelWithDetection():AxModel {
     const model = this._model.value;
     if (model && this.row) {
+      model.object_name = this.row.name;
       model.detection.break = this.row.object.detection.break;
       model.detection.timeout_s = this.row.object.detection.timeout_s;
     }
-    return model;
+    return _.cloneDeep(model) ;
   }
 
   newComponent(group:number) {
@@ -104,6 +114,7 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
         detection: x.file_dict.detection,
         call: x.file_dict.call
       };
+
       this._background.next('data:image/png;base64,'+ x.background);
       this.editorGlobal.setBoxes(model.box_list);
       this._model.next(model);

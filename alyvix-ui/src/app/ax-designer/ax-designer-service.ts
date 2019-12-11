@@ -26,6 +26,13 @@ export interface TreeNode {
 export class AxDesignerService {
 
 
+  private _model:BehaviorSubject<AxModel> = new BehaviorSubject<AxModel>(null);
+
+  getModelAsync():Observable<AxModel> {
+    return this._model;
+  }
+
+
   constructor(
     @Inject('GlobalRefDesigner') private global: DesignerGlobal,
     @Inject("subSystem") private subSystem:string,
@@ -34,6 +41,8 @@ export class AxDesignerService {
     this.global.axModel().subscribe(axModel => {
       if(axModel) {
         this.axModel = axModel;
+        console.log('setting new ax model')
+        console.log(axModel);
         if (axModel.box_list) {
           axModel.box_list.forEach(box => {
             if (!box.features.I.likelihood) {
@@ -65,6 +74,8 @@ export class AxDesignerService {
         }
         if (selectedNode)
           this._selectedNode.next(selectedNode)
+
+        this._model.next(this.axModel);
       }
     });
 

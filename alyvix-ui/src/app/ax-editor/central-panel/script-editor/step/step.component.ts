@@ -10,6 +10,7 @@ export interface Step{
   type: string;
   condition?:string;
   parameter?:string;
+  disabled:boolean;
 }
 @Component({
   selector: 'script-step',

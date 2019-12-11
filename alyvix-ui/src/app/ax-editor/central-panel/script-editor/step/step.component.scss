@@ -4,6 +4,24 @@
   flex-direction: column;
   z-index: 9999;
 
+  &.disable{
+    .step-parameter{
+      background-color: $gray !important;
+    }
+
+    .step-box{
+      .step-condition{
+        background-color: #666;
+      }
+    }
+
+    .arrow{
+      border-top: 10px solid #666;
+    }
+
+
+  }
+
   .step-box{
 
 
@@ -39,6 +57,11 @@
       padding: 0 20px;
       min-width: 100px;
       background-color: $yellow;
+      &.condition{
+        &.map{
+          background-color: orange;
+        }
+      }
       &.cdk-drop-list-dragging{
         span {
           display: none;

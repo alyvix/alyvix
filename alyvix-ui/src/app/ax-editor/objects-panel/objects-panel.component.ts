@@ -134,7 +134,8 @@ export class ObjectsPanelComponent implements OnInit {
       id: Utils.uuidv4(),
       name: map.name,
       type: 'map',
-      condition: 'for'
+      condition: 'for',
+      disabled: false
     };
   }
 
@@ -143,7 +144,8 @@ export class ObjectsPanelComponent implements OnInit {
       id: Utils.uuidv4(),
       name: section.name,
       type: 'object',
-      condition: 'run'
+      condition: 'run',
+      disabled: false
     }
   }
 

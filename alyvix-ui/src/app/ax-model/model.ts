@@ -46,6 +46,7 @@ export interface AxModel {
 
   export type AxScriptFlow = string | AxScriptFlowObj;
   export interface AxScriptFlowObj{
+    disable?:AxScriptFlow;
     flow?:string;
     if_true?:string;
     if_false?:string;
@@ -82,7 +83,7 @@ export interface AxModel {
 
   export interface AxSystemCall {
     type: string
-    features: AxSystemCallFeatures
+    features?: AxSystemCallFeatures
   }
 
   export interface AxSystemCallFeatures{

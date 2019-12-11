@@ -26,20 +26,26 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
   @Input() set steps(steps: AxScriptFlow[]) {
     this._steps = [];
     if(steps) {
-      steps.map(s => {
-        if(typeof s === 'string') {
-          this._steps.push({id: Utils.uuidv4(), name: s, type: 'object', condition: 'run'});
-        } else {
-          if(s.if_true) {
-            this._steps.push({id: Utils.uuidv4(), name: s.if_true, type: 'object', condition: 'if true', parameter: s.flow});
-          } else if(s.if_false) {
-            this._steps.push({id: Utils.uuidv4(), name: s.if_false, type: 'object', condition: 'if false', parameter: s.flow});
-          } else if(s.for) {
-            this._steps.push({id: Utils.uuidv4(), name: s.for, type: 'map', condition: 'for', parameter: s.flow});
-          }
-        }
-      });
+      this._steps = steps.map(s => this.toStep(s));
       console.log(this._steps);
+    }
+  }
+
+  private toStep(s:AxScriptFlow):Step {
+    if(typeof s === 'string') {
+      return {id: Utils.uuidv4(), name: s, type: 'object', condition: 'run', disabled: false};
+    } else {
+      if(s.if_true) {
+        return {id: Utils.uuidv4(), name: s.if_true, type: 'object', condition: 'if true', parameter: s.flow, disabled: false};
+      } else if(s.if_false) {
+        return {id: Utils.uuidv4(), name: s.if_false, type: 'object', condition: 'if false', parameter: s.flow, disabled: false};
+      } else if(s.for) {
+        return {id: Utils.uuidv4(), name: s.for, type: 'map', condition: 'for', parameter: s.flow, disabled: false};
+      } else if(s.disable) {
+        const disabled = this.toStep(s.disable);
+        disabled.disabled = true;
+        return disabled;
+      }
     }
   }
 

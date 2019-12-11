@@ -1,10 +1,11 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { AxDesignerService } from '../../ax-designer-service';
-import { AxSystemCall } from 'src/app/ax-model/model';
+import { AxSystemCall, AxModel } from 'src/app/ax-model/model';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
 import { DesignerDatastoreService } from '../../designer-datastore.service';
 
 import * as _ from 'lodash';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'ax-designer-screen',
@@ -22,19 +23,27 @@ export class ScreenComponent implements OnInit {
   call:AxSystemCall
 
 
+
+
   processes: string[] = [];
 
 
   @ViewChild('selectProcess',{static: true}) selectProcess: ElementRef;
 
   ngOnInit() {
-    if(!this.axService.axModel.call) {
-      this.axService.axModel.call = {type: "run", features: {}}
-    }
-    this.call = this.axService.getModel().call;
-    this.arguments = this.call.features.arguments;
-    this.path = this.call.features.path;
-    this.process = this.call.features.process;
+    this.axService.getModelAsync().subscribe(ax => {
+      if(this.axService.axModel) {
+        if(!this.axService.axModel.call) {
+          this.axService.axModel.call = {type: "run", features: {}}
+        }
+        this.call = this.axService.getModel().call;
+        if(this.call.features) {
+          this.arguments = this.call.features.arguments;
+          this.path = this.call.features.path;
+          this.process = this.call.features.process;
+        }
+      }
+    });
     this.alyvixApi.getProcesses().subscribe(x => {
       this.processes = _.uniq(x.object_exists);
     });

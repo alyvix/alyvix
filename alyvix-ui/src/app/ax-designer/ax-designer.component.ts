@@ -19,18 +19,20 @@ import * as _ from 'lodash';
 })
 export class AxDesignerComponent implements OnInit,DoCheck {
   ngDoCheck(): void {
-    if(this.editor) {
-      this.axDesignerService.updateAx();
-      // if(!fastDeepEqual(this.axModel,this.axModelOriginal)) {
-      //   this.axModelOriginal = _.cloneDeep(this.axModel);
-      //   this.axDesignerService.updateAx();
-      // }
-    }
+    // if(this.editor) {
+    //   this.axDesignerService.updateAx();
+    //   // if(!fastDeepEqual(this.axModel,this.axModelOriginal)) {
+    //   //   this.axModelOriginal = _.cloneDeep(this.axModel);
+    //   //   this.axDesignerService.updateAx();
+    //   // }
+    // }
   }
 
   constructor(private axDesignerService:AxDesignerService, private keyShortcuts:KeyShortcutsService, private alyvixApi:AlyvixApiService) { }
 
-  axModel:AxModel;
+  get axModel():AxModel {
+    return this.axDesignerService.getModel();
+  }
   //axModelOriginal:AxModel;
 
   @Input() editor:boolean = false;
@@ -113,7 +115,7 @@ export class AxDesignerComponent implements OnInit,DoCheck {
   ngOnInit() {
     this.axDesignerService.getSelectedNode().subscribe(n => this.selectNode(n));
     this.axDesignerService.getDragging().subscribe(d => this.dragging = d);
-    this.axModel = this.axDesignerService.getModel();
+    //this.axModel = this.axDesignerService.getModel();
     //this.axModelOriginal = _.cloneDeep(this.axModel);
     this.object_name.setValue(this.axModel.object_name);
     this.originalName = this.axModel.object_name;
