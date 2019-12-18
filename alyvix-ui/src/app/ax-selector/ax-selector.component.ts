@@ -62,6 +62,7 @@ export class AxSelectorComponent implements OnInit {
 
 
   selectTab(i: AxFile) {
+    this.datastore.setMainCaseSelected(i.id === this.main.id);
     this.selected = i;
   }
 
@@ -107,6 +108,9 @@ export class AxSelectorComponent implements OnInit {
   onImport(rows: RowVM[]) {
     console.log(rows);
     SelectorUtils.duplicateRows(rows, this.main.data);
+    if(this.editor) {
+      this.datastore.saveData(this.main.data,false).subscribe(x => console.log(x));
+    }
   }
 
 }

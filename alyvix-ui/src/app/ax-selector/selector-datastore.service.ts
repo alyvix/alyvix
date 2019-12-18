@@ -56,6 +56,7 @@ export class SelectorDatastoreService {
   changedNameRow:EventEmitter<string> = new EventEmitter();
   changedBreak:EventEmitter<boolean> = new EventEmitter();
   changedTimeout:EventEmitter<number> = new EventEmitter();
+  private _mainCaseSelected: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
 
   constructor(
     private apiService: AlyvixApiService
@@ -96,6 +97,14 @@ export class SelectorDatastoreService {
 
   getSelectorHidden():Observable<boolean> {
     return this._selectorHidden;
+  }
+
+  setMainCaseSelected(mainSelected: boolean) {
+    this._mainCaseSelected.next(mainSelected);
+  }
+
+  mainCaseSelected():Observable<boolean> {
+    return this._mainCaseSelected
   }
 
   reload(objectName) {

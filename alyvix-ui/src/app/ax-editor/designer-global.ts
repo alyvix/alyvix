@@ -22,6 +22,7 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
   private _model:BehaviorSubject<AxModel> = new BehaviorSubject<AxModel>(null);
   private _background:BehaviorSubject<string> = new BehaviorSubject<string>(null);
   private selectedRows:RowVM[];
+  private mainSelected = true;
 
   constructor(
     private api:AlyvixApiService,
@@ -31,6 +32,14 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     @Inject('GlobalRefSelector') private global: SelectorGlobal,
     @Inject('GlobalRefEditor') private editorGlobal: EditorGlobal,) {
     super(zone);
+    this.selectorDatastore.mainCaseSelected().subscribe(main => {
+      this.mainSelected = main;
+      if(this._model.value) {
+        this.editorService.save().subscribe( y => { // I need to save the library to avoid having an unknown name saving the single object
+            this._model.next(null);
+        });
+      }
+    });
     this.selectorDatastore.changedNameRow.subscribe(name => this._model.value.object_name = name );
     this.selectorDatastore.changedBreak.subscribe(b => this._model.value.detection.break = b );
     this.selectorDatastore.changedTimeout.subscribe(to => this._model.value.detection.timeout_s = to );
@@ -61,7 +70,7 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
   }
 
   private loadNext(rows:RowVM[]) {
-    if(rows && rows.length === 1 && rows[0].selectedResolution === this.global.res_string) {
+    if(rows && rows.length === 1 && rows[0].selectedResolution === this.global.res_string && this.mainSelected) {
       this.reloadDesignerModel(rows[0]);
     } else {
       this._model.next(null);
