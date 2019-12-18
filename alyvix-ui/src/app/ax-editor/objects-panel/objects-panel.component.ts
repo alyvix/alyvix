@@ -59,6 +59,9 @@ export class ObjectsPanelComponent implements OnInit {
 
   }
 
+
+
+
   selectMap(map:MapsVM) {
     this.selected = {name:map.name, type: 'map', map: map.rows, onChangeMap: rows => map.rows = rows};
     this.editorService.setLeftSelection(this.selected);
@@ -98,17 +101,20 @@ export class ObjectsPanelComponent implements OnInit {
       i++;
     }
     this.maps.push({name: 'Map'+i, rows:[{name: 'key', value: 'value'}]});
+    this.editorService.save().subscribe(saved => {})
   }
 
   removeMap(map:MapsVM) {
     if(confirm('Are you sure to delete map: '+ map + '?')) {
       this.maps = this.maps.filter(x => x !== map);
+      this.editorService.save().subscribe(saved => {})
     }
   }
 
   changeMapName(map:MapsVM, name:string) {
     map.name = name;
     this.selectMap(map);
+    this.editorService.save().subscribe(saved => {})
   }
 
   addSection() {
@@ -117,17 +123,20 @@ export class ObjectsPanelComponent implements OnInit {
       i++;
     }
     this.script.sections.push({name: 'Section'+i, instructions: []});
+    this.editorService.save().subscribe(saved => {})
   }
 
   removeSection(section) {
     if(confirm('Are you sure to delete section: '+ section + '?')) {
       this.script.sections = this.script.sections.filter(x => x !== section);
+      this.editorService.save().subscribe(saved => {})
     }
   }
 
   changeSectionName(section:SectionVM, name:string) {
     section.name = name;
     this.selectSection(section);
+    this.editorService.save().subscribe(saved => {})
   }
 
   mapToStep(map: MapsVM):Step {
