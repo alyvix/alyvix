@@ -59,10 +59,10 @@
 
 
       &.object{
-        background-color: $green;
+        background-color: lighten($green, 30%);
       }
       &.section{
-        background-color: lighten($green, 30%);
+        background-color: $green;
       }
       &.condition{
         &.map{
