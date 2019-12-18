@@ -3,12 +3,12 @@
   <table class="map-table" cdk-table [dataSource]="dataSource" [trackBy]="id">
       <ng-container *ngFor="let x of valuesColumns;" cdkColumnDef="{{x}}">
         <th cdk-header-cell *cdkHeaderCellDef> {{x}} <a (click)="deleteColumn(x)"><i class="fas fa-times"></i></a> </th>
-        <td cdk-cell *cdkCellDef="let element"> <input (ngModelChange)="tableChanged(element,$event,x)" [ngModel]="element[x]" /> </td>
+        <td cdk-cell *cdkCellDef="let element"> <input spellcheck="false" (ngModelChange)="tableChanged(element,$event,x)" [ngModel]="element[x]" /> </td>
       </ng-container>
 
       <ng-container cdkColumnDef="key">
         <th cdk-header-cell *cdkHeaderCellDef></th>
-        <td cdk-cell *cdkCellDef="let element" class="key"> <input (ngModelChange)="tableChanged(element,$event,'key')" [ngModel]="element.key" /> </td>
+        <td cdk-cell *cdkCellDef="let element" class="key"> <input spellcheck="false" (ngModelChange)="tableChanged(element,$event,'key')" [ngModel]="element.key" /> </td>
       </ng-container>
 
       <ng-container cdkColumnDef="actions">

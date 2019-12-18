@@ -12,7 +12,7 @@
         <div class="ax-object-element" *ngFor="let section of script.sections" priDragItem [priDragItemData]="sectionToStep(section)" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
           <span *priDragPlaceholder><li>{{section.name}}</li></span>
           <span *priDragPreview>{{section.name}}</span>
-          <input [ngModel]="section.name" (ngModelChange)="changeSectionName(section,$event)" />
+          <input spellcheck="false" [ngModel]="section.name" (ngModelChange)="changeSectionName(section,$event)" />
           <button class="btn light" (click)="removeSection(section)">Remove</button>
         </div>
       </div>
@@ -22,7 +22,7 @@
         <div class="ax-object-element" *ngFor="let map of maps" priDragItem [priDragItemData]="mapToStep(map)" (click)="selectMap(map)" [ngClass]="{'selected': isSelectedMap(map)}">
           <span *priDragPlaceholder>{{map.name}}</span>
           <span *priDragPreview>{{map.name}}</span>
-          <input [(ngModel)]="map.name" (ngModelChange)="changeMapName(map,$event)"/>
+          <input spellcheck="false" [(ngModel)]="map.name" (ngModelChange)="changeMapName(map,$event)"/>
           <button class="btn light" (click)="removeMap(map)">Remove</button>
         </div>
       </div>

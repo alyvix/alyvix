@@ -25,7 +25,7 @@
     .ax-object-element {
       padding-left: 16px;
       margin: 3px 0;
-      line-height: 16px;
+      line-height: 23px;
 
 
       &.selected{
@@ -33,7 +33,7 @@
       }
 
       &:before {
-        content: "\203A"; /* Insert content that looks like bullets */
+        //content: "\203A"; /* Insert content that looks like bullets */
         font-size: 25px;
         line-height: 16px;
         font-weight: bolder;
