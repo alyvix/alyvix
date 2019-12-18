@@ -63,27 +63,42 @@ export class ObjectsPanelComponent implements OnInit {
 
 
   selectMap(map:MapsVM) {
-    this.selected = {name:map.name, type: 'map', map: map.rows, onChangeMap: rows => map.rows = rows};
+    this.selected = {name:map.name, type: 'map', map: map.rows, onChangeMap: rows => {
+      map.rows = rows
+      this.editorService.save().subscribe(x => {});
+    }};
     this.editorService.setLeftSelection(this.selected);
   }
 
   selectMain() {
-    this.selected = {name:'MAIN', type: 'object', steps: this.script.main, onChangeSteps: s => this.script.main = s};
+    this.selected = {name:'MAIN', type: 'object', steps: this.script.main, onChangeSteps: s => {
+      this.script.main = s
+      this.editorService.save().subscribe(x => {});
+    }};
     this.editorService.setLeftSelection(this.selected);
   }
 
   selectFail() {
-    this.selected = {name:'FAIL', type: 'object', steps: this.script.fail, onChangeSteps: s => this.script.fail = s};
+    this.selected = {name:'FAIL', type: 'object', steps: this.script.fail, onChangeSteps: s => {
+      this.script.fail = s
+      this.editorService.save().subscribe(x => {});
+    }};
     this.editorService.setLeftSelection(this.selected);
   }
 
   selectExit() {
-    this.selected = {name:'EXIT', type: 'object', steps: this.script.exit, onChangeSteps: s => this.script.exit = s};
+    this.selected = {name:'EXIT', type: 'object', steps: this.script.exit, onChangeSteps: s => {
+      this.script.exit = s
+      this.editorService.save().subscribe(x => {});
+    }};
     this.editorService.setLeftSelection(this.selected);
   }
 
   selectSection(section:SectionVM) {
-    this.selected = {name:section.name, type: 'object', steps: section.instructions, onChangeSteps: s => section.instructions = s};
+    this.selected = {name:section.name, type: 'object', steps: section.instructions, onChangeSteps: s => {
+      section.instructions = s
+      this.editorService.save().subscribe(x => {});
+    }};
     this.editorService.setLeftSelection(this.selected);
   }
 

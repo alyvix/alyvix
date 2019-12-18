@@ -31,7 +31,6 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
     this._steps = [];
     if(steps) {
       this._steps = steps.map(s => this.toStep(s));
-      console.log(this._steps);
     }
   }
 
