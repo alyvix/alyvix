@@ -4,7 +4,6 @@ import { LeftSelection, EditorService } from '../editor.service';
 import { SelectorDatastoreService, MapsVM, SectionVM, ScriptEmpty,ScriptVM } from 'src/app/ax-selector/selector-datastore.service';
 import { AxScriptFlow } from 'src/app/ax-model/model';
 import { Step } from '../central-panel/script-editor/step/step.component';
-import { type } from 'os';
 import { Utils } from 'src/app/utils';
 
 
@@ -98,7 +97,7 @@ export class ObjectsPanelComponent implements OnInit {
     while(this.maps.find(x => x.name === 'Map'+i)) {
       i++;
     }
-    this.maps.push({name: 'Map'+i, rows:[]});
+    this.maps.push({name: 'Map'+i, rows:[{name: 'key', value: 'value'}]});
   }
 
   removeMap(map:MapsVM) {

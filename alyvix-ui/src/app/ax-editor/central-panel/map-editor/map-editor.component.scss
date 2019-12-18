@@ -29,6 +29,16 @@
         &.key{
           padding-left: 30px;
         }
+        &.actions{
+          text-align: center;
+          a {
+            &:hover {
+              i {
+                color: $blue;
+              }
+            }
+          }
+        }
         input{
           background-color: transparent;
           border: 0;
@@ -47,6 +57,16 @@
         background-color: $lightblue;
         text-align: left;
         padding: 5px;
+
+        a {
+          margin-left: 20px;
+          &:hover {
+            i {
+              color: $blue;
+            }
+          }
+        }
+
       }
 
     }

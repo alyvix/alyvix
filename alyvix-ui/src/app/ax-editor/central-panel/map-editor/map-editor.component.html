@@ -1,14 +1,19 @@
 
 <div class="map-table-container">
   <table class="map-table" cdk-table [dataSource]="dataSource" [trackBy]="id">
-      <ng-container *ngFor="let x of valuesColumns; let last = last" cdkColumnDef="{{x}}">
-        <th cdk-header-cell *cdkHeaderCellDef> {{x}} </th>
+      <ng-container *ngFor="let x of valuesColumns;" cdkColumnDef="{{x}}">
+        <th cdk-header-cell *cdkHeaderCellDef> {{x}} <a (click)="deleteColumn(x)"><i class="fas fa-times"></i></a> </th>
         <td cdk-cell *cdkCellDef="let element"> <input (ngModelChange)="tableChanged(element,$event,x)" [ngModel]="element[x]" /> </td>
       </ng-container>
 
       <ng-container cdkColumnDef="key">
         <th cdk-header-cell *cdkHeaderCellDef></th>
         <td cdk-cell *cdkCellDef="let element" class="key"> <input (ngModelChange)="tableChanged(element,$event,'key')" [ngModel]="element.key" /> </td>
+      </ng-container>
+
+      <ng-container cdkColumnDef="actions">
+          <th cdk-header-cell *cdkHeaderCellDef></th>
+          <td cdk-cell *cdkCellDef="let element" class="actions"> <a (click)="deleteRow(element)"><i class="fas fa-times"></i></a> </td>
       </ng-container>
 
     <tr cdk-header-row *cdkHeaderRowDef="displayedColumns"></tr>

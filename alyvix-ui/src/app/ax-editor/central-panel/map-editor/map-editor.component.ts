@@ -5,6 +5,7 @@ import { Utils } from 'src/app/utils';
 
 
 
+
 @Component({
   selector: 'app-map-editor',
   templateUrl: './map-editor.component.html',
@@ -38,9 +39,13 @@ export class MapEditorComponent implements OnInit {
         }
         return res;
       });
-      this.displayedColumns = ['key'].concat(this.valuesColumns);
+      this.displayedColumns = this.columns();
 
     }
+  }
+
+  private columns():string[] {
+    return ['key'].concat(this.valuesColumns).concat(['actions']);
   }
 
   tableChanged(values:string[], current:string,column:string) {
@@ -53,14 +58,31 @@ export class MapEditorComponent implements OnInit {
     this.displayedColumns = ['key'];
     this.changeDetector.markForCheck();
     this.changeDetector.detectChanges();
-    this.displayedColumns = ['key'].concat(this.valuesColumns);
+    this.displayedColumns = this.columns();
     this.emitChange();
   }
 
   addColumn() {
-    const newColumn = 'value'+(this.valuesColumns.length+1);
+    let i = 1;
+    while (this.valuesColumns.indexOf('value' + i) >= 0) {
+      i++;
+    }
+    const newColumn = 'value'+i;
     this.valuesColumns.push(newColumn);
-    this.displayedColumns.push(newColumn);
+    this.displayedColumns = this.columns();
+    this.emitChange();
+  }
+
+  deleteColumn(columnName:string) {
+    console.log('delete ' + columnName)
+    this.dataSource.forEach((ds,i) =>  delete this.dataSource[i][columnName]);
+    this.valuesColumns = this.valuesColumns.filter(c => c !== columnName);
+    this.displayedColumns = this.columns();
+    this.emitChange();
+  }
+
+  deleteRow(row) {
+    this.dataSource = this.dataSource.filter(ds => ds.id !== row.id);
     this.emitChange();
   }
 

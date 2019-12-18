@@ -39,10 +39,7 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     });
     this.editorService.setObjectSave(() => this.api.saveObject(this._model.value))
     this.selectorDatastore.changedSelection.subscribe(rows => { // change selection trigger save
-      console.log('1')
-      console.log(rows)
       if(this.checkIfChangedRows(rows)) {
-        console.log('2')
         if(this._model.value) {
           this.editorService.save().subscribe( y => { // I need to save the library to avoid having an unknown name saving the single object
               this.loadNext(rows);
