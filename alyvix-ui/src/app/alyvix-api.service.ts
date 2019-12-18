@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { BoxListEntity, AxSelectorObjects, DesignerModel, AxModel } from './ax-model/model';
 import { map, retry, catchError } from 'rxjs/operators';
@@ -109,8 +109,12 @@ export class AlyvixApiService {
   }
 
   saveObject(model:AxModel):Observable<any> {
-    model.designerFromEditor = (this.subSystem === 'editor');
-    return this.httpClient.post<any>('/save_json',model);
+    if(model) {
+      model.designerFromEditor = (this.subSystem === 'editor');
+      return this.httpClient.post<any>('/save_json',model);
+    } else {
+      return of('')
+    }
   }
 
   closeDesiger() {

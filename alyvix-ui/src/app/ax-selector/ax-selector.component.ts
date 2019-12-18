@@ -10,6 +10,7 @@ import { SelectorUtils } from './selector-utils';
 import { SelectorGlobal } from './global';
 import { connectableObservableDescriptor } from 'rxjs/internal/observable/ConnectableObservable';
 import { SelectorDatastoreService, AxFile } from './selector-datastore.service';
+import { EditorService } from '../ax-editor/editor.service';
 
 
 
@@ -23,7 +24,8 @@ export class AxSelectorComponent implements OnInit {
 
   constructor(
     private datastore: SelectorDatastoreService,
-    @Inject('GlobalRefSelector') private global: SelectorGlobal
+    @Inject('GlobalRefSelector') private global: SelectorGlobal,
+    private editorService:EditorService
   ) { }
 
 
@@ -51,6 +53,13 @@ export class AxSelectorComponent implements OnInit {
       this.selected = this.main;
     });
     this.datastore.getSelectorHidden().subscribe(x => this.selectorHidden = x);
+    this.editorService.addBeforeSave(() => {
+      let self = this;
+      return new Promise(function(resolve,reject) {
+        self.datastore.setData(self.main.data);
+        resolve();
+      })
+    })
   }
 
 

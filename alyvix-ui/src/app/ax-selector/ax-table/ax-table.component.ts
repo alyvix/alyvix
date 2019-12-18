@@ -14,7 +14,6 @@ import { SelectorDatastoreService } from '../selector-datastore.service';
 import { CdkDropList } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
 import { Step } from 'src/app/ax-editor/central-panel/script-editor/step/step.component';
-import { EditorService } from 'src/app/ax-editor/editor.service';
 
 export interface RowVM{
   name:string
@@ -42,8 +41,7 @@ export class AxTableComponent implements OnInit {
     private api:AlyvixApiService,
     private datastore:SelectorDatastoreService,
     private changeDetecor: ChangeDetectorRef,
-    private objectRegistry:ObjectsRegistryService,
-    private editorService:EditorService
+    private objectRegistry:ObjectsRegistryService
     ) {}
 
 
@@ -452,12 +450,6 @@ export class AxTableComponent implements OnInit {
       }, 200);
     });
 
-    this.editorService.addBeforeSave(() => {
-      let self = this;
-      return new Promise(function(resolve,reject) {
-        self.datastore.setData(self.data);
-        resolve();
-      })
-    })
+
   }
 }
