@@ -125,6 +125,7 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
 
   droppedEnd(event: PriDropEventArgs) {
     this._steps.push(event.itemData);
+    this.emitChange();
   }
 
 
