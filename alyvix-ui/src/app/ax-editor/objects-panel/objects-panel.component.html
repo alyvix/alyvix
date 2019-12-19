@@ -1,4 +1,4 @@
-<div class="ax-objects">
+<div class="ax-objects" *ngIf="selected">
   <div class="ax-object-list">
     <div class="ax-object-element" (click)="selectMain()" [ngClass]="{'selected': isSelected('MAIN')}"> MAIN</div>
     <div class="ax-object-element" (click)="selectFail()" [ngClass]="{'selected': isSelected('FAIL')}"> FAIL</div>

@@ -54,6 +54,8 @@ export class StepComponent implements OnInit,OnDestroy {
     }
   }
 
+  @Input() selected:boolean;
+
   get step(): Step {
     return this._step;
   }

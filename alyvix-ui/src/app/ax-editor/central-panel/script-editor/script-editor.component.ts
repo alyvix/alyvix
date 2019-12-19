@@ -8,6 +8,7 @@ import { PriDropEventArgs } from 'pri-ng-dragdrop';
 import { Utils } from 'src/app/utils';
 import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
 import { RowVM } from 'src/app/ax-selector/ax-table/ax-table.component';
+import * as _ from 'lodash';
 
 @Component({
   selector: 'app-script-editor',
@@ -20,6 +21,8 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
 
   listId:string = "list-" + Math.random().toString(36).substring(2);
   lastListId:string = "list-" + Math.random().toString(36).substring(2);
+
+  selectedSteps:Step[] = []
 
   _steps:Step[] = []
 
@@ -61,6 +64,34 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
     }
   }
 
+  private fromStep(s:Step):AxScriptFlow {
+    if(s.disabled) {
+      const tempStep:Step = _.cloneDeep(s);
+      tempStep.disabled = false;
+      return {disable: this.fromStep(tempStep)};
+    } else {
+      switch (s.condition) {
+        case 'run':
+          return s.name;
+        case 'if true':
+          return {
+            flow: s.parameter,
+            if_true: s.name
+          };
+        case 'if false':
+          return {
+            flow: s.parameter,
+            if_false: s.name
+          };
+        case 'for':
+          return {
+            flow: s.parameter,
+            for: s.name
+          };
+      }
+    }
+  }
+
 
 
   constructor(private objectRegistry:ObjectsRegistryService, private selectorDatastore:SelectorDatastoreService) { }
@@ -95,28 +126,62 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
     this.emitChange();
   }
 
-  emitChange() {
-    const flow: AxScriptFlow[] = this._steps.map(s => {
-      switch (s.condition) {
-        case 'run':
-          return s.name;
-        case 'if true':
-          return {
-            flow: s.parameter,
-            if_true: s.name
-          };
-        case 'if false':
-          return {
-            flow: s.parameter,
-            if_false: s.name
-          };
-        case 'for':
-          return {
-            flow: s.parameter,
-            for: s.name
-          };
+  selectStep(step:Step,event:MouseEvent) {
+    if(event.shiftKey) {
+      let leftIndex = -1;
+      let rightIndex = -1;
+      const rowIndex = this._steps.indexOf(step);
+      this._steps.forEach((s,i) => {
+        if(this.isSelected(s) && i < rowIndex ) {
+          leftIndex = i;
+        }
+        if(this.isSelected(s) && i > rowIndex) {
+          rightIndex = i;
+        }
+      });
+      if(leftIndex >= 0) { // found on the right
+        for(let i = leftIndex+1; i <= rowIndex; i++) {
+          this.selectedSteps.push(this._steps[i]);
+        }
+      } else if(rightIndex > 0) {
+        for(let i = rowIndex; i < rightIndex; i++) {
+          this.selectedSteps.push(this._steps[i]);
+        }
+      } else {
+        this.selectedSteps = [step];
       }
-    });
+    } else if(event.ctrlKey) {
+      const i = this.selectedSteps.findIndex(x => x.id === step.id)
+      if(i >= 0) {
+        this.selectedSteps.splice(i,1);
+      } else {
+        this.selectedSteps.push(step);
+      }
+    } else {
+      this.selectedSteps = [step]
+    }
+  }
+
+  isSelected(step:Step):boolean {
+    return this.selectedSteps.findIndex(x => x.id === step.id) >= 0;
+  }
+
+  disableEnableSelected() {
+    this.selectedSteps.forEach(s => s.disabled = !s.disabled);
+    this.emitChange();
+  }
+
+  deleteSelected() {
+    if(confirm("Are you sure to delete steps?")) {
+      this._steps = this._steps.filter(s => !this.selectedSteps.map(ss => ss.id).includes(s.id));
+      this.selectedSteps = [];
+      this.emitChange();
+    }
+  }
+
+
+  emitChange() {
+    const flow: AxScriptFlow[] = this._steps.map(s => this.fromStep(s));
     this.change.emit(flow);
   }
 

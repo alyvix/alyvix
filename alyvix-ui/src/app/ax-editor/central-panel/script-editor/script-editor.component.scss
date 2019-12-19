@@ -4,11 +4,25 @@
   overflow: auto;
   height: 100%;
 
+  .script-actions{
+    margin: 30px;
+  }
+
+  .script-title{
+    margin: 30px;
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 14px;
+    font-family: 'Roboto';
+    letter-spacing: 2px;
+  }
+
 
 
   .action-list{
     margin: 30px;
-    min-height: calc(100% - 60px);
+    min-height: 200px;
     display: flex;
     flex-direction: column;
     top: 0;

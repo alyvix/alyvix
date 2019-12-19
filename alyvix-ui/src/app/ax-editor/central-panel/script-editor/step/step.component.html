@@ -1,5 +1,5 @@
 
-<div class="step-container" [ngClass]="{'disable': step.disabled}">
+<div class="step-container" [ngClass]="{'disable': step.disabled, 'selected': selected}">
   <div class="step-box">
     <div class="step-condition step-main-condition" (dblclick)="nextCondition()">
       <div >{{condition}}</div>

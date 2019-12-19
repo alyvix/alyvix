@@ -28,7 +28,8 @@ export class ObjectsPanelComponent implements OnInit {
   maps:MapsVM[] = [];
   script:ScriptVM = ScriptEmpty;
 
-  selected:LeftSelection = {name: 'MAIN', type:'object'};
+
+  selected:LeftSelection;
 
 
   ngOnInit() {
@@ -38,7 +39,6 @@ export class ObjectsPanelComponent implements OnInit {
         this.objectLists = x;
       }, 200);
     });
-    this.editorService.setLeftSelection(this.selected);
     this.selectorDatastore.getMaps().subscribe(m => this.maps = m);
     this.selectorDatastore.getScripts().subscribe(s => {
       if(s) {

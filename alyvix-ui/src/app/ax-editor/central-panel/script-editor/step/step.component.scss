@@ -22,6 +22,20 @@
 
   }
 
+  &.selected{
+
+    .step-box{
+      .step-condition{
+        background-color: #222;
+      }
+    }
+
+    .arrow{
+      border-top: 10px solid #222;
+    }
+
+  }
+
   .step-box{
 
 
@@ -32,7 +46,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #333;
+      background-color: #444;
       width: 50px;
       height: 50px;
       padding: 5px;
@@ -96,6 +110,6 @@
     height: 0;
     border-left: 25px solid transparent;
     border-right: 25px solid transparent;
-    border-top: 10px solid #333;
+    border-top: 10px solid #444;
   }
 }

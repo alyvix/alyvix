@@ -48,7 +48,7 @@ export class SelectorDatastoreService {
   private data: RowVM[] = null;
   private selectedRows: BehaviorSubject<RowVM[]> = new BehaviorSubject<RowVM[]>(null);
   private editedRow: BehaviorSubject<RowVM> = new BehaviorSubject<RowVM>(null);
-  private script: BehaviorSubject<ScriptVM> = new BehaviorSubject<ScriptVM>(ScriptEmpty);
+  private script: BehaviorSubject<ScriptVM> = new BehaviorSubject<ScriptVM>(null);
   private maps: BehaviorSubject<MapsVM[]> = new BehaviorSubject<MapsVM[]>([]);
   private _selectorHidden: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   private originalLibrary:AxSelectorObjects;
