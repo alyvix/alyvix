@@ -3,6 +3,7 @@ import { CdkDragDrop, CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
 import { PriBaseDropList } from 'pri-ng-dragdrop/lib/entities/pri.base.drop.list';
 import { PriDropEventArgs } from 'pri-ng-dragdrop';
+import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
 
 export interface Step{
   id: string;
@@ -26,18 +27,18 @@ export class StepComponent implements OnInit,OnDestroy {
   secondParameterId:string = 'list-' + Math.random().toString(36).substring(2);
 
 
-  constructor(private objectRegistry:ObjectsRegistryService) { }
+  constructor(private objectRegistry:ObjectsRegistryService, private selectorDatastore:SelectorDatastoreService) { }
 
   private conditions = {
     'object': ['run', 'if true', 'if false'],
-    'section': ['run', 'if true', 'if false'],
+    'section': ['run'],
     'map': ['for']
   };
 
   condition = '';
   secondParameterEnabled = false;
   secondParameterValue = '';
-  secondParameterType = 'object';
+  secondParameterType = 'warning';
 
   private _step:Step;
 
@@ -49,6 +50,9 @@ export class StepComponent implements OnInit,OnDestroy {
     this.secondParameterEnabled = !(step.condition === 'run');
     this.condition = step.condition;
     this.secondParameterValue = step.parameter;
+    if(this.secondParameterValue && this.secondParameterValue !== '') {
+      this.secondParameterType = this.selectorDatastore.objectOrSection(this.secondParameterValue);
+    }
     if (this.secondParameterEnabled) {
       setTimeout(() => this.objectRegistry.addObjectList(this.secondParameterId), 200);
     }

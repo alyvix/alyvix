@@ -1,6 +1,6 @@
 <div class="script-editor-container">
   <div class="script-editor-steps">
-    <div class="script-title">Drop Objects,Section or Maps here</div>
+    <div *ngIf="_steps.length == 0" class="script-title">DROP HERE OBJECTS, SECTIONS OR MAPS</div>
     <div priDropList="{{listId}}" (priDropListDrop)="dropped($event)" [priDropListData]="'actions'" class="action-list" (mouseover)="test()">
       <div *ngFor="let step of _steps; last as isLast" priDragItem [priDragItemData]="step">
         <script-step [selected]="isSelected(step)" (click)="selectStep(step,$event)" [step]="step" (stepChange)="stepChange($event)"></script-step>

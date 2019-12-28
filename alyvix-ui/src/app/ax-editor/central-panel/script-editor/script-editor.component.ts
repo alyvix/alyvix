@@ -37,25 +37,18 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
     }
   }
 
-  private objectOrSection(name:string):string {
-    if(!name) return null;
-    if(this.objects.find(x => x.name === name)) {
-      return 'object';
-    } else {
-      return 'section';
-    }
-  }
+
 
   private toStep(s:AxScriptFlow):Step {
     if(typeof s === 'string') {
-      return {id: Utils.uuidv4(), name: s, type: this.objectOrSection(s), condition: 'run', disabled: false};
+      return {id: Utils.uuidv4(), name: s, type: this.selectorDatastore.objectOrSection(s), condition: 'run', disabled: false};
     } else {
       if(s.if_true) {
-        return {id: Utils.uuidv4(), name: s.if_true, type: this.objectOrSection(s.if_true), condition: 'if true', parameter: s.flow, parameterType: this.objectOrSection(s.flow), disabled: false};
+        return {id: Utils.uuidv4(), name: s.if_true, type: this.selectorDatastore.objectOrSection(s.if_true), condition: 'if true', parameter: s.flow, parameterType: this.selectorDatastore.objectOrSection(s.flow), disabled: false};
       } else if(s.if_false) {
-        return {id: Utils.uuidv4(), name: s.if_false, type: this.objectOrSection(s.if_false), condition: 'if false', parameter: s.flow, parameterType: this.objectOrSection(s.flow), disabled: false};
+        return {id: Utils.uuidv4(), name: s.if_false, type: this.selectorDatastore.objectOrSection(s.if_false), condition: 'if false', parameter: s.flow, parameterType: this.selectorDatastore.objectOrSection(s.flow), disabled: false};
       } else if(s.for) {
-        return {id: Utils.uuidv4(), name: s.for, type: 'map', condition: 'for', parameter: s.flow, parameterType: this.objectOrSection(s.flow), disabled: false};
+        return {id: Utils.uuidv4(), name: s.for, type: 'map', condition: 'for', parameter: s.flow, parameterType: this.selectorDatastore.objectOrSection(s.flow), disabled: false};
       } else if(s.disable) {
         const disabled = this.toStep(s.disable);
         disabled.disabled = true;

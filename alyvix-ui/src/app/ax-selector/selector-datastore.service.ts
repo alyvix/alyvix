@@ -132,8 +132,19 @@ export class SelectorDatastoreService {
       this.originalLibrary = library;
       this.script.next(this.scriptModelToVm(library.script));
       this.maps.next(this.mapModelToVm(library.maps));
+      this.data = data;
       return data;
     }));
+  }
+
+  objectOrSection(name:string):string {
+    if(!name) return null;
+
+    if(this.data.find(x => x.name === name)) {
+      return 'object';
+    } else {
+      return 'section';
+    }
   }
 
   private prepareModelForSubmission(data:RowVM[]):AxSelectorObjects {

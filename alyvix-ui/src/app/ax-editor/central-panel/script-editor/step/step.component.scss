@@ -78,15 +78,19 @@
       &.section{
         background-color: $green;
       }
+      &.warning{
+        background-color: $warning;
+      }
       &.condition{
         &.map{
           background-color: orange;
         }
+
         &.object{
-          background-color: $yellow;
+          background-color: lighten($yellow,30%);
         }
         &.section{
-          background-color: lighten($yellow, 30%);
+          background-color: $yellow;
         }
       }
       &.cdk-drop-list-dragging{
