@@ -39,8 +39,8 @@ export class AlyvixApiService {
 
   constructor(private httpClient:HttpClient, @Inject("subSystem") private subSystem:string) { }
 
-  getScrapedText(box: BoxListEntity):Observable<ScrapedText> {
-    return this.httpClient.post<ScrapedText>("/get_scraped_txt",box)
+  getScrapedText(component_index:number, object_name: string, box: BoxListEntity):Observable<ScrapedText> {
+    return this.httpClient.post<ScrapedText>("/get_scraped_txt?object_name="+object_name+"&idx="+component_index,box)
   }
 
   testScrapedText(scraped:ScrapedText):Observable<TestScrapedResponse> {

@@ -1,10 +1,9 @@
 import { Component, OnInit, Input, ViewChild, Injectable, Inject } from '@angular/core';
-import { TreeNode } from '../../ax-designer-service';
+import { TreeNode, AxDesignerService } from '../../ax-designer-service';
 import { FormControl, AsyncValidatorFn, AbstractControl } from '@angular/forms';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
-import { map, switchMap, mapTo, catchError, debounce } from 'rxjs/operators';
+import { map, first } from 'rxjs/operators';
 import { Validation } from 'src/app/utils/validators';
-import { timer, of, Observable } from 'rxjs';
 import { DesignerGlobal, GroupsFlag } from "src/app/ax-designer/ax-global";
 
 @Component({
@@ -14,7 +13,7 @@ import { DesignerGlobal, GroupsFlag } from "src/app/ax-designer/ax-global";
 })
 export class TComponent implements OnInit {
 
-  constructor(private alyvixApi: AlyvixApiService, @Inject('GlobalRefDesigner') private global: DesignerGlobal, ) { }
+  constructor(private alyvixApi: AlyvixApiService, @Inject('GlobalRefDesigner') private global: DesignerGlobal, private axDesigerService:AxDesignerService) { }
 
   _node:TreeNode
   loading:boolean
@@ -91,7 +90,9 @@ export class TComponent implements OnInit {
       this.node.box.features.T.map = "None";
     }
     if (this.node && this.node.box) {
-      this.alyvixApi.getScrapedText(this.node.box).subscribe(x => {
+      let object_name = ''
+      this.global.axModel().pipe(first()).subscribe(axModel => object_name = axModel.object_name)
+      this.alyvixApi.getScrapedText(this.axDesigerService.indexSelectedNode(this.node),object_name,this.node.box).subscribe(x => {
         this.scraped = x.scraped_text;
         if (!this.node.box.features.T.regexp) {
           if(this.node.box.features.T.detection === "regex") {

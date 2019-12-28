@@ -123,6 +123,7 @@ export class ObjectsPanelComponent implements OnInit {
     if(confirm('Are you sure to delete map: '+ map + '?')) {
       this.maps = this.maps.filter(x => x !== map);
       this.editorService.save().subscribe(saved => {})
+      this.selectMain()
     }
   }
 
@@ -145,6 +146,7 @@ export class ObjectsPanelComponent implements OnInit {
     if(confirm('Are you sure to delete section: '+ section + '?')) {
       this.script.sections = this.script.sections.filter(x => x !== section);
       this.editorService.save().subscribe(saved => {})
+      this.selectMain();
     }
   }
 

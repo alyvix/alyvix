@@ -5,7 +5,7 @@
   padding: 17px 20px;
   justify-content: space-between;
   .ax-header-title{
-    text-transform: uppercase;
+    //text-transform: uppercase;
     font-weight: bold;
     font-size: 16px;
     font-family: 'Roboto';
@@ -15,6 +15,7 @@
   }
 
   ul {
+    padding-inline-start: 0;
     margin: 0;
     list-style-type:none;
     display: inline-block;

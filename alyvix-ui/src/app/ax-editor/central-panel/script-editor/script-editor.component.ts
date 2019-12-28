@@ -64,6 +64,10 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
     }
   }
 
+  test() {
+    console.log('test')
+  }
+
   private fromStep(s:Step):AxScriptFlow {
     if(s.disabled) {
       const tempStep:Step = _.cloneDeep(s);
