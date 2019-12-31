@@ -170,7 +170,7 @@ def drawing():
                            maps=map_dict,
                            script=script,
                            loaded_boxes=current_boxes,
-                           win_mouse_x=win_mouse_x,win_mouse_y=win_mouse_y)
+                           win_mouse_x=int(win_mouse_x/scaling_factor),win_mouse_y=int(win_mouse_y/scaling_factor))
 
 
 
@@ -360,6 +360,8 @@ def selector():
     filename_no_path = os.path.basename(current_filename)
     filename_no_extension = os.path.splitext(filename_no_path)[0]
 
+    #browser_class.show(browser_class._hwnd_2)
+
     return render_template('selector.html', new_url_api='http://127.0.0.1:' + str(current_port) + '/selector_button_new_api',
                            close_url_api='http://127.0.0.1:' + str(
                                current_port) + '/selector_close_api',
@@ -371,6 +373,8 @@ def selector():
                                current_port) + '/selector_button_edit_api',
                            res_w=res_w, res_h=res_h, scaling_factor=int(scaling_factor * 100),
                            res_string=resolution_string, current_library_name=filename_no_extension)
+
+
 
 @app.route("/selector_button_new_api", methods=['GET', 'POST'])
 def selector_button_new_api():
@@ -900,6 +904,12 @@ def ide_run_api_process():
     global library_dict
     global alyvix_run_process
 
+    browser_class.minimize(browser_class._hwnd_3)
+
+    if loglevel == 0:
+        os.dup2(output_pipeline[0], 1)
+        os.dup2(output_pipeline[1], 2)
+
     alyvix_file_name = str(random.randint(1, 100000000)) + ".alyvix"
 
     with open(tempfile.gettempdir() + os.sep + alyvix_file_name, 'w') as f:
@@ -910,12 +920,14 @@ def ide_run_api_process():
     alyvix_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir + os.sep + os.pardir + os.sep + os.pardir))
 
     alyvix_run_process = subprocess.Popen(
-        [sys.executable, alyvix_path + os.sep + "core" + os.sep + "alyvix_robot.py", '-f', tempfile.gettempdir() + os.sep + alyvix_file_name],
+        [sys.executable, "-u", alyvix_path + os.sep + "core" + os.sep + "alyvix_robot.py", '-f', tempfile.gettempdir() + os.sep + alyvix_file_name],
         stdin=sys.stdin,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
 
+
     while True:
+        print("while")
         data = alyvix_run_process.stdout.readline()
         nextline = "".join( chr(x) for x in bytearray(data) )
 
@@ -923,8 +935,17 @@ def ide_run_api_process():
             break
         nextline = nextline.splitlines()[0]
         print("line: " + str(nextline))
+        #browser_class._browser_3.ExecuteJavascript("alert('"+nextline+"')")
 
-    browser_class._browser_3.ExecuteJavascript("setRunState('run')")
+    browser_class._browser_3.ExecuteJavascript("setRunState('RUN')")
+
+
+    if loglevel == 0:
+        null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
+        os.dup2(null_fds[0], 1)
+        os.dup2(null_fds[1], 2)
+
+    browser_class.restore(browser_class._hwnd_3)
 
 
 @app.route("/ide_run_api", methods=['GET', 'POST'])

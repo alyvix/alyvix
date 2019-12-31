@@ -85,6 +85,8 @@ class ViewerManager(ViewerManagerBase):
         self._hwnd_3 = None
         self._sm = ScreenManager()
 
+        self.shell = win32com.client.Dispatch("WScript.Shell")
+
     def close(self):
 
         win32gui.PostMessage(self._hwnd_1, win32con.WM_CLOSE, 0, 0)
@@ -102,11 +104,16 @@ class ViewerManager(ViewerManagerBase):
         win32gui.ShowWindow(hwnd, win32con.SW_HIDE)
 
     def show(self, hwnd):
-        win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
-        #win32gui.SetForegroundWindow(hwnd)
-        win32gui.SetActiveWindow(hwnd)
-        win32gui.BringWindowToTop(hwnd)
 
+        win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
+
+        win32gui.SetActiveWindow(hwnd)
+        #win32gui.BringWindowToTop(hwnd)
+
+        # And SetAsForegroundWindow becomes
+        self.shell.SendKeys('%')
+        win32gui.SetForegroundWindow(hwnd)
+        win32gui.BringWindowToTop(hwnd)
         self._browser_1.SetFocus(True)
 
         #self._browser_1.ExecuteJavascript("drawFromIde(" + str(x) + ", " + str(y) + ")")
@@ -142,6 +149,12 @@ class ViewerManager(ViewerManagerBase):
             return True
         elif iconic == 0:
             return False
+
+    def minimize(self, handler):
+        win32gui.ShowWindow(handler, win32con.SW_MINIMIZE)
+
+    def restore(self, handler):
+        win32gui.ShowWindow(handler, win32con.SW_RESTORE)
 
     def run(self, url, father=None):
         global WindowUtils
@@ -258,6 +271,9 @@ class ViewerManager(ViewerManagerBase):
                 self._browser_2 = self.create_browser(window_info=window_info_2,
                                                       settings={"plugins_disabled": True},
                                                       url=url)
+                #time.sleep(0.5)
+                self.show(self._hwnd_2)
+
             elif father == "ide":
                 self._browser_1 = self.create_browser(window_info=window_info,
                                settings={"plugins_disabled":True},
@@ -267,10 +283,16 @@ class ViewerManager(ViewerManagerBase):
                 self._browser_3 = self.create_browser(window_info=window_info_3,
                                                       settings={"plugins_disabled": True},
                                                       url=url)
+
+                #time.sleep(0.5)
+                self.show(self._hwnd_3)
             else:
                 self._browser_1 = self.create_browser(window_info=window_info,
                                settings={"plugins_disabled":True},
                                url=url)
+
+                #time.sleep(0.5)
+                self.show(self._hwnd_1)
 
             #foreground_process = Process(target=set_foreground, args=(window_handle,))
             #foreground_process.start()

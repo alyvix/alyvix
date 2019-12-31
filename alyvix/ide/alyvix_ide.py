@@ -49,7 +49,7 @@ args = parser.parse_args()
 
 
 
-def run_server(port, scaling_factor, filename, verbose, json_dict, viewer_manager):
+def run_server(port, scaling_factor, filename, verbose, json_dict, viewer_manager, output_pipeline):
     #screen_manager = ScreenManager()
     server_manager = ServerManager()
 
@@ -57,6 +57,7 @@ def run_server(port, scaling_factor, filename, verbose, json_dict, viewer_manage
     server_manager.set_file_name(filename)
     server_manager.set_json(json_dict)
     server_manager.set_browser_class(viewer_manager)
+    server_manager.set_output_pipeline(output_pipeline)
 
     server_manager.run(port, verbose)
 
@@ -138,8 +139,10 @@ if __name__ == '__main__':
 
     viewer_manager = ViewerManager()
 
+    output_pipeline = os.dup(1), os.dup(2)
+
     #http_process = Process(target=run_server, args=(server_port, scaling_factor, filename, args.verbose,lm.get_json()))
-    http_process = threading.Thread(target=run_server, args=(server_port, scaling_factor, filename, args.verbose,lm.get_json(), viewer_manager))
+    http_process = threading.Thread(target=run_server, args=(server_port, scaling_factor, filename, args.verbose,lm.get_json(), viewer_manager, output_pipeline))
     http_process.start()
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -162,7 +165,7 @@ if __name__ == '__main__':
             # open 2 fds
             null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
             # save the current file descriptors to a tuple
-            save = os.dup(1), os.dup(2)
+            #save = os.dup(1), os.dup(2)
             # put /dev/null fds on 1 and 2
             os.dup2(null_fds[0], 1)
             os.dup2(null_fds[1], 2)
@@ -171,8 +174,8 @@ if __name__ == '__main__':
 
         if args.verbose == 0:
             # restore file descriptors so I can print the results
-            os.dup2(save[0], 1)
-            os.dup2(save[1], 2)
+            os.dup2(output_pipeline[0], 1)
+            os.dup2(output_pipeline[1], 2)
             # close the temporary fds
             os.close(null_fds[0])
             os.close(null_fds[1])
