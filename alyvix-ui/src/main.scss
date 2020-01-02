@@ -571,6 +571,9 @@ hr {
       font-family: 'Roboto';
       font-weight: bold;
       letter-spacing: 2px;
+      i {
+        display: none;
+      }
     }
   }
 
@@ -578,6 +581,9 @@ hr {
     .pri-drag-placeholder{
       li{
         height: 50px;
+        i {
+          display: none;
+        }
       }
     }
   }
@@ -589,6 +595,9 @@ hr {
         padding-left: 0;
         font-weight: bold;
         letter-spacing: 2px;
+        i {
+          display: none;
+        }
       }
     }
   }

@@ -1,6 +1,7 @@
 <div class="ax-table-container">
   <div class="ax-table-scroller">
     <div class="ax-selector-header">
+        <div class="xsmall"></div>
         <div class="large"><a (click)="sortColumn('name')">Name<span *ngIf="sort.column == 'name' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'name' && !sort.asc"> &#9660;</span></a></div>
         <div><a (click)="sortColumn('transaction_group')">Transaction group<span *ngIf="sort.column == 'transaction_group' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'transaction_group' && !sort.asc"> &#9660;</span></a></div>
         <div class="medium"><a (click)="sortColumn('date')">Date modified<span *ngIf="sort.column == 'date' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'date' && !sort.asc"> &#9660;</span></a></div>
@@ -13,7 +14,20 @@
         <div class="small">Screen</div>
     </div>
     <div class="ax-selector-table" [ngClass]="{'read-write': !readonly}" #tableContainer >
-        <cdk-table [dataSource]="filteredData" priDropList   [priDropListConnectedTo]="objectLists"  [priDropListData]="'object'" [priDropListDisabled]="!editor || !isSelectedResolutionWorkingResolution()">
+        <cdk-table [dataSource]="filteredData" >
+            <!-- Name Definition -->
+            <ng-container cdkColumnDef="handle"  >
+                <cdk-cell *cdkCellDef="let row"  class="xsmall" >
+                  <div [priDropListSorting]="false" priDropList [priDropListConnectedTo]="objectLists"  [priDropListData]="'object'" [priDropListDisabled]="!editor || !isSelectedResolutionWorkingResolution()">
+                    <div priDragItem [priDragItemData]="toStep(row)">
+
+                        <li><i class="fas fa-bars"></i><span>{{row.name}}</span></li>
+                    </div>
+
+
+                  </div>
+                </cdk-cell>
+            </ng-container>
 
             <!-- Name Definition -->
             <ng-container cdkColumnDef="name" >
@@ -94,9 +108,8 @@
             </ng-container>
 
             <!-- Header and Row Declarations -->
-            <cdk-row (click)="selectRow($event,row)" [ngClass]="{'selected': isSelected(row)}" *cdkRowDef="let row; columns: selectorColumns" priDragItem [priDragItemData]="toStep(row)">
-                <div *priDragPlaceholder><li>{{row.name}}</li></div>
-                <div *priDragPreview>{{row.name}}</div>
+            <cdk-row (click)="selectRow($event,row)" [ngClass]="{'selected': isSelected(row)}" *cdkRowDef="let row; columns: selectorColumns" >
+
             </cdk-row>
         </cdk-table>
     </div>

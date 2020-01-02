@@ -17,7 +17,7 @@ export class MockEditorGlobal implements EditorGlobal{
   setBoxes(boxes: BoxListEntity[]) {
     console.log(boxes);
   }
-  res_h: number = 1200;
+  res_h: number = 1080;
   res_w: number = 1920;
   setCanvas(c: HTMLCanvasElement) {
     console.log("set canvas");

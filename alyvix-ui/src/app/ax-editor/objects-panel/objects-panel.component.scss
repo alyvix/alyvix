@@ -27,6 +27,10 @@
       margin: 3px 0;
       line-height: 23px;
 
+      i {
+        margin-right: 10px;
+      }
+
 
       &.selected{
         background-color: $lightblue;

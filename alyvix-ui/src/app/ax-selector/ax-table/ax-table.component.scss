@@ -59,6 +59,9 @@
   div{
       padding: 5px;
       width: 15%;
+      &.xsmall{
+        width: 3%;
+      }
       &.small{
         width: 5%;
       }
@@ -66,7 +69,7 @@
         width: 10%;
       }
       &.large{
-        width: 30%;
+        width: 27%;
       }
       font-weight: bold;
       font-size: 0.8em;
@@ -130,12 +133,19 @@
       display: flex;
       flex-direction: column;
 
-      cdk-header-row,cdk-row,div.pri-drag-placeholder li{
+      cdk-header-row,cdk-row{
           display: flex;
           flex-direction: row;
           align-items: center;
           border-bottom: 1px solid #ccc;
           padding-right: 18px;
+
+          li {
+            list-style-type: none;
+            span {
+              display: none;
+            }
+          }
 
           &.selected{
             background: $lightblue;
@@ -147,6 +157,10 @@
               width: 15%;
               padding: 5px;
 
+              &.xsmall{
+                width: 3%;
+              }
+
               &.small{
                 width: 5%;
               }
@@ -156,7 +170,7 @@
               }
 
               &.large{
-                width: 30%;
+                width: 27%;
               }
 
               img{

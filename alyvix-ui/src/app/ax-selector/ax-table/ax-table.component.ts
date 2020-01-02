@@ -410,7 +410,7 @@ export class AxTableComponent implements OnInit {
 
 
 
-  selectorColumns = ['name','transactionGroup','dateModified','timeout','break','measure','warning','critical','resolution','screen']
+  selectorColumns = ['handle','name','transactionGroup','dateModified','timeout','break','measure','warning','critical','resolution','screen']
 
   ngOnInit(): void {
     this.datastore.editRow().subscribe(r => {
