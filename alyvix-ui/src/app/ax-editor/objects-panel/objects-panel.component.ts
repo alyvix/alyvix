@@ -48,14 +48,7 @@ export class ObjectsPanelComponent implements OnInit {
         }
       }
     });
-    this.editorService.addBeforeSave(() => {
-      let self = this;
-      return new Promise(function(resolve) {
-        self.selectorDatastore.setMaps(self.maps);
-        self.selectorDatastore.setScripts(self.script);
-        resolve();
-      })
-    })
+
 
   }
 
@@ -65,6 +58,7 @@ export class ObjectsPanelComponent implements OnInit {
   selectMap(map:MapsVM) {
     this.selected = {name:map.name, type: 'map', map: map.rows, onChangeMap: rows => {
       map.rows = rows
+      this.selectorDatastore.setMaps(this.maps);
       this.editorService.save().subscribe(x => {});
     }};
     this.editorService.setLeftSelection(this.selected);
@@ -72,7 +66,8 @@ export class ObjectsPanelComponent implements OnInit {
 
   selectMain() {
     this.selected = {name:'MAIN', type: 'object', steps: this.script.main, onChangeSteps: s => {
-      this.script.main = s
+      this.script.main = s;
+      this.selectorDatastore.setScripts(this.script);
       this.editorService.save().subscribe(x => {});
     }};
     this.editorService.setLeftSelection(this.selected);
@@ -80,7 +75,8 @@ export class ObjectsPanelComponent implements OnInit {
 
   selectFail() {
     this.selected = {name:'FAIL', type: 'object', steps: this.script.fail, onChangeSteps: s => {
-      this.script.fail = s
+      this.script.fail = s;
+      this.selectorDatastore.setScripts(this.script);
       this.editorService.save().subscribe(x => {});
     }};
     this.editorService.setLeftSelection(this.selected);
@@ -88,7 +84,8 @@ export class ObjectsPanelComponent implements OnInit {
 
   selectExit() {
     this.selected = {name:'EXIT', type: 'object', steps: this.script.exit, onChangeSteps: s => {
-      this.script.exit = s
+      this.script.exit = s;
+      this.selectorDatastore.setScripts(this.script);
       this.editorService.save().subscribe(x => {});
     }};
     this.editorService.setLeftSelection(this.selected);
@@ -96,7 +93,8 @@ export class ObjectsPanelComponent implements OnInit {
 
   selectSection(section:SectionVM) {
     this.selected = {name:section.name, type: 'object', steps: section.instructions, onChangeSteps: s => {
-      section.instructions = s
+      section.instructions = s;
+      this.selectorDatastore.setScripts(this.script);
       this.editorService.save().subscribe(x => {});
     }};
     this.editorService.setLeftSelection(this.selected);

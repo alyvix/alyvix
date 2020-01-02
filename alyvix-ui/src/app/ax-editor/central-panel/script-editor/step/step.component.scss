@@ -1,4 +1,10 @@
 @import '../../../../../variables.scss';
+
+$sections: #8bbabb;
+$objects: #c7f0db;
+$maps: #ffc55c;
+$conditions: #f1f1b0;
+
 .step-container{
   display: flex;
   flex-direction: column;
@@ -27,6 +33,30 @@
     .step-box{
       .step-condition{
         background-color: #222;
+      }
+
+      .step-parameter{
+        font-weight: bold;
+
+        &.object{
+          background-color: darken($objects,10%);
+        }
+        &.section{
+          background-color: darken($sections,10%);
+        }
+        &.warning{
+          background-color: darken($warning,10%);
+        }
+        &.condition{
+          &.map{
+            background-color: darken($maps,10%);
+          }
+
+          &.object{
+            background-color: darken($conditions,10%);
+          }
+        }
+
       }
     }
 
@@ -73,24 +103,21 @@
 
 
       &.object{
-        background-color: lighten($green, 30%);
+        background-color: $objects;
       }
       &.section{
-        background-color: $green;
+        background-color: $sections;
       }
       &.warning{
         background-color: $warning;
       }
       &.condition{
         &.map{
-          background-color: orange;
+          background-color: $maps;
         }
 
         &.object{
-          background-color: lighten($yellow,30%);
-        }
-        &.section{
-          background-color: $yellow;
+          background-color: $conditions;
         }
       }
       &.cdk-drop-list-dragging{
