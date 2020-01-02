@@ -1,8 +1,8 @@
 
 <div class="map-table-container">
   <table class="map-table" cdk-table [dataSource]="dataSource" [trackBy]="id">
-      <ng-container *ngFor="let x of valuesColumns;" cdkColumnDef="{{x}}">
-        <th cdk-header-cell *cdkHeaderCellDef> {{x}} <a (click)="deleteColumn(x)"><i class="fas fa-times"></i></a> </th>
+      <ng-container *ngFor="let x of valuesColumns; let last = last" cdkColumnDef="{{x}}">
+        <th cdk-header-cell *cdkHeaderCellDef> {{x}} <a *ngIf="last && x !== 'value1'" (click)="deleteColumn(x)"><i class="fas fa-times"></i></a> </th>
         <td cdk-cell *cdkCellDef="let element"> <input spellcheck="false" (ngModelChange)="tableChanged(element,$event,x)" [ngModel]="element[x]" /> </td>
       </ng-container>
 

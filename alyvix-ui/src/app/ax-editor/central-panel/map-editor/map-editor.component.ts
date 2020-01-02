@@ -76,7 +76,7 @@ export class MapEditorComponent implements OnInit {
   deleteColumn(columnName:string) {
     console.log('delete ' + columnName)
     this.dataSource.forEach((ds,i) =>  delete this.dataSource[i][columnName]);
-    this.valuesColumns = this.valuesColumns.filter(c => c !== columnName);
+    this.valuesColumns.pop();
     this.displayedColumns = this.columns();
     this.emitChange();
   }
