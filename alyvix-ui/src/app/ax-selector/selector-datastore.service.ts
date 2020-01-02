@@ -13,6 +13,7 @@ export interface AxFile {
   data: RowVM[];
   name: string;
   readonly: boolean;
+  main:boolean;
 }
 
 export interface MapsVM{
@@ -56,7 +57,33 @@ export class SelectorDatastoreService {
   changedNameRow:EventEmitter<string> = new EventEmitter();
   changedBreak:EventEmitter<boolean> = new EventEmitter();
   changedTimeout:EventEmitter<number> = new EventEmitter();
-  private _mainCaseSelected: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
+  changeTab:EventEmitter<AxFile> = new EventEmitter();
+  private _tabSelected: BehaviorSubject<AxFile> = new BehaviorSubject<AxFile>(null);
+
+  static modelToData(model: AxSelectorObjects): RowVM[] {
+    if(!model.objects) { return []; }
+    return Object.entries(model.objects).map(
+      ([key, value]) =>  {
+         if (!value.measure) {
+           value.measure = {output: false, thresholds: {}}
+         } else  {
+            if (!value.measure.thresholds) { value.measure.thresholds = {}; }
+            if (typeof value.measure.output === 'undefined') { value.measure.output = false; }
+         }
+         return {name: key, object: value, selectedResolution: SelectorDatastoreService.firstResolution(value.components), id: Utils.uuidv4()};
+      }
+    );
+  }
+
+  private static firstResolution(component: {[key:string]:AxSelectorComponentGroups}):string {
+    return Object.entries(component).map(
+      ([key, value]) =>  {
+         return key;
+      }
+    )[0]
+  }
+
+
 
   constructor(
     private apiService: AlyvixApiService
@@ -99,17 +126,17 @@ export class SelectorDatastoreService {
     return this._selectorHidden;
   }
 
-  setMainCaseSelected(mainSelected: boolean) {
-    this._mainCaseSelected.next(mainSelected);
+  setTabSelected(ta: AxFile) {
+    this._tabSelected.next(ta);
   }
 
-  mainCaseSelected():Observable<boolean> {
-    return this._mainCaseSelected
+  tabSelected():Observable<AxFile> {
+    return this._tabSelected
   }
 
   reload(objectName) {
     this.apiService.getLibrary().subscribe( library => {
-      const updatedRow = this.modelToData(library).find(x => x.name === objectName);
+      const updatedRow = SelectorDatastoreService.modelToData(library).find(x => x.name === objectName);
       if (updatedRow) {
         this.editedRow.next(updatedRow);
       }
@@ -127,7 +154,7 @@ export class SelectorDatastoreService {
       console.log(library);
       let data = [];
       if(library) {
-        data = this.modelToData(library);
+        data = SelectorDatastoreService.modelToData(library);
       }
       this.originalLibrary = library;
       this.script.next(this.scriptModelToVm(library.script));
@@ -183,20 +210,7 @@ export class SelectorDatastoreService {
   }
 
 
-  modelToData(model: AxSelectorObjects): RowVM[] {
-    if(!model.objects) { return []; }
-    return Object.entries(model.objects).map(
-      ([key, value]) =>  {
-         if (!value.measure) {
-           value.measure = {output: false, thresholds: {}}
-         } else  {
-            if (!value.measure.thresholds) { value.measure.thresholds = {}; }
-            if (typeof value.measure.output === 'undefined') { value.measure.output = false; }
-         }
-         return {name: key, object: value, selectedResolution: this.firstResolution(value.components), id: Utils.uuidv4()};
-      }
-    );
-  }
+
 
   private mapModelToVm(maps:AxMaps):MapsVM[] {
     if(!maps) return [];
@@ -236,13 +250,7 @@ export class SelectorDatastoreService {
 
   }
 
-  private firstResolution(component: {[key:string]:AxSelectorComponentGroups}):string {
-    return Object.entries(component).map(
-      ([key, value]) =>  {
-         return key;
-      }
-    )[0]
-  }
+
 
 
 

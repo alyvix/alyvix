@@ -236,7 +236,10 @@ export class AxTableComponent implements OnInit {
   duplicate() {
     SelectorUtils.duplicateRows(this.selectedRows, this.data).forEach(r => this.selectedRows.push(r));
     this.dataChange.emit(this.data);
-    this.filterData();
+    this.datastore.saveData(this.data,false).subscribe(d => {
+      this.filterData();
+    });
+
   }
 
   hasFocus(input:HTMLInputElement):boolean {

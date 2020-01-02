@@ -132,7 +132,7 @@
           <button class="btn btn-primary" [disabled]="hasError()" (click)="ok()">Ok</button>
           <button class="btn" (click)="cancel()">Cancel</button>
       </div>
-      <div *ngIf="editor">
+      <div *ngIf="!readonly && editor">
           <ng-template [ngTemplateOutlet]="modificationButtons"></ng-template>
       </div>
     </div>

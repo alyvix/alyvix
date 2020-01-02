@@ -1,6 +1,6 @@
 import { AlyvixApiService } from "../alyvix-api.service";
 import { environment } from "src/environments/environment";
-import { SelectorDatastoreService } from "../ax-selector/selector-datastore.service";
+import { SelectorDatastoreService, AxFile } from "../ax-selector/selector-datastore.service";
 import { Injectable, Inject, NgZone } from "@angular/core";
 import { EditorModule } from "./editor.module";
 import { AxModel, BoxListEntity } from "../ax-model/model";
@@ -22,7 +22,7 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
   private _model:BehaviorSubject<AxModel> = new BehaviorSubject<AxModel>(null);
   private _background:BehaviorSubject<string> = new BehaviorSubject<string>(null);
   private selectedRows:RowVM[];
-  private mainSelected = true;
+  private tabSelected:AxFile;
 
   constructor(
     private api:AlyvixApiService,
@@ -32,15 +32,23 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     @Inject('GlobalRefSelector') private global: SelectorGlobal,
     @Inject('GlobalRefEditor') private editorGlobal: EditorGlobal,) {
     super(zone);
-    this.selectorDatastore.mainCaseSelected().subscribe(main => {
-      this.mainSelected = main;
+    this.selectorDatastore.tabSelected().subscribe(main => { //change tab
+      this.tabSelected = main;
       if(this._model.value) {
         this.editorService.save().subscribe( y => { // I need to save the library to avoid having an unknown name saving the single object
             this._model.next(null);
+            this.selectorDatastore.changeTab.emit(main);
         });
+      } else {
+        this.selectorDatastore.changeTab.emit(main);
       }
     });
-    this.selectorDatastore.changedNameRow.subscribe(name => this._model.value.object_name = name );
+    this.selectorDatastore.changedNameRow.subscribe(name => {
+      this._model.value.object_name = name
+      this.editorService.save().subscribe( y => { // I need to save the library to avoid having an unknown name saving the single object
+        console.log('saved after name change');
+      });
+    });
     this.selectorDatastore.changedBreak.subscribe(b => this._model.value.detection.break = b );
     this.selectorDatastore.changedTimeout.subscribe(to => this._model.value.detection.timeout_s = to );
     this.editorService.objectChanged.subscribe(object => {
@@ -70,7 +78,7 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
   }
 
   private loadNext(rows:RowVM[]) {
-    if(rows && rows.length === 1 && rows[0].selectedResolution === this.global.res_string && this.mainSelected) {
+    if(rows && rows.length === 1 && rows[0].selectedResolution === this.global.res_string && this.tabSelected && this.tabSelected.main) {
       this.reloadDesignerModel(rows[0]);
     } else {
       this._model.next(null);

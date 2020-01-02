@@ -31,8 +31,8 @@ export class AxSelectorComponent implements OnInit {
 
   @Input() editor:boolean = false;
 
-  selected: AxFile = {id: '', data: [], name: '', readonly: false };
-  main: AxFile = {id: '', data: [], name: '', readonly: false };
+  selected: AxFile = {id: '', data: [], name: '', readonly: false, main: true };
+  main: AxFile = {id: '', data: [], name: '', readonly: false, main: true };
   files: AxFile[] = [];
   production: boolean = environment.production;
   debugJson:boolean = false;
@@ -48,11 +48,11 @@ export class AxSelectorComponent implements OnInit {
   ngOnInit(): void {
     console.log("editor:" + this.editor);
     this.debugJson = !environment.production && environment.workingOn === 'selector'
-    this.datastore.getData().subscribe(data => {
-      this.main = {id:Utils.uuidv4(), data: data, name: this.global.current_library_name, readonly: false };
-      this.selected = this.main;
-    });
+
     this.datastore.getSelectorHidden().subscribe(x => this.selectorHidden = x);
+    this.datastore.changeTab.subscribe(tab => {
+      this.selected = tab;
+    })
     this.editorService.addBeforeSave(() => {
       let self = this;
       return new Promise(function(resolve,reject) {
@@ -60,6 +60,15 @@ export class AxSelectorComponent implements OnInit {
         resolve();
       })
     })
+
+    this.datastore.getData().subscribe(data => {
+      this.main = {id:Utils.uuidv4(), data: data, name: this.global.current_library_name, readonly: false, main:true };
+      console.log("get Data")
+      this.datastore.setTabSelected(this.main);
+      if(!this.editor) {
+        this.datastore.changeTab.emit(this.main);
+      }
+    });
   }
 
 
@@ -71,8 +80,10 @@ export class AxSelectorComponent implements OnInit {
 
 
   selectTab(i: AxFile) {
-    this.datastore.setMainCaseSelected(i.id === this.main.id);
-    this.selected = i;
+    this.datastore.setTabSelected(i);
+    if(!this.editor) {
+      this.datastore.changeTab.emit(i);
+    }
   }
 
   closeTab(i: AxFile) {
@@ -107,10 +118,12 @@ export class AxSelectorComponent implements OnInit {
   parseFile(filename: string, body: string) {
     const newFile: AxFile = {
       id: Utils.uuidv4(),
-      data: this.datastore.modelToData(JSON.parse(body)),
+      data: SelectorDatastoreService.modelToData(JSON.parse(body)),
       readonly: true,
-      name: filename.substring(0, filename.indexOf('.alyvix'))
+      name: filename.substring(0, filename.indexOf('.alyvix')),
+      main:false
     }
+    console.log(newFile)
     this.files.push(newFile);
   }
 
