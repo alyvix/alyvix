@@ -1,8 +1,9 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { Observable, throwError, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { BoxListEntity, AxSelectorObjects, DesignerModel, AxModel } from './ax-model/model';
 import { map, retry, catchError } from 'rxjs/operators';
+import { ToastrService } from 'ngx-toastr';
 
 export interface ScrapedText{
   regexp?: string,
@@ -37,7 +38,14 @@ export interface SetLibraryRequest{
 })
 export class AlyvixApiService {
 
-  constructor(private httpClient:HttpClient, @Inject("subSystem") private subSystem:string) { }
+  constructor(
+    private httpClient:HttpClient,
+    @Inject("subSystem") private subSystem:string,
+    private toastr: ToastrService,
+    ) { }
+
+  startLoading:EventEmitter<boolean> = new EventEmitter();
+  endLoading:EventEmitter<boolean> = new EventEmitter();
 
   getScrapedText(component_index:number, object_name: string, box: BoxListEntity):Observable<ScrapedText> {
     return this.httpClient.post<ScrapedText>("/get_scraped_txt?object_name="+object_name+"&idx="+component_index,box)
@@ -124,8 +132,11 @@ export class AlyvixApiService {
   }
 
   saveAll(close:boolean) {
+    this.startLoading.emit(true);
     return this.httpClient.get<any>('/save_all?close_editor='+close).subscribe(x => {
       console.log("save all");
+      this.endLoading.emit(true);
+      this.toastr.success("CASE SAVED");
     })
   }
 

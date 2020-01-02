@@ -12,7 +12,8 @@ import { AxTableComponent } from './ax-table/ax-table.component';
 import { CopyClipboardDirective } from '../directives/copy-clipboard.directive';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { PriDragDropModule } from 'pri-ng-dragdrop';
-
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
 
 
 @NgModule({
@@ -29,7 +30,9 @@ import { PriDragDropModule } from 'pri-ng-dragdrop';
     HttpClientModule,
     FormsModule,
     DragDropModule,
-    PriDragDropModule
+    PriDragDropModule,
+    BrowserAnimationsModule, // required animations module
+    ToastrModule.forRoot()
   ],
   providers: [
     {provide: 'GlobalRefSelector', useClass: environment.globalTypeSelector},

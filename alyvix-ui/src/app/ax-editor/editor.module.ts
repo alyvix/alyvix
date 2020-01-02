@@ -38,6 +38,9 @@ import { EditorDesignerGlobal } from './designer-global';
 import { MonitorComponent } from './central-panel/monitor/monitor.component';
 import { PriDragDropModule } from 'pri-ng-dragdrop';
 import { MapEditorComponent } from './central-panel/map-editor/map-editor.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
+import { NgProgressModule } from '@ngx-progressbar/core';
 
 
 
@@ -87,7 +90,10 @@ import { MapEditorComponent } from './central-panel/map-editor/map-editor.compon
     HotkeyModule.forRoot({cheatSheetHotkey: "ctrl+h"}),
     CustomFormsModule,
     ReactiveFormsModule,
-    AutocompleteLibModule
+    AutocompleteLibModule,
+    BrowserAnimationsModule, // required animations module
+    ToastrModule.forRoot(),
+    NgProgressModule
   ],
   providers: [
     {provide: 'GlobalRefSelector', useClass: environment.globalTypeSelector},

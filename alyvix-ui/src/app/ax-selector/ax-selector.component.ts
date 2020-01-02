@@ -11,6 +11,7 @@ import { SelectorGlobal } from './global';
 import { connectableObservableDescriptor } from 'rxjs/internal/observable/ConnectableObservable';
 import { SelectorDatastoreService, AxFile } from './selector-datastore.service';
 import { EditorService } from '../ax-editor/editor.service';
+import { ToastrService } from 'ngx-toastr';
 
 
 
@@ -25,7 +26,8 @@ export class AxSelectorComponent implements OnInit {
   constructor(
     private datastore: SelectorDatastoreService,
     @Inject('GlobalRefSelector') private global: SelectorGlobal,
-    private editorService:EditorService
+    private editorService:EditorService,
+    private toastr: ToastrService
   ) { }
 
 
@@ -131,7 +133,9 @@ export class AxSelectorComponent implements OnInit {
     console.log(rows);
     SelectorUtils.duplicateRows(rows, this.main.data);
     if(this.editor) {
-      this.datastore.saveData(this.main.data,false).subscribe(x => console.log(x));
+      this.datastore.saveData(this.main.data,false).subscribe(x =>
+        this.toastr.success("OBJECT IMPORTED")
+      );
     }
   }
 

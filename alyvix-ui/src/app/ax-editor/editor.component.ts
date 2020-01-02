@@ -1,6 +1,9 @@
 import { Component, OnInit, ViewChild, ElementRef, Inject, ChangeDetectorRef } from '@angular/core';
 import { DesignerGlobal } from '../ax-designer/ax-global';
 import { SelectorDatastoreService } from '../ax-selector/selector-datastore.service';
+import { NgProgressComponent } from '@ngx-progressbar/core';
+import { AlyvixApiService } from '../alyvix-api.service';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 @Component({
   selector: 'app-root',
@@ -20,10 +23,13 @@ export class EditorComponent implements OnInit {
   objectCollapsed = false;
   designerCollapsed = false;
 
+  @ViewChild(NgProgressComponent, {static: true}) progressBar: NgProgressComponent;
+
   constructor(
     @Inject('GlobalRefDesigner') private global: DesignerGlobal,
     private selectorDatastore:SelectorDatastoreService,
     private changeDetector: ChangeDetectorRef,
+    private apiService:AlyvixApiService
     ) { }
 
   containerHeight():number {
@@ -107,6 +113,9 @@ export class EditorComponent implements OnInit {
       this.changeDetector.markForCheck();
     });
     this.resize();
+
+    this.apiService.startLoading.subscribe( x => this.progressBar.start())
+    this.apiService.endLoading.subscribe(x => this.progressBar.complete())
 
   }
 

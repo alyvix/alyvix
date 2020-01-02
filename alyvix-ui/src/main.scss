@@ -1,16 +1,27 @@
 /* You can add global styles to this file, and also import other style files */
 
+
+
 @import "./variables.scss";
 
-
 * {
-    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-    box-sizing: border-box;
-    font-family: $font;
-    -webkit-font-smoothing: antialiased;
-    color: $textcolor;
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+  box-sizing: border-box;
+  font-family: $font;
+  -webkit-font-smoothing: antialiased;
+  color: $textcolor;
 }
+
+
+@import '~ngx-toastr/toastr';
+
+.toast-container .ngx-toastr .toast-message {
+  color: white;
+}
+
+
+
 
 body{
     font-size: 14px;
