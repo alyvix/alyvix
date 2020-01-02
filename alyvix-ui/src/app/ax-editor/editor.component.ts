@@ -101,13 +101,24 @@ export class EditorComponent implements OnInit {
   hasDesigner = false;
 
   ngOnInit() {
-    this.topLeftHeight = this.container.nativeElement.offsetHeight - 300;
+
     this.global.axModel().subscribe(model => {
       this.hasDesigner = model ? true : false;
       this.changeDetector.markForCheck();
     });
+    this.resize();
+
+  }
+
+  private resize() {
+    this.topLeftHeight = this.container.nativeElement.offsetHeight - 300;
     this.leftWidth = this.container.nativeElement.offsetWidth  - this.designerWidth;
     this.selectorDatastore.getSelectorHidden().subscribe(hidden => this.setSelectorShow(hidden));
+  }
+
+  onResized(event) {
+    console.log(event)
+    this.resize();
   }
 
 }
