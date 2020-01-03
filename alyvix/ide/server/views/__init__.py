@@ -915,7 +915,7 @@ def ide_run_api_process():
         os.dup2(output_pipeline[0], 1)
         os.dup2(output_pipeline[1], 2)
 
-    alyvix_file_name = str(random.randint(1, 100000000)) + ".alyvix"
+    alyvix_file_name = current_filename.split(os.sep)[-1] + ".foride"
 
     with open(tempfile.gettempdir() + os.sep + alyvix_file_name, 'w') as f:
         json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
@@ -967,6 +967,12 @@ def ide_run_api():
         alyvix_run_thread.start()
     elif action == "stop":
         kill_alyvix_process = True
+        try:
+            alyvix_file_name = current_filename.split(os.sep)[-1] + ".foride"
+
+            os.remove(tempfile.gettempdir() + os.sep + alyvix_file_name)
+        except:
+            pass
         alyvix_run_process.kill()
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 

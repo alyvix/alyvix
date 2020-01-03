@@ -58,6 +58,8 @@ def get_timestamp_formatted():
 
 filename = None
 
+is_foride = False
+
 engine_arguments = []
 objects_names = []
 verbose = 0
@@ -93,6 +95,12 @@ if filename is None:
 if filename is not None:
     lm = LibraryManager()
 
+
+    if ".foride" in filename:
+        is_foride = True
+
+    filename = filename.replace(".foride","")
+
     filename = lm.get_correct_filename(filename)
 
     invalid_chars = lm.get_invalid_filename_chars()
@@ -117,6 +125,8 @@ if filename is not None:
               invalid_char_str)
         sys.exit(2)
 
+    if is_foride is True:
+        filename += ".foride"
 
     if os.path.isfile(filename) is False:
         print(filename + " does NOT exist")
@@ -125,6 +135,9 @@ if filename is not None:
     lm.load_file(filename)
 
     library_json = lm.get_json()
+
+    if is_foride is True:
+        os.remove(filename)
 
     timestamp = time.time()
     start_time = timestamp
@@ -359,5 +372,7 @@ if filename is not None:
     date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_UTC" + time.strftime("%z")
 
     filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
-    om.save(filename, lm.get_json(), chunk, objects_result, exit, t_end)
+
+    if is_foride is False:
+        om.save(filename, lm.get_json(), chunk, objects_result, exit, t_end)
     sys.exit(sys_exit)
