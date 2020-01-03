@@ -6,7 +6,7 @@ function setRectangles() {
     draw(rectManager.last_mouse_event);
 }
 
-function fix_dpi() {
+function canvas_size(canvas) {
     if (ctx==null) return;
     //create a style object that returns width and height
       let style = {
@@ -18,13 +18,7 @@ function fix_dpi() {
         }
       }
       
-      //alert(dpi);
-    //set the correct attributes for a crystal clear image!
-      canvas.setAttribute('width', style.width()*dpi);
-      canvas.setAttribute('height', style.height()*dpi);
-      ctx.scale(dpi, dpi);
-      //alert(dpi)
-      //canvas.style.background = "red";  // a valid CSS colour.
+      return style
       
 
     }
@@ -32,18 +26,17 @@ function fix_dpi() {
 
 function draw(e=null) {
     if (ctx==null) return; 
+    
+    console.log("draw")
+    console.log(canvas)
+    console.log(boxes);
 
-    //call the dpi fix every time 
-    //canvas is redrawn
-    fix_dpi();
     
     //canvas = document.getElementById("myCanvas");
     //ctx = canvas.getContext("2d");
 
-    //ctx.clearRect(0, 0, +getComputedStyle(canvas).getPropertyValue('width').slice(0,-2), +getComputedStyle(canvas).getPropertyValue('height').slice(0,-2));
-    ctx.translate(0.5, 0.5); //to eliminate blur effect
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.lineWidth = 1;
 
     //draw stuff!
     

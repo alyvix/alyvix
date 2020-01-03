@@ -665,6 +665,12 @@
             //get the canvas, canvas context
             canvas = document.getElementById('myCanvas');
             ctx = canvas.getContext('2d');
+            
+            let style = canvas_size(canvas);
+            //set the correct attributes for a crystal clear image!
+            canvas.setAttribute('width', style.width()*dpi);
+            canvas.setAttribute('height', style.height()*dpi);
+            ctx.scale(dpi, dpi);
 
             //alert("sdsd");
             
