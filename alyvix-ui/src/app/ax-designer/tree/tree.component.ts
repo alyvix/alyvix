@@ -19,6 +19,7 @@ export class TreeComponent implements OnInit {
   root:TreeNode
   options = {};
 
+  @Input() editor:boolean = false;
 
 
 

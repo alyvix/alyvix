@@ -153,7 +153,11 @@ export class AlyvixApiService {
   }
 
   saveAs() {
-    return this.httpClient.get<any>('/ide_save_as_api').subscribe(x => {})
+    this.startLoading.emit(true);
+    return this.httpClient.get<any>('/ide_save_as_api').subscribe(x => {
+      this.endLoading.emit(true);
+      this.toastr.success("CASE SAVED");
+    })
   }
 
   run(action:string) {

@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { EditorService, LeftSelection } from '../editor.service';
 import { AxScriptFlow } from 'src/app/ax-model/model';
-import { MapRowVM } from 'src/app/ax-selector/selector-datastore.service';
+import { MapRowVM, SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
+import { EditorGlobal } from '../editor-global';
+import { DesignerGlobal } from 'src/app/ax-designer/ax-global';
+import { SelectorGlobal } from 'src/app/ax-selector/global';
 
 
 
@@ -12,14 +15,21 @@ import { MapRowVM } from 'src/app/ax-selector/selector-datastore.service';
 })
 export class CentralPanelComponent implements OnInit {
 
-  baseTabs: LeftSelection[] = [{name: 'Monitor', type:'monitor'}];
+  monitorTab:LeftSelection = {name: 'Monitor', type:'monitor'};
+
+  baseTabs: LeftSelection[] = [this.monitorTab];
 
   tabs: LeftSelection[] = this.baseTabs;
 
   selected: LeftSelection = this.tabs[0];
 
 
-  constructor(private editorService:EditorService) {
+
+  constructor(
+      private editorService:EditorService,
+      private selectorDatastore: SelectorDatastoreService,
+      @Inject('GlobalRefSelector') private global:SelectorGlobal
+    ) {
   }
 
   ngOnInit() {
@@ -29,6 +39,29 @@ export class CentralPanelComponent implements OnInit {
         this.selected = s;
       }
     })
+
+    this.selectorDatastore.getSelected().subscribe(s => {
+      let isCurrentResolution = s && s.length > 0 && s.every(x => x.selectedResolution === this.global.res_string)
+      console.log(s)
+      console.log(isCurrentResolution)
+      if(isCurrentResolution) {
+        this.baseTabs = [this.monitorTab];
+        if(!this.tabs.includes(this.monitorTab)) {
+          this.tabs = this.tabs.concat(this.baseTabs);
+        }
+      } else {
+        this.baseTabs = [];
+        if(this.tabs.includes(this.monitorTab)) {
+          this.tabs = this.tabs.filter(x => x.name !== this.monitorTab.name)
+          if(this.selected.name === this.monitorTab.name && this.tabs[0]) {
+            this.selected = this.tabs[0]
+          }
+        }
+      }
+    })
+
+
+
   }
 
   selectTab(tab:LeftSelection) {

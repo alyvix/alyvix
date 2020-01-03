@@ -109,7 +109,7 @@ export class MockDesignerGlobal extends DesignerGlobal{
     }
 
     background():Observable<string> {
-      return of("");
+      return of(AxModelMock._model.box_list[0].thumbnail.image);
     }
 
 }

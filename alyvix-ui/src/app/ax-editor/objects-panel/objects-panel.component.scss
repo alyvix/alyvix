@@ -27,6 +27,10 @@
       margin: 3px 0;
       line-height: 23px;
 
+      &.ax-object-primary{
+        cursor: default;
+      }
+
       i {
         margin-right: 10px;
       }
