@@ -580,6 +580,8 @@ def ide_open_file_api():
 
     import tempfile, base64, zlib
 
+    filename_path = os.path.dirname(current_filename)
+
     ICON = zlib.decompress(base64.b64decode('eJxjYGAEQgEBBiDJwZDBy'
                                             'sAgxsDAoAHEQCEGBQaIOAg4sDIgACMUj4JRMApGwQgF/ykEAFXxQRc='))
 
@@ -595,7 +597,7 @@ def ide_open_file_api():
     #root.call('wm', 'iconphoto', root._w, PhotoImage(r'server\static\img\icons\transparent_ico.gif'))
     root.call('wm', 'attributes', '.', '-topmost', '1')
     #root.tk.call('wm', 'iconphoto', root._w, icon)
-    file_path = filedialog.askopenfilename(filetypes=[("Alyvix Library","*.alyvix"), ("all files", "*.*")])
+    file_path = filedialog.askopenfilename(initialdir=filename_path, filetypes=[("Alyvix Library","*.alyvix"), ("all files", "*.*")])
     #print(file_path)
 
     lm = LibraryManager()
@@ -617,6 +619,9 @@ def ide_save_as_api():
 
     import tempfile, base64, zlib
 
+    filename_path = os.path.dirname(current_filename)
+
+
     ICON = zlib.decompress(base64.b64decode('eJxjYGAEQgEBBiDJwZDBy'
                                             'sAgxsDAoAHEQCEGBQaIOAg4sDIgACMUj4JRMApGwQgF/ykEAFXxQRc='))
 
@@ -631,19 +636,19 @@ def ide_save_as_api():
     root.iconbitmap(default=ICON_PATH)
     #root.call('wm', 'iconphoto', root._w, PhotoImage(r'server\static\img\icons\transparent_ico.gif'))
     root.call('wm', 'attributes', '.', '-topmost', '1')
-    filename = filedialog.asksaveasfilename(initialdir="/", title="Select file",
+    filename = filedialog.asksaveasfilename(initialdir=filename_path, title="Select file",
                                                  filetypes=(("Alyvix Library", "*.alyvix"), ("all files", "*.*")), defaultextension='.alyvix')
     #print(filename)
 
-
-    with open(filename, 'w') as f:
-        json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+    if filename != "":
+        with open(filename, 'w') as f:
+            json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 @app.route("/ide_exit_api", methods=['GET', 'POST'])
 def ide_exit_api():
-    browser_class.close_browser_3()
+    browser_class.close()
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 def ide_run_api_process_old(current_filename, library_dict):
