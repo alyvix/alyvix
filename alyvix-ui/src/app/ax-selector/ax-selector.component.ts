@@ -136,6 +136,8 @@ export class AxSelectorComponent implements OnInit {
       this.datastore.saveData(this.main.data,false).subscribe(x =>
         this.toastr.success("OBJECT IMPORTED")
       );
+    } else {
+      this.toastr.success("OBJECT IMPORTED")
     }
   }
 

@@ -24,18 +24,22 @@ export class MonitorComponent implements OnInit {
 
   _background:string;
 
+  private fixDpi(n:number):number {
+    return Math.floor(n / this.editorGlobal.scaling_factor * 100);
+  }
+
   ngOnInit() {
     console.log("monitor on init");
-    this.h = Math.floor(this.editorGlobal.res_h / this.editorGlobal.scaling_factor * 100);
-    this.w = Math.floor(this.editorGlobal.res_w / this.editorGlobal.scaling_factor * 100);
+    this.h = this.fixDpi(this.editorGlobal.res_h);
+    this.w =this.fixDpi(this.editorGlobal.res_w);
     this.designerGlobal.background().subscribe(bg => {
       if(bg) {
         console.log(bg.length);
         this._background = bg;
       }
     })
-    this.monitorCanvas.nativeElement.height = this.editorGlobal.res_h;
-    this.monitorCanvas.nativeElement.width = this.editorGlobal.res_w;
+    this.monitorCanvas.nativeElement.height = this.h;
+    this.monitorCanvas.nativeElement.width = this.w;
     this.editorGlobal.setCanvas(this.monitorCanvas.nativeElement);
     this.designerGlobal.setRectangles();
   }
