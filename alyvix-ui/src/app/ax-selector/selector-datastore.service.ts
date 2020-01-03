@@ -151,7 +151,6 @@ export class SelectorDatastoreService {
 
   getData():Observable<RowVM[]> {
     return this.apiService.getLibrary().pipe(map(library => {
-      console.log(library);
       let data = [];
       if(library) {
         data = SelectorDatastoreService.modelToData(library);
@@ -205,7 +204,6 @@ export class SelectorDatastoreService {
   }
 
   save():Observable<any> {
-    console.log({library: this.prepareModelForSubmission(this.data), close_selector: true})
     return this.apiService.setLibrary({library: this.prepareModelForSubmission(this.data), close_selector: false})
   }
 

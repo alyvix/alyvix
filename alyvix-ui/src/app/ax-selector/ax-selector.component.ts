@@ -48,7 +48,6 @@ export class AxSelectorComponent implements OnInit {
 
 
   ngOnInit(): void {
-    console.log("editor:" + this.editor);
     this.debugJson = !environment.production && environment.workingOn === 'selector'
 
     this.datastore.getSelectorHidden().subscribe(x => this.selectorHidden = x);
@@ -65,7 +64,6 @@ export class AxSelectorComponent implements OnInit {
 
     this.datastore.getData().subscribe(data => {
       this.main = {id:Utils.uuidv4(), data: data, name: this.global.current_library_name, readonly: false, main:true };
-      console.log("get Data")
       this.datastore.setTabSelected(this.main);
       if(!this.editor) {
         this.datastore.changeTab.emit(this.main);
@@ -125,12 +123,10 @@ export class AxSelectorComponent implements OnInit {
       name: filename.substring(0, filename.indexOf('.alyvix')),
       main:false
     }
-    console.log(newFile)
     this.files.push(newFile);
   }
 
   onImport(rows: RowVM[]) {
-    console.log(rows);
     SelectorUtils.duplicateRows(rows, this.main.data);
     if(this.editor) {
       this.datastore.saveData(this.main.data,false).subscribe(x =>

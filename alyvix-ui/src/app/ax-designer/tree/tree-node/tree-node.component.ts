@@ -173,7 +173,6 @@ export class TreeNodeComponent implements OnInit,DoCheck {
       types = this.leafTypes;
     }
     var i = (types.indexOf(t) + 1) % types.length;
-    console.log(i);
     return types[i];
   }
 

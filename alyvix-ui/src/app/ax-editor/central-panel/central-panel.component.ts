@@ -1,10 +1,13 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, EventEmitter } from '@angular/core';
 import { EditorService, LeftSelection } from '../editor.service';
 import { AxScriptFlow } from 'src/app/ax-model/model';
 import { MapRowVM, SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
 import { EditorGlobal } from '../editor-global';
 import { DesignerGlobal } from 'src/app/ax-designer/ax-global';
 import { SelectorGlobal } from 'src/app/ax-selector/global';
+
+import { debounce } from 'rxjs/operators';
+import { timer } from 'rxjs';
 
 
 
@@ -15,11 +18,13 @@ import { SelectorGlobal } from 'src/app/ax-selector/global';
 })
 export class CentralPanelComponent implements OnInit {
 
+  private throttledChange:EventEmitter<[LeftSelection,MapRowVM[]]> = new EventEmitter();
+
   monitorTab:LeftSelection = {name: 'Monitor', type:'monitor'};
 
   baseTabs: LeftSelection[] = [this.monitorTab];
 
-  tabs: LeftSelection[] = this.baseTabs;
+  tabs: LeftSelection[] = [];
 
   selected: LeftSelection = this.tabs[0];
 
@@ -33,17 +38,9 @@ export class CentralPanelComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.editorService.getLeftSelection().subscribe(s => {
-      if(s) {
-        this.tabs = [s].concat(this.baseTabs);
-        this.selected = s;
-      }
-    })
 
     this.selectorDatastore.getSelected().subscribe(s => {
       let isCurrentResolution = s && s.length > 0 && s.every(x => x.selectedResolution === this.global.res_string)
-      console.log(s)
-      console.log(isCurrentResolution)
       if(isCurrentResolution) {
         this.baseTabs = [this.monitorTab];
         if(!this.tabs.includes(this.monitorTab)) {
@@ -60,6 +57,18 @@ export class CentralPanelComponent implements OnInit {
       }
     })
 
+    this.editorService.getLeftSelection().subscribe(s => {
+      if(s) {
+        this.tabs = [s].concat(this.baseTabs);
+        this.selected = s;
+      }
+    })
+
+    this.throttledChange.pipe(debounce(() => timer(500))).subscribe(x =>{
+      if(x[0].onChangeMap) {
+        x[0].onChangeMap(x[1]);
+      }
+    });
 
 
   }
@@ -78,10 +87,10 @@ export class CentralPanelComponent implements OnInit {
     }
   }
 
+
+
   mapChanged(map:MapRowVM[]) {
-    if(this.selected.onChangeMap) {
-      this.selected.onChangeMap(map);
-    }
+    this.throttledChange.emit([this.selected,map])
   }
 
 }

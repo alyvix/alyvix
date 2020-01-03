@@ -126,7 +126,6 @@ export class EditorComponent implements OnInit {
   }
 
   onResized(event) {
-    console.log(event)
     this.resize();
   }
 

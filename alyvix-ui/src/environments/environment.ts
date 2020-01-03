@@ -11,7 +11,7 @@ export const environment = {
   globalTypeDesigner: MockDesignerGlobal,
   globalTypeSelector: MockSelectorGlobal,
   globalTypeEditor: MockEditorGlobal,
-  workingOn: "selector",
+  workingOn: "editor",
   assets: "/assets"
 };
 

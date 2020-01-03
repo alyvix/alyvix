@@ -81,7 +81,6 @@ export class ScreenComponent implements OnInit {
   }
 
   changeProcess(event) {
-    console.log(event);
     this.axService.axModel.call.features.process = event;
     this.process = event;
   }

@@ -107,8 +107,6 @@
 
         function setPoint(i) {
             boxes = model.box_list;
-            console.log(i)
-            console.log(boxes)
             selected_box = i;
             rectManager.set_rectangles(model.box_list);
             rectManager.set_intent({"type":"set_interaction_point", "features":{"index": i}});
@@ -137,7 +135,6 @@
         }
 
         function setGroupFlags(flags) {
-            console.log(flags);
             if(flags && rectManager) {
                 rectManager.main_g0_created = flags.main[0];
                 rectManager.main_g1_created = flags.main[1];
@@ -155,7 +152,6 @@
             return selected_box;
         }
         function setSelectedNode(i) {
-            console.log("set selected box: " + i)
             selected_box = i;
             draw(rectManager.last_mouse_event);
         }
@@ -199,7 +195,6 @@
                             });
                         }
                     
-                        console.log("JSON SAVED");
                     }
             });
         }

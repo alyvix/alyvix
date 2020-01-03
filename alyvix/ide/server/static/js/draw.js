@@ -26,10 +26,6 @@ function canvas_size(canvas) {
 
 function draw(e=null) {
     if (ctx==null) return; 
-    
-    console.log("draw")
-    console.log(canvas)
-    console.log(boxes);
 
     
     //canvas = document.getElementById("myCanvas");

@@ -18,7 +18,7 @@ export class InteractionComponent implements OnInit {
   @Input()
   set node(node: TreeNode) {
     Promise.resolve(null).then(() => { // enqueque after change detection loop to avoid ExpressionChangedAfterItHasBeenCheckedError
-    
+
       if(!node.box.mouse_keep_options) {
         node.box.mouse_keep_options = [];
       }
@@ -36,12 +36,12 @@ export class InteractionComponent implements OnInit {
 
       this._node = node;
     });
-    
-    
-    
+
+
+
   }
 
-  
+
   interactionTypes = [
     {name: "None", value: null},
     {name: "Move", value: "move"},
@@ -53,7 +53,7 @@ export class InteractionComponent implements OnInit {
 
   ngOnInit() {
   }
-   
+
 
   setPoint() {
     this.axDesignerService.setPoint(this._node);
@@ -73,14 +73,13 @@ export class InteractionComponent implements OnInit {
     if(this._node.box.mouse.features.pixels < 1)
       this._node.box.mouse.features.pixels = 1;
   }
-  
+
   delayChange() {
     if(this._node.box.mouse.features.delays_ms < 1)
       this._node.box.mouse.features.delays_ms = 1;
   }
 
   amountChange() {
-    console.log("amount change")
     if(this._node.box.mouse.features.amount < 1)
       this._node.box.mouse.features.amount = 1;
   }
@@ -110,7 +109,7 @@ export class InteractionComponent implements OnInit {
     }
     //Pivotal #166603801 - `Delays [ms]`settings for `Click` and `Scroll` are different (i.e. toggle different last values)
     mouse.features.delays_ms = 100;
-    
+
 
     switch(type) {
       case 'click': {
@@ -119,7 +118,7 @@ export class InteractionComponent implements OnInit {
         }
         //Pivotal #166603801 - Discussion with AP always to default
         mouse.features.amount = 1
-        
+
         break;
       }
       case 'scroll': {

@@ -12,7 +12,6 @@ export class DesignerDatastoreService {
   constructor() { }
 
   setSelectedFile(f:string) {
-    console.log(f);
     this._selectedFile.next(f);
   }
 

@@ -140,7 +140,6 @@ export class AxTableComponent implements OnInit {
     if (this.singleSelection()) {
       this.editing = this.selectedRows[0];
       this.datastore.saveData(this.data,false).subscribe(x => {
-        console.log(x);
         if (x.success) {
           this.api.selectorEdit(this.selectedRows[0].name, this.selectedRows[0].selectedResolution);
         }

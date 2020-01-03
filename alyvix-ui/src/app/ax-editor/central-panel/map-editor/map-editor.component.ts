@@ -6,6 +6,7 @@ import { Utils } from 'src/app/utils';
 
 
 
+
 @Component({
   selector: 'app-map-editor',
   templateUrl: './map-editor.component.html',
@@ -50,7 +51,7 @@ export class MapEditorComponent implements OnInit {
 
   tableChanged(values:string[], current:string,column:string) {
     values[column] = current;
-    this.emitChange();
+    this.emitChange()
   }
 
   addRow() {
@@ -74,7 +75,6 @@ export class MapEditorComponent implements OnInit {
   }
 
   deleteColumn(columnName:string) {
-    console.log('delete ' + columnName)
     this.dataSource.forEach((ds,i) =>  delete this.dataSource[i][columnName]);
     this.valuesColumns.pop();
     this.displayedColumns = this.columns();
@@ -112,6 +112,7 @@ export class MapEditorComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+
   }
 
 }

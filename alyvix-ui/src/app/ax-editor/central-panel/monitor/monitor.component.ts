@@ -29,12 +29,10 @@ export class MonitorComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.log("monitor on init");
     this.h = this.fixDpi(this.editorGlobal.res_h);
     this.w =this.fixDpi(this.editorGlobal.res_w);
     this.designerGlobal.background().subscribe(bg => {
       if(bg) {
-        console.log(bg.length);
         this._background = bg;
       }
     })

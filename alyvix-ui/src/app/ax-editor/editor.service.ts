@@ -8,8 +8,8 @@ import { Step } from './central-panel/script-editor/step/step.component';
 export interface LeftSelection{
   name:string;
   type:string;
-  steps?:AxScriptFlow[];
-  map?: MapRowVM[];
+  steps?:() => AxScriptFlow[];
+  map?:() => MapRowVM[];
   onChangeSteps?: (step:AxScriptFlow[]) => any;
   onChangeMap?: (map:MapRowVM[]) => any;
 }

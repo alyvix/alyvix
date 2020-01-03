@@ -31,7 +31,6 @@ export class SelectTypeComponent implements OnInit,AfterViewInit {
   @ViewChild("tElement",{static:true}) tElement: ElementRef;
 
   changeType(event) {
-    console.log(event.srcElement.value);
     this.node.box.type = event.srcElement.value;
   }
 

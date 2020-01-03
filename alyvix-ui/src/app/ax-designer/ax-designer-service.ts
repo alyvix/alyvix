@@ -41,8 +41,6 @@ export class AxDesignerService {
     this.global.axModel().subscribe(axModel => {
       if(axModel) {
         this.axModel = axModel;
-        console.log('setting new ax model')
-        console.log(axModel);
         if (axModel.box_list) {
           axModel.box_list.forEach(box => {
             if (!box.features.I.likelihood) {

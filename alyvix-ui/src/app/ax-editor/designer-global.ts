@@ -98,7 +98,6 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
 
 
   newComponent(group:number) {
-    console.log("new Component")
     if(this._model.value) {
       this.editorService.save().subscribe( y => {
         this.api.editObjectFullScreen(this._model.value.object_name,this.global.res_string,"newComponent",group).subscribe(x => {

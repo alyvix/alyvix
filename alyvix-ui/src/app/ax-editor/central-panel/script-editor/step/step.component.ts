@@ -84,7 +84,6 @@ export class StepComponent implements OnInit,OnDestroy {
   }
 
   dropped(event: PriDropEventArgs) {
-    console.log(event)
    this._step.name = event.itemData.name;
    if(this._step.type != event.itemData.type) {
      this._step.condition = event.itemData.condition || this.conditions[this.step.type][0];
