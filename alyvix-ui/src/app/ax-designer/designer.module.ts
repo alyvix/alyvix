@@ -24,6 +24,8 @@ import { TreeNodeComponent } from './tree/tree-node/tree-node.component';
 import { SelectTypeComponent } from './box-options/select-type/select-type.component';
 import { ScreenComponent } from './box-options/screen/screen.component';
 import {AutocompleteLibModule} from 'angular-ng-autocomplete';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
 
 @NgModule({
   declarations: [
@@ -49,7 +51,9 @@ import {AutocompleteLibModule} from 'angular-ng-autocomplete';
     HotkeyModule.forRoot({cheatSheetHotkey: "ctrl+h"}),
     CustomFormsModule,
     ReactiveFormsModule,
-    AutocompleteLibModule
+    AutocompleteLibModule,
+    BrowserAnimationsModule, // required animations module
+    ToastrModule.forRoot()
   ],
   providers: [
     {provide: 'GlobalRefDesigner', useClass: environment.globalTypeDesigner},
