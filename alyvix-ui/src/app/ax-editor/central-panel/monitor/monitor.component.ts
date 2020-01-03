@@ -26,8 +26,8 @@ export class MonitorComponent implements OnInit {
 
   ngOnInit() {
     console.log("monitor on init");
-    this.h = this.editorGlobal.res_h;
-    this.w = this.editorGlobal.res_w;
+    this.h = Math.floor(this.editorGlobal.res_h / this.editorGlobal.scaling_factor * 100);
+    this.w = Math.floor(this.editorGlobal.res_w / this.editorGlobal.scaling_factor * 100);
     this.designerGlobal.background().subscribe(bg => {
       if(bg) {
         console.log(bg.length);
