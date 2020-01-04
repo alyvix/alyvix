@@ -18,7 +18,7 @@
       </div>
       <div *ngIf="editor" class="ax-selector-tab primary selected" style="cursor: pointer; float: right; width: 75px; text-align: center; text-transform: uppercase" (click)="toggleSelector()"><a ><span *ngIf="!selectorHidden">HIDE</span><span *ngIf="selectorHidden">Selector</span></a></div>
       </div>
-      <ax-table [(data)]="selected.data" [readonly]="selected.readonly" (import)="onImport($event)" [editor]="editor"></ax-table>
+      <ax-table [data]="selected.data" (dataChange)="dataChanged($event)" [readonly]="selected.readonly" (import)="onImport($event)" [editor]="editor"></ax-table>
     </div>
 
 </div>

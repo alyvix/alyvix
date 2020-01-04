@@ -54,7 +54,13 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     this.editorService.objectChanged.subscribe(object => {
       this.loadNext(this.selectedRows);
     });
-    this.editorService.setObjectSave(() => this.api.saveObject(this._model.value))
+    this.editorService.setObjectSave((objects:string[]) => { // check if the current object needs to be saved
+      if(this._model.value && objects.includes(this._model.value.object_name)) {
+        return this.api.saveObject(this._model.value)
+      } else {
+        return of('')
+      }
+    })
     this.selectorDatastore.changedSelection.subscribe(rows => { // change selection trigger save
       if(this.checkIfChangedRows(rows)) {
         if(this._model.value) {

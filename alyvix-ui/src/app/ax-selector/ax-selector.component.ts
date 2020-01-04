@@ -46,6 +46,9 @@ export class AxSelectorComponent implements OnInit {
     this.datastore.setSelectorHidden(!this.selectorHidden);
   }
 
+  private toObjectsString(data:RowVM[]):string {
+    return data.map(d => d.name).join(',')
+  }
 
   ngOnInit(): void {
     this.debugJson = !environment.production && environment.workingOn === 'selector'
@@ -57,12 +60,16 @@ export class AxSelectorComponent implements OnInit {
     this.editorService.addBeforeSave(() => {
       let self = this;
       return new Promise(function(resolve,reject) {
+        console.log('before save')
+        console.log(self.toObjectsString(self.main.data))
         self.datastore.setData(self.main.data);
         resolve();
       })
     })
 
     this.datastore.getData().subscribe(data => {
+      console.log('get data')
+      console.log(this.toObjectsString(data))
       this.main = {id:Utils.uuidv4(), data: data, name: this.global.current_library_name, readonly: false, main:true };
       this.datastore.setTabSelected(this.main);
       if(!this.editor) {
@@ -76,6 +83,11 @@ export class AxSelectorComponent implements OnInit {
   onResized(event: ResizedEvent) {
     if (this.table)
       this.table.onResized(event);
+  }
+
+  dataChanged(data) {
+    this.selected.data = data;
+    this.datastore.setData(this.main.data);
   }
 
 
@@ -124,6 +136,7 @@ export class AxSelectorComponent implements OnInit {
       main:false
     }
     this.files.push(newFile);
+    this.selectTab(newFile);
   }
 
   onImport(rows: RowVM[]) {

@@ -80,7 +80,7 @@ function reloadAlyvixIde(objectName: string) {
   const zone = ngZone();
   if(zone) {
     zone.run(() => {
-      //console.log('reload editor ' + objectName);
+      console.log('reload editor ' + objectName);
       if(editor) {
         const service = editor.injector.get(EditorService);
         service.reloadObject(objectName);

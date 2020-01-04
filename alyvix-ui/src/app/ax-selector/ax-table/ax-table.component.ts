@@ -308,9 +308,6 @@ export class AxTableComponent implements OnInit {
       this.selectedRows = [this.filteredData[0]];
     }
     this.datastore.setSelected(this.selectedRows);
-    this.changeDetecor.markForCheck();
-    this.changeDetecor.detectChanges();
-
   }
 
   isDuplicatedName(name:string):boolean {

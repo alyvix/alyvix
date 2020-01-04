@@ -24,7 +24,7 @@ export class EditorService {
   runState:EventEmitter<string> = new EventEmitter()
   private tab:AxFile
 
-  private objectSave:() => Observable<any>
+  private objectSave:(objects:string[]) => Observable<any>
 
   private beforeSavePromises:(() => Promise<any>)[] = [];
 
@@ -36,7 +36,7 @@ export class EditorService {
   }
 
 
-  setObjectSave(o:() => Observable<any>) {
+  setObjectSave(o:(objects:string[]) => Observable<any>) {
     this.objectSave = o;
   }
 
@@ -68,7 +68,7 @@ export class EditorService {
     const promise = new Promise( function(resolve) {
       self.beforeSave().then(function() {
         self.selectorDatastore.save().subscribe(x => {
-          self.objectSave().subscribe( y => resolve());
+          self.objectSave(x.map(x => x.name)).subscribe( y => resolve());
         });
       });
     });

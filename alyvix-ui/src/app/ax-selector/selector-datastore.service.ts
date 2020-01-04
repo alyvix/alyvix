@@ -203,8 +203,8 @@ export class SelectorDatastoreService {
     return this.apiService.setLibrary({library: this.prepareModelForSubmission(data), close_selector: close_selector});
   }
 
-  save():Observable<any> {
-    return this.apiService.setLibrary({library: this.prepareModelForSubmission(this.data), close_selector: false})
+  save():Observable<RowVM[]> {
+    return this.apiService.setLibrary({library: this.prepareModelForSubmission(this.data), close_selector: false}).pipe(map(x => this.data))
   }
 
 
