@@ -1853,9 +1853,9 @@ def get_library_api():
     global library_dict
     global original_screens
 
-    ret_dict = copy.deepcopy(library_dict)
+    #ret_dict = copy.deepcopy(library_dict)
 
-
+    """
     #check if dict is empty
     if bool(ret_dict) == True:
 
@@ -1898,8 +1898,9 @@ def get_library_api():
 
             id += 1
 
-
-    return jsonify(ret_dict)
+    """
+    #return jsonify(ret_dict)
+    return jsonify(library_dict)
 
 
 @app.route("/set_library_api", methods=['POST'])
@@ -1913,7 +1914,7 @@ def set_library_api():
 
     #reconstruct comp
     for obj in objects:
-
+        """
         components = objects[obj]["components"]
 
         for cmp in components:
@@ -1926,6 +1927,7 @@ def set_library_api():
             del objects[obj]["id"]
         except:
             pass #object was imported from other library
+        """
 
         datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
