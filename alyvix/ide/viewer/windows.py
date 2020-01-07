@@ -387,7 +387,7 @@ class ViewerManager(ViewerManagerBase):
             width_s = win32api.GetSystemMetrics(0)
             height_s = win32api.GetSystemMetrics(1)
 
-            if class_name == "alyvix.ide":
+            if class_name == "alyvix.editor":
                 xpos = 5
                 ypos = 5
                 width = width_s - 10
@@ -397,7 +397,7 @@ class ViewerManager(ViewerManagerBase):
                                               0, 0, wndclass.hInstance, None)
 
 
-            if class_name == "alyvix.ide":
+            if class_name == "alyvix.editor":
                 win32gui.ShowWindow(window_handle, win32con.SW_MAXIMIZE)
 
 
