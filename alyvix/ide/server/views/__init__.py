@@ -1378,6 +1378,10 @@ def save_json():
             current_json = library_dict
         #elif library_dict_in_editing is not None:
         #    current_json = library_dict_in_editing
+        try:
+            original_object_dict = copy.deepcopy(current_json["objects"][current_objectname])
+        except:
+            original_object_dict = {}
 
         json_data = json.loads(request.data)
         object_name = json_data['object_name']
@@ -1761,8 +1765,10 @@ def save_json():
             if current_objectname in current_json["objects"]:
                 del current_json["objects"][current_objectname]
 
-        current_json["objects"][object_name]["date_modified"] = \
-            datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
+        if original_object_dict != current_json["objects"][object_name]:
+
+            current_json["objects"][object_name]["date_modified"] = \
+                datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
 
         if browser_class._browser_2 is not None:
