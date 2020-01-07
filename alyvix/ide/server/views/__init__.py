@@ -616,6 +616,8 @@ def ide_open_file_api():
 def ide_save_as_api():
 
     global library_dict
+    global library_dict_in_editing
+    global current_filename
 
     import tempfile, base64, zlib
 
@@ -643,6 +645,20 @@ def ide_save_as_api():
     if filename != "":
         with open(filename, 'w') as f:
             json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+
+
+        library_dict_in_editing = None
+
+        lm = LibraryManager()
+        lm.load_file(filename)
+        library_dict = lm.get_json()
+
+
+        current_filename = filename
+
+        browser_class._browser_3.Reload()
+
+        # browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 

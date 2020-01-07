@@ -234,8 +234,8 @@ class ViewerManager(ViewerManagerBase):
 
         elif father == "ide":
 
-            self._hwnd_3 = self.create_window(title="Alyvix Ide",
-                                              class_name="alyvix.ide",
+            self._hwnd_3 = self.create_window(title="Alyvix Editor",
+                                              class_name="alyvix.editor",
                                               width=1000,
                                               height=600,
                                               window_proc=window_proc_3,
