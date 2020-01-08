@@ -96,6 +96,9 @@ class ViewerManager(ViewerManagerBase):
         elif self._father == "ide":
             win32gui.PostMessage(self._hwnd_3, win32con.WM_CLOSE, 0, 0)
 
+    def change_title(self, hwnd, title):
+        win32gui.SetWindowText(hwnd, title)
+
     def close_and_no_shutdown(self):
         win32gui.PostMessage(self._hwnd_2, win32con.WM_CLOSE, 0, 0)
         print("close {}".format(self._hwnd_2))
@@ -112,7 +115,10 @@ class ViewerManager(ViewerManagerBase):
 
         # And SetAsForegroundWindow becomes
         self.shell.SendKeys('%')
-        win32gui.SetForegroundWindow(hwnd)
+        try:
+            win32gui.SetForegroundWindow(hwnd)
+        except:
+            pass
         win32gui.BringWindowToTop(hwnd)
         self._browser_1.SetFocus(True)
 

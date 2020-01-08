@@ -191,6 +191,8 @@ def panel():
 
     #ide_button_edit_api quando nel selector si cambia selezione
 
+    browser_class.change_title(browser_class._hwnd_3, "Alyvix Editor - " + filename_no_extension)
+
     return render_template('panel.html', res_w=res_w, res_h=res_h, scaling_factor=int(scaling_factor * 100),
                            res_string=resolution_string, current_library_name=filename_no_extension)
 
@@ -606,6 +608,12 @@ def ide_open_file_api():
 
     current_filename = file_path
 
+    filename_path = os.path.dirname(current_filename)
+    filename_no_path = os.path.basename(current_filename)
+    filename_no_extension = os.path.splitext(filename_no_path)[0]
+
+    browser_class.change_title(browser_class._hwnd_3, "Alyvix Editor - " + filename_no_extension)
+
     browser_class._browser_3.Reload()
 
     #browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
@@ -655,6 +663,12 @@ def ide_save_as_api():
 
 
         current_filename = filename
+
+        filename_path = os.path.dirname(current_filename)
+        filename_no_path = os.path.basename(current_filename)
+        filename_no_extension = os.path.splitext(filename_no_path)[0]
+
+        browser_class.change_title(browser_class._hwnd_3, "Alyvix Editor - " + filename_no_extension)
 
         browser_class._browser_3.Reload()
 
@@ -931,7 +945,10 @@ def ide_run_api_process():
         os.dup2(output_pipeline[0], 1)
         os.dup2(output_pipeline[1], 2)
 
-    alyvix_file_name = current_filename.split(os.sep)[-1] + ".foride"
+    if "/" in current_filename:
+        alyvix_file_name = current_filename.split("/")[-1] + ".foride"
+    else:
+        alyvix_file_name = current_filename.split("\\")[-1] + ".foride"
 
     with open(tempfile.gettempdir() + os.sep + alyvix_file_name, 'w') as f:
         json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
@@ -1017,6 +1034,12 @@ def ide_new_api():
         filename = default_library_name + str(filename_start_index)
 
     current_filename = filename
+
+    filename_path = os.path.dirname(current_filename)
+    filename_no_path = os.path.basename(current_filename)
+    filename_no_extension = os.path.splitext(filename_no_path)[0]
+
+    browser_class.change_title(browser_class._hwnd_3, "Alyvix Editor - " + filename_no_extension)
 
     browser_class._browser_3.Reload()
 
