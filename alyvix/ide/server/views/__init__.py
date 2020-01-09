@@ -344,7 +344,10 @@ def designer_open_file_api():
     file_path = filedialog.askopenfilename()
     #print(file_path)
 
-    browser_class._browser_1.ExecuteJavascript("setExePath('" + file_path + "')")
+    if browser_class._browser_3 is not None:
+        browser_class._browser_3.ExecuteJavascript("setExePath('" + file_path + "')")
+    else:
+        browser_class._browser_1.ExecuteJavascript("setExePath('" + file_path + "')")
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -959,20 +962,20 @@ def ide_run_api_process():
 
     alyvix_run_process = subprocess.Popen(
         [sys.executable, "-u", alyvix_path + os.sep + "core" + os.sep + "alyvix_robot.py", '-f', tempfile.gettempdir() + os.sep + alyvix_file_name],
-        stdin=sys.stdin,
+        stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
 
 
     while True:
-        print("while")
+        #print("while")
         data = alyvix_run_process.stdout.readline()
         nextline = "".join( chr(x) for x in bytearray(data) )
 
         if nextline == '': #and alyvix_run_process.poll() is not None:
             break
         nextline = nextline.splitlines()[0]
-        print("line: " + str(nextline))
+        print(str(nextline))
         #browser_class._browser_3.ExecuteJavascript("alert('"+nextline+"')")
 
     browser_class._browser_3.ExecuteJavascript("setRunState('RUN')")
