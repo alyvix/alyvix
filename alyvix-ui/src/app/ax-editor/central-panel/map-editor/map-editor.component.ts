@@ -21,7 +21,6 @@ export class MapEditorComponent implements OnInit {
   @Output() mapChange: EventEmitter<MapRowVM[]> = new EventEmitter();
 
   @Input() set rows(rows:MapRowVM[]) {
-
     if(rows) {
       this.valuesColumns = [];
       this.dataSource = [];
@@ -93,8 +92,10 @@ export class MapEditorComponent implements OnInit {
       }
       let values = [];
       this.valuesColumns.forEach(c => {
-        if(row[c] && row[c] !== '') {
+        if(row[c]) {
           values.push(row[c]);
+        } else {
+          values.push("")
         }
       });
       if(values.length == 1) {

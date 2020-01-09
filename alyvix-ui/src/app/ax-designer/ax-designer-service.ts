@@ -221,6 +221,8 @@ export class AxDesignerService {
     }
     this.updateFlags()
 
+    console.log(this.axModel.box_list)
+
     this.updateAx();
 
 
@@ -300,6 +302,7 @@ export class AxDesignerService {
   }
   removeComponent(node: TreeNode) {
     this.axModel.box_list = this.axModel.box_list.filter(x => !fastDeepEqual(x, node.box));
+    console.log(this.axModel.box_list)
     this._loadNodes(false);
   }
   duplicateComponent(node: TreeNode) {
@@ -335,7 +338,7 @@ export class AxDesignerService {
 
   public updateAx() {
     this.axModel.box_list = this.flatBoxList();
-    this.global.setRectangles();
+    this.global.setRectangles(this.axModel.box_list);
   }
 
 

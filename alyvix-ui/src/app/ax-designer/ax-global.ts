@@ -32,7 +32,7 @@ export abstract class DesignerGlobal{
     abstract newComponent(group:number):any
     abstract setPoint(i:number):any
 
-    abstract setRectangles():any
+    abstract setRectangles(boxes:BoxListEntity[]):any
 
     abstract getGroupsFlag():GroupsFlag //can be mocked no effect on UI
     abstract setGroupFlags(flags:GroupsFlag) //can be mocked no effect on UI
@@ -79,7 +79,7 @@ export class MockDesignerGlobal extends DesignerGlobal{
     getGroupsFlag(): GroupsFlag {
         return AxModelMock.flags();
     }
-    setRectangles() {
+    setRectangles(b:BoxListEntity[]) {
 
     }
 
@@ -127,7 +127,7 @@ export class DesignerGlobalRef extends DesignerGlobal {
   lastElement(): BoxListEntity { return this.zone.runOutsideAngular(() =>(window as any).lastElement()) }
   newComponent(group: number) { return this.zone.runOutsideAngular(() =>(window as any).newComponent(group)) }
   setPoint(i: number) { return this.zone.runOutsideAngular(() =>(window as any).setPoint(i)) }
-  setRectangles() { return this.zone.runOutsideAngular(() =>(window as any).setRectangles()) }
+  setRectangles(b:BoxListEntity[]) { return this.zone.runOutsideAngular(() =>(window as any).setRectangles(b)) }
   getGroupsFlag(): GroupsFlag { return this.zone.runOutsideAngular(() =>(window as any).getGroupsFlag()) }
   setGroupFlags(flags: GroupsFlag) { return this.zone.runOutsideAngular(() =>(window as any).setGroupFlags(flags)) }
   getSelectedNode(): number { return this.zone.runOutsideAngular(() =>(window as any).getSelectedNode()) }

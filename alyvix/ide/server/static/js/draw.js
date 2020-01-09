@@ -1,6 +1,7 @@
 var dpi = window.devicePixelRatio || 1;
 
-function setRectangles() {
+function setRectangles(_boxes) {
+    model.box_list = _boxes
     boxes = model.box_list;
     rectManager.set_rectangles(model.box_list);
     draw(rectManager.last_mouse_event);

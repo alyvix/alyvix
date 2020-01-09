@@ -2,6 +2,7 @@ import { Component, OnInit, Inject, ViewChild, ElementRef } from '@angular/core'
 import { DesignerGlobal } from 'src/app/ax-designer/ax-global';
 import { EditorGlobal } from '../../editor-global';
 import { DomSanitizer } from '@angular/platform-browser';
+import { BoxListEntity } from 'src/app/ax-model/model';
 
 @Component({
   selector: 'app-monitor',
@@ -36,10 +37,15 @@ export class MonitorComponent implements OnInit {
         this._background = bg;
       }
     })
+    this.editorGlobal.setCanvas(this.monitorCanvas.nativeElement);
     this.monitorCanvas.nativeElement.height = this.h;
     this.monitorCanvas.nativeElement.width = this.w;
-    this.editorGlobal.setCanvas(this.monitorCanvas.nativeElement);
-    this.designerGlobal.setRectangles();
+    this.designerGlobal.axModel().subscribe(m => {
+      const boxes = m ? m.box_list : null;
+      this.designerGlobal.setRectangles(boxes);
+    })
+
+
   }
 
   background() {

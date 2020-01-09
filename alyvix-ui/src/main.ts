@@ -61,11 +61,16 @@ function unloadAlyvixSelector() {
 }
 
 function setExePath(path) {
+  console.log("Calling setExePath("+ path + ")")
   const zone = ngZone();
   if(zone) {
     zone.run(() => {
       if(designer) {
         const datastore = designer.injector.get(DesignerDatastoreService);
+        datastore.setSelectedFile(path);
+      } else if(editor) {
+        console.log("in editor")
+        const datastore = editor.injector.get(DesignerDatastoreService);
         datastore.setSelectedFile(path);
       }
     });
