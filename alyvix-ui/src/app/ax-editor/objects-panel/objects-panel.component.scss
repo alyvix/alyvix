@@ -53,6 +53,7 @@
         font-family: $font;
         letter-spacing: 2px;
         background-color: transparent;
+        width: 150px;
         &:hover, &:focus{
           outline: none;
           border-bottom: 1px solid $blue;
@@ -64,8 +65,7 @@
 
 
     button{
-      position: absolute;
-      right: 10px;
+      float: right;
       background-color: transparent;
       &.light{
         color: $gray;
