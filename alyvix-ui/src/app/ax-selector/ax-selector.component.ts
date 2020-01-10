@@ -141,13 +141,9 @@ export class AxSelectorComponent implements OnInit {
 
   onImport(rows: RowVM[]) {
     SelectorUtils.duplicateRows(rows, this.main.data);
-    if(this.editor) {
-      this.datastore.saveData(this.main.data,false).subscribe(x =>
-        this.toastr.success("OBJECT IMPORTED")
-      );
-    } else {
+    this.datastore.saveData(this.main.data,false).subscribe(x =>
       this.toastr.success("OBJECT IMPORTED")
-    }
+    );
   }
 
 }
