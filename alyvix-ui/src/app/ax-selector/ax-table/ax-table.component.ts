@@ -343,11 +343,6 @@ export class AxTableComponent implements OnInit {
     this.datastore.changedTimeout.emit(timeout);
   }
 
-  changeBreak(row:RowVM,b:boolean) {
-    row.object.detection.break = b;
-    this.datastore.changedBreak.emit(b);
-  }
-
   isSelected(row:RowVM):boolean {
     return this.selectedRows.map(x => x.id).includes(row.id);
   }
@@ -401,6 +396,19 @@ export class AxTableComponent implements OnInit {
       condition: 'run',
       disabled: false
     };
+  }
+
+  breakClick(event,row:RowVM) {
+    event.stopPropagation();
+    row.object.detection.break = event.target.checked
+    if(this.selectedRows.length == 1 && this.selectedRows[0].id === row.id) {
+      this.datastore.changedBreak.emit(event.target.checked);
+    }
+  }
+
+  measureClick(event,row:RowVM) {
+    event.stopPropagation();
+    row.object.measure.output = event.target.checked
   }
 
 

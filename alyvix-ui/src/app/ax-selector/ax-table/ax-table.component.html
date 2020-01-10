@@ -67,12 +67,12 @@
 
             <!-- Break Definition -->
             <ng-container cdkColumnDef="break">
-                <cdk-cell *cdkCellDef="let row" class="small"><input [disabled]="readonly" class="regular-checkbox" [ngModel]="row.object.detection.break" (ngModelChange)="changeBreak(row,$event)" type="checkbox" /></cdk-cell>
+                <cdk-cell *cdkCellDef="let row" class="small"><input [disabled]="readonly" class="regular-checkbox" (click)="breakClick($event,row)" [ngModel]="row.object.detection.break" type="checkbox" /></cdk-cell>
             </ng-container>
 
             <!-- Measure Definition -->
             <ng-container cdkColumnDef="measure">
-                <cdk-cell *cdkCellDef="let row" class="small"><input [disabled]="readonly" class="regular-checkbox" [(ngModel)]="row.object.measure.output" type="checkbox" />
+                <cdk-cell *cdkCellDef="let row" class="small"><input [disabled]="readonly" class="regular-checkbox" (click)="measureClick($event,row)" [ngModel]="row.object.measure.output" type="checkbox" />
                 </cdk-cell>
             </ng-container>
 
