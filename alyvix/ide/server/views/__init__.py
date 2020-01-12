@@ -1430,7 +1430,14 @@ def save_json():
         curr_call = json_data.get("call", {})
 
 
-        curr_measure = json_data.get("measure", {})
+        if browser_class._browser_2 is not None or browser_class._browser_3 is not None:
+            try:
+                curr_measure = library_dict["objects"][current_objectname]["measure"]
+            except:
+                curr_measure = {}
+
+        else:
+            curr_measure = json_data.get("measure", {})
         curr_output = curr_measure.get("output", True)
         curr_thresholds = curr_measure.get("thresholds", {})
 
@@ -1827,6 +1834,7 @@ def save_json():
             browser_class.close()
 
         aaa = "asas"
+    browser_class._browser_1.LoadUrl("http://127.0.0.1:" + str(current_port) + "/static/blank.html")
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route("/save_all", methods=['GET', 'POST'])
