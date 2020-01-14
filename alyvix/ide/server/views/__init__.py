@@ -975,7 +975,7 @@ def ide_run_api_process():
         if nextline == '': #and alyvix_run_process.poll() is not None:
             break
         nextline = nextline.splitlines()[0]
-        print(str(nextline))
+        #print(str(nextline))
         #browser_class._browser_3.ExecuteJavascript("alert('"+nextline+"')")
 
     browser_class._browser_3.ExecuteJavascript("setRunState('RUN')")
