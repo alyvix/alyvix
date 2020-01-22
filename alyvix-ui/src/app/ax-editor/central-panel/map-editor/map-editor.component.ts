@@ -3,7 +3,10 @@ import { MapRowVM } from 'src/app/ax-selector/selector-datastore.service';
 import { Utils } from 'src/app/utils';
 
 
-
+export interface MapWithName{
+  name: string,
+  rows: MapRowVM[]
+}
 
 
 
@@ -17,20 +20,22 @@ export class MapEditorComponent implements OnInit {
   displayedColumns: string[] = [];
   valuesColumns: string[] = [];
   dataSource = [];
+  mapName:string = '';
 
   @Output() mapChange: EventEmitter<MapRowVM[]> = new EventEmitter();
 
-  @Input() set rows(rows:MapRowVM[]) {
-    if(rows) {
+  @Input() set rows(map:MapWithName) {
+    if(map.rows && map.name !== this.mapName) {
+      this.mapName = map.name;
       this.valuesColumns = [];
       this.dataSource = [];
       this.valuesColumns = [];
-      let lenghts:number[] = rows.map(r => r.values ? r.values.length : 1);
+      let lenghts:number[] = map.rows.map(r => r.values ? r.values.length : 1);
       this.displayedColumns.push("key");
       for(let i = 1; i<=Math.max(...lenghts);i++) {
         this.valuesColumns.push('value'+i);
       }
-      this.dataSource = rows.map((r,i) => {
+      this.dataSource = map.rows.map((r,i) => {
         let res = {id: Utils.uuidv4(), key: r.name}
         if(r.value) {
           res['value1'] = r.value;

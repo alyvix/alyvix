@@ -8,6 +8,7 @@ import { SelectorGlobal } from 'src/app/ax-selector/global';
 
 import { debounce } from 'rxjs/operators';
 import { timer } from 'rxjs';
+import { MapWithName } from './map-editor/map-editor.component';
 
 
 
@@ -91,6 +92,13 @@ export class CentralPanelComponent implements OnInit {
 
   mapChanged(map:MapRowVM[]) {
     this.throttledChange.emit([this.selected,map])
+  }
+
+  mapName(map:MapRowVM[]):MapWithName {
+    return {
+      rows: map,
+      name: this.selected.name
+    }
   }
 
 }
