@@ -25,7 +25,8 @@ export class MapEditorComponent implements OnInit {
   @Output() mapChange: EventEmitter<MapRowVM[]> = new EventEmitter();
 
   @Input() set rows(map:MapWithName) {
-    if(map.rows && map.name !== this.mapName) {
+
+    if(map.rows && map.name != this.mapName) {
       this.mapName = map.name;
       this.valuesColumns = [];
       this.dataSource = [];
@@ -53,8 +54,8 @@ export class MapEditorComponent implements OnInit {
     return ['key'].concat(this.valuesColumns).concat(['actions']);
   }
 
-  tableChanged(values:string[], current:string,column:string) {
-    values[column] = current;
+  tableChanged(values:string[], current,column:string) {
+    values[column] = current.target.value;
     this.emitChange()
   }
 

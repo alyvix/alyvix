@@ -132,8 +132,8 @@ export class ObjectsPanelComponent implements OnInit {
     }
   }
 
-  changeMapName(map:MapsVM, name:string) {
-    map.name = name;
+  changeMapName(map:MapsVM, name) {
+    map.name = name.target.value;
     this.selectMap(map);
     this.editorService.saveThrottled();
   }
@@ -157,8 +157,8 @@ export class ObjectsPanelComponent implements OnInit {
     }
   }
 
-  changeSectionName(section:SectionVM, name:string) {
-    section.name = name;
+  changeSectionName(section:SectionVM, name) {
+    section.name = name.target.value;
     this.selectSection(section);
     this.editorService.saveThrottled();
   }

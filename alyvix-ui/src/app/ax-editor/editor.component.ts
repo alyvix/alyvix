@@ -121,7 +121,11 @@ export class EditorComponent implements OnInit {
 
   private resize() {
     this.topLeftHeight = this.container.nativeElement.offsetHeight - 300;
-    this.leftWidth = this.container.nativeElement.offsetWidth  - this.designerWidth;
+    if(this.designerCollapsed) {
+      this.leftWidth = this.container.nativeElement.offsetWidth
+    } else {
+      this.leftWidth = this.container.nativeElement.offsetWidth  - this.designerWidth
+    }
     this.selectorDatastore.getSelectorHidden().subscribe(hidden => this.setSelectorShow(hidden));
   }
 

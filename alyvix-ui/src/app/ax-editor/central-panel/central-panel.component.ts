@@ -29,6 +29,8 @@ export class CentralPanelComponent implements OnInit {
 
   selected: LeftSelection = this.tabs[0];
 
+  mapSelected:MapWithName = null;
+
 
 
   constructor(
@@ -62,6 +64,9 @@ export class CentralPanelComponent implements OnInit {
       if(s) {
         this.tabs = [s].concat(this.baseTabs);
         this.selected = s;
+        if(this.selected.map) {
+          this.mapSelected = this.mapName(this.selected.map());
+        }
       }
     })
 

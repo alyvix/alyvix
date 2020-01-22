@@ -121,6 +121,45 @@ function setRunState(state:string) {
   }
 }
 
+function consoleAppendLine(line:string) {
+
+  const zone = ngZone();
+  if(zone) {
+    zone.run(() => {
+
+      if (editor) {
+        throw new Error('not implemented yet')
+      }
+    });
+  }
+}
+
+function consoleAppendImage(image:string) {
+
+  const zone = ngZone();
+  if(zone) {
+    zone.run(() => {
+
+      if (editor) {
+        throw new Error('not implemented yet')
+      }
+    });
+  }
+}
+
+function consoleClear() {
+
+  const zone = ngZone();
+  if(zone) {
+    zone.run(() => {
+
+      if (editor) {
+        throw new Error('not implemented yet')
+      }
+    });
+  }
+}
+
 
 (window as any).loadAlyvixEditor = loadAlyvixEditor;
 (window as any).loadAlyvixDesigner = loadAlyvixDesigner;
@@ -132,6 +171,10 @@ function setRunState(state:string) {
 (window as any).changeResolution = changeResolution;
 (window as any).reloadAlyvixIde = reloadAlyvixIde;
 (window as any).setRunState = setRunState;
+
+(window as any).consoleAppendLine = consoleAppendLine;
+(window as any).consoleAppendImage = consoleAppendImage;
+(window as any).consoleClear = consoleClear;
 
 (window as any).axModelMock =  function() {
   return AxModelMock.get();
