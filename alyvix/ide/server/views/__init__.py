@@ -1958,6 +1958,22 @@ def get_library_api():
     #return jsonify(ret_dict)
     return jsonify(library_dict)
 
+@app.route("/set_map_api", methods=['POST'])
+def set_map_api():
+    global library_dict
+
+    json_string = json.loads(request.data)
+
+    map_dict = json_string["dict"]
+    map_name = json_string["name"]
+
+    try:
+        library_dict["maps"][map_name] = map_dict
+    except:
+        pass
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
 
 @app.route("/set_library_api", methods=['POST'])
 def set_library_api():

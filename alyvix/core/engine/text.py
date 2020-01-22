@@ -25,7 +25,7 @@ import numpy as np
 import re
 import difflib
 import datetime
-import tesserocr
+import alyvix.core.tesserocr as tesserocr
 from PIL import Image
 from alyvix.tools.screen import ScreenManager
 from alyvix.core.contouring import ContouringManager
