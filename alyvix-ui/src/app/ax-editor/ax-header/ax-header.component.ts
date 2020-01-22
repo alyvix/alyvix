@@ -51,9 +51,11 @@ export class AxHeaderComponent implements OnInit {
   }
 
   run() {
-    this.api.run(this.running ? 'stop' : 'run').subscribe(x => {
-      this.running = !this.running;
-    });
+    this.editorService.save().subscribe(x =>
+      this.api.run(this.running ? 'stop' : 'run').subscribe(x => {
+        this.running = !this.running;
+      })
+    );
   }
 
 
