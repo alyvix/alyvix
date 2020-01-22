@@ -6,7 +6,7 @@ export interface AxModel {
     background: string;
     call?:AxSystemCall;
     measure?:Measure;
-    maps?: {[key:string]: {[key:string]: string}};
+    maps?: AxMaps;
     script?: any;
     designerFromEditor?: boolean
   }

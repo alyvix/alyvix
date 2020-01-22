@@ -3,7 +3,7 @@ import { environment } from "src/environments/environment";
 import { SelectorDatastoreService, AxFile } from "../ax-selector/selector-datastore.service";
 import { Injectable, Inject, NgZone } from "@angular/core";
 import { EditorModule } from "./editor.module";
-import { AxModel, BoxListEntity } from "../ax-model/model";
+import { AxModel, BoxListEntity, AxMaps } from "../ax-model/model";
 import { RowVM } from "../ax-selector/ax-table/ax-table.component";
 import { SelectorGlobal } from "../ax-selector/global";
 import { of, Observable, BehaviorSubject } from 'rxjs';
@@ -23,6 +23,7 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
   private _background:BehaviorSubject<string> = new BehaviorSubject<string>(null);
   private selectedRows:RowVM[];
   private tabSelected:AxFile;
+  private _maps:BehaviorSubject<AxMaps> = new BehaviorSubject<AxMaps>(null);
 
   constructor(
     private api:AlyvixApiService,
@@ -51,6 +52,9 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     });
     this.selectorDatastore.changedBreak.subscribe(b => this._model.value.detection.break = b );
     this.selectorDatastore.changedTimeout.subscribe(to => this._model.value.detection.timeout_s = to );
+    this.selectorDatastore.getMaps().subscribe(maps => {
+      this._maps.next(SelectorDatastoreService.toAxMaps(maps));
+    });
     this.editorService.objectChanged.subscribe(object => {
       this.loadNext(this.selectedRows);
     });
@@ -95,6 +99,10 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
 
   axModel(): Observable<AxModel> {
     return this._model;
+  }
+
+  axMaps(): Observable<AxMaps> {
+    return this._maps;
   }
 
   background(): Observable<string> {

@@ -173,6 +173,17 @@ export class SelectorDatastoreService {
     }
   }
 
+  public static toAxMaps(ms:MapsVM[]):AxMaps {
+      let maps = {}
+      ms.forEach(m => {
+        maps[m.name] = {};
+        m.rows.forEach(r => {
+          maps[m.name][r.name] = r.value || r.values;
+        })
+      })
+      return maps;
+  }
+
   private prepareModelForSubmission(data:RowVM[]):AxSelectorObjects {
     const model:AxSelectorObjects = this.originalLibrary;
     model.objects = {};
@@ -189,13 +200,7 @@ export class SelectorDatastoreService {
     this.script.value.sections.forEach(s => {
       model.script.sections[s.name] = s.instructions;
     });
-    model.maps = {};
-    this.maps.value.forEach(m => {
-      model.maps[m.name] = {};
-      m.rows.forEach(r => {
-        model.maps[m.name][r.name] = r.value || r.values;
-      })
-    });
+    model.maps = SelectorDatastoreService.toAxMaps(this.maps.value);
     return model;
   }
 

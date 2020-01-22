@@ -145,9 +145,9 @@ export class TComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.global.axModel().subscribe(axModel => {
-      if(axModel.maps) {
-        this.maps = Object.keys(axModel.maps);
+    this.global.axMaps().subscribe(maps => {
+      if(maps) {
+        this.maps = Object.keys(maps);
       }
     });
   }

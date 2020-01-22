@@ -1,4 +1,4 @@
-import { AxModel, BoxListEntity } from "../ax-model/model";
+import { AxModel, BoxListEntity, AxMaps } from "../ax-model/model";
 import { AxModelMock } from "../ax-model/mock";
 import { Utils } from "../utils";
 import { Observable } from "rxjs";
@@ -25,6 +25,7 @@ export abstract class DesignerGlobal{
     }
 
     abstract axModel():Observable<AxModel>;
+    abstract axMaps():Observable<AxMaps>;
     abstract background():Observable<string>;
 
     abstract lastElement():BoxListEntity;
@@ -108,6 +109,10 @@ export class MockDesignerGlobal extends DesignerGlobal{
         return of(AxModelMock.get());
     }
 
+    axMaps(): Observable<AxMaps> {
+      return of(AxModelMock.get().maps);
+    }
+
     background():Observable<string> {
       return of(AxModelMock._model.box_list[0].thumbnail.image);
     }
@@ -124,6 +129,7 @@ export class DesignerGlobalRef extends DesignerGlobal {
   }
 
   axModel(): Observable<AxModel> { return this.zone.runOutsideAngular(() => of((window as any).axModel())) }
+  axMaps(): Observable<AxMaps> { return this.zone.runOutsideAngular(() => of((window as any).axModel().maps)) }
   lastElement(): BoxListEntity { return this.zone.runOutsideAngular(() =>(window as any).lastElement()) }
   newComponent(group: number) { return this.zone.runOutsideAngular(() =>(window as any).newComponent(group)) }
   setPoint(i: number) { return this.zone.runOutsideAngular(() =>(window as any).setPoint(i)) }
