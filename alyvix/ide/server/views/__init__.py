@@ -975,7 +975,7 @@ def ide_run_api_process():
         if nextline == '': #and alyvix_run_process.poll() is not None:
             break
         nextline = nextline.splitlines()[0]
-        print(str(nextline))
+        #print(str(nextline))
         #browser_class._browser_3.ExecuteJavascript("alert('"+nextline+"')")
 
     browser_class._browser_3.ExecuteJavascript("setRunState('RUN')")
@@ -1430,7 +1430,14 @@ def save_json():
         curr_call = json_data.get("call", {})
 
 
-        curr_measure = json_data.get("measure", {})
+        if browser_class._browser_2 is not None or browser_class._browser_3 is not None:
+            try:
+                curr_measure = library_dict["objects"][current_objectname]["measure"]
+            except:
+                curr_measure = {}
+
+        else:
+            curr_measure = json_data.get("measure", {})
         curr_output = curr_measure.get("output", True)
         curr_thresholds = curr_measure.get("thresholds", {})
 
@@ -1827,6 +1834,7 @@ def save_json():
             browser_class.close()
 
         aaa = "asas"
+    browser_class._browser_1.LoadUrl("http://127.0.0.1:" + str(current_port) + "/static/blank.html")
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route("/save_all", methods=['GET', 'POST'])
@@ -2027,7 +2035,13 @@ def get_screen_for_selector():
 
 
     except:
-        cv_image = np.zeros((80,80,3), np.uint8)
+        try:
+            screen = library_dict["objects"][current_objectname]["components"][resolution_string]["screen"]
+
+            np_array = np.frombuffer(base64.b64decode(screen), np.uint8)
+            cv_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+        except:
+            cv_image = np.zeros((80,80,3), np.uint8)
 
     #http://127.0.0.1:5000/get_screen_for_selector?object_name=VisualObject1&resolution_string=1920*1080@100
     background_w = cv_image.shape[1]
