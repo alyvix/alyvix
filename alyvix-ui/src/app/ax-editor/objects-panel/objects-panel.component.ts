@@ -126,14 +126,16 @@ export class ObjectsPanelComponent implements OnInit {
     if(confirm('Are you sure to delete map: '+ map + '?')) {
       this.maps = this.maps.filter(x => x !== map);
       this.editorService.save().subscribe(saved => {})
-      this.selectMain()
+      if(this.selected.name == map.name) {
+        this.selectMain();
+      }
     }
   }
 
   changeMapName(map:MapsVM, name:string) {
     map.name = name;
     this.selectMap(map);
-    this.editorService.save().subscribe(saved => {})
+    this.editorService.saveThrottled();
   }
 
   addSection() {
@@ -145,18 +147,20 @@ export class ObjectsPanelComponent implements OnInit {
     this.editorService.save().subscribe(saved => {})
   }
 
-  removeSection(section) {
+  removeSection(section:SectionVM) {
     if(confirm('Are you sure to delete section: '+ section + '?')) {
       this.script.sections = this.script.sections.filter(x => x !== section);
       this.editorService.save().subscribe(saved => {})
-      this.selectMain();
+      if(this.selected.name == section.name) {
+        this.selectMain();
+      }
     }
   }
 
   changeSectionName(section:SectionVM, name:string) {
     section.name = name;
     this.selectSection(section);
-    this.editorService.save().subscribe(saved => {})
+    this.editorService.saveThrottled();
   }
 
   mapToStep(map: MapsVM):Step {

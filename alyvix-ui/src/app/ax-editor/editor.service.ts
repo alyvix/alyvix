@@ -1,8 +1,9 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { SelectorDatastoreService, MapsVM, MapRowVM, AxFile } from '../ax-selector/selector-datastore.service';
-import { BehaviorSubject, Observable, from } from 'rxjs';
+import { BehaviorSubject, Observable, from, timer } from 'rxjs';
 import { AxScriptFlow } from '../ax-model/model';
 import { Step } from './central-panel/script-editor/step/step.component';
+import { debounce } from 'rxjs/operators';
 
 
 export interface LeftSelection{
@@ -28,11 +29,16 @@ export class EditorService {
 
   private beforeSavePromises:(() => Promise<any>)[] = [];
 
+  private throttledChange:EventEmitter<any> = new EventEmitter();
+
 
   constructor(
     private selectorDatastore:SelectorDatastoreService
   ) {
     this.selectorDatastore.tabSelected().subscribe(tab => this.tab = tab);
+    this.throttledChange.pipe(debounce(() => timer(500))).subscribe(x =>{
+      this.save().subscribe(x => {});
+    });
   }
 
 
@@ -61,6 +67,13 @@ export class EditorService {
 
   private beforeSave():Promise<any> {
     return Promise.all(this.beforeSavePromises.map(x => x()));
+  }
+
+
+
+
+  saveThrottled() {
+    this.throttledChange.emit(true);
   }
 
   save():Observable<any> {
