@@ -1,5 +1,6 @@
-import { Component, OnInit, Input, ViewChildren, QueryList, ElementRef, ViewChild, AfterViewInit, DoCheck } from '@angular/core';
+import { Component, OnInit, Input, ViewChildren, QueryList, ElementRef, ViewChild, AfterViewInit, DoCheck, Inject } from '@angular/core';
 import { TreeNode } from '../../ax-designer-service';
+import { DesignerGlobal } from '../../ax-global';
 
 @Component({
   selector: 'app-select-type',
@@ -35,7 +36,9 @@ export class SelectTypeComponent implements OnInit,AfterViewInit {
   }
 
 
-  constructor() { }
+  constructor(
+    @Inject('GlobalRefDesigner') private global: DesignerGlobal,
+  ) { }
 
 
 

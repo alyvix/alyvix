@@ -26,6 +26,7 @@ export abstract class DesignerGlobal{
 
     abstract axModel():Observable<AxModel>;
     abstract axMaps():Observable<AxMaps>;
+    abstract setBoxes(boxes:BoxListEntity[]);
     abstract background():Observable<string>;
 
     abstract lastElement():BoxListEntity;
@@ -53,6 +54,10 @@ export abstract class DesignerGlobal{
   providedIn: 'root'
 })
 export class MockDesignerGlobal extends DesignerGlobal{
+
+    setBoxes(boxes: BoxListEntity[]) {
+      console.log("set Boxes");
+    }
 
     constructor(zone: NgZone) {
       super(zone);
@@ -144,6 +149,13 @@ export class DesignerGlobalRef extends DesignerGlobal {
   uuidv4(): string { return this.zone.runOutsideAngular(() =>(window as any).uuidv4()) }
   background():Observable<string> {
     return of("");
+  }
+  setBoxes(c: BoxListEntity[]) {
+    this.zone.runOutsideAngular(() => {
+      if((window as any).setBoxes) {
+        (window as any).setBoxes(c)
+      }
+    });
   }
 }
 

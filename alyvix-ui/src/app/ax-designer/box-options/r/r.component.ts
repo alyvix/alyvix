@@ -36,13 +36,15 @@ export class RComponent implements OnInit {
 
   onNodeChange() {
     this.mode = this.global.get_rect_type(this.node.box);
-	  //this.global.setTypeNode("R");
+    this.global.setTypeNode("R");
+    this.global.setBoxes(null);
   }
 
   updateMode(event:RectType) {
     //this.global.setTypeNode("R");
     this.global.set_rect_type(event,this.node.box);
     this.mode = event;
+    this.global.setBoxes(null);
   }
 
 

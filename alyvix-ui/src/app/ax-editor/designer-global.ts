@@ -7,7 +7,6 @@ import { AxModel, BoxListEntity, AxMaps } from "../ax-model/model";
 import { RowVM } from "../ax-selector/ax-table/ax-table.component";
 import { SelectorGlobal } from "../ax-selector/global";
 import { of, Observable, BehaviorSubject } from 'rxjs';
-import { EditorGlobal } from "./editor-global";
 import { AxDesignerService } from "../ax-designer/ax-designer-service";
 import { EditorService } from "./editor.service";
 import * as _ from 'lodash';
@@ -30,8 +29,7 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     private selectorDatastore:SelectorDatastoreService,
     private editorService:EditorService,
     zone: NgZone,
-    @Inject('GlobalRefSelector') private global: SelectorGlobal,
-    @Inject('GlobalRefEditor') private editorGlobal: EditorGlobal,) {
+    @Inject('GlobalRefSelector') private global: SelectorGlobal,) {
     super(zone);
     this.selectorDatastore.tabSelected().subscribe(main => { //change tab
       this.tabSelected = main;
@@ -145,9 +143,18 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
       };
 
       this._background.next('data:image/png;base64,'+ x.background);
-      this.editorGlobal.setBoxes(model.box_list);
+      this.setBoxes(model.box_list);
       this._model.next(model);
     })
+  }
+
+  setBoxes(boxes: BoxListEntity[]) {
+    if(boxes) {
+      super.setBoxes(boxes);
+    } else if(this._model.value) {
+      console.log('default boxes')
+      super.setBoxes(this._model.value.box_list)
+    }
   }
 
   lastElement(): BoxListEntity {

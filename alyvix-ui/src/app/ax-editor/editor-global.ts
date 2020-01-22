@@ -7,7 +7,7 @@ export interface EditorGlobal{
   scaling_factor:number;
 
   setCanvas(c:HTMLCanvasElement);
-  setBoxes(boxes:BoxListEntity[]);
+
 
 }
 
@@ -42,8 +42,6 @@ export class EditorGlobalRef implements EditorGlobal {
   setCanvas(c: HTMLCanvasElement) {
     this.zone.runOutsideAngular(() => (window as any).setCanvas(c));
   }
-  setBoxes(c: BoxListEntity[]) {
-    this.zone.runOutsideAngular(() => (window as any).setBoxes(c));
-  }
+
 
 }

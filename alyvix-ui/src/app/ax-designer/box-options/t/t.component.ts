@@ -112,6 +112,7 @@ export class TComponent implements OnInit {
     }
 
     this.global.setTypeNode("T");
+    this.global.setBoxes(null);
   }
 
   changeScrapMode(mode) {
@@ -142,6 +143,7 @@ export class TComponent implements OnInit {
       delete this.node.box.features.T.regexp;
       delete this.node.box.features.T.detection;
     }
+    this.global.setBoxes(null);
   }
 
   ngOnInit() {

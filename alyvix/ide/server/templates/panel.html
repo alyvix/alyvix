@@ -47,6 +47,9 @@
             function setBoxes(b) {
                 boxes = b;
                 model.box_list = b;
+                rectManager.set_rectangles(model.box_list);
+                draw(rectManager.last_mouse_event);
+                console.log(b)
             }
 
 
@@ -58,6 +61,7 @@
 
             function setSelectedNode(i) {
                 selected_box = i;
+                draw(rectManager.last_mouse_event);
             }
 
            
@@ -80,7 +84,7 @@
             }
 
             function setTypeNode(s) { // copy from drawing.html
-                //console.log("setTypeNode Method not implemented.");
+                draw(rectManager.last_mouse_event);
             }
 
 

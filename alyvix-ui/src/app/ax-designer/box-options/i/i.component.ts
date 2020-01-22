@@ -40,6 +40,7 @@ export class IComponent implements OnInit {
   updateMode(event) {
     this.mode = event;
     this.node.box.features.I = event;
+    this.global.setBoxes(null);
   }
 
   ngOnInit() {}
@@ -51,6 +52,7 @@ export class IComponent implements OnInit {
       this.node.box.features.I = this.match;
     }
     this.global.setTypeNode("I");
+    this.global.setBoxes(null);
   }
 
 }
