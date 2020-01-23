@@ -59,6 +59,7 @@ def get_timestamp_formatted():
 filename = None
 
 is_foride = False
+ide_sub_path = None
 
 engine_arguments = []
 objects_names = []
@@ -85,6 +86,8 @@ for i in range(0, len(sys.argv)):
             pass
     elif sys.argv[i] == "-h" or sys.argv == "--help":
         print_help()
+    elif sys.argv[i] == "--is_foride":
+        is_foride = True
 
 if filename is None:
     python_name = os.path.basename(__file__)
@@ -94,12 +97,6 @@ if filename is None:
 
 if filename is not None:
     lm = LibraryManager()
-
-
-    if ".foride" in filename:
-        is_foride = True
-
-    filename = filename.replace(".foride","")
 
     filename = lm.get_correct_filename(filename)
 
@@ -125,8 +122,6 @@ if filename is not None:
               invalid_char_str)
         sys.exit(2)
 
-    if is_foride is True:
-        filename += ".foride"
 
     if os.path.isfile(filename) is False:
         print(filename + " does NOT exist")
@@ -136,8 +131,10 @@ if filename is not None:
 
     library_json = lm.get_json()
 
+    """
     if is_foride is True:
         os.remove(filename)
+    """
 
     timestamp = time.time()
     start_time = timestamp
@@ -359,7 +356,7 @@ if filename is not None:
     om = OutputManager()
     #json_output = om.build_json(chunk, objects_result)
 
-    if verbose >= 2:
+    if verbose >= 2 or is_foride is True:
         om.save_screenshots(filename_path, objects_result, prefix=filename_no_extension)
 
     if not_executed_cnt > 0:
@@ -373,6 +370,6 @@ if filename is not None:
 
     filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
 
-    if is_foride is False:
-        om.save(filename, lm.get_json(), chunk, objects_result, exit, t_end)
+    #if is_foride is False:
+    om.save(filename, lm.get_json(), chunk, objects_result, exit, t_end)
     sys.exit(sys_exit)

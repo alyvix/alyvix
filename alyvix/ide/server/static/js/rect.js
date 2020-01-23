@@ -1413,7 +1413,7 @@ class RectManager{
             
             if(rect.is_main == false) ctx.globalAlpha=0.3;
             else  ctx.globalAlpha=0.5;
-            
+            ctx.beginPath();
             ctx.rect(x_max, y_max, max_width, max_height);
             
             ctx.moveTo(x_min, y_min);

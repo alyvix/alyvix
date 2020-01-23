@@ -120,6 +120,8 @@ output_pipeline = None
 
 loglevel=None
 
+alyvix_run_tmp_path=None
+
 def detachedProcessFunction(wait_time):
     i=0
     while i<wait_time:
@@ -941,6 +943,7 @@ def ide_run_api_process():
     global current_filename
     global library_dict
     global alyvix_run_process
+    global alyvix_run_tmp_path
 
     browser_class.minimize(browser_class._hwnd_3)
 
@@ -949,11 +952,20 @@ def ide_run_api_process():
         os.dup2(output_pipeline[1], 2)
 
     if "/" in current_filename:
-        alyvix_file_name = current_filename.split("/")[-1] + ".foride"
+        alyvix_file_name = current_filename.split("/")[-1]
     else:
-        alyvix_file_name = current_filename.split("\\")[-1] + ".foride"
+        alyvix_file_name = current_filename.split("\\")[-1]
 
-    with open(tempfile.gettempdir() + os.sep + alyvix_file_name, 'w') as f:
+    alyvix_run_tmp_path = tempfile.gettempdir() + os.sep + "alyvix" + os.sep +\
+                          datetime.datetime.now().strftime("%m%d%Y%H%M%S") + str(random.randint(1000, 9999))
+
+    try:
+        os.makedirs(alyvix_run_tmp_path)
+    except FileExistsError:
+        # directory already exists
+        pass
+
+    with open(alyvix_run_tmp_path + os.sep + alyvix_file_name, 'w') as f:
         json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
 
     python_interpreter = sys.executable
@@ -961,7 +973,8 @@ def ide_run_api_process():
     alyvix_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir + os.sep + os.pardir + os.sep + os.pardir))
 
     alyvix_run_process = subprocess.Popen(
-        [sys.executable, "-u", alyvix_path + os.sep + "core" + os.sep + "alyvix_robot.py", '-f', tempfile.gettempdir() + os.sep + alyvix_file_name],
+        [sys.executable, "-u", alyvix_path + os.sep + "core" + os.sep + "alyvix_robot.py", '-f', alyvix_run_tmp_path +os.sep + alyvix_file_name,
+            "--is_foride"],
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
@@ -975,18 +988,26 @@ def ide_run_api_process():
         if nextline == '': #and alyvix_run_process.poll() is not None:
             break
         nextline = nextline.splitlines()[0]
+        browser_class._browser_3.ExecuteJavascript("consoleAppendLine('"+nextline+"')")
         #print(str(nextline))
         #browser_class._browser_3.ExecuteJavascript("alert('"+nextline+"')")
 
     browser_class._browser_3.ExecuteJavascript("setRunState('RUN')")
 
+    try:
+        #STOP button already remove it
+        shutil.rmtree(alyvix_run_tmp_path)
+        #restore if we dont press stop
+        browser_class.restore(browser_class._hwnd_3)
+    except:
+        pass
 
     if loglevel == 0:
         null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
         os.dup2(null_fds[0], 1)
         os.dup2(null_fds[1], 2)
 
-    browser_class.restore(browser_class._hwnd_3)
+
 
 
 @app.route("/ide_run_api", methods=['GET', 'POST'])
@@ -996,17 +1017,17 @@ def ide_run_api():
     global kill_alyvix_process
     global current_filename
     global library_dict
+    global alyvix_run_tmp_path
     #action=run, stop
     action = request.args.get("action")
     if action == "run":
+        browser_class._browser_3.ExecuteJavascript("consoleClear()")
         alyvix_run_thread = threading.Thread(target=ide_run_api_process)
         alyvix_run_thread.start()
     elif action == "stop":
         kill_alyvix_process = True
         try:
-            alyvix_file_name = current_filename.split(os.sep)[-1] + ".foride"
-
-            os.remove(tempfile.gettempdir() + os.sep + alyvix_file_name)
+            shutil.rmtree(alyvix_run_tmp_path)
         except:
             pass
         alyvix_run_process.kill()
