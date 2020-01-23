@@ -33,19 +33,19 @@ export class AxHeaderComponent implements OnInit {
   }
 
   exit() {
-    if(confirm("Are you sure you want to exit Alyvix-IDE?")) {
+    if(confirm("Are you sure you want to exit Alyvix Editor?")) {
       this.api.exitIde();
     }
   }
 
   newFile() {
-    if(confirm("Are you sure you want to close the current case?")) {
+    if(confirm("Are you sure you want to close the current test case?")) {
       this.api.newCase();
     }
   }
 
   openFile() {
-    if(confirm("Are you sure you want to close the current case?")) {
+    if(confirm("Are you sure you want to close the current test case?")) {
       this.api.openCase();
     }
   }

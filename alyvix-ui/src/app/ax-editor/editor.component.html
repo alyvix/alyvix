@@ -32,7 +32,7 @@
     <div class="designer-right" [ngClass]="{'hide-designer': designerCollapsed}">
       <div class="show-hide show-designer" (click)="toggleDesigner()"><p *ngIf="!designerCollapsed">Hide</p><p *ngIf="designerCollapsed">Designer</p></div>
       <ax-designer [editor]="true" *ngIf="hasDesigner"></ax-designer>
-      <div class="message" *ngIf="!hasDesigner && !designerCollapsed">Select one object<br>for the current resolution</div>
+      <div class="message" *ngIf="!hasDesigner && !designerCollapsed">Select an object<br>for the current resolution</div>
     </div>
   </div>
 

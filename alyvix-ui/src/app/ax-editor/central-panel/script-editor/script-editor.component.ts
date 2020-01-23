@@ -166,7 +166,7 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
   }
 
   deleteSelected() {
-    if(confirm("Are you sure to delete steps?")) {
+    if(confirm("Are you sure you want to delete this step?")) {
       this._steps = this._steps.filter(s => !this.selectedSteps.map(ss => ss.id).includes(s.id));
       this.selectedSteps = [];
       this.emitChange();

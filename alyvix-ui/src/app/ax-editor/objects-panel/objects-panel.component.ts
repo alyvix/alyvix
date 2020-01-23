@@ -125,7 +125,7 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   removeMap(map:MapsVM) {
-    if(confirm('Are you sure to delete map: '+ map + '?')) {
+    if(confirm('Are you sure you want to delete that map?')) {
       this.maps = this.maps.filter(x => x !== map);
       this.editorService.save().subscribe(saved => {})
       if(this.selected.name == map.name) {
@@ -150,7 +150,7 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   removeSection(section:SectionVM) {
-    if(confirm('Are you sure to delete section: '+ section + '?')) {
+    if(confirm('Are you sure you want to delete that section?')) {
       this.script.sections = this.script.sections.filter(x => x !== section);
       this.editorService.save().subscribe(saved => {})
       if(this.selected.name == section.name) {

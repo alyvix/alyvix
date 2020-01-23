@@ -23,7 +23,7 @@
         </select>
 
         <div *ngIf="!editor">
-          <span class="inline-label">Timeout [s]</span>
+          <span class="inline-label">Timeout [sec]</span>
           <input  [(ngModel)]="axModel.detection.timeout_s" type="number" (change)="changeTimeout()" class="small mousetrap" min="1"/>
         </div>
         <div *ngIf="!editor">

@@ -141,7 +141,7 @@ export class AlyvixApiService {
     return this.httpClient.get<any>('/save_all?close_editor='+close).subscribe(x => {
       console.log("save all");
       this.endLoading.emit(true);
-      this.toastr.success("CASE SAVED");
+      this.toastr.success("Test Case Saved");
     })
   }
 
@@ -161,7 +161,7 @@ export class AlyvixApiService {
     this.startLoading.emit(true);
     return this.httpClient.get<any>('/ide_save_as_api').subscribe(x => {
       this.endLoading.emit(true);
-      this.toastr.success("CASE SAVED");
+      this.toastr.success("Test Case Saved");
     })
   }
 
