@@ -1,5 +1,5 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { AxSelectorObjects, AxSelectorComponentGroups, AxScript, AxMaps, AxScriptFlow } from '../ax-model/model';
+import { AxSelectorObjects, AxSelectorComponentGroups, AxScript, AxMaps, AxScriptFlow, AxMap } from '../ax-model/model';
 import { RowVM } from './ax-table/ax-table.component';
 import { Utils } from '../utils';
 import { AlyvixApiService } from '../alyvix-api.service';
@@ -176,12 +176,17 @@ export class SelectorDatastoreService {
   public static toAxMaps(ms:MapsVM[]):AxMaps {
       let maps = {}
       ms.forEach(m => {
-        maps[m.name] = {};
-        m.rows.forEach(r => {
-          maps[m.name][r.name] = r.value || r.values;
-        })
+        maps[m.name] = SelectorDatastoreService.toAxMap(m.rows);
       })
       return maps;
+  }
+
+  public static toAxMap(m:MapRowVM[]):AxMap  {
+        let obj = {};
+        m.forEach(r => {
+          obj[r.name] = r.value || r.values;
+        })
+        return obj;
   }
 
   private prepareModelForSubmission(data:RowVM[]):AxSelectorObjects {

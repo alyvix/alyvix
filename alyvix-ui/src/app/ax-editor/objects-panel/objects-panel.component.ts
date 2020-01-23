@@ -5,6 +5,7 @@ import { SelectorDatastoreService, MapsVM, SectionVM, ScriptEmpty,ScriptVM } fro
 import { AxScriptFlow } from 'src/app/ax-model/model';
 import { Step } from '../central-panel/script-editor/step/step.component';
 import { Utils } from 'src/app/utils';
+import { AlyvixApiService } from 'src/app/alyvix-api.service';
 
 
 
@@ -18,7 +19,8 @@ export class ObjectsPanelComponent implements OnInit {
   constructor(
     private objectRegistry:ObjectsRegistryService,
     private editorService:EditorService,
-    private selectorDatastore:SelectorDatastoreService
+    private selectorDatastore:SelectorDatastoreService,
+    private alyvixApi:AlyvixApiService
     ) { }
 
 
@@ -64,7 +66,7 @@ export class ObjectsPanelComponent implements OnInit {
     this.selected = {name:map.name, type: 'map', map: () => map.rows, onChangeMap: rows => {
       map.rows = rows
       this.selectorDatastore.setMaps(this.maps);
-      this.editorService.save().subscribe(x => {});
+      this.alyvixApi.saveMap(map.name,SelectorDatastoreService.toAxMap(rows)).subscribe(x => {})
     }};
     this.editorService.setLeftSelection(this.selected);
   }

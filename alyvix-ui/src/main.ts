@@ -128,7 +128,8 @@ function consoleAppendLine(line:string) {
     zone.run(() => {
 
       if (editor) {
-        throw new Error('not implemented yet')
+        const service = editor.injector.get(EditorService);
+        service.consoleAppendLine(line);
       }
     });
   }
@@ -141,7 +142,8 @@ function consoleAppendImage(image:string) {
     zone.run(() => {
 
       if (editor) {
-        throw new Error('not implemented yet')
+        const service = editor.injector.get(EditorService);
+        service.consoleAppendImage(image);
       }
     });
   }
@@ -154,7 +156,8 @@ function consoleClear() {
     zone.run(() => {
 
       if (editor) {
-        throw new Error('not implemented yet')
+        const service = editor.injector.get(EditorService);
+        service.consoleClear();
       }
     });
   }

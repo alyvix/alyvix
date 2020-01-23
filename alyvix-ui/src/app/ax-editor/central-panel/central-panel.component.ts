@@ -22,8 +22,9 @@ export class CentralPanelComponent implements OnInit {
   private throttledChange:EventEmitter<[LeftSelection,MapRowVM[]]> = new EventEmitter();
 
   monitorTab:LeftSelection = {name: 'Monitor', type:'monitor'};
+  consoleTab:LeftSelection = {name: 'Console', type:'console'};
 
-  baseTabs: LeftSelection[] = [this.monitorTab];
+  baseTabs: LeftSelection[] = [this.monitorTab,this.consoleTab];
 
   tabs: LeftSelection[] = [];
 
@@ -31,6 +32,7 @@ export class CentralPanelComponent implements OnInit {
 
   mapSelected:MapWithName = null;
 
+  oldCurrentResolution:string = '';
 
 
   constructor(
@@ -43,24 +45,36 @@ export class CentralPanelComponent implements OnInit {
   ngOnInit() {
 
     this.selectorDatastore.getSelected().subscribe(s => {
-      let isCurrentResolution = s && s.length > 0 && s.every(x => x.selectedResolution === this.global.res_string)
-      if(isCurrentResolution) {
-        this.baseTabs = [this.monitorTab];
-        if(!this.tabs.includes(this.monitorTab)) {
-          this.tabs = this.tabs.concat(this.baseTabs);
+      if(!s || s.length == 0 ||  s.every(x => this.oldCurrentResolution != x.selectedResolution)) {
+        if(s && s.length >0) {
+          this.oldCurrentResolution = s[0].selectedResolution
+        } else {
+          this.oldCurrentResolution = '';
         }
-      } else {
-        this.baseTabs = [];
-        if(this.tabs.includes(this.monitorTab)) {
-          this.tabs = this.tabs.filter(x => x.name !== this.monitorTab.name)
-          if(this.selected.name === this.monitorTab.name && this.tabs[0]) {
-            this.selected = this.tabs[0]
+        console.log('selectorDatastore.getSelected().subscribe');
+        console.log(s);
+        let isCurrentResolution = s && s.length > 0 && s.every(x => x.selectedResolution === this.global.res_string)
+        if(isCurrentResolution) {
+          this.baseTabs = [this.monitorTab,this.consoleTab];
+          if(!this.tabs.includes(this.monitorTab)) {
+            this.tabs = this.tabs.filter(x => x.name !== this.consoleTab.name)
+            this.tabs = this.tabs.concat(this.baseTabs);
+          }
+        } else {
+          this.baseTabs = [this.consoleTab];
+          if(this.tabs.includes(this.monitorTab)) {
+            this.tabs = this.tabs.filter(x => x.name !== this.monitorTab.name)
+            if(this.selected.name === this.monitorTab.name && this.tabs[0]) {
+              this.selected = this.tabs[0]
+            }
           }
         }
       }
     })
 
     this.editorService.getLeftSelection().subscribe(s => {
+      console.log('editorService.getLeftSelection().subscribe')
+      console.log(s)
       if(s) {
         this.tabs = [s].concat(this.baseTabs);
         this.selected = s;
@@ -96,7 +110,7 @@ export class CentralPanelComponent implements OnInit {
 
 
   mapChanged(map:MapRowVM[]) {
-    this.throttledChange.emit([this.selected,map])
+    this.selected.onChangeMap(map);
   }
 
   mapName(map:MapRowVM[]):MapWithName {

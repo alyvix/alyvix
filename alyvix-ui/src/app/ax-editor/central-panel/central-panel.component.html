@@ -14,6 +14,7 @@
     <div class="ax-main-content">
       <app-script-editor (change)="scriptChanged($event)" *ngIf="selected && selected.type == 'object'" [steps]="selected.steps()"></app-script-editor>
       <app-monitor *ngIf="selected && selected.type == 'monitor'"></app-monitor>
+      <app-console *ngIf="selected && selected.type == 'console'"></app-console>
       <app-map-editor  *ngIf="mapSelected && selected && selected.type == 'map'" [rows]="mapSelected" (mapChange)="mapChanged($event)"></app-map-editor>
     </div>
   </div>

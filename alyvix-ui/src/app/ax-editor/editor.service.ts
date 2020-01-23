@@ -15,6 +15,11 @@ export interface LeftSelection{
   onChangeMap?: (map:MapRowVM[]) => any;
 }
 
+export interface ConsoleElement{
+  line?:string;
+  image?:string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -24,6 +29,8 @@ export class EditorService {
   objectChanged:EventEmitter<string> = new EventEmitter()
   runState:EventEmitter<string> = new EventEmitter()
   private tab:AxFile
+
+  private console:BehaviorSubject<ConsoleElement[]> = new BehaviorSubject<ConsoleElement[]>([])
 
   private objectSave:(objects:string[]) => Observable<any>
 
@@ -86,6 +93,22 @@ export class EditorService {
       });
     });
     return from(promise);
+  }
+
+  consoleClear() {
+    this.console.next([]);
+  }
+
+  consoleAppendLine(line:string) {
+    this.console.next(this.console.value.concat([{line: line}]))
+  }
+
+  consoleAppendImage(image:string) {
+    this.console.next(this.console.value.concat([{image: image}]))
+  }
+
+  consoleElements():Observable<ConsoleElement[]> {
+    return this.console
   }
 
 

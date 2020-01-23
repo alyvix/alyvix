@@ -2,7 +2,6 @@ import { Component, OnInit, Input,ChangeDetectorRef, Output,EventEmitter } from 
 import { MapRowVM } from 'src/app/ax-selector/selector-datastore.service';
 import { Utils } from 'src/app/utils';
 
-
 export interface MapWithName{
   name: string,
   rows: MapRowVM[]
@@ -25,7 +24,8 @@ export class MapEditorComponent implements OnInit {
   @Output() mapChange: EventEmitter<MapRowVM[]> = new EventEmitter();
 
   @Input() set rows(map:MapWithName) {
-
+    console.log(this.mapName)
+    console.log(map)
     if(map.rows && map.name != this.mapName) {
       this.mapName = map.name;
       this.valuesColumns = [];
@@ -114,12 +114,15 @@ export class MapEditorComponent implements OnInit {
     this.mapChange.emit(result);
   }
 
+  dataSourceTrackBy(i,o) {
+    return o.id;
+  }
+
   constructor(
     private changeDetector:ChangeDetectorRef
   ) { }
 
   ngOnInit() {
-
   }
 
 }

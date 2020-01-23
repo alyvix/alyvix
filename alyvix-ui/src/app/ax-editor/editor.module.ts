@@ -41,6 +41,7 @@ import { MapEditorComponent } from './central-panel/map-editor/map-editor.compon
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
 import { NgProgressModule } from '@ngx-progressbar/core';
+import { ConsoleComponent } from './central-panel/console/console.component';
 
 
 
@@ -69,6 +70,7 @@ import { NgProgressModule } from '@ngx-progressbar/core';
     ObjectsPanelComponent,
     MonitorComponent,
     MapEditorComponent,
+    ConsoleComponent,
   ],
   imports: [
     NgxResizableModule,

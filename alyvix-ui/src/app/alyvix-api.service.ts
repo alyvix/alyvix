@@ -1,7 +1,7 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { Observable, throwError, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { BoxListEntity, AxSelectorObjects, DesignerModel, AxModel } from './ax-model/model';
+import { BoxListEntity, AxSelectorObjects, DesignerModel, AxModel, AxMap } from './ax-model/model';
 import { map, retry, catchError } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 
@@ -123,6 +123,11 @@ export class AlyvixApiService {
     } else {
       return of('')
     }
+  }
+
+  saveMap(name:string,map:AxMap):Observable<any> {
+    let obj = {name: name, dict: map}
+    return this.httpClient.post<any>('/set_map_api',obj);
   }
 
   closeDesiger() {
