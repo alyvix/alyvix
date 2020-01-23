@@ -24,8 +24,7 @@ export class MapEditorComponent implements OnInit {
   @Output() mapChange: EventEmitter<MapRowVM[]> = new EventEmitter();
 
   @Input() set rows(map:MapWithName) {
-    console.log(this.mapName)
-    console.log(map)
+
     if(map.rows && map.name != this.mapName) {
       this.mapName = map.name;
       this.valuesColumns = [];

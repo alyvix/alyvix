@@ -60,16 +60,12 @@ export class AxSelectorComponent implements OnInit {
     this.editorService.addBeforeSave(() => {
       let self = this;
       return new Promise(function(resolve,reject) {
-        console.log('before save')
-        console.log(self.toObjectsString(self.main.data))
         self.datastore.setData(self.main.data);
         resolve();
       })
     })
 
     this.datastore.getData().subscribe(data => {
-      console.log('get data')
-      console.log(this.toObjectsString(data))
       this.main = {id:Utils.uuidv4(), data: data, name: this.global.current_library_name, readonly: false, main:true };
       this.datastore.setTabSelected(this.main);
       if(!this.editor) {

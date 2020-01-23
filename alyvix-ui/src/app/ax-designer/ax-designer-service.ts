@@ -221,7 +221,6 @@ export class AxDesignerService {
     }
     this.updateFlags()
 
-    console.log(this.axModel.box_list)
 
     this.updateAx();
 

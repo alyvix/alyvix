@@ -28,7 +28,7 @@
             var current_library_name = "{{current_library_name}}";
 
             //needed for draw
-            ttWIndow_isOpen = false;
+            ttWIndow_isOpen = true; //act like there is an open window in drawing mode
 
             //EDITOR
             function setCanvas(c) {
@@ -49,7 +49,6 @@
                 model.box_list = b;
                 rectManager.set_rectangles(model.box_list);
                 draw(rectManager.last_mouse_event);
-                console.log(b)
             }
 
 

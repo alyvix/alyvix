@@ -51,8 +51,7 @@ export class CentralPanelComponent implements OnInit {
         } else {
           this.oldCurrentResolution = '';
         }
-        console.log('selectorDatastore.getSelected().subscribe');
-        console.log(s);
+
         let isCurrentResolution = s && s.length > 0 && s.every(x => x.selectedResolution === this.global.res_string)
         if(isCurrentResolution) {
           this.baseTabs = [this.monitorTab,this.consoleTab];
@@ -73,8 +72,7 @@ export class CentralPanelComponent implements OnInit {
     })
 
     this.editorService.getLeftSelection().subscribe(s => {
-      console.log('editorService.getLeftSelection().subscribe')
-      console.log(s)
+
       if(s) {
         this.tabs = [s].concat(this.baseTabs);
         this.selected = s;
