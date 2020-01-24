@@ -1629,6 +1629,11 @@ def save_json():
 
                 main["interactions"] = interaction_dict
 
+                if browser_class._browser_3 is not None:
+                    try:
+                        main["rect_type"] = box["rect_type"]
+                    except:
+                        pass
                 if box["group"] == 0:
                     main_0 = main
                 elif box["group"] == 1:
@@ -1774,6 +1779,12 @@ def save_json():
 
                 sub["interactions"] = interaction_dict
 
+                if browser_class._browser_3 is not None:
+                    try:
+                        sub["rect_type"] = box["rect_type"]
+                    except:
+                        pass
+
                 if box["group"] == 0:
                     subs_0.append(sub)
                 elif box["group"] == 1:
@@ -1858,14 +1869,40 @@ def save_json():
     browser_class._browser_1.LoadUrl("http://127.0.0.1:" + str(current_port) + "/static/blank.html")
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
+def remove_a_key(d, remove_key):
+    if isinstance(d, dict):
+        for key in list(d.keys()):
+            if key == remove_key:
+                del d[key]
+            else:
+                remove_a_key(d[key], remove_key)
+
+def findb(key, dictionary):
+    a = ""
+
+    dictionary_copy = {**dictionary}
+    for k, v in dictionary_copy.items():
+        if k == key:
+            del dictionary[k]
+        elif isinstance(v, dict):
+            findb(key, v)
+
+        elif isinstance(v, list):
+            for d in v:
+                if isinstance(d, dict):
+                    findb(key, d)
+
 @app.route("/save_all", methods=['GET', 'POST'])
 def save_all():
     global library_dict
 
     close_editor = request.args.get("close_editor")
 
+    dict_1 = copy.copy(library_dict)
+    a = findb("rect_type", dict_1)
+
     with open(current_filename, 'w') as f:
-        json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+        json.dump(dict_1, f, indent=4, sort_keys=True, ensure_ascii=False)
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 

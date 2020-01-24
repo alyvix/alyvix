@@ -393,7 +393,14 @@ class LibraryManager:
 
                 box["is_main"] = True
 
+                try: #for ide
+                    box["rect_type"] = main_dict["rect_type"]
+                except:
+                    pass
+
                 self.boxes.append(box)
+
+
 
             for box_dict in group_dict["subs"]:
 
@@ -469,6 +476,11 @@ class LibraryManager:
                     box["keyboard"] = sub_dict["interactions"]["keyboard"]
 
                     box["is_main"] = False
+
+                    try:  # for ide
+                        box["rect_type"] = sub_dict["rect_type"]
+                    except:
+                        pass
 
                     self.boxes.append(box)
 
