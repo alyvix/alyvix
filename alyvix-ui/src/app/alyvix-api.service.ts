@@ -47,8 +47,8 @@ export class AlyvixApiService {
   startLoading:EventEmitter<boolean> = new EventEmitter();
   endLoading:EventEmitter<boolean> = new EventEmitter();
 
-  getScrapedText(component_index:number, object_name: string, box: BoxListEntity):Observable<ScrapedText> {
-    return this.httpClient.post<ScrapedText>("/get_scraped_txt?object_name="+object_name+"&idx="+component_index,box)
+  getScrapedText(component_index:number, object_name: string, boxes: BoxListEntity[]):Observable<ScrapedText> {
+    return this.httpClient.post<ScrapedText>("/get_scraped_txt?object_name="+object_name+"&idx="+component_index,boxes)
   }
 
   testScrapedText(scraped:ScrapedText):Observable<TestScrapedResponse> {

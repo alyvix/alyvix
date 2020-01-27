@@ -91,23 +91,26 @@ export class TComponent implements OnInit {
     }
     if (this.node && this.node.box) {
       let object_name = ''
-      this.global.axModel().pipe(first()).subscribe(axModel => object_name = axModel.object_name)
-      this.alyvixApi.getScrapedText(this.axDesigerService.indexSelectedNode(this.node),object_name,this.node.box).subscribe(x => {
-        this.scraped = x.scraped_text;
-        if (!this.node.box.features.T.regexp) {
-          if(this.node.box.features.T.detection === "regex") {
-            this.node.box.features.T.regexp = x.reg_exp
+      this.global.axModel().pipe(first()).subscribe(axModel => {
+        object_name = axModel.object_name
+        this.alyvixApi.getScrapedText(this.axDesigerService.indexSelectedNode(this.node),object_name,axModel.box_list).subscribe(x => {
+          this.scraped = x.scraped_text;
+          if (!this.node.box.features.T.regexp) {
+            if(this.node.box.features.T.detection === "regex") {
+              this.node.box.features.T.regexp = x.reg_exp
+            }
+            this.regex.setValue(x.reg_exp);
+          } else {
+            this.regex.setValue(this.node.box.features.T.regexp);
           }
-          this.regex.setValue(x.reg_exp);
-        } else {
-          this.regex.setValue(this.node.box.features.T.regexp);
-        }
-        if(this.node.box.features.T.logic && this.node.box.features.T.detection === 'number') {
-          this.numberLogic.setValue(this.node.box.features.T.logic);
-        }
-        if(this.node.box.features.T.logic && this.node.box.features.T.detection === 'date') {
-          this.dateLogic.setValue(this.node.box.features.T.logic);
-        }
+          if(this.node.box.features.T.logic && this.node.box.features.T.detection === 'number') {
+            this.numberLogic.setValue(this.node.box.features.T.logic);
+          }
+          if(this.node.box.features.T.logic && this.node.box.features.T.detection === 'date') {
+            this.dateLogic.setValue(this.node.box.features.T.logic);
+          }
+        })
+
       })
     }
 
