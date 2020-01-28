@@ -847,9 +847,19 @@ class TextManager():
         #cv2.imwrite("D:\\alyvix_testcase\\test3.png", source_image)
 
         # resize image
-        bigger_image = cv2.resize(source_image, dim, interpolation=cv2.INTER_CUBIC)
-        #cv2.imwrite("D:\\alyvix_testcase\\test3_2.png", bigger_image)
+        try:
+            bigger_image = cv2.resize(source_image, dim, interpolation=cv2.INTER_CUBIC)
+            #cv2.imwrite("D:\\alyvix_testcase\\test3_2.png", bigger_image)
+        except:
+            return_value = Result()
+            return_value.x = 0 #offset_x + 0
+            return_value.y = 0 #offset_y + 0
+            return_value.w = 0 #roi.w - 0
+            return_value.h = 0 #roi.h - 0
+            return_value.scraped_text = ""
+            objects_found.append(return_value)
 
+            return objects_found
 
         t0 = time.time()
         # with PyTessBaseAPI(path='D:\\python\\tessdata\\tessdata400', lang='eng') as api:

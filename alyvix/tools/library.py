@@ -563,6 +563,142 @@ class LibraryManager:
         except:
             return True
 
+    def build_objects_for_scraper(self, main, subs):
+        ret_subs = []
+        ret_main = None
+
+
+        box = {}
+
+        box["x"] = main["visuals"]["roi"]["screen_x"] + main["visuals"]["selection"]["roi_dx"]
+        box["y"] = main["visuals"]["roi"]["screen_y"] + main["visuals"]["selection"]["roi_dy"]
+        box["w"] = main["visuals"]["selection"]["width"]
+        box["h"] = main["visuals"]["selection"]["height"]
+
+        box["roi_x"] = main["visuals"]["roi"]["screen_x"]
+        box["roi_y"] = main["visuals"]["roi"]["screen_y"]
+        box["roi_w"] = main["visuals"]["roi"]["width"]
+        box["roi_h"] = main["visuals"]["roi"]["height"]
+
+        box["roi_unlimited_left"] = main["visuals"]["roi"]["unlimited_left"]
+        box["roi_unlimited_up"] = main["visuals"]["roi"]["unlimited_up"]
+        box["roi_unlimited_right"] = main["visuals"]["roi"]["unlimited_right"]
+        box["roi_unlimited_down"] = main["visuals"]["roi"]["unlimited_down"]
+
+        box["group"] = main["group"]
+
+        box_type = main["detection"]["type"][0].upper()
+
+        box["features"] = {"I": {}, "R": {}, "T": {}}
+
+        box["features"][box_type] = main["detection"]["features"]
+
+        box["type"] = box_type
+
+        mouse_dict = main["interactions"]["mouse"]
+
+        if mouse_dict["features"] == None:
+            mouse_dict["features"] = {"point": {"dx": 0, "dy": 0}}
+
+        if mouse_dict["type"] == "none":
+            mouse_dict["type"] = None
+
+        try:
+            if (mouse_dict["features"]["point"]["dx"] != 0 or
+                    mouse_dict["features"]["point"]["dy"] != 0):
+                mouse_dict["features"]["point"] = \
+                    {"dx": mouse_dict["features"]["point"]["dx"],
+                     "dy": mouse_dict["features"]["point"]["dy"]}
+        except:
+            pass
+
+        box["mouse"] = mouse_dict
+
+        box["keyboard"] = main["interactions"]["keyboard"]
+
+        box["is_main"] = True
+
+        box["index_in_tree"] = 0
+
+
+        box["index_in_group"] = 0
+
+        ret_main = box
+
+        cnt = 0
+        for box_dict in subs:
+
+            sub_dict = box_dict
+
+            box = {}  # Box()
+
+            box["w"] = main["visuals"]["selection"]["width"]
+            box["h"] = main["visuals"]["selection"]["height"]
+
+            box["roi_x"] = main["visuals"]["roi"]["screen_x"] + \
+                           main["visuals"]["selection"]["roi_dx"] + \
+                           sub_dict["visuals"]["roi"]["main_dx"]
+
+            box["roi_y"] = main["visuals"]["roi"]["screen_y"] + \
+                           main["visuals"]["selection"]["roi_dy"] + \
+                           sub_dict["visuals"]["roi"]["main_dy"]
+
+            box["x"] = box["roi_x"] + sub_dict["visuals"]["selection"]["roi_dx"]
+            box["y"] = box["roi_y"] + sub_dict["visuals"]["selection"]["roi_dy"]
+
+            box["roi_x"] = sub_dict["visuals"]["roi"]["main_dx"]
+
+            box["roi_y"] = sub_dict["visuals"]["roi"]["main_dy"]
+
+            box["roi_w"] = sub_dict["visuals"]["roi"]["width"]
+            box["roi_h"] = sub_dict["visuals"]["roi"]["height"]
+
+            box["roi_unlimited_left"] = sub_dict["visuals"]["roi"]["unlimited_left"]
+            box["roi_unlimited_up"] = sub_dict["visuals"]["roi"]["unlimited_up"]
+            box["roi_unlimited_right"] = sub_dict["visuals"]["roi"]["unlimited_right"]
+            box["roi_unlimited_down"] = sub_dict["visuals"]["roi"]["unlimited_down"]
+
+            box["group"] = box_dict["group"]
+
+            box_type = sub_dict["detection"]["type"][0].upper()
+
+            box["features"] = {"I": {}, "R": {}, "T": {}}
+            box["features"][box_type] = sub_dict["detection"]["features"]
+
+            box["type"] = box_type
+
+            mouse_dict = sub_dict["interactions"]["mouse"]
+
+            if mouse_dict["features"] == None:
+                mouse_dict["features"] = {"point": {"dx": 0, "dy": 0}}
+
+            if mouse_dict["type"] == "none":
+                mouse_dict["type"] = None
+
+            try:
+                if (mouse_dict["features"]["point"]["dx"] != 0 or
+                        mouse_dict["features"]["point"]["dy"] != 0):
+                    mouse_dict["features"]["point"] = \
+                        {"dx": mouse_dict["features"]["point"]["dx"],
+                         "dy": mouse_dict["features"]["point"]["dy"]}
+            except Exception as ex:
+                pass  # print(ex)
+
+            box["mouse"] = mouse_dict
+
+            box["keyboard"] = sub_dict["interactions"]["keyboard"]
+
+            box["is_main"] = False
+            box["is_main"] = False
+
+            box["index_in_tree"] = cnt+1
+            box["index_in_group"] = cnt+1
+
+            cnt+=1
+
+            ret_subs.append(box)
+
+        return (ret_main, ret_subs)
 
     def build_objects_for_engine(self, json_string):
 

@@ -53,6 +53,9 @@ from alyvix.ide.viewer import ViewerManager
 from alyvix.core.contouring import ContouringManager
 from alyvix.core.engine import Roi
 from alyvix.core.engine.text import TextManager
+from alyvix.core.engine.image import ImageManager
+from alyvix.core.engine.rectangle import RectangleManager
+
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.library import LibraryManager
 #for run
@@ -979,7 +982,7 @@ def ide_run_api_process():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
 
-
+    failed = False
     while True:
         #print("while")
         data = alyvix_run_process.stdout.readline()
@@ -988,13 +991,69 @@ def ide_run_api_process():
         if nextline == '': #and alyvix_run_process.poll() is not None:
             break
         nextline = nextline.splitlines()[0]
+        if "ends FAILED" in nextline:
+            failed = True
+        #nextline = nextline.replace(" ","&nbsp;")
         browser_class._browser_3.ExecuteJavascript("consoleAppendLine('"+nextline+"')")
         #print(str(nextline))
         #browser_class._browser_3.ExecuteJavascript("alert('"+nextline+"')")
 
     browser_class._browser_3.ExecuteJavascript("setRunState('RUN')")
 
+
     try:
+        if failed == True:
+            output_files = os.listdir(alyvix_run_tmp_path)
+
+            output_files.remove(alyvix_file_name)
+
+            log_file = None
+
+            for item in output_files:
+                if ".alyvix" in item:
+                    log_file = item
+
+            alyvix_output = None
+            with open(alyvix_run_tmp_path + os.sep + log_file) as f:
+                alyvix_output = json.load(f)
+
+            objects = alyvix_output["objects"]
+
+            timestamp = 7258196509
+            ordered_object = []
+
+            for key, value in objects.items():
+
+                if value["measure"]["timestamp"] != -1 and value["measure"]["exit"]=="fail":
+                    ordered_object.append(value)
+
+            ordered_object = sorted(ordered_object, key=lambda k: k['measure']['timestamp'])
+
+            sm = ScreenManager()
+            scaling_factor = sm.get_scaling_factor()
+
+            if scaling_factor > 1:
+                np_array = np.frombuffer(base64.b64decode(ordered_object[0]['measure']['annotation']), np.uint8)
+
+                background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+
+
+                dim = (int(background_image.shape[1]/scaling_factor), int(background_image.shape[0]/scaling_factor))
+
+                resized = cv2.resize(background_image, dim, interpolation=cv2.INTER_CUBIC)
+
+                png_image = cv2.imencode('.png', resized)
+
+                base64png = base64.b64encode(png_image[1]).decode('ascii')
+            else:
+                base64png = ordered_object[0]['measure']['annotation']
+
+            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('')")
+            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('The screen appeared as follows:')")
+            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('')")
+            browser_class._browser_3.ExecuteJavascript("consoleAppendImage ('" + base64png + "')")
+
         #STOP button already remove it
         shutil.rmtree(alyvix_run_tmp_path)
         #restore if we dont press stop
@@ -1031,6 +1090,7 @@ def ide_run_api():
         except:
             pass
         alyvix_run_process.kill()
+        browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('"+get_timestamp_formatted()+": Alyvix stopped')")
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 @app.route("/ide_new_api", methods=['GET', 'POST'])
@@ -2037,10 +2097,14 @@ def set_map_api():
 def set_library_api():
     global library_dict
     global original_screens
+    global library_dict_in_editing
 
     json_string = json.loads(request.data)
 
     objects = json_string["library"]["objects"]
+
+    if bool(objects) is False:
+        library_dict_in_editing = None
 
     #reconstruct comp
     for obj in objects:
@@ -2141,17 +2205,144 @@ def get_screen_for_selector():
 def get_scraped_txt():
     if request.method == 'POST':
 
+        object_name = request.args.get('object_name')
+        index = int(request.args.get('idx'))
+
         json_data = json.loads(request.data)
 
+        #curr_group = json_data["group"]
+        curr_group = json_data[index-1]["group"]
+
+        #lm = LibraryManager()
+        #obj_definition = lm.build_objects_for_engine(dict_obj)
+
+        main_in_curr_group = None
+        sub_in_curr_group = []
+
+        for element in json_data:
+            if element["is_main"] == True and element["group"] == curr_group:
+                main_in_curr_group = element
+            elif element["is_main"] == False and element["group"] == curr_group:
+                sub_in_curr_group.append(main_in_curr_group)
+
+        #lm = LibraryManager()
+        #main, subs = lm.build_objects_for_scraper(main_in_curr_group, sub_in_curr_group)
+
+        add_h = int((main_in_curr_group["h"]*scaling_factor)/2)
+        y = int(main_in_curr_group["y"]*scaling_factor) - add_h
+        h = int(main_in_curr_group["h"]*scaling_factor) + (add_h*2)
+
+        add_w = int((main_in_curr_group["w"]*scaling_factor) / 2)
+        x = int(main_in_curr_group["x"]*scaling_factor) - add_w
+        w = int(main_in_curr_group["w"]*scaling_factor) + (add_w*2)
+
+        y1 = y
+        y2 = y1 + h
+
+        x1 = x
+        x2 = x1 + w
+
+        tmpl_y1 = main_in_curr_group["y"]
+        tmpl_y2 = tmpl_y1 + main_in_curr_group["h"]
+
+        tmpl_x1 = main_in_curr_group["x"]
+        tmpl_x2 = tmpl_x1 + main_in_curr_group["w"]
+
+        source_img_h = background_image.shape[0]
+        source_img_w = background_image.shape[1]
+
+        if y1 < 0:
+            y1 = 0
+        elif y1 > source_img_h:
+            y1 = source_img_h
+
+        if y2 < 0:
+            y2 = 0
+        elif y2 > source_img_h:
+            y2 = source_img_h
+
+        if x1 < 0:
+            x1 = 0
+        elif x1 > source_img_w:
+            x1 = source_img_w
+
+        if x2 < 0:
+            x2 = 0
+        elif x2 > source_img_w:
+            x2 = source_img_w
+
+        offset_x = x1
+        offset_y = y1
+
+        main_x = 0
+        main_y = 0
+
+        source_image = background_image[y1:y2, x1:x2]
+        current_gray_screen = cv2.cvtColor(source_image, cv2.COLOR_BGR2GRAY)
+        cv2.imwrite("d:\\aaa.png", source_image)
+        cv2.imwrite("d:\\aaa2.png", background_image)
+
+        if main_in_curr_group["type"] == "I":
+            im = ImageManager()
+            template = background_image[tmpl_y1:tmpl_y2, tmpl_x1:tmpl_x2]
+
+            im.set_template(template)
+
+            im.set_color_screen(source_image)
+            im.set_gray_screen(current_gray_screen)
+            im.set_scaling_factor(scaling_factor)
+
+            mains_found = im.find(main_in_curr_group["features"]["I"])
+
+            main_x = offset_x + mains_found[0].x
+            main_y = offset_y + mains_found[0].y
+
+            a = None
+
+        elif main_in_curr_group["type"] == "R":
+
+            detection_dict = {}
+            detection_dict["features"] = {"I": {}, "R": {}, "T": {}}
+            detection_dict["features"]["R"] = main_in_curr_group["features"]["R"]
+
+            detection_dict["features"]["R"]["width"]["min"] = \
+                int(detection_dict["features"]["R"]["width"]["min"] * scaling_factor)
+
+            detection_dict["features"]["R"]["width"]["max"] = \
+                int(detection_dict["features"]["R"]["width"]["max"] * scaling_factor)
+
+            detection_dict["features"]["R"]["height"]["min"] = \
+                int(detection_dict["features"]["R"]["height"]["min"] * scaling_factor)
+
+            detection_dict["features"]["R"]["height"]["max"] = \
+                int(detection_dict["features"]["R"]["height"]["max"] * scaling_factor)
+
+            rm = RectangleManager()
+
+            rm.set_color_screen(source_image)
+            rm.set_gray_screen(current_gray_screen)
+            rm.set_scaling_factor(scaling_factor)
+
+            mains_found = rm.find(detection_dict["features"]["R"])
+
+            main_x = offset_x + mains_found[0].x
+            main_y = offset_y + mains_found[0].y
+
+
         roi = Roi()
-        roi.x = int(json_data["roi_x"]*scaling_factor)
-        roi.y = int(json_data["roi_y"]*scaling_factor)
-        roi.w = int(json_data["roi_w"]*scaling_factor)
-        roi.h = int(json_data["roi_h"]*scaling_factor)
-        roi.unlimited_left = json_data["roi_unlimited_left"]
-        roi.unlimited_up = json_data["roi_unlimited_up"]
-        roi.unlimited_right = json_data["roi_unlimited_right"]
-        roi.unlimited_down = json_data["roi_unlimited_down"]
+        roi.x = int(json_data[index-1]["roi_x"]*scaling_factor)
+        roi.x = roi.x - main_in_curr_group["x"]
+        roi.y = int(json_data[index-1]["roi_y"]*scaling_factor)
+        roi.y = roi.y - main_in_curr_group["y"]
+        roi.w = int(json_data[index-1]["roi_w"]*scaling_factor)
+        roi.h = int(json_data[index-1]["roi_h"]*scaling_factor)
+        roi.unlimited_left = json_data[index-1]["roi_unlimited_left"]
+        roi.unlimited_up = json_data[index-1]["roi_unlimited_up"]
+        roi.unlimited_right = json_data[index-1]["roi_unlimited_right"]
+        roi.unlimited_down = json_data[index-1]["roi_unlimited_down"]
+
+        roi.x = main_x + roi.x
+        roi.y = main_y + roi.y
 
         tm = TextManager()
         tm.set_color_screen(background_image)
