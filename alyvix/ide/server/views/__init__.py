@@ -1023,10 +1023,11 @@ def ide_run_api_process():
             ordered_object = []
 
             for key, value in objects.items():
-
-                if value["measure"]["timestamp"] != -1 and value["measure"]["exit"]=="fail":
-                    ordered_object.append(value)
-
+                try:
+                    if value["measure"]["timestamp"] != -1 and value["measure"]["exit"]=="fail":
+                        ordered_object.append(value)
+                except:
+                    pass #keyword is not executed, so measure is empty
             ordered_object = sorted(ordered_object, key=lambda k: k['measure']['timestamp'])
 
             sm = ScreenManager()
@@ -1049,17 +1050,23 @@ def ide_run_api_process():
             else:
                 base64png = ordered_object[0]['measure']['annotation']
 
-            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('')")
+            browser_class._browser_3.ExecuteJavascript("consoleAppendLine (' ')")
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('The screen appeared as follows:')")
-            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('')")
+            browser_class._browser_3.ExecuteJavascript("consoleAppendLine (' ')")
             browser_class._browser_3.ExecuteJavascript("consoleAppendImage ('" + base64png + "')")
 
-        #STOP button already remove it
+    except:
+        pass
+
+    try:
+        # STOP button already remove it
         shutil.rmtree(alyvix_run_tmp_path)
-        #restore if we dont press stop
+
+        # restore if we dont press stop
         browser_class.restore(browser_class._hwnd_3)
     except:
         pass
+
 
     if loglevel == 0:
         null_fds = [os.open(os.devnull, os.O_RDWR) for x in range(2)]
