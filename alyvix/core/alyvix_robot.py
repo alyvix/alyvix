@@ -29,6 +29,8 @@ def print_help():
                             dummy description for help
       --args ARGUMENTS, -a ARGUMENTS
                             dummy description for help
+      --mode MODE, -m MODE
+                            dummy description for help
     
     required named arguments:
       --filename FILENAME, -f FILENAME
@@ -65,6 +67,7 @@ engine_arguments = []
 objects_names = []
 verbose = 0
 sys_exit = 0
+output_mode = "alyvix"
 
 not_executed_cnt = 0
 
@@ -88,6 +91,8 @@ for i in range(0, len(sys.argv)):
         print_help()
     elif sys.argv[i] == "--is_foride":
         is_foride = True
+    elif sys.argv[i] == "-m" or sys.argv[i] == "--mode":
+        output_mode = sys.argv[i + 1]
 
 if filename is None:
     python_name = os.path.basename(__file__)
@@ -180,9 +185,25 @@ if filename is not None:
 
         not_executed_ts = time.time()
 
-
+        performance_string = ""
         # OBJECT RUNNED OR IN TIMEDOUT
         for result in objects_result:
+            warning_s = None
+            critical_s = None
+
+            curr_perf_string = ""
+
+            try:
+                warning_s = result.thresholds["warning_s"]
+            except:
+                pass
+
+            try:
+                critical_s = result.thresholds["critical_s"]
+            except:
+                pass
+
+
             date_from_ts = datetime.fromtimestamp(result.end_timestamp)
             # millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
             try:
@@ -195,18 +216,48 @@ if filename is not None:
             if result.performance_ms != -1:
                 performance = round(result.performance_ms / 1000, 3)
                 accuracy = round(result.accuracy_ms / 1000, 3)
-                if result.output is True:
-                    print(date_formatted + ": " + result.object_name + " DETECTED in " + str(performance) + "s " +
-                          "(+/-" + '{:.3f}'.format(accuracy) + ")")
+
+                if output_mode == "nagios":
+                    curr_perf_string = result.object_name.replace(" ", "_") + "=" + '{:.3f}'.format(result.performance_ms) + "ms"
+                    if warning_s is not None:
+                        curr_perf_string += ";" + str(warning_s) + "s"
+                        if performance >= warning_s and sys_exit < 1:
+                            sys_exit = 1
+                    else:
+                        curr_perf_string += ";"
+
+                    if critical_s is not None:
+                        curr_perf_string += ";" + str(critical_s) + "s"
+                        if performance >= critical_s and sys_exit < 2:
+                            sys_exit = 2
+                    else:
+                        curr_perf_string += ";"
+                    curr_perf_string += ";; "
+
+                    if result.output is False:
+                        curr_perf_string = ""
+
+                else:
+
+                    if result.output is True:
+                        print(date_formatted + ": " + result.object_name + " DETECTED in " + str(performance) + "s " +
+                              "(+/-" + '{:.3f}'.format(accuracy) + ")")
                 result.exit = "true"
             else:
+
                 if result.output is True and result.has_to_break is True:
-                    print(date_formatted + ": " + result.object_name + " FAILED after " + str(result.timeout) + "s")
+                    if output_mode == "nagios":
+                        curr_perf_string = result.object_name.replace(" ", "_") + "=ms"
+                    else:
+                        print(date_formatted + ": " + result.object_name + " FAILED after " + str(result.timeout) + "s")
                     timed_out_objects.append(result.object_name)
                     result.exit = "fail"
                     sys_exit = 2
                 elif result.output is True and result.has_to_break is False:
-                    print(date_formatted + ": " + result.object_name + " SKIPPED after " + str(result.timeout) + "s")
+                    if output_mode == "nagios":
+                        curr_perf_string = result.object_name.replace(" ", "_") + "=" + str(result.timeout*1000) + "ms"
+                    else:
+                        print(date_formatted + ": " + result.object_name + " SKIPPED after " + str(result.timeout) + "s")
                     result.exit = "false"
                 elif result.output is False and result.has_to_break is True:
                     timed_out_objects.append(result.object_name)
@@ -216,8 +267,22 @@ if filename is not None:
                     result.exit = "false"
                     #state = 2
 
+                if output_mode == "nagios" and result.output is True:
+                    if warning_s is not None:
+                        curr_perf_string += ";" + str(warning_s) + "s"
+                    else:
+                        curr_perf_string += ";"
 
+                    if critical_s is not None:
+                        curr_perf_string += ";" + str(critical_s) + "s"
+                    else:
+                        curr_perf_string += ";"
 
+                    curr_perf_string += ";; "
+
+            performance_string += curr_perf_string
+
+        #performance_string = performance_string[:-1]
 
         all_objects = pm.get_all_objects()
 
@@ -234,6 +299,7 @@ if filename is not None:
                 dummy_result.timestamp = -1
                 dummy_result.performance_ms = -1
                 dummy_result.accuracy_ms = -1
+                dummy_result.thresholds = library_json["objects"][object]["measure"]["thresholds"]
                 dummy_result.exit = "not_executed"
 
                 not_executed_cnt += 1
@@ -295,6 +361,7 @@ if filename is not None:
                     result.timestamp = -1
                     result.performance_ms = -1
                     result.accuracy_ms = -1
+                    result.thresholds = library_json["objects"][object]["measure"]["thresholds"]
                     result.exit = "not_executed"
                     not_executed_cnt += 1
                     objects_result.append(result)
@@ -346,30 +413,98 @@ if filename is not None:
     t_end = time.time() - t_start
 
 
-    if sys_exit == 0:
-        print (get_timestamp_formatted() + ": " + filename_no_extension + " ends OK, it takes " + '{:.3f}'.format(t_end) + "s.")
-        exit = "true"
+    message_to_print = ""
+    not_exec_print = "NOT EXECUTED transactions: "
+    if output_mode == "nagios":
+        if sys_exit == 0:
+            message_to_print = "OK"
+        elif sys_exit == 1:
+            message_to_print = "WARNING"
+        elif sys_exit == 2 and len(timed_out_objects) == 0:
+            message_to_print = "CRITICAL"
+        elif sys_exit == 2 and len(timed_out_objects[0]) > 0:
+            message_to_print = "CRITICAL " +  timed_out_objects[0].replace(" ", "_") + " FAILED"
+
+        #print(message_to_print + performance_string)
+
     else:
-        print (get_timestamp_formatted() + ": " + filename_no_extension + " ends FAILED because of " + timed_out_objects[0] +", it takes " + '{:.3f}'.format(t_end) + "s.")
-        exit = "false"
+
+        if sys_exit == 0:
+            print (get_timestamp_formatted() + ": " + filename_no_extension + " ends OK, it takes " + '{:.3f}'.format(t_end) + "s.")
+            exit = "true"
+        else:
+            print (get_timestamp_formatted() + ": " + filename_no_extension + " ends FAILED because of " + timed_out_objects[0] +", it takes " + '{:.3f}'.format(t_end) + "s.")
+            exit = "false"
 
     om = OutputManager()
     #json_output = om.build_json(chunk, objects_result)
 
-    if verbose >= 2 or is_foride is True:
+    if verbose >= 2: #or is_foride is True:
         om.save_screenshots(filename_path, objects_result, prefix=filename_no_extension)
 
     if not_executed_cnt > 0:
-        print("    NOT EXECUTED objects:")
+        if output_mode != "nagios":
+            print("    NOT EXECUTED objects:")
         for result in objects_result:
             if result.timestamp == -1:
-                print("        " + result.object_name)
+
+                if output_mode == "nagios":
+                    warning_s = None
+                    critical_s = None
+
+                    curr_perf_string = ""
+
+                    try:
+                        warning_s = result.thresholds["warning_s"]
+                    except:
+                        pass
+
+                    try:
+                        critical_s = result.thresholds["critical_s"]
+                    except:
+                        pass
+
+                    curr_perf_string = result.object_name.replace(" ", "_") + "=ms"
+
+                    if warning_s is not None:
+                        curr_perf_string += ";" + str(warning_s) + "s"
+                    else:
+                        curr_perf_string += ";"
+
+                    if critical_s is not None:
+                        curr_perf_string += ";" + str(critical_s) + "s"
+                    else:
+                        curr_perf_string += ";"
+
+                    curr_perf_string += ";; "
+
+                    performance_string += curr_perf_string
+                    not_exec_print += result.object_name.replace(" ", "_") + ";"
+                else:
+                    print("        " + result.object_name)
+
+        performance_string = performance_string[:-1]
+
+    if output_mode == "nagios":
+        if performance_string != "":
+            print(message_to_print + "|" + performance_string)
+        else:
+            print(message_to_print)
+        if len(timed_out_objects) > 0:
+            failed_to_print = ""
+            for obj in timed_out_objects:
+                failed_to_print += obj.replace(" ", "_") + ";"
+            print("FAILED transactions (from first to last): " + failed_to_print[:-1])
+
+        if not_executed_cnt > 0:
+            print(not_exec_print[:-1])
 
     date_from_ts = datetime.fromtimestamp(timestamp)
     date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_UTC" + time.strftime("%z")
 
-    filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
+    if output_mode != "nagios":
+        filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
 
-    #if is_foride is False:
-    om.save(filename, lm.get_json(), chunk, objects_result, exit, t_end)
+        #if is_foride is False:
+        om.save(filename, lm.get_json(), chunk, objects_result, exit, t_end)
     sys.exit(sys_exit)

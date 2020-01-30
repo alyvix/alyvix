@@ -91,10 +91,14 @@ class EngineManager(object):
             pass
 
         try:
-            self._result.thresholds = {"warning_s": object_json[self._result.object_name]["measure"]["thresholds"]["warning_s"],
-                                       "critical_s": object_json[self._result.object_name]["measure"]["thresholds"]["critical_s"]}
+            self._result.thresholds["warning_s"] = object_json[self._result.object_name]["measure"]["thresholds"]["warning_s"]
         except:
-            self._result.thresholds = {}
+            del self._result.thresholds["warning_s"]
+
+        try:
+            self._result.thresholds["critical_s"] = object_json[self._result.object_name]["measure"]["thresholds"]["critical_s"]
+        except:
+            del self._result.thresholds["critical_s"]
 
         self._result.output = object_json[self._result.object_name]["measure"]["output"]
 
