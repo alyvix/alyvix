@@ -151,7 +151,8 @@ if filename is not None:
         millis_from_ts = "000"
     date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) + "_UTC" + time.strftime("%z")
 
-    print(date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts) + ": " + filename_no_extension + " starts")
+    if output_mode != "nagios":
+        print(date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts) + ": " + filename_no_extension + " starts")
 
     username = os.environ['username']
 
@@ -218,7 +219,7 @@ if filename is not None:
                 accuracy = round(result.accuracy_ms / 1000, 3)
 
                 if output_mode == "nagios":
-                    curr_perf_string = result.object_name.replace(" ", "_") + "=" + '{:.3f}'.format(result.performance_ms) + "ms"
+                    curr_perf_string = result.object_name.replace(" ", "_") + "=" + str(int(result.performance_ms)) + "ms"
                     if warning_s is not None:
                         curr_perf_string += ";" + str(warning_s) + "s"
                         if performance >= warning_s and sys_exit < 1:
