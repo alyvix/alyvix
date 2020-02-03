@@ -237,6 +237,7 @@ if filename is not None:
 
                     if result.output is False:
                         curr_perf_string = ""
+                        sys_exit = 0
 
                 else:
 
