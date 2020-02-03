@@ -218,7 +218,7 @@ if filename is not None:
                 performance = round(result.performance_ms / 1000, 3)
                 accuracy = round(result.accuracy_ms / 1000, 3)
 
-                if output_mode == "nagios":
+                if output_mode == "nagios" and result.output is True:
                     curr_perf_string = result.object_name.replace(" ", "_") + "=" + str(int(result.performance_ms)) + "ms"
                     if warning_s is not None:
                         curr_perf_string += ";" + str(warning_s) + "s"
@@ -235,11 +235,7 @@ if filename is not None:
                         curr_perf_string += ";"
                     curr_perf_string += ";; "
 
-                    if result.output is False:
-                        curr_perf_string = ""
-                        sys_exit = 0
-
-                else:
+                elif output_mode != "nagios":
 
                     if result.output is True:
                         print(date_formatted + ": " + result.object_name + " DETECTED in " + str(performance) + "s " +
