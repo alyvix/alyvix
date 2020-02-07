@@ -20,7 +20,47 @@
 
 
 from alyvix.tools.info import InfoManager
+from alyvix.tools.screen import ScreenManager
+import sys
+
 
 #update all info
 info_manager = InfoManager()
 info_manager.update()
+
+screen_manager = ScreenManager()
+scaling_factor = screen_manager.get_scaling_factor()
+
+if sys.platform == "linux" or sys.platform == "linux2":
+    #linux...
+    pass
+elif sys.platform == "darwin":
+    #mac...
+    pass
+elif sys.platform == "win32":
+    #window...
+    if scaling_factor > 1:
+        import winreg
+
+        python_interpreter = sys.executable
+        regedit_path = r"Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers"
+        key_name = python_interpreter
+
+
+        try:
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                          regedit_path, 0,
+                                          winreg.KEY_READ)
+            value, regtype = winreg.QueryValueEx(registry_key, key_name)
+            winreg.CloseKey(registry_key)
+        except WindowsError:
+            try:
+                winreg.CreateKey(winreg.HKEY_CURRENT_USER, regedit_path)
+                registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, regedit_path, 0,
+                                              winreg.KEY_WRITE)
+                winreg.SetValueEx(registry_key, key_name, 0, winreg.REG_SZ, "~HIGHDPIAWARE")
+                winreg.CloseKey(registry_key)
+                print("dummy print!!")
+                sys.exit(2)
+            except WindowsError:
+                pass

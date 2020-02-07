@@ -516,7 +516,7 @@ class RectManager{
                             rect.rect_type = get_rect_type(rect);
                         }
                         
-                        alert(rect.rect_type);
+                        //alert(rect.rect_type);
                         if (rect.rect_type === "box") set_rect_type("box", rect);
                         
                         if (rect.rect_type === "window") set_rect_type("window", rect);

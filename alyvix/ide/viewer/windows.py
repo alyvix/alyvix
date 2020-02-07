@@ -21,6 +21,7 @@
 
 from cefpython3 import cefpython as cef
 from .base import ViewerManagerBase
+import tempfile
 
 import distutils.sysconfig
 import math
@@ -95,6 +96,65 @@ class ViewerManager(ViewerManagerBase):
             win32gui.PostMessage(self._hwnd_2, win32con.WM_CLOSE, 0, 0)
         elif self._father == "ide":
             win32gui.PostMessage(self._hwnd_3, win32con.WM_CLOSE, 0, 0)
+
+    def bring_last_window_on_top(self, source=1):
+        enumerated_windows = []
+        win32gui.EnumWindows(self._enum_handler, enumerated_windows)
+        enumerated_windows = self._sort_windows(enumerated_windows)
+
+        enumerated_windows = [s for s in enumerated_windows if s["visible"] is True and s["title"] != ""]
+
+        #print (enumerated_windows[0]["title"])
+        #print(enumerated_windows[1]["title"])
+
+        if (("python" and "alyvix_designer.py") in enumerated_windows[0]["title"]) or\
+                (("python" and "alyvix_selector.py") in enumerated_windows[0]["title"]) or\
+                (("python" and "alyvix_editor.py") in enumerated_windows[0]["title"]):
+            hwnd_prev = enumerated_windows[1]["hwnd"]
+        else:
+            hwnd_prev = enumerated_windows[0]["hwnd"]
+
+        #win32gui.SetActiveWindow(hwnd_prev)
+        win32gui.SetForegroundWindow(hwnd_prev)
+
+    def _sort_windows(self, windows):
+        sorted_windows = []
+
+        # Find the first entry
+        for window in windows:
+            if window["hwnd_above"] == 0:
+                sorted_windows.append(window)
+                break
+        else:
+            raise(IndexError("Could not find first entry"))
+
+        # Follow the trail
+        while True:
+            for window in windows:
+                if sorted_windows[-1]["hwnd"] == window["hwnd_above"]:
+                    sorted_windows.append(window)
+                    break
+            else:
+                break
+
+        # Remove hwnd_above
+        for window in windows:
+            del(window["hwnd_above"])
+
+        return sorted_windows
+
+
+    def _enum_handler(self, hwnd, results):
+        window_placement = win32gui.GetWindowPlacement(hwnd)
+        results.append({
+            "hwnd":hwnd,
+            "hwnd_above":win32gui.GetWindow(hwnd, win32con.GW_HWNDPREV), # Window handle to above window
+            "title":win32gui.GetWindowText(hwnd),
+            "visible":win32gui.IsWindowVisible(hwnd) == 1,
+            "minimized":window_placement[1] == win32con.SW_SHOWMINIMIZED,
+            "maximized":window_placement[1] == win32con.SW_SHOWMAXIMIZED,
+            "rectangle":win32gui.GetWindowRect(hwnd) #(left, top, right, bottom)
+        })
 
     def change_title(self, hwnd, title):
         win32gui.SetWindowText(hwnd, title)
@@ -181,6 +241,7 @@ class ViewerManager(ViewerManagerBase):
         settings = {
             "multi_threaded_message_loop": g_multi_threaded,
             "log_severity":cef.LOGSEVERITY_DISABLE,
+            'cache_path': tempfile.gettempdir()
 
         }
 

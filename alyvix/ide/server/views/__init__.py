@@ -1157,7 +1157,15 @@ def ide_button_new_api():
                 and browser_class.IsIconic(browser_class._hwnd_3) is False:
             break
 
-    time.sleep(0.5)
+
+    time.sleep(0.25)
+
+    #os.dup2(output_pipeline[0], 1)
+    #os.dup2(output_pipeline[1], 2)
+
+    browser_class.bring_last_window_on_top(3)
+
+    time.sleep(0.25)
 
     delay = int(request.args.get('delay'))
 

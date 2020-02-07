@@ -140,6 +140,8 @@ if __name__ == '__main__':
         print("An object name can only contain alphanumeric characters and -_' ' (space).")
         sys.exit(2)
 
+    viewer_manager = ViewerManager()
+
     screen_manager = ScreenManager()
 
     if args.delay != 0 and lm.check_if_exist(object) is False:
@@ -155,10 +157,16 @@ if __name__ == '__main__':
 
         print("Frame grabbing!")
 
+        viewer_manager.bring_last_window_on_top(3)
+
+        time.sleep(0.25)
+
         background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
     elif args.delay == 0 and lm.check_if_exist(object) is False:
         print("Frame grabbing!")
+        viewer_manager.bring_last_window_on_top(3)
 
+        time.sleep(0.25)
         background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
 
     elif lm.check_if_exist(object) == True:
@@ -186,8 +194,6 @@ if __name__ == '__main__':
 
 
     sock.close()
-
-    viewer_manager = ViewerManager()
 
     output_pipeline = os.dup(1), os.dup(2)
 
