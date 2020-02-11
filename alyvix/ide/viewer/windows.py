@@ -102,7 +102,8 @@ class ViewerManager(ViewerManagerBase):
         win32gui.EnumWindows(self._enum_handler, enumerated_windows)
         enumerated_windows = self._sort_windows(enumerated_windows)
 
-        enumerated_windows = [s for s in enumerated_windows if s["visible"] is True and s["title"] != ""]
+        enumerated_windows = [s for s in enumerated_windows if s["visible"] is True and
+                              s["title"] != "" and s["minimized"] is False and s["top_most"] is False]
 
         #print (enumerated_windows[0]["title"])
         #print(enumerated_windows[1]["title"])
@@ -146,6 +147,19 @@ class ViewerManager(ViewerManagerBase):
 
     def _enum_handler(self, hwnd, results):
         window_placement = win32gui.GetWindowPlacement(hwnd)
+
+        rect = win32gui.GetWindowRect(hwnd)
+        x, y, w, h = rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]
+
+        styles = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE)
+
+        top_most = (styles & win32con.WS_EX_TOPMOST) == win32con.WS_EX_TOPMOST
+
+        if top_most:
+            tiotle = win32gui.GetWindowText(hwnd)
+            a = "a"
+            b = None
+
         results.append({
             "hwnd":hwnd,
             "hwnd_above":win32gui.GetWindow(hwnd, win32con.GW_HWNDPREV), # Window handle to above window
@@ -153,7 +167,8 @@ class ViewerManager(ViewerManagerBase):
             "visible":win32gui.IsWindowVisible(hwnd) == 1,
             "minimized":window_placement[1] == win32con.SW_SHOWMINIMIZED,
             "maximized":window_placement[1] == win32con.SW_SHOWMAXIMIZED,
-            "rectangle":win32gui.GetWindowRect(hwnd) #(left, top, right, bottom)
+            "top_most": top_most,
+            "x":x, "y": y, "w": w, "h": h
         })
 
     def change_title(self, hwnd, title):
