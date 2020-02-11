@@ -1,5 +1,5 @@
 # Alyvix allows you to automate and monitor all types of applications
-# Copyright (C) 2015 Alan Pipitone
+# Copyright (C) 2018 Alan Pipitone
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 
 import numpy
 import cv2
-import cv2.cv as cv
 import time
 
 

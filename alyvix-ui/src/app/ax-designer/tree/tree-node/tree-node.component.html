@@ -1,0 +1,15 @@
+<div class="tree-node" [ngClass]="{'primary': node.box && node.box.is_main}">
+  <div class="boxEntityContainer" (click)="nodeClick()" (dblclick)="doubleClick()" [ngClass]="{active: isSelected()}" >
+    <div class="boxEntity" [ngStyle]="setBackground()">
+      <span *ngIf="node.box"><i [ngClass]="icon(node.box.type)"></i></span>
+      <span *ngIf="!node.box">S</span>
+      <canvas height="30" width="{{thumbnailWidth}}" [hidden]="!node.box" [ngStyle]="{'width.px':thumbnailWidth}" #canvas></canvas>
+      <img *ngIf="!node.box" [src]="imageFor()">
+    </div>  
+  </div>
+
+  <div class="interaction-container hide-on-drag">
+    <div class="interaction interaction-mouse" *ngIf="node.box"><img *ngIf="interactionMouseIcon()" src="{{interactionMouseIcon()}}"><i *ngIf="noInteraction()  && interactionMouseIcon()" class="fas fa-ban"></i></div>
+    <div class="interaction interaction-keyboard" *ngIf="node.box" ><img *ngIf="interactionKeyboardIcon()" src="{{interactionKeyboardIcon()}}"><i *ngIf="noInteraction() && interactionKeyboardIcon()" class="fas fa-ban"></i></div>
+  </div>
+</div>

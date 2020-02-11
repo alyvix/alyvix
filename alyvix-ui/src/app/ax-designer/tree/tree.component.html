@@ -1,0 +1,102 @@
+<div style="position:relative">
+
+  <div class="tree-container">
+    <div class="tree">
+      <div class="tree-level" [contextMenu]="rootContextMenu" (contextmenu)="onContextMenu($event, root)"
+        [contextMenuSubject]="root" class="last">
+        <div class="tree-content">
+          <ax-tree-node [node]="root"></ax-tree-node>
+          <div class="branch-childs"></div>
+        </div>
+
+
+        <div class="tree-childs"  cdkDropList (cdkDropListDropped)="dropPrimary(root.children,$event)">
+          <div class="tree-level" [contextMenu]="mainContextMenu" [contextMenuSubject]="node"
+            (contextmenu)="onContextMenu($event, node)" *ngFor="let node of root.children" cdkDrag
+            (cdkDragStarted)="startDrag(root.children,node,$event)" [cdkDragDisabled]="false">
+            <div class="tree-content">
+              <div class="leaf" >
+                <div class="branch" [ngClass]="{'last': node.last}"></div>
+                <ax-tree-node [node]="node"></ax-tree-node>
+
+              </div>
+            </div>
+            <div [ngClass]="{'active': node.children.length > 0}" class="branch-childs-second"></div>
+            <div class="vertical-branch" [ngClass]="{'last': node.last}">
+              <div cdkDropList (cdkDropListDropped)="drop(node.children,$event)">
+                <div class="tree-level" [contextMenu]="childContextMenu" [contextMenuSubject]="subnode"
+                  (contextmenu)="onContextMenu($event, subnode)" *ngFor="let subnode of node.children" cdkDrag
+                  (cdkDragStarted)="startDrag(node.children,subnode,$event)" [cdkDragDisabled]="false"
+                  >
+                  <div class="custom-placeholder" *cdkDragPlaceholder></div>
+                  <div class="tree-content">
+                    <div class="leaf">
+                      <div class="branch" [ngClass]="{'last': subnode.last}"></div>
+                      <ax-tree-node [node]="subnode"></ax-tree-node>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+
+  <div class="selection-tree" [ngClass]="{'is-dragging': dragging}">
+    <div class="selected-placeholder" [ngClass]="{'is-selected': isSelected(root)}"></div>
+    <div *ngFor="let node of root.children">
+      <div class="selected-placeholder" [ngClass]="{'is-selected': isSelected(node)}"></div>
+      <div *ngFor="let subnode of node.children">
+        <div class="selected-placeholder" [ngClass]="{'is-selected': isSelected(subnode)}"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<context-menu #rootContextMenu>
+  <ng-template contextMenuItem (execute)="axDesignerService.removeAll()">Remove All <span *ngIf="!editor"
+      class="key-shortcut">Ctrl-X</span></ng-template>
+  <ng-template contextMenuItem [visible]="!axDesignerService.full()"
+    (execute)="axDesignerService.newComponent($event.item)">New component <span *ngIf="!editor" class="key-shortcut">Ctrl-N</span>
+  </ng-template>
+</context-menu>
+
+<context-menu #mainContextMenu>
+  <ng-template contextMenuItem (execute)="axDesignerService.removeGroup($event.item)">Remove Group <span *ngIf="!editor"
+      class="key-shortcut">Ctrl-X</span></ng-template>
+  <ng-template contextMenuItem [visible]="axDesignerService.availableGroups()"
+    (execute)="axDesignerService.duplicateGroup($event.item)">Duplicate Group <span *ngIf="!editor" class="key-shortcut">Ctrl-D</span>
+  </ng-template>
+  <ng-template contextMenuItem [visible]="showType('I')" (execute)="axDesignerService.detectAs('I',$event.item)">Detect
+    as Image <span *ngIf="!editor" class="key-shortcut">Ctrl-I</span></ng-template>
+  <ng-template contextMenuItem [visible]="showType('R')" (execute)="axDesignerService.detectAs('R',$event.item)">Detect
+    as Rect <span *ngIf="!editor" class="key-shortcut">Ctrl-R</span></ng-template>
+  <ng-template contextMenuItem [visible]="enableNewGroupComponent(axDesignerService)"
+    (execute)="axDesignerService.newComponent($event.item)">New component <span class="key-shortcut">Ctrl-N</span>
+  </ng-template>
+</context-menu>
+
+<context-menu #childContextMenu>
+  <ng-template contextMenuItem (execute)="axDesignerService.removeComponent($event.item)">Remove Component <span *ngIf="!editor"
+      class="key-shortcut">Ctrl-X</span></ng-template>
+  <ng-template contextMenuItem [visible]="enableNewGroupComponent(axDesignerService)"
+    (execute)="axDesignerService.duplicateComponent($event.item)">Duplicate Component <span *ngIf="!editor"
+      class="key-shortcut">Ctrl-D</span></ng-template>
+  <ng-template contextMenuItem [visible]="showType('I')" (execute)="axDesignerService.detectAs('I',$event.item)">Detect
+    as Image <span *ngIf="!editor" class="key-shortcut">Ctrl-I</span></ng-template>
+  <ng-template contextMenuItem [visible]="showType('R')" (execute)="axDesignerService.detectAs('R',$event.item)">Detect
+    as Rect <span *ngIf="!editor" class="key-shortcut">Ctrl-R</span></ng-template>
+  <ng-template contextMenuItem [visible]="showType('T')" (execute)="axDesignerService.detectAs('T',$event.item)">Detect
+    as Text <span *ngIf="!editor" class="key-shortcut">Ctrl-T</span></ng-template>
+  <ng-template contextMenuItem [visible]="enableSetAsMain()" (execute)="axDesignerService.setAsMain($event.item)">Set as
+    Main <span *ngIf="!editor" class="key-shortcut">Ctrl-M</span></ng-template>
+  <ng-template contextMenuItem [visible]="enableNewGroupComponent(axDesignerService)"
+    (execute)="axDesignerService.newComponent($event.item)">New component <span *ngIf="!editor" class="key-shortcut">Ctrl-N</span>
+  </ng-template>
+</context-menu>

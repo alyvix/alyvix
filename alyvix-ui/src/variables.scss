@@ -1,0 +1,13 @@
+$blue: #0078e7;
+$focusBlue: #33C1FF;//darken($blue,10%);
+$darkblue: darken( $blue, 30%);
+$lightblue: lighten( $blue, 50% );
+$textcolor: #333;
+$red: red;
+$darkred: darken($red, 20%);
+$warning: rgb(251,105,68);
+$lightred: lightpink;
+$gray: gainsboro;
+$yellow: darken(yellow,5%);
+$green: rgb(73, 161, 73);
+$font: 'Roboto', sans-serif;

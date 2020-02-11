@@ -1,0 +1,64 @@
+<div class="pure-u-1-1">
+  <div class="form-group">
+      <label>Call</label>
+    <select class="mousetrap" [ngModel]="call.type" (ngModelChange)="changeType($event)">
+      <option value="run">Run</option>
+      <option value="kill">Kill</option>
+      <option value="none">None</option>
+    </select>
+  </div>
+</div>
+
+<div class="pure-u-1-1" *ngIf="call.type == 'run'">
+  <div class="form-group" style="align-items: flex-end; display: flex;">
+    <div class="form-group" style="flex-grow: 1;">
+      <label>Path</label>
+      <input
+        class="mousetrap"
+        [ngModel]="path"
+        (ngModelChange)="changePath($event)"
+        type="text"
+        spellcheck="false"
+      />
+    </div>
+    <div class="form-group">
+      <button class="btn" (click)="selectFile()">Select</button>
+    </div>
+  </div>
+</div>
+<div class="pure-u-1-1" *ngIf="call.type == 'run'">
+  <div class="form-group">
+    <label>Arguments</label>
+    <input
+      [ngModel]="arguments"
+      (ngModelChange)="changeArguments($event)"
+      class="mousetrap"
+      type="text"
+      spellcheck="false"
+    />
+  </div>
+</div>
+
+<div class="pure-u-1-1" *ngIf="call.type == 'kill'">
+  <div class="form-group" style="width: 375px">
+      <label>Process</label>
+    <ng-autocomplete
+      [data]="processes"
+      [itemTemplate]="itemTemplate"
+      [notFoundTemplate]="notFoundTemplate"
+      [initialValue]="call.features.process"
+      (inputChanged)="changeProcess($event)"
+      (selected)="changeProcess($event)"
+      (inputCleared)="changeProcess($event)"
+    >
+    </ng-autocomplete>
+  </div>
+</div>
+
+<ng-template #itemTemplate let-item>
+  <a [innerHTML]="item"></a>
+</ng-template>
+
+<ng-template #notFoundTemplate let-notFound>
+
+</ng-template>

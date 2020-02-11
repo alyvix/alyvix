@@ -1,0 +1,20 @@
+
+<div class="step-container" [ngClass]="{'disable': step.disabled, 'selected': selected}">
+  <div class="step-box">
+    <div class="step-condition step-main-condition" (dblclick)="nextCondition()">
+      <div >{{condition}}</div>
+    </div>
+    <div class="step-parameter" [ngClass]="[step.type, step.condition != 'run' ? 'condition' : '' ]" priDropList="{{firstParameterId}}" (priDropListDrop)="dropped($event)">
+      <span>{{step.name}}</span>
+    </div>
+    <div class="step-condition" *ngIf="secondParameterEnabled">
+      <div>run</div>
+    </div>
+    <div class="step-parameter step-run-parameter" [ngClass]="secondParameterType" [hidden]="!secondParameterEnabled" priDropList="{{secondParameterId}}"  (priDropListDrop)="droppedSecond($event)" [priDropAllowedWhen]="canDropObject">
+      <span *ngIf="!secondParameterValue ||  secondParameterValue == ''">DROP OBJECTS OR SECTIONS HERE</span>
+      <span>{{secondParameterValue}}</span>
+    </div>
+  </div>
+  <div class="arrow"></div>
+</div>
+

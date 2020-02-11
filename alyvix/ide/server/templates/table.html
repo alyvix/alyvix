@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Alyvix Table</title>
+	<link rel="stylesheet" type="text/css" href="static/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="static/css/jquery-treetable.css">
+	<script src="static/js/jquery-3.3.1.min.js"></script>
+    <script src="static/js/object-table.js"></script>
+	<script>
+        var aaa_index;
+		$(window).on("load",function() {
+			//var index = $("table").treetable();
+            
+            var a = $( "tr:first-child" );
+            
+            var tableObj = new TableObject($("#object-table"));
+            
+            var b;
+		});
+	</script>
+</head>
+<body>
+<div class="container">
+
+	<table id="object-table" class="table table-bordered">
+
+		<tbody>
+		<tr>
+            <td class="components">
+				<div class="ta" data-ta-id="screen" data-ta-main="">Screen</div>
+			</td>
+			<td class="thumbnail"><img src="static/img/thub.png" alt="Smiley face"> </td>
+			<td><img src="static/img/icons/icons8-left-click-48.png" alt="Smiley face"> </td>
+		</tr>
+		<tr>
+
+			<td class="components">
+				<div class="ta" data-ta-id="image" data-ta-main="screen">Image</div>
+			</td>
+            
+			<td class="thumbnail"><img src="static/img/thub2.png" alt="Smiley face"> </td>
+			<td><img src="static/img/icons/icons8-mouse-right-click-48.png" alt="Smiley face"> </td>
+
+		</tr>
+		<tr>
+
+			<td class="components">
+				<div class="ta" data-ta-id="rect" data-ta-main="screen">Rect</div>
+			</td>
+            
+			<td class="thumbnail"><img src="static/img/thub3.png" alt="Smiley face"> </td>
+			<td><img src="static/img/icons/icons8-mouse-right-click-48.png" alt="Smiley face"> </td>
+
+		</tr>
+		<tr>
+			<td class="components">
+				<div class="ta" data-ta-id="text" data-ta-main="rect">Text</div>
+			</td>
+            <td class="thumbnail"><img src="static/img/thub4.png" alt="Smiley face"> </td>
+			<td></td>
+		</tr>
+		<tr>
+
+			<td class="components">
+				<div class="ta" data-ta-id="image2" data-ta-main="screen">Image</div>
+			</td>
+			<td class="thumbnail"><img src="static/img/thub5.png" alt="Smiley face"> </td>
+			<td><img src="static/img/icons/icons8-left-click-48.png" alt="Smiley face"> </td>
+		</tr>
+		</tbody>
+	</table>
+</div>
+
+    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script> 
+    <script src="https://getbootstrap.com/dist/js/bootstrap.min.js"></script>
+        <script type="text/javascript">
+        /*$('tbody').sortable({start: function(event, ui) {
+                console.log(ui);
+           }
+        });*/
+        
+        $('table tbody').on('click', 'tr', function(e){
+            
+            if(e.ctrlKey || e.metaKey){
+
+                $(this).toggleClass('selected');
+
+            }else{
+                var a = $(this).find('.ta').attr('data-ta-main');
+                if (a == "screen")
+                {
+                    $(this).addClass('selected').siblings().removeClass('selected');
+                    
+                    $table = $('table')
+
+                    var $items = $table.find("div.ta");
+                    var index = {};
+                    var items = [];
+
+                    // add items to index
+                    $items.each(function (i, el) {
+                        var $el = $(el);
+                        var id = $el.data('ta-id');
+                        var parent = $el.data('ta-main');
+                        if(parent === '') {
+                            parent = undefined;
+                        }
+
+                        var item = {
+                            id: id,
+                            parent: parent,
+                            children: [],
+                            el: $el,
+                            left: 0,
+                            width: $el.width() + 12
+                        };
+
+                        index[id] = item;
+                        items.push(item);
+                    });
+                    
+                    
+                    // make a graph from parent relations
+                    items.forEach(function (item) {
+                        if (item.parent !== undefined) {
+                            item.parent = index[item.parent];
+                            item.parent.children.push(item);
+                        }
+                    });
+                    
+                    var $el = $(e.currentTarget).find('.ta');
+                    var $tr = $el.closest("tr");
+                    var id = $el.data('ta-id');
+                    var item = index[id];
+            
+                    function selectChildNode(parentId) {
+                        var item = index[parentId];
+                        item.children.forEach(function (child) {
+                            if (child.showChildren !== undefined) {
+                                child.showChildren = false;
+                            }
+
+                            $(child.el).closest("tr").toggleClass('selected');
+                            //hide(child.id);
+                        });
+                    }
+                    
+                    selectChildNode(id);
+                    
+                    
+                }
+                else
+                {
+                 $(this).addClass('selected').siblings().removeClass('selected');
+                }
+                
+                
+                
+            }
+        }).sortable({
+            items: 'tr:not(tr:first-child)',
+            connectWith: 'table',
+            cursor: 'move',
+            delay: 150,
+            revert: 0,
+            helper: function(e, item){
+                if(!item.hasClass('selected')){
+                   item.addClass('selected').siblings().removeClass('selected');
+                }
+
+                var elements = item.parent().children('.selected').clone();
+                item.data('multidrag', elements).siblings('.selected').hide();
+
+                var helper = $('<tr/>');
+                return helper.append(elements);
+
+
+            },
+            change: function(e, ui){
+                //var elements = ui.item.data('multidrag');
+                //ui.item.after(elements).remove();
+                                
+                var tableObj = new TableObject($("#object-table"));
+                tableObj.draw_lines();
+            },
+            stop: function(e, ui){
+                var elements = ui.item.data('multidrag');
+                ui.item.after(elements).remove();
+                
+                var a = $("#object-table tr.ui-sortable-handle.selected:hidden").remove();
+                                
+                var tableObj = new TableObject($("#object-table"));
+                tableObj.draw_lines();
+            },
+            start: function(e, ui){
+                //var elements = ui.item.data('multidrag');
+                //ui.item.after(elements).remove();
+                                
+                var tableObj = new TableObject($("#object-table"));
+                tableObj.draw_lines();
+            }
+        });
+
+    </script>
+
+</body>
+</html>

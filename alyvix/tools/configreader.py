@@ -51,7 +51,7 @@ class ConfigReader():
             xml_doc_user = minidom.parse(file_handler_user)
             self.__user_root_node = xml_doc_user.getElementsByTagName("config")[0]
             #print self.__user_root_node
-        except Exception, err:
+        except:
             #print Exception, err
             self.__user_root_node = None
 

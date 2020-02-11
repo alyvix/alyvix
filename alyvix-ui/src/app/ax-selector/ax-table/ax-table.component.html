@@ -1,0 +1,162 @@
+<div class="ax-table-container">
+  <div class="ax-table-scroller">
+    <div class="ax-selector-header">
+        <div class="xsmall"></div>
+        <div class="large"><a (click)="sortColumn('name')">Name<span *ngIf="sort.column == 'name' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'name' && !sort.asc"> &#9660;</span></a></div>
+        <div><a (click)="sortColumn('transaction_group')">Transaction group<span *ngIf="sort.column == 'transaction_group' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'transaction_group' && !sort.asc"> &#9660;</span></a></div>
+        <div class="medium"><a (click)="sortColumn('date')">Date modified<span *ngIf="sort.column == 'date' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'date' && !sort.asc"> &#9660;</span></a></div>
+        <div class="small">Timeout [sec]</div>
+        <div class="small">Break</div>
+        <div class="small">Measure</div>
+        <div class="small">Warning [sec]</div>
+        <div class="small">Critical [sec]</div>
+        <div>Resolution</div>
+        <div class="small">Screen</div>
+    </div>
+    <div class="ax-selector-table" [ngClass]="{'read-write': !readonly}" #tableContainer >
+        <cdk-table [dataSource]="filteredData" >
+            <!-- Name Definition -->
+            <ng-container cdkColumnDef="handle"  >
+                <cdk-cell *cdkCellDef="let row"  class="xsmall" >
+                  <div [priDropListSorting]="false" priDropList [priDropListConnectedTo]="objectLists"  [priDropListData]="'object'" [priDropListDisabled]="!editor || !isSelectedResolutionWorkingResolution()">
+                    <div priDragItem [priDragItemData]="toStep(row)">
+
+                        <li><i class="fas fa-bars"></i><span>{{row.name}}</span></li>
+                    </div>
+
+
+                  </div>
+                </cdk-cell>
+            </ng-container>
+
+            <!-- Name Definition -->
+            <ng-container cdkColumnDef="name" >
+                <cdk-cell *cdkCellDef="let row" class="large">
+                  <span class="object-preview">{{row.name}}</span>
+
+                  <input #nameInput #name="ngModel" [disabled]="readonly" type="text" class="primary" [ngClass]="{'ng-invalid': nameExists(row.name,nameInput.value) || !isNameValid(nameInput) }" spellcheck="false" [ngModel]="row.name" (ngModelChange)="changeName(row,$event,!isNameValid(nameInput) || nameExists(row.name,nameInput.value))" (change)="onChangeName(row,$event)" pattern="[a-zA-Z0-9_\- ]+" />
+
+                  <div *ngIf="!isNameValid(nameInput) && (name.dirty || name.touched)" class="name-popover">
+                      <div class="name-popover-content">
+                        Only alphanumeric characters and - _ ` ` (space) are allowed
+                      </div>
+                  </div>
+                  <div *ngIf="hasFocus(nameInput)  && nameExists(row.name,nameInput.value)" class="name-popover">
+                      <div class="name-popover-content">
+                        Object name already in use
+                      </div>
+                  </div>
+                </cdk-cell>
+            </ng-container>
+
+            <!-- Transaction group Definition -->
+            <ng-container cdkColumnDef="transactionGroup">
+                <cdk-cell *cdkCellDef="let row"><input [disabled]="readonly" type="text" spellcheck="false" [ngModel]="row.object.measure.group" (ngModelChange)="changeTransactionGroup(row,$event)" />
+                </cdk-cell>
+            </ng-container>
+
+            <!-- Date modified Definition -->
+            <ng-container cdkColumnDef="dateModified">
+                <cdk-cell *cdkCellDef="let row" class="medium">{{row.object.date_modified.substring(0,20)}} </cdk-cell>
+            </ng-container>
+
+            <!-- Timeout Definition -->
+            <ng-container cdkColumnDef="timeout">
+                <cdk-cell *cdkCellDef="let row" class="small"><input type="number" [disabled]="readonly"  [ngModel]="row.object.detection.timeout_s" (ngModelChange)="changeTimeout(row,$event)" min="1" /></cdk-cell>
+            </ng-container>
+
+            <!-- Break Definition -->
+            <ng-container cdkColumnDef="break">
+                <cdk-cell *cdkCellDef="let row" class="small"><input [disabled]="readonly" class="regular-checkbox" (click)="breakClick($event,row)" [ngModel]="row.object.detection.break" type="checkbox" /></cdk-cell>
+            </ng-container>
+
+            <!-- Measure Definition -->
+            <ng-container cdkColumnDef="measure">
+                <cdk-cell *cdkCellDef="let row" class="small"><input [disabled]="readonly" class="regular-checkbox" (click)="measureClick($event,row)" [ngModel]="row.object.measure.output" type="checkbox" />
+                </cdk-cell>
+            </ng-container>
+
+            <!-- Warning Definition -->
+            <ng-container cdkColumnDef="warning">
+                <cdk-cell *cdkCellDef="let row" class="small"><input [disabled]="readonly" type="number"  [(ngModel)]="row.object.measure.thresholds.warning_s" min="1" />
+                </cdk-cell>
+            </ng-container>
+
+            <!-- Critical Definition -->
+            <ng-container cdkColumnDef="critical">
+                <cdk-cell *cdkCellDef="let row" class="small"><input type="number" [disabled]="readonly"  [(ngModel)]="row.object.measure.thresholds.critical_s" min="1" />
+                </cdk-cell>
+            </ng-container>
+
+            <!-- Resolution Definition -->
+            <ng-container cdkColumnDef="resolution">
+                <cdk-cell *cdkCellDef="let row">
+                  <select *ngIf="selectedResolution === 'All'" [(ngModel)]="row.selectedResolution">
+                    <option [ngValue]="resolution" *ngFor="let resolution of objectKeys(row.object.components)">{{resolution}}</option>
+                  </select>
+                  <span *ngIf="selectedResolution != 'All'">{{row.selectedResolution}}</span>
+
+                </cdk-cell>
+            </ng-container>
+
+            <!-- Screen Definition -->
+            <ng-container cdkColumnDef="screen">
+                <cdk-cell *cdkCellDef="let row" class="small">
+                  <img *ngIf="row.object.components[row.selectedResolution] && readonly" [src]="imageFor(row.object.components[row.selectedResolution].screen)">
+                  <img *ngIf="row.object.components[row.selectedResolution] && !readonly" src="/get_screen_for_selector?object_name={{row.name}}&resolution_string={{row.selectedResolution}}">
+                </cdk-cell>
+            </ng-container>
+
+            <!-- Header and Row Declarations -->
+            <cdk-row (click)="selectRow($event,row)" [ngClass]="{'selected': isSelected(row)}" *cdkRowDef="let row; columns: selectorColumns" >
+
+            </cdk-row>
+        </cdk-table>
+    </div>
+  </div>
+</div>
+
+<div class="ax-selector-footer form-group">
+    <div class="distribute">
+      <div>
+          <button class="btn" *ngIf="!isEmptyTable()" (click)="selectAll()">Select all</button>
+          <button class="btn" *ngIf="!isEmptyTable()" (click)="deselectAll()">Deselect all</button>
+          <button class="btn" *ngIf="isSomethingSelected()" [copy-clipboard]="selectedNames()">Copy name</button>
+      </div>
+      <div *ngIf="readonly">
+          <button class="btn btn-secondary" *ngIf="isSomethingSelected()" (click)="importRows()">Import</button>
+      </div>
+      <div *ngIf="!readonly && !editor">
+          <ng-template [ngTemplateOutlet]="modificationButtons"></ng-template>
+      </div>
+    </div>
+    <div class="distribute" style="margin-top: 5px">
+        <div>
+            <span class="inline-label" style="margin-left: 7px">Resolution: </span>
+            <select class="std-width" [(ngModel)]="selectedResolution" (change)="changeResolution()">
+              <option value="All">All</option>
+              <option *ngFor="let resolution of resolutions" value="{{resolution}}">{{resolution}}</option>
+            </select>
+            <span class="inline-label"> Search: </span>
+            <input type="text" class="std-width" [(ngModel)]="searchElementQuery" (keyup)="filterData()" spellcheck="false"/>
+            <button class="btn" (click)="resetFilters()"><i class="fas fa-times"></i></button>
+          </div>
+      <div *ngIf="!editor">
+          <button class="btn btn-primary" [disabled]="hasError()" (click)="ok()">Ok</button>
+          <button class="btn" (click)="cancel()">Cancel</button>
+      </div>
+      <div *ngIf="!readonly && editor">
+          <ng-template [ngTemplateOutlet]="modificationButtons"></ng-template>
+      </div>
+    </div>
+</div>
+
+<ng-template #modificationButtons >
+    <button class="btn btn-secondary add-btn" [disabled]="hasError()" (click)="newObject()">
+        <span class="inline-label">Delay [sec]</span>
+        <input class="small" [(ngModel)]="delay" type="number" (click)="preventClick($event)"  min="0" />
+      Add</button>
+    <button class="btn btn-secondary" [disabled]="hasError()" *ngIf="singleSelection() && isSelectedInWorkingResolution() && !editor" (click)="edit()">Edit</button>
+    <button class="btn btn-secondary" [disabled]="hasError()" *ngIf="isSomethingSelected()" (click)="duplicate()">Duplicate</button>
+    <button class="btn btn-danger" [disabled]="hasError()" *ngIf="isSomethingSelected()" (click)="remove()">Remove</button>
+</ng-template>

@@ -1,0 +1,604 @@
+/* You can add global styles to this file, and also import other style files */
+
+
+
+@import "./variables.scss";
+
+* {
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+  box-sizing: border-box;
+  font-family: $font;
+  -webkit-font-smoothing: antialiased;
+  color: $textcolor;
+}
+
+
+@import '~ngx-toastr/toastr';
+
+.toast-container .ngx-toastr .toast-message {
+  color: white;
+}
+
+
+
+
+body{
+    font-size: 14px;
+}
+
+.form-group {
+    margin: 5px 0;
+}
+
+.form-group.small {
+    margin: 5px 0;
+    min-height: 10px;
+}
+
+
+.form-group input[type=date],
+.form-group input[type=datetime],
+.form-group input[type=datetime-local],
+.form-group input[type=email],
+.form-group input[type=month],
+.form-group input[type=number],
+.form-group input[type=password],
+.form-group input[type=range],
+.form-group input[type=search],
+.form-group input[type=tel],
+.form-group input[type=text],
+.form-group input[type=time],
+.form-group input[type=url],
+.form-group input[type=week]
+{
+
+    border: 0;
+    border-bottom: #555 1px solid;
+    padding: 2px 5px;
+    width: 100%;
+    height: 20px;
+
+    &.small {
+      width: 40px;
+    }
+
+    &:focus{
+      outline: none;
+      border-bottom: 1px solid $blue;
+      background: $lightblue;
+    }
+
+    &.ng-invalid {
+      border-bottom: 1px solid $red !important;
+      background-color: $lightred;
+    }
+
+    &.std-width {
+      width: 160px;
+    }
+}
+
+
+input.std-width,select.std-width {
+    width: 160px;
+}
+
+.form-group {
+
+
+  .autocomplete-container {
+    box-shadow: none;
+    .suggestions-container ul {
+      max-height: 114px;
+      li a {
+        padding: 2px 5px;
+      }
+    }
+    .input-container{
+      input {
+        border-bottom: #555 1px solid;
+        height: 20px;
+        padding: 2px 5px;
+        &:focus{
+          outline: none;
+          border-bottom: 1px solid $blue;
+          background: $lightblue;
+        }
+      }
+      .x{
+        top: 25%;
+        right: 0;
+      }
+
+    }
+  }
+}
+
+.form-group input[type=number] {
+  text-align: right;
+}
+
+.form-group select.std {
+    width: 170px;
+}
+
+.form-group select.small {
+    width: 71px;
+}
+
+
+
+select {
+    height: 20px;
+    border: 0;
+    border-bottom: #555 1px solid;
+    padding: 1px 2px;
+
+    &:focus{
+      outline: none;
+      border-bottom: 1px solid $blue;
+      background: $lightblue;
+    }
+
+    &.ng-invalid {
+      border-bottom: 1px solid $red !important;
+      background-color: $lightred;
+    }
+}
+
+select:disabled {
+    background-color: rgb(235, 235, 228);
+}
+
+select::-ms-expand {
+    display: none;
+}
+
+input[type=checkbox]{
+  vertical-align: middle;
+  height: 16px;
+	-webkit-appearance: none;
+  background-color: #eee;
+  width: 16px;
+	border: 1px solid #cacece;
+	padding: 7px;
+	display: inline-block;
+  position: relative;
+
+  &:focus{
+    background-color: $lightblue;
+    border-color: $darkblue;
+  }
+}
+
+
+
+
+input[type=checkbox]:checked:after {
+	content: '\2714';
+	font-size: 11px;
+	position: absolute;
+	top: -1px;
+	left: 3px;
+	color: #99a1a7;
+}
+
+input[type=checkbox].css-checkbox:checked + label.css-label {
+  background-position: 0 -25px;
+}
+
+input[type='radio'] {
+    vertical-align: middle;
+}
+
+.form-group label {
+    min-width: 100px;
+    margin-right: 10px;
+    font-weight: bold;
+    margin-bottom: 0px;
+    font-size: 12px;
+    display: block;
+}
+
+.inline-label {
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 20px;
+  margin-right: 7px;
+}
+
+.alert{
+  font-size: 12px;
+  font-weight: bold;
+  color: $red;
+  line-height: 14px;
+}
+
+.btn{
+    min-width: 50px;
+    text-align: center;
+    font-family: 'Roboto';
+    letter-spacing: 1px;
+    border-radius: 0;
+    background: white;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 2px 8px;
+    border: 0;
+    line-height: 13px;
+    padding: 6px 8px;
+    vertical-align: baseline;
+
+    &:hover{
+      background: $lightblue;
+      color: $darkblue;
+    }
+
+    &:focus{
+      color: $focusBlue;
+    }
+}
+
+.btn-primary{
+  color: white;
+  background: $blue;
+  box-shadow: 1px 1px 3px  #888888;
+
+  &:hover {
+    color: $lightblue;
+    background: $darkblue;
+  }
+
+  &:focus {
+    color: white;
+    background: $focusBlue;
+  }
+}
+
+.btn-secondary{
+  border: 1px $blue solid;
+  color:  $blue;
+
+  &:hover {
+    color: white;
+    background: $blue;
+  }
+
+  &:focus {
+    color:$focusBlue;
+    border-color: $focusBlue;
+  }
+}
+
+.btn-danger{
+  border: 1px $red solid;
+  color:  $red;
+
+  &:hover {
+    color: white;
+    background: $red;
+  }
+
+  &:focus {
+    color:$lightred;
+    border-color: $lightred;
+  }
+}
+
+
+
+.container{
+    padding: 10px;
+    height: 100%;
+    // position: absolute;
+}
+
+.pull-down {
+    padding: 10px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #aaa;
+}
+
+
+.cdk-drag-preview {
+  .hide-on-drag{
+      display: none !important;
+  }
+}
+
+
+.node-content-wrapper, .tree-children {
+    position: relative;
+  }
+
+  .node-content-wrapper::before, .tree-children::after {
+    content: "";
+    position: absolute;
+  }
+
+  .node-content-wrapper::before {
+    border-bottom: 1px solid lightgrey;
+    border-left: 1px solid lightgrey;
+    height: 28px;
+    top: -17px;
+    width: 20px;
+    left: -28px;
+  }
+
+  .tree-node-level-1 > tree-node-wrapper > .node-wrapper > .node-content-wrapper::before {
+    display: none;
+  }
+
+  .tree-node-leaf > .node-wrapper > .node-content-wrapper::before {
+    width: 25px;
+  }
+
+  .tree-children::after {
+    border-left: 1px solid lightgrey;
+    height: 100%;
+    top: -15px;
+    left: -15px;
+  }
+
+  tree-node:last-child > .tree-node > .tree-children::after {
+    border-left: none;
+  }
+
+  .toggle-children {
+    z-index: 1;
+  }
+
+
+
+  [type="radio"]:checked,
+  [type="radio"]:not(:checked) {
+      position: absolute;
+      left: -9999px;
+  }
+  [type="radio"]:checked + label,
+  [type="radio"]:not(:checked) + label
+  {
+      position: relative;
+      padding-left: 23px;
+      cursor: pointer;
+      line-height: 17px;
+      display: inline-block;
+      color: $textcolor;
+      letter-spacing: 1px;
+      min-width: 0px;
+      margin-right: 10px;
+      text-transform: uppercase;
+  }
+
+
+  .detect-type{
+
+    [type="radio"]:checked + label i {
+      transition: all 0.2s ease;
+    }
+
+    [type="radio"]:checked + label,
+    [type="radio"]:not(:checked) + label {
+      padding-left: 0;
+    }
+
+    [type="radio"]:checked + label:before,
+    [type="radio"]:not(:checked) + label:before {
+      display: none;
+    }
+
+    [type="radio"]:checked + label:after,
+    [type="radio"]:not(:checked) + label:after {
+      display: none;
+    }
+
+    i {
+      font-size: 150%;
+
+    }
+    [type="radio"]:checked + label i {
+      color: $blue;
+    }
+
+    [type="radio"]:checked:focus + label i {
+      color: $focusBlue;
+    }
+  }
+
+  [type="radio"]:checked + label:before,
+  [type="radio"]:not(:checked) + label:before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 13px;
+      height: 13px;
+      border: 1px solid #ddd;
+      border-radius: 100%;
+      background: #fff;
+  }
+  [type="radio"]:checked + label:before{
+    border: 1px solid $blue;
+  }
+  [type="radio"]:checked:focus + label:before{
+    border: 1px solid $focusBlue;
+  }
+  [type="radio"]:checked + label:after,
+  [type="radio"]:not(:checked) + label:after {
+      content: '';
+      width: 9px;
+      height: 9px;
+      background: $blue;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      border-radius: 100%;
+      -webkit-transition: all 0.2s ease;
+      transition: all 0.2s ease;
+  }
+  [type="radio"]:not(:checked) + label:after {
+      opacity: 0;
+      -webkit-transform: scale(0);
+      transform: scale(0);
+  }
+  [type="radio"]:checked + label:after {
+      opacity: 1;
+      -webkit-transform: scale(1);
+      transform: scale(1);
+  }
+  [type="radio"]:checked:focus + label:after {
+    background: $focusBlue;
+}
+
+
+  .ngx-contextmenu {
+      background-color: #f3f3f3;
+      box-shadow: 2px 2px 4px #aaa;
+  }
+
+  .ngx-contextmenu ul {
+    margin: 0;
+  }
+
+  .ngx-contextmenu .dropdown-menu {
+    padding: 0;
+  }
+  .ngx-contextmenu li {
+      min-width: 200px;
+    display: block;
+    padding: 0;
+    color: $textcolor;
+    font-weight: bold;
+  }
+
+  .ngx-contextmenu li.disabled {
+    color: #999;
+  }
+
+  .ngx-contextmenu li:first-child {
+    border-top:none;
+  }
+  .ngx-contextmenu a {
+    padding: 5px 20px;
+    color: $textcolor;
+    display: block;
+    text-align: left;
+    text-decoration: none;
+  }
+
+  .ngx-contextmenu li.disabled a {
+    color: #999;
+  }
+
+  .ngx-contextmenu li:hover {
+    background-color:#ccc;
+  }
+
+  .ngx-contextmenu li.disabled:hover {
+    background-color:#f3f3f3;
+  }
+
+  .ngx-contextmenu .key-shortcut{
+      float: right;
+      font-size: 80%;
+      font-weight: normal;
+  }
+
+  li.cdk-drag-preview div.interaction{
+    display: none !important;
+}
+
+.distribute{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.action-list{
+
+
+  .cdk-drag-placeholder {
+    // opacity: 0;
+    // height: 0;
+    // z-index: 0;
+    // //display: none;
+    height: 1px;
+    border: 1px solid gray;
+    margin: 10px 0 20px 0;
+    text-align: center;
+    font-weight: bold;
+    letter-spacing: 2px;
+    line-height: 50px;
+  }
+
+  ul {
+    span.cdk-drag-placeholder{
+      display: none;
+    }
+  }
+
+}
+
+
+.object-preview {
+  display: none;
+}
+
+.pri-drag-placeholder{
+
+  li{
+    list-style: none;
+  }
+
+}
+
+.action-list {
+  .pri-drag-placeholder{
+    li{
+      height: 30px;
+      display: flex;
+      padding-left: 50px;
+      align-items: center;
+      font-family: 'Roboto';
+      font-weight: bold;
+      letter-spacing: 2px;
+      i {
+        display: none;
+      }
+    }
+  }
+
+  .drop-zone{
+    .pri-drag-placeholder{
+      li{
+        height: 50px;
+        i {
+          display: none;
+        }
+      }
+    }
+  }
+
+  .step-container{
+    .pri-drag-placeholder{
+      li{
+        display: inline;
+        padding-left: 0;
+        font-weight: bold;
+        letter-spacing: 2px;
+        i {
+          display: none;
+        }
+      }
+    }
+  }
+}

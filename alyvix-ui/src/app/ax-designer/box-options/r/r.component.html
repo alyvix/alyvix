@@ -1,0 +1,22 @@
+<div class="pure-g">
+    <div class="pure-u-1-4">
+        <app-select-type [node]="node"></app-select-type>
+      </div>
+    <div class="pure-u-3-4">
+      <div class="form-group distribute">
+            <input class="mousetrap" [ngModel]="mode" (ngModelChange)="updateMode($event)" value="button" type="radio" name="Rradio" id="Rbutton"> <label for="Rbutton">Button</label>
+            <input class="mousetrap" [ngModel]="mode" (ngModelChange)="updateMode($event)" value="box" type="radio" name="Rradio" id="Rbox"> <label for="Rbox">Box</label>
+            <input class="mousetrap" [ngModel]="mode" (ngModelChange)="updateMode($event)" value="window" type="radio" name="Rradio" id="Rwindow"> <label for="Rwindow">Window</label>
+
+      </div>
+    </div>
+    <div class="pure-u-1-1">
+        <ax-interaction [node]="node"></ax-interaction>
+      </div>
+      <div class="pure-u-1-1">
+        <div class="form-group">
+          <label>String</label>
+          <input class="mousetrap" [(ngModel)]="node.box.keyboard.string" type="text" spellcheck="false">
+        </div>
+      </div>
+  </div>

@@ -1,5 +1,5 @@
 # Alyvix allows you to automate and monitor all types of applications
-# Copyright (C) 2015 Alan Pipitone
+# Copyright (C) 2018 Alan Pipitone
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,9 +25,9 @@ import win32ui
 import win32api
 import win32con
 import ctypes
+from ctypes.wintypes import HWND, LPCWSTR, UINT, DWORD
 from PIL import Image
 import cv2
-import cv2.cv as cv
 import win32con
 import win32service
 from .base import ScreenManagerBase
@@ -49,27 +49,33 @@ class ScreenManager(ScreenManagerBase):
         :return: the dpi scaling factor
         """
 
+        DPI100pc = 96  # DPI 96 is 100% scaling
+        DPI_type = 0  # MDT_EFFECTIVE_DPI = 0, MDT_ANGULAR_DPI = 1, MDT_RAW_DPI = 2
+
+
         hwnd = win32gui.GetDesktopWindow()
-        wDC = win32gui.GetWindowDC(hwnd)
-        dcObj=win32ui.CreateDCFromHandle(wDC)
 
-        HORZRES = 8
-        VERTRES = 10
+        monitorhandle = ctypes.windll.user32.MonitorFromWindow(hwnd,DWORD(2))  # MONITOR_DEFAULTTONEAREST = 2
+        X = UINT()
+        Y = UINT()
 
-        DESKTOPHORZRES = 118
-        DESKTOPVERTRES = 117
+        try:
+            ctypes.windll.shcore.GetDpiForMonitor(monitorhandle, DPI_type, ctypes.pointer(X), ctypes.pointer(Y))
+            dpi =(X.value, Y.value, (X.value + Y.value) / (2 * DPI100pc))
+        except Exception:
+            dpi=(96, 96, 1)  # Assume standard Windows DPI & scaling
 
-        v_HORZRES = dcObj.GetDeviceCaps( HORZRES)
-        v_VERTRES = dcObj.GetDeviceCaps( VERTRES)
 
-        v_DESKTOPHORZRES = dcObj.GetDeviceCaps( DESKTOPHORZRES)
-        v_DESKTOPVERTRES = dcObj.GetDeviceCaps( DESKTOPVERTRES)
-
-        dcObj.DeleteDC()
-
-        scaling = round(float(v_DESKTOPVERTRES)/float(v_VERTRES), 2)  #two decimal
-
-        return scaling
+        """
+        96 DPI = 100% scaling
+        
+        120 DPI = 125% scaling
+        
+        144 DPI = 150% scaling
+        
+        192 DPI = 200% scaling
+        """
+        return dpi[2]
 
 
     def grab_desktop(self, return_type=0):

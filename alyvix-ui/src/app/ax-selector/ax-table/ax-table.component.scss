@@ -1,0 +1,256 @@
+@import "../../../variables.scss";
+
+
+
+.name-popover{
+  z-index: 9999;
+  display:  flex;
+  flex-direction: row;
+  align-content: center;
+  text-align: center;
+  align-items: center;
+  height: 40px;
+  height: 40px;
+  margin-top: -30px;
+  margin-bottom: -10px;
+  margin-left: 90px;
+  width: 250px;
+  .name-popover-content{
+    z-index: 9999;
+    font-size: 13px;
+    font-weight: bold;
+    color: white;
+    padding: 5px;
+    background-color: $darkred;
+    text-align: center;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+
+  }
+
+}
+
+
+.name-popover:before {
+  width: 0px;
+  height: 0px;
+  z-index: 5;
+  content: "";
+  border-style: solid;
+  border-width: 10px 10px 10px 10px;
+  border-color: transparent $darkred transparent transparent;
+}
+
+.ax-table-container{
+  width: 100%;
+  .ax-table-scroller{
+    min-width: 1100px;
+  }
+  overflow-x: auto;
+}
+
+.ax-selector-header {
+  display: flex;
+  flex-direction: row;
+  padding-right: 18px;
+  //background-color: $blue;
+  border-bottom: 1px solid $blue;
+  text-align: center;
+  align-items: center;
+  div{
+      padding: 5px;
+      width: 15%;
+      &.xsmall{
+        width: 3%;
+      }
+      &.small{
+        width: 5%;
+      }
+      &.medium{
+        width: 10%;
+      }
+      &.large{
+        width: 27%;
+      }
+      font-weight: bold;
+      font-size: 0.8em;
+      color: $blue;
+      a{
+        color: $blue;
+        cursor: pointer;
+        &:hover{
+          text-decoration: underline;
+        }
+        span{
+          color: $blue;
+        }
+      }
+  }
+
+
+
+}
+
+.ax-selector-footer {
+  height: 65px;
+  padding: 7px;
+  button{
+      margin-right: 5px;
+  }
+  .ax-selector-footer-actions{
+    margin-top: 5px;
+    text-align: right;
+  }
+
+  .add-btn{
+    padding-top: 2px;
+    padding-bottom: 3px;
+    span{
+      color: $blue;
+    }
+
+    input{
+      border: 0;
+      color: $blue;
+      background-color: transparent;
+    }
+
+    &:hover{
+      input{
+        color: white;
+      }
+      span{
+        color: white;
+      }
+    }
+
+  }
+}
+
+.ax-selector-table {
+  overflow-y: overlay;
+  height: 100%;
+  cdk-table {
+      display: flex;
+      flex-direction: column;
+
+      cdk-header-row,cdk-row{
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          border-bottom: 1px solid #ccc;
+          padding-right: 18px;
+
+          li {
+            list-style-type: none;
+            span {
+              display: none;
+            }
+          }
+
+          &.selected{
+            background: $lightblue;
+          }
+
+          cdk-cell,cdk-header-cell {
+              text-align: center;
+              font-size: 12px;
+              width: 15%;
+              padding: 5px;
+
+              &.xsmall{
+                width: 3%;
+              }
+
+              &.small{
+                width: 5%;
+              }
+
+              &.medium{
+                width: 10%;
+              }
+
+              &.large{
+                width: 27%;
+              }
+
+              img{
+                  max-width: 100%;
+                  max-height: 40px;
+              }
+          }
+      }
+  }
+
+
+
+
+
+  input[type=date],
+  input[type=datetime],
+  input[type=datetime-local],
+  input[type=email],
+  input[type=month],
+  input[type=number],
+  input[type=password],
+  input[type=range],
+  input[type=search],
+  input[type=tel],
+  input[type=text],
+  input[type=time],
+  input[type=url],
+  input[type=week]
+  {
+
+      border: 0;
+      border-bottom: transparent 1px solid;
+      padding: 2px 5px;
+      width: 100%;
+      height: 20px;
+      text-align: left;
+      background-color: transparent;
+
+      &.small {
+        width: 40px;
+      }
+
+
+
+
+      &.ng-invalid {
+        border-bottom: 1px solid $red !important;
+        background-color: $lightred !important;
+      }
+
+      &.primary{
+        font-weight: bold;
+      }
+  }
+
+  select{
+    background-color: transparent;
+  }
+
+  &.read-write{
+    input[type=date],
+    input[type=datetime],
+    input[type=datetime-local],
+    input[type=email],
+    input[type=month],
+    input[type=number],
+    input[type=password],
+    input[type=range],
+    input[type=search],
+    input[type=tel],
+    input[type=text],
+    input[type=time],
+    input[type=url],
+    input[type=week]
+    {
+      &:hover, &:focus{
+        outline: none;
+        border-bottom: 1px solid $blue;
+        background: $lightblue;
+      }
+    }
+  }
+}

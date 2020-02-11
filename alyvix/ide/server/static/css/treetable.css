@@ -1,0 +1,57 @@
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.treetable{
+    border-collapse: collapse;
+    overflow-y: hidden;
+}
+
+.treetable tr.container {
+	padding:0;
+    margin:0;
+ 
+}
+
+
+.treetable td.container {
+	padding:4px;
+    margin:0;
+}
+
+.treetable div.tail{
+	border:2px gray solid;
+	border-right: 0;
+	border-top: 0;
+	position:absolute;
+	border-radius: 2px;
+	bottom: 15px;
+	left: -10px;
+	z-index: 0;
+}
+
+.thumbnail-container{
+	z-index: 100;
+	position:relative;
+}
+
+.thumbnail{
+        position:relative;
+
+        display:inline-block;
+}
+
+
+.treetable td.container, 
+.treetable th.container {
+
+    width: 300px;
+   /*height:32px;*/
+   vertical-align: middle;
+   display: inline-block;
+}
+
+.selected{
+    background-color: #95bcd7;
+}

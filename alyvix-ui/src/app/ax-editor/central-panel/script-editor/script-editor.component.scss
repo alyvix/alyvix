@@ -1,0 +1,48 @@
+@import '../../../../variables.scss';
+
+.script-editor-container {
+  overflow: hidden;
+  height: 100%;
+
+  .script-actions{
+    margin: 30px;
+    button {
+      margin-right: 10px;
+    }
+  }
+
+  .script-editor-steps {
+      height: calc(100% - 80px);
+      overflow: auto;
+
+      .script-title{
+        margin: 30px;
+        text-align: center;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: 14px;
+        font-family: 'Roboto';
+        letter-spacing: 2px;
+      }
+
+
+
+      .action-list{
+        margin: 30px;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        top: 0;
+        left: 0;
+        width: 80%;
+
+        .drop-zone{
+          height: 50px;
+          width: 200px;
+        }
+
+      }
+    }
+
+
+}

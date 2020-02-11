@@ -1,0 +1,79 @@
+@import '../../../variables.scss';
+
+.ax-objects{
+
+  padding:  20px 10px 20px 10px;
+  font-family: $font;
+  letter-spacing: 2px;
+  width: 100%;
+  overflow-x: hidden;
+
+  h3 {
+    font-size: 15px;
+    margin-bottom: 0px;
+    margin-top: 20px;
+  }
+
+  .ax-object-list{
+    width: 100%;
+    padding: 0;
+    margin: 0;
+
+    list-style: none;
+    margin-bottom: 10px;
+
+    .pri-drag-placeholder li,.ax-object-element {
+      padding-left: 16px;
+      margin: 3px 0;
+      line-height: 23px;
+
+      &.ax-object-primary{
+        cursor: default;
+      }
+
+      i {
+        margin-right: 10px;
+      }
+
+
+      &.selected{
+        background-color: $lightblue;
+      }
+
+      &:before {
+        //content: "\203A"; /* Insert content that looks like bullets */
+        font-size: 25px;
+        line-height: 16px;
+        font-weight: bolder;
+        padding-right: 8px;
+      }
+
+      input{
+        border: 0px;
+        font-family: $font;
+        letter-spacing: 2px;
+        background-color: transparent;
+        width: 150px;
+        &:hover, &:focus{
+          outline: none;
+          border-bottom: 1px solid $blue;
+          background: $lightblue;
+        }
+      }
+
+    }
+
+
+    button{
+      float: right;
+      background-color: transparent;
+      &.light{
+        color: $gray;
+        &:hover{
+          color: #000;
+        }
+      }
+    }
+  }
+
+}

@@ -1,0 +1,20 @@
+<div class="script-editor-container">
+  <div class="script-editor-steps">
+    <div *ngIf="_steps.length == 0" class="script-title">DROP OBJECTS, SECTIONS OR MAPS HERE</div>
+    <div priDropList="{{listId}}" (priDropListDrop)="dropped($event)" [priDropListData]="'actions'" class="action-list">
+      <div *ngFor="let step of _steps; last as isLast" priDragItem [priDragItemData]="step">
+        <script-step [selected]="isSelected(step)" (click)="selectStep(step,$event)" [step]="step" (stepChange)="stepChange($event)"></script-step>
+      </div>
+      <div *ngIf="_steps.length > 0" priDropList="{{lastListId}}" (priDropListDrop)="droppedEnd($event)" class="drop-zone"></div>
+
+    </div>
+  </div>
+  <div class="script-actions">
+      <button class="btn btn-secondary" (click)="disableEnableSelected()">Disable/Enable</button>
+      <button class="btn btn-danger" (click)="deleteSelected()">Remove</button>
+    </div>
+
+
+
+</div>
+

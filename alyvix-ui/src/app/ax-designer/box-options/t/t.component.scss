@@ -1,0 +1,51 @@
+$green: rgb(0, 188, 0);
+$yellow: rgb(255,215,51);
+
+.regex-input{
+    &.ng-valid {
+        background-color: lighten($green,50%);
+        border-bottom-color: $green;
+
+        &:focus{
+            background-color: lighten($green,40%);
+            border-bottom-color: darken($green,20%);
+        }
+
+        &.warning{
+            background-color: lighten($yellow,20%);
+            border-bottom-color: $yellow;
+
+            &:focus{
+                background-color: lighten($yellow,10%);
+                border-bottom-color: darken($yellow,20%);
+            }
+        }
+    }
+}
+
+.logic{
+  &.ng-valid {
+    background-color: lighten($green,50%);
+    border-bottom-color: $green;
+
+    &:focus{
+        background-color: lighten($green,40%);
+        border-bottom-color: darken($green,20%);
+    }
+
+    &.warning{
+        background-color: lighten($yellow,20%);
+        border-bottom-color: $yellow;
+
+        &:focus{
+            background-color: lighten($yellow,10%);
+            border-bottom-color: darken($yellow,20%);
+        }
+    }
+  }
+}
+
+.loading{
+  background-color: white !important;
+  border-bottom-color: #555 !important;
+}

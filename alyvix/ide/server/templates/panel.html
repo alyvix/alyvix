@@ -1,0 +1,95 @@
+<!DOCTYPE html> 
+<html>
+<head> 
+    <title>Alyvix Editor</title>
+    <link rel="stylesheet" href="static/alyvix-ui/styles.css"></head>
+    <script src="static/js/jquery-3.3.1.min.js"></script>
+    <script src="static/js/draw.js"></script>
+    <script src="static/js/rect.js"></script>
+</head>
+<body style="height: 100vh;" onload="loadAlyvixEditor();" onunload="unloadAlyvixEditor();">
+        <script type="text/javascript" src="static/alyvix-ui/runtime.js"></script><script type="text/javascript" src="static/alyvix-ui/polyfills.js"></script><script type="text/javascript" src="static/alyvix-ui/main.js"></script>
+        <script>
+
+            var canvas = null;
+            var ctx = null;
+            var rectManager = new RectManager();
+            
+            var boxes = []
+            var model = {box_list: boxes};
+
+            var res_h = {{res_h}};
+            var res_w = {{res_w}};
+            var scaling_factor = {{scaling_factor}};
+            var screen_w = {{res_w}};
+            var screen_h = {{res_h}};
+            var res_string = "{{res_string}}";
+
+            var current_library_name = "{{current_library_name}}";
+
+            //needed for draw
+            ttWIndow_isOpen = true; //act like there is an open window in drawing mode
+
+            //EDITOR
+            function setCanvas(c) {
+                canvas = c;
+                ctx = canvas.getContext('2d');
+                
+                //let style = canvas_size(canvas);
+                
+                //set the correct attributes for a crystal clear image!
+                //canvas.setAttribute('width', style.width()*dpi);
+                //canvas.setAttribute('height', style.height()*dpi);
+                //ctx.scale(dpi, dpi);
+                ctx.translate(0.5,0.5);
+            } 
+
+            function setBoxes(b) {
+                boxes = b;
+                model.box_list = b;
+                rectManager.set_rectangles(model.box_list);
+                draw(rectManager.last_mouse_event);
+            }
+
+
+            var selected_box = 0;
+
+            function getSelectedNode() {
+                return selected_box;
+            }//:number
+
+            function setSelectedNode(i) {
+                selected_box = i;
+                draw(rectManager.last_mouse_event);
+            }
+
+           
+
+
+
+            function uuidv4() { 
+                //console.log("uuidv4 Method not implemented.");
+            } // :string
+
+
+
+            function getGroupsFlag() { // copy from drawing.html
+                //console.log("getGroupsFlag() Method not implemented.");
+                return flagsMock();
+            }//:GroupsFlag
+
+            function setGroupFlags(flags) { // copy from drawing.html
+                //console.log("setGroupFlags() Method not implemented.");
+            }
+
+            function setTypeNode(s) { // copy from drawing.html
+                draw(rectManager.last_mouse_event);
+            }
+
+
+
+        </script>
+        <app-root></app-root>
+        <!-- inject angular-ui -->
+    </body>
+</html>

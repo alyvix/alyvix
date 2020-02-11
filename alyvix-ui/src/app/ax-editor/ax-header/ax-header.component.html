@@ -1,0 +1,14 @@
+<div class="ax-header-container">
+  <!-- <div class="ax-header-title">Alyvix Editor - {{name}}</div> -->
+  <ul>
+    <li><button class="btn btn-primary run" [ngClass]="{'running': running}" (click)="run()">
+      <span *ngIf="!running"><i class="fas fa-play"></i> Run</span>
+      <span *ngIf="running"><i class="fas fa-stop"></i> Stop</span>
+    </button></li>
+    <li><button class="btn" (click)="newFile()">New</button></li>
+    <li><button class="btn" (click)="openFile()">Open</button></li>
+    <li><button class="btn" (click)="save()">Save</button></li>
+    <li><button class="btn" (click)="saveAs()">Save As</button></li>
+    <li><button class="btn" (click)="exit()">Exit</button></li>
+  </ul>
+</div>

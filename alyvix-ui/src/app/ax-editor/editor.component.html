@@ -1,0 +1,40 @@
+<ng-progress></ng-progress>
+<div class="container-header" (resized)="onResized($event)">
+  <div class="header">
+      <ax-header></ax-header>
+  </div>
+  <div class="container-editor" #container>
+    <div class="variable_width" [style.width.px]="leftWidth">
+        <rsz-layout class="top-panel" [directions]="['none']" [rFlex]="true">
+            <div [style.height.px]="topLeftHeight" class="editor-menu-panel">
+              <rsz-layout  [directions]="['right']" [rFlex]="true" (resizing)="resizingVertical($event)">
+                  <div [style.width.px]="objectsWidth" class="inner-cell objects">
+                    <div class="show-hide show-designer" (click)="toggleObjects()"><p *ngIf="!objectCollapsed">Hide</p><p *ngIf="objectCollapsed">Sections</p></div>
+                    <div class="object-panel">
+                      <app-objects-panel></app-objects-panel>
+                    </div>
+                  </div>
+              </rsz-layout>
+              <rsz-layout  [directions]="['none']" [rFlex]="true">
+                <div [style.width.px]="leftWidth - objectsWidth" [style.height.px]="topLeftHeight" class="inner-cell">
+                  <app-central-panel></app-central-panel>
+                </div>
+              </rsz-layout>
+            </div>
+          </rsz-layout>
+          <rsz-layout (resizing)="resizing($event)" class="selector-panel" [directions]="['top']" [rFlex]="true">
+              <div [style.height.px]="selectorHeight" class="selector-panel-container">
+                <ax-selector [editor]="true"></ax-selector>
+              </div>
+          </rsz-layout>
+
+    </div>
+    <div class="designer-right" [ngClass]="{'hide-designer': designerCollapsed}">
+      <div class="show-hide show-designer" (click)="toggleDesigner()"><p *ngIf="!designerCollapsed">Hide</p><p *ngIf="designerCollapsed">Designer</p></div>
+      <ax-designer [editor]="true" *ngIf="hasDesigner"></ax-designer>
+      <div class="message" *ngIf="!hasDesigner && !designerCollapsed">Select an object<br>for the current resolution</div>
+    </div>
+  </div>
+
+
+</div>

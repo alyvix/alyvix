@@ -1,0 +1,32 @@
+<div class="ax-objects" *ngIf="selected">
+  <div class="ax-object-list">
+    <div class="ax-object-element ax-object-primary" (click)="selectMain()" [ngClass]="{'selected': isSelected('MAIN')}"> MAIN</div>
+    <div class="ax-object-element ax-object-primary" (click)="selectFail()" [ngClass]="{'selected': isSelected('FAIL')}"> FAIL</div>
+    <div class="ax-object-element ax-object-primary" (click)="selectExit()" [ngClass]="{'selected': isSelected('EXIT')}"> EXIT</div>
+    </div>
+
+  <h3>SECTIONS <button class="btn" (click)="addSection()">Add</button></h3>
+
+
+      <div class="ax-object-list" priDropList   [priDropListConnectedTo]="objectLists" name="sections" [priDropListData]="'object'" [priDropListSorting]="false">
+        <div class="ax-object-element" *ngFor="let section of script.sections" priDragItem [priDragItemData]="sectionToStep(section)" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
+          <span *priDragPlaceholder><li><i class="fas fa-bars" priDragHandle></i> {{section.name}}</li></span>
+          <span *priDragPreview><li>{{section.name}}</li></span>
+          <i class="fas fa-bars" priDragHandle></i>
+          <input spellcheck="false" [ngModel]="section.name" (change)="changeSectionName(section,$event)" />
+          <button class="btn light" (click)="removeSection(section)">Remove</button>
+        </div>
+      </div>
+
+  <h3>MAPS <button class="btn" (click)="addMap()">Add</button></h3>
+      <div class="ax-object-list" priDropList  [priDropListConnectedTo]="objectLists" name="maps" [priDropListData]="'map'" [priDropListSorting]="false">
+        <div class="ax-object-element" *ngFor="let map of maps" priDragItem [priDragItemData]="mapToStep(map)" (click)="selectMap(map)" [ngClass]="{'selected': isSelectedMap(map)}">
+          <span *priDragPlaceholder><li><i class="fas fa-bars" priDragHandle></i> {{map.name}}</li></span>
+          <span *priDragPreview>{{map.name}}</span>
+          <i class="fas fa-bars" priDragHandle></i>
+          <input spellcheck="false" [(ngModel)]="map.name" (change)="changeMapName(map,$event)"/>
+          <button class="btn light" (click)="removeMap(map)">Remove</button>
+        </div>
+      </div>
+
+</div>

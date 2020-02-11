@@ -1,0 +1,84 @@
+@import '../../../../variables.scss';
+
+
+.map-table-container{
+
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+
+  table {
+    width: 100%;
+    border-bottom: solid $blue 2px;
+
+    .key{
+      border-right: solid $blue 2px;
+      background-color: $lightblue;
+      input{
+        font-weight: bold;
+      }
+    }
+
+
+
+    tr{
+      border-bottom: 1px $blue dotted;
+
+      td{
+        padding: 5px;
+        &.key{
+          padding-left: 30px;
+        }
+        &.actions{
+          text-align: center;
+          a {
+            &:hover {
+              i {
+                color: $blue;
+              }
+            }
+          }
+        }
+        input{
+          background-color: transparent;
+          border: 0;
+          width: 100%;
+          &:hover, &:focus{
+            outline: none;
+            border-bottom: 1px solid $blue;
+            padding-bottom: 0;
+          }
+        }
+
+      }
+
+      th {
+        border-bottom: solid $blue 2px;
+        background-color: $lightblue;
+        text-align: left;
+        padding: 5px;
+
+        a {
+          margin-left: 20px;
+          &:hover {
+            i {
+              color: $blue;
+            }
+          }
+        }
+
+      }
+
+    }
+
+
+
+  }
+
+  .table-actions{
+    padding-top: 10px;
+    padding-left: 30px;
+  }
+
+
+}

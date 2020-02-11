@@ -1,0 +1,75 @@
+@import "../../variables.scss";
+
+.ax-selector-container{
+  height: 100%;
+
+  .ax-selector-main{
+
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+
+
+    .ax-selector-tabs{
+      height: 20px;
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      border-bottom: 2px solid $blue;
+
+      &.hide-selector {
+        .ax-selector-tab{
+          display: none;
+        }
+      }
+
+    }
+
+    .ax-selector-tab{
+      min-width: 120px;
+      padding: 3px 10px;
+      display: flex;
+      font-size: 80%;
+      font-weight: bolder;
+
+      &.selected{
+        &.primary{
+          background-color: $blue;
+          a {
+            span{
+              color: white;
+            }
+          }
+        }
+        background-color: $lightblue;
+
+      }
+
+      &.add{
+        cursor: pointer;
+        min-width: 0;
+      }
+
+      a {
+        width: 100%;
+        cursor: pointer;
+        &:hover {
+          color:$blue;
+        }
+      }
+
+      &.secondary{
+        a:hover{
+          i {
+            color: $blue;
+          }
+        }
+      }
+
+    }
+  }
+
+}
+
+

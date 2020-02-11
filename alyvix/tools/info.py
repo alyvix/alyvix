@@ -18,13 +18,11 @@
 # Supporter: Wuerth Phoenix - http://www.wuerth-phoenix.com/
 # Official website: http://www.alyvix.com/
 
-from alyvix.tools.configreader import ConfigReader
-from alyvix.tools.screen import ScreenManager
-from alyvix.bridge.robot import RobotManager
+from .configreader import ConfigReader
+from .screen import ScreenManager
 import time
 
 config_reader = ConfigReader()
-robot_manager = RobotManager()
 screen_manager = ScreenManager()
 
 _log_folder = None
@@ -59,9 +57,6 @@ class InfoManager():
 
         if self.get_info("SCALING FACTOR ONE TIME") is None:
             self.set_info('SCALING FACTOR ONE TIME', float_scaling_factor)
-
-        robot_context = robot_manager.context_is_set()
-        self.set_info('ROBOT CONTEXT', robot_context)
 
         self.set_info('FINDER THREAD INTERVAL', config_reader.get_finder_thread_interval())
         self.set_info('FINDER THREAD INTERVAL DISAPPEAR', config_reader.get_finder_thread_interval_disappear())
@@ -104,28 +99,13 @@ class InfoManager():
 
         #self.set_info("INTERACTION", [])
 
-        if robot_context:
-            self.set_info('SUITE NAME', robot_manager.get_suite_name())
-            self.set_info('SUITE SOURCE', robot_manager.get_suite_source())
-            self.set_info('TEST CASE NAME', robot_manager.get_testcase_name())
-            self.set_info('OUTPUT DIR', robot_manager.get_output_directory())
-            self.set_info('LOG LEVEL', robot_manager.get_loglevel())
-            self.set_info('LOG ENABLED', True)
-        else:
-            self.set_info('OUTPUT DIR', config_reader.get_log_folder())
-            self.set_info('LOG LEVEL', config_reader.get_loglevel())
-            self.set_info('LOG ENABLED', config_reader.get_log_enable_value())
+
+        self.set_info('OUTPUT DIR', config_reader.get_log_folder())
+        self.set_info('LOG LEVEL', config_reader.get_loglevel())
+        self.set_info('LOG ENABLED', config_reader.get_log_enable_value())
 
     def tiny_update(self):
-        """
-        updates only a few necessary info.
-        """
-
-        robot_context = self.get_info('ROBOT CONTEXT')
-
-        if robot_context:
-            self.set_info('TEST CASE NAME', robot_manager.get_testcase_name())
-            self.set_info('LOG LEVEL', robot_manager.get_loglevel())
+        pass
 
     def set_info(self, name, value):
         """
