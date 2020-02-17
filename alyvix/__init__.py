@@ -29,7 +29,7 @@ info_manager = InfoManager()
 info_manager.update()
 
 screen_manager = ScreenManager()
-scaling_factor = screen_manager.get_scaling_factor()
+scaling_factor = screen_manager.get_scaling_factor_before_start()
 
 if sys.platform == "linux" or sys.platform == "linux2":
     #linux...

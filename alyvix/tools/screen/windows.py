@@ -41,6 +41,10 @@ class ScreenManager(ScreenManagerBase):
     def __init__(self):
         super(ScreenManager, self).__init__()
 
+    def get_scaling_factor_before_start(self):
+        scaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+        return scaleFactor
+
     def get_scaling_factor(self):
         """
         get the dpi scaling factor.

@@ -421,7 +421,7 @@ if filename is not None:
         elif sys_exit == 2 and len(timed_out_objects) == 0:
             message_to_print = "CRITICAL"
         elif sys_exit == 2 and len(timed_out_objects[0]) > 0:
-            message_to_print = "CRITICAL " +  timed_out_objects[0].replace(" ", "_") + " FAILED"
+            message_to_print = "CRITICAL : " +  timed_out_objects[0].replace(" ", "_") + " FAILED"
 
         #print(message_to_print + performance_string)
 
@@ -477,7 +477,7 @@ if filename is not None:
                     curr_perf_string += ";; "
 
                     performance_string += curr_perf_string
-                    not_exec_print += result.object_name.replace(" ", "_") + ";"
+                    not_exec_print += result.object_name.replace(" ", "_") + "; "
                 else:
                     print("        " + result.object_name)
 
@@ -491,11 +491,11 @@ if filename is not None:
         if len(timed_out_objects) > 0:
             failed_to_print = ""
             for obj in timed_out_objects:
-                failed_to_print += obj.replace(" ", "_") + ";"
-            print("FAILED transactions (from first to last): " + failed_to_print[:-1])
+                failed_to_print += obj.replace(" ", "_") + "; "
+            print("FAILED transactions (from first to last): " + failed_to_print[:-2])
 
         if not_executed_cnt > 0:
-            print(not_exec_print[:-1])
+            print(not_exec_print[:-2])
 
     date_from_ts = datetime.fromtimestamp(timestamp)
     date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_UTC" + time.strftime("%z")
