@@ -421,7 +421,7 @@ if filename is not None:
         elif sys_exit == 2 and len(timed_out_objects) == 0:
             message_to_print = "CRITICAL"
         elif sys_exit == 2 and len(timed_out_objects[0]) > 0:
-            message_to_print = "CRITICAL : " +  timed_out_objects[0].replace(" ", "_") + " FAILED"
+            message_to_print = "CRITICAL: " +  timed_out_objects[0].replace(" ", "_") + " FAILED"
 
         #print(message_to_print + performance_string)
 

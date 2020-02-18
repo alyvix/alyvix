@@ -155,7 +155,7 @@ class TextManager():
                 obj_name = obj_name.split(".")[0]
 
                 extract_value = None
-                for executed_obj in executed_objects:
+                for executed_obj in reversed(executed_objects):
 
                     if executed_obj.object_name == obj_name:
                         extract_value = executed_obj.records["extract"]
@@ -174,7 +174,7 @@ class TextManager():
                 obj_name = obj_name.split(".")[0]
 
                 text_value = None
-                for executed_obj in executed_objects:
+                for executed_obj in reversed(executed_objects):
 
                     if executed_obj.object_name == obj_name:
                         text_value = executed_obj.records["text"]
@@ -193,7 +193,7 @@ class TextManager():
                 obj_name = obj_name.split(".")[0]
 
                 check_value = None
-                for executed_obj in executed_objects:
+                for executed_obj in reversed(executed_objects):
 
                     if executed_obj.object_name == obj_name:
                         check_value = executed_obj.records["check"]

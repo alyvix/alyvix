@@ -72,6 +72,8 @@ class Result():
         self.output = True
         self.exit = "false"
 
+        self.measures = []
+
 
 class EngineManager(object):
 
@@ -564,7 +566,8 @@ class EngineManager(object):
                         obj_name = obj_name.split(".")[0]
 
                         extract_value = None
-                        for executed_obj in self._executed_objects:
+
+                        for executed_obj in reversed(self._executed_objects):
 
                             if executed_obj.object_name == obj_name:
                                 extract_value = executed_obj.records["extract"]
@@ -583,7 +586,7 @@ class EngineManager(object):
                         obj_name = obj_name.split(".")[0]
 
                         text_value = None
-                        for executed_obj in self._executed_objects:
+                        for executed_obj in reversed(self._executed_objects):
 
                             if executed_obj.object_name == obj_name:
                                 text_value = executed_obj.records["text"]
@@ -602,7 +605,7 @@ class EngineManager(object):
                         obj_name = obj_name.split(".")[0]
 
                         check_value = None
-                        for executed_obj in self._executed_objects:
+                        for executed_obj in reversed(self._executed_objects):
 
                             if executed_obj.object_name == obj_name:
                                 check_value = executed_obj.records["check"]
@@ -874,7 +877,7 @@ class EngineManager(object):
                                     scraper_dict["text"] = scraper_dict["text"] + scraped_text + ","
 
                                     extracted_dict = [s for s in arr_extracted_txt if s["group"] == box["group"] and s["index_in_group"] == box["index_in_group"]][0]
-                                    extracted_dict["text"] = extracted_dict["text"] + extract_text + ","
+                                    extracted_dict["text"] = extracted_dict["text"] + scraped_text + ","
 
 
 
