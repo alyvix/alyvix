@@ -32,7 +32,6 @@
     "ngx-contextmenu": "^5.2.0",
     "ngx-toastr": "^11.2.1",
     "node-sass": "^4.13.0",
-    "pri-ng-dragdrop": "^0.1.4",
     "purecss": "^1.0.1",
     "rxjs": "^6.5.3",
     "typeface-roboto": "0.0.75",

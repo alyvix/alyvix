@@ -36,7 +36,6 @@ import { StepComponent } from './central-panel/script-editor/step/step.component
 import { ObjectsPanelComponent } from './objects-panel/objects-panel.component';
 import { EditorDesignerGlobal } from './designer-global';
 import { MonitorComponent } from './central-panel/monitor/monitor.component';
-import { PriDragDropModule } from 'pri-ng-dragdrop';
 import { MapEditorComponent } from './central-panel/map-editor/map-editor.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
@@ -86,7 +85,6 @@ import { ConsoleComponent } from './central-panel/console/console.component';
     HttpClientModule,
     FormsModule,
     DragDropModule,
-    PriDragDropModule,
     AngularResizedEventModule,
     ContextMenuModule.forRoot(),
     HotkeyModule.forRoot({cheatSheetHotkey: "ctrl+h"}),

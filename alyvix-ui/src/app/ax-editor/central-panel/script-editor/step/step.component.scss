@@ -9,6 +9,7 @@ $conditions: #f1f1b0;
   display: flex;
   flex-direction: column;
   z-index: 9999;
+  align-items: flex-start;
 
   &.disable{
     .step-parameter{
@@ -71,6 +72,7 @@ $conditions: #f1f1b0;
 
     height: 50px;
     display: flex;
+    align-items: flex-start;
 
     .step-condition{
       display: flex;

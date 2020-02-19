@@ -6,6 +6,7 @@ import { AxScriptFlow } from 'src/app/ax-model/model';
 import { Step } from '../central-panel/script-editor/step/step.component';
 import { Utils } from 'src/app/utils';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
+import { Draggable } from 'src/app/utils/draggable';
 
 
 
@@ -184,6 +185,17 @@ export class ObjectsPanelComponent implements OnInit {
       disabled: false
     }
   }
+
+
+  mapDrag(event:DragEvent,map:MapsVM) {
+    Draggable.startDrag(event,"map",this.mapToStep(map));
+  }
+
+  sectionDrag(event:DragEvent,section: SectionVM) {
+    Draggable.startDrag(event,"section",this.sectionToStep(section));
+  }
+
+
 
 
 }

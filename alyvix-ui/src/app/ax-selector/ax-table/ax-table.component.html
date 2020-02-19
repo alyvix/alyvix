@@ -18,13 +18,8 @@
             <!-- Name Definition -->
             <ng-container cdkColumnDef="handle"  >
                 <cdk-cell *cdkCellDef="let row"  class="xsmall" >
-                  <div [priDropListSorting]="false" priDropList [priDropListConnectedTo]="objectLists"  [priDropListData]="'object'" [priDropListDisabled]="!editor || !isSelectedResolutionWorkingResolution()">
-                    <div priDragItem [priDragItemData]="toStep(row)">
-
-                        <li><i class="fas fa-bars"></i><span>{{row.name}}</span></li>
-                    </div>
-
-
+                  <div draggable="{{editor && isSelectedResolutionWorkingResolution()}}"  (dragstart)="objectDrag($event,row)">
+                      <i  class="fas fa-bars"></i>
                   </div>
                 </cdk-cell>
             </ng-container>

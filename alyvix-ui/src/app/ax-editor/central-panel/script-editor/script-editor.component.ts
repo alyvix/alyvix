@@ -1,14 +1,13 @@
-import { Component, OnInit, ViewChild, Input, OnDestroy, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, OnDestroy, Output, EventEmitter, ElementRef } from '@angular/core';
 import { ObjectsRegistryService } from '../../objects-registry.service';
 import { CdkDragDrop, moveItemInArray, CdkDrag } from '@angular/cdk/drag-drop';
-import { Step } from './step/step.component';
+import { Step, StepComponent } from './step/step.component';
 import { AxScriptFlow, AxScriptFlowObj } from 'src/app/ax-model/model';
-import { PriBaseDropList } from 'pri-ng-dragdrop/lib/entities/pri.base.drop.list';
-import { PriDropEventArgs } from 'pri-ng-dragdrop';
 import { Utils } from 'src/app/utils';
 import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
 import { RowVM } from 'src/app/ax-selector/ax-table/ax-table.component';
 import * as _ from 'lodash';
+import { Draggable } from 'src/app/utils/draggable';
 
 @Component({
   selector: 'app-script-editor',
@@ -27,6 +26,8 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
   _steps:Step[] = []
 
   objects:RowVM[] = [];
+
+  @ViewChild('actionList',{static: true}) actionList:ElementRef;
 
   @Output() change:EventEmitter<AxScriptFlow[]> = new EventEmitter();
 
@@ -101,20 +102,7 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
     this.objectRegistry.removeObjectList(this.lastListId);
   }
 
-  dropped(event: PriDropEventArgs) {
-    switch(event.sourceListData) {
-      case 'actions':
-        const index = this._steps.findIndex(x => x.id === event.itemData.id)
-        moveItemInArray(this._steps, index, event.dropIndex);
-        break;
-      case 'object':
-      case 'section':
-      case 'map':
-        this._steps.splice(event.dropIndex, 0, event.itemData);
-        break;
-    }
-    this.emitChange();
-  }
+
 
   stepChange(step:Step) {
     this.emitChange();
@@ -181,9 +169,78 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
 
 
 
-  droppedEnd(event: PriDropEventArgs) {
-    this._steps.push(event.itemData);
+
+  dragover(event:DragEvent) {
+    if(!this.dragStep) {
+      if(!event.dataTransfer.types.includes(Draggable.ORDER)) {
+        const type = Draggable.TYPE.decode(event.dataTransfer.types);
+        this.dragStep = {
+          id:Draggable.DRAGGING_ID,
+          type: type,
+          name: Draggable.TITLE.decode(event.dataTransfer.types),
+          disabled: false,
+          condition: type === "map" ? "for" : "run"
+        };
+        this._steps.push(this.dragStep);
+      } else if(event.dataTransfer.types.includes(Draggable.ORDER)) {
+        const id = Draggable.ID.decode(event.dataTransfer.types);
+        this.dragStep = this._steps.find(s => s.id === id);
+      }
+    }
+
+    if(this.dragStep) {
+      const position = this.dragPosition(event);
+      const currentPosition = this._steps.findIndex(s => s.id === this.dragStep.id);
+
+      if(position != currentPosition) {
+        const temp = this._steps[position];
+        this._steps[position] = this._steps[currentPosition];
+        this._steps[currentPosition] = temp;
+      }
+    }
+
+
+
+    event.preventDefault();
+  }
+
+  dragStep:Step
+
+
+  dragleave(event:DragEvent) {
+    if(this.dragStep && this.dragStep.id === Draggable.DRAGGING_ID) {
+      this._steps = this._steps.filter(s => s.id !== this.dragStep.id);
+    }
+    this.dragStep = null;
+    event.preventDefault();
+  }
+
+  drop(event:DragEvent) {
+    console.log("drop");
+    if(this.dragStep && this.dragStep.id === Draggable.DRAGGING_ID) {
+      this._steps = this._steps.filter(s => s.id !== this.dragStep.id);
+      const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
+      if(step) {
+        this._steps.splice(this.dragPosition(event),0,step);
+      }
+    }
+    this.dragStep = null;
+    event.stopPropagation();
     this.emitChange();
+  }
+
+  isDragging(step:Step) {
+    return step.id === Draggable.DRAGGING_ID;
+  }
+
+  dragPosition(event:DragEvent):number {
+    return Math.min(
+      Math.max(
+        0,
+        Math.floor((event.clientY - this.actionList.nativeElement.offsetTop + 30)/60) - 1
+      ),
+      this._steps.length-1
+    );
   }
 
 

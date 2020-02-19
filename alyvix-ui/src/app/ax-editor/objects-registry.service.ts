@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { CdkDropList } from '@angular/cdk/drag-drop';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { PriBaseDropList } from 'pri-ng-dragdrop/lib/entities/pri.base.drop.list';
 
 @Injectable({
   providedIn: 'root'

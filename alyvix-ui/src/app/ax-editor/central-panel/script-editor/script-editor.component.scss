@@ -28,10 +28,11 @@
 
 
       .action-list{
-        margin: 30px;
+        padding: 30px;
         min-height: 200px;
         display: flex;
         flex-direction: column;
+        align-items: flex-start;
         top: 0;
         left: 0;
         width: 80%;
@@ -39,6 +40,13 @@
         .drop-zone{
           height: 50px;
           width: 200px;
+        }
+
+        .no-pointer-events {
+          pointer-events: none;
+          * {
+            pointer-events: none;
+          }
         }
 
       }

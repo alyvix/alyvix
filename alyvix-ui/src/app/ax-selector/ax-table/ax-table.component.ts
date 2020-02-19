@@ -14,6 +14,7 @@ import { SelectorDatastoreService } from '../selector-datastore.service';
 import { CdkDropList } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
 import { Step } from 'src/app/ax-editor/central-panel/script-editor/step/step.component';
+import { Draggable } from 'src/app/utils/draggable';
 
 export interface RowVM{
   name:string
@@ -396,6 +397,10 @@ export class AxTableComponent implements OnInit {
       condition: 'run',
       disabled: false
     };
+  }
+
+  objectDrag(event:DragEvent,row:RowVM) {
+    Draggable.startDrag(event,"object",this.toStep(row));
   }
 
   breakClick(event,row:RowVM) {

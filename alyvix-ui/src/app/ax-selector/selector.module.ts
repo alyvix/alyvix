@@ -11,7 +11,6 @@ import { FormsModule } from '@angular/forms';
 import { AxTableComponent } from './ax-table/ax-table.component';
 import { CopyClipboardDirective } from '../directives/copy-clipboard.directive';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { PriDragDropModule } from 'pri-ng-dragdrop';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
 
@@ -30,7 +29,6 @@ import { ToastrModule } from 'ngx-toastr';
     HttpClientModule,
     FormsModule,
     DragDropModule,
-    PriDragDropModule,
     BrowserAnimationsModule, // required animations module
     ToastrModule.forRoot()
   ],

@@ -1,9 +1,8 @@
 import { Component, OnInit, Input, ViewChild, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CdkDragDrop, CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
-import { PriBaseDropList } from 'pri-ng-dragdrop/lib/entities/pri.base.drop.list';
-import { PriDropEventArgs } from 'pri-ng-dragdrop';
 import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
+import { Draggable } from 'src/app/utils/draggable';
 
 export interface Step{
   id: string;
@@ -83,23 +82,31 @@ export class StepComponent implements OnInit,OnDestroy {
     this.stepChange.emit(this.step);
   }
 
-  dropped(event: PriDropEventArgs) {
-   this._step.name = event.itemData.name;
-   if(this._step.type != event.itemData.type) {
-     this._step.condition = event.itemData.condition || this.conditions[this.step.type][0];
-   }
-   this.condition = this.step.condition;
-   this.secondParameterEnabled = !(this.step.condition === 'run');
-   this._step.type = event.itemData.type;
-   this._step.id = event.itemData.id;
-   this.stepChange.emit(this.step);
+  dropped(event: DragEvent) {
+   const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
+   if(step) {
+    this._step.name = step.name;
+    if(this._step.type != step.type) {
+      this._step.condition = step.condition || this.conditions[this.step.type][0];
+    }
+    this.condition = this.step.condition;
+    this.secondParameterEnabled = !(this.step.condition === 'run');
+    this._step.type = step.type;
+    this._step.id = step.id;
+    this.stepChange.emit(this.step);
+    }
+    event.stopPropagation();
   }
 
-  droppedSecond(event: PriDropEventArgs) {
-   this.secondParameterValue = event.itemData.name;
-   this.secondParameterType = event.itemData.type;
-   this.step.parameter = this.secondParameterValue;
-   this.stepChange.emit(this.step);
+  droppedSecond(event: DragEvent) {
+    const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
+    if(step && step.type !== "map") {
+      this.secondParameterValue = step.name;
+      this.secondParameterType = step.type;
+      this.step.parameter = this.secondParameterValue;
+      this.stepChange.emit(this.step);
+    }
+    event.stopPropagation();
   }
 
   ngOnInit() {
@@ -111,8 +118,67 @@ export class StepComponent implements OnInit,OnDestroy {
     this.objectRegistry.removeObjectList(this.secondParameterId);
   }
 
-  readonly canDropObject = (listData: any, itemData: Step) => {
-    return itemData.type === 'object' || itemData.type === 'section';
+  enableDrop(event:DragEvent) {
+    return  this.step.id !== Draggable.DRAGGING_ID &&
+            !event.dataTransfer.types.includes(Draggable.ORDER)
   }
+
+  dragoverPrimary(event:DragEvent) {
+    if(this.enableDrop(event)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
+  primaryTempName = null;
+
+  dragenterPrimary(event:DragEvent) {
+    if(this.enableDrop(event)) {
+      this.primaryTempName = Draggable.TITLE.decode(event.dataTransfer.types)
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
+  dragleavePrimary(event:DragEvent) {
+    console.log("dragleave");
+    if(this.primaryTempName) {
+      this.primaryTempName = null;
+    }
+  }
+
+  secondaryTempName = null;
+
+  dragoverSecondary(event:DragEvent) {
+    if(this.enableDrop(event)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
+  dragenterSecondary(event:DragEvent) {
+    if(this.enableDrop(event) && Draggable.TYPE.decode(event.dataTransfer.types) != "map") {
+      this.secondaryTempName = Draggable.TITLE.decode(event.dataTransfer.types)
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
+  dragleaveSecondary(event:DragEvent) {
+    console.log("dragleave");
+    if(this.secondaryTempName) {
+      this.secondaryTempName = null;
+    }
+  }
+
+
+  startDrag(event:DragEvent) {
+
+    event.dataTransfer.setDragImage(Draggable.labelTitle(this.step.name), 0, 0);
+    event.dataTransfer.setData(Draggable.STEP,JSON.stringify(this._step));
+    event.dataTransfer.setData(Draggable.ORDER,"true");
+    event.dataTransfer.setData(Draggable.ID.encode(this._step.id),"id");
+  }
+
 
 }
