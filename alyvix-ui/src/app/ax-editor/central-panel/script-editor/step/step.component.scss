@@ -39,6 +39,27 @@ $conditions: #f1f1b0;
       .step-parameter{
         font-weight: bold;
 
+        &.dropping{
+          &.object{
+            background-color: darken($objects,30%);
+          }
+          &.section{
+            background-color: darken($sections,30%);
+          }
+          &.warning{
+            background-color: darken($warning,30%);
+          }
+          &.condition{
+            &.map{
+              background-color: darken($maps,30%);
+            }
+
+            &.object{
+              background-color: darken($conditions,30%);
+            }
+          }
+        }
+
         &.object{
           background-color: darken($objects,10%);
         }
@@ -60,6 +81,8 @@ $conditions: #f1f1b0;
 
       }
     }
+
+
 
     .arrow{
       border-top: 10px solid #222;
@@ -103,6 +126,31 @@ $conditions: #f1f1b0;
       padding: 0 20px;
       min-width: 100px;
 
+      * {
+        pointer-events: none;
+      }
+
+      &.dropping{
+        &.object{
+          background-color: darken($objects,30%);
+        }
+        &.section{
+          background-color: darken($sections,30%);
+        }
+        &.warning{
+          background-color: darken($warning,30%);
+        }
+        &.condition{
+          &.map{
+            background-color: darken($maps,30%);
+          }
+
+          &.object{
+            background-color: darken($conditions,30%);
+          }
+        }
+      }
+
 
       &.object{
         background-color: $objects;
@@ -122,14 +170,7 @@ $conditions: #f1f1b0;
           background-color: $conditions;
         }
       }
-      &.cdk-drop-list-dragging{
-        span {
-          display: none;
-        }
-        span.cdk-drag-placeholder{
-          display: inline;
-        }
-      }
+
       div{
         text-align: center;
         font-weight: bold;

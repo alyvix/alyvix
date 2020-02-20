@@ -38,6 +38,8 @@ export class StepComponent implements OnInit,OnDestroy {
   secondParameterEnabled = false;
   secondParameterValue = '';
   secondParameterType = 'warning';
+  droppingSecond = false;
+  droppingPrimary = false;
 
   private _step:Step;
 
@@ -83,28 +85,32 @@ export class StepComponent implements OnInit,OnDestroy {
   }
 
   dropped(event: DragEvent) {
-   const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
-   if(step) {
-    this._step.name = step.name;
-    if(this._step.type != step.type) {
-      this._step.condition = step.condition || this.conditions[this.step.type][0];
-    }
-    this.condition = this.step.condition;
-    this.secondParameterEnabled = !(this.step.condition === 'run');
-    this._step.type = step.type;
-    this._step.id = step.id;
-    this.stepChange.emit(this.step);
+    if(this.enableDrop(event)) {
+    const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
+    if(step) {
+      this._step.name = step.name;
+      if(this._step.type != step.type) {
+        this._step.condition = step.condition || this.conditions[this.step.type][0];
+      }
+      this.condition = this.step.condition;
+      this.secondParameterEnabled = !(this.step.condition === 'run');
+      this._step.type = step.type;
+      this._step.id = step.id;
+      this.stepChange.emit(this.step);
+      }
     }
     event.stopPropagation();
   }
 
   droppedSecond(event: DragEvent) {
-    const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
-    if(step && step.type !== "map") {
-      this.secondParameterValue = step.name;
-      this.secondParameterType = step.type;
-      this.step.parameter = this.secondParameterValue;
-      this.stepChange.emit(this.step);
+    if(this.enableDrop(event)) {
+      const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
+      if(step && step.type !== "map") {
+        this.secondParameterValue = step.name;
+        this.secondParameterType = step.type;
+        this.step.parameter = this.secondParameterValue;
+        this.stepChange.emit(this.step);
+      }
     }
     event.stopPropagation();
   }
@@ -125,6 +131,7 @@ export class StepComponent implements OnInit,OnDestroy {
 
   dragoverPrimary(event:DragEvent) {
     if(this.enableDrop(event)) {
+      this.droppingPrimary = true;
       event.preventDefault();
       event.stopPropagation();
     }
@@ -132,16 +139,22 @@ export class StepComponent implements OnInit,OnDestroy {
 
   primaryTempName = null;
 
-  dragenterPrimary(event:DragEvent) {
-    if(this.enableDrop(event)) {
-      this.primaryTempName = Draggable.TITLE.decode(event.dataTransfer.types)
-      event.preventDefault();
-      event.stopPropagation();
-    }
+  // dragenterPrimary(event:DragEvent) {
+  //   if(this.enableDrop(event)) {
+  //     this.primaryTempName = Draggable.TITLE.decode(event.dataTransfer.types)
+  //     event.preventDefault();
+  //     event.stopPropagation();
+  //   }
+  // }
+
+  disableDrop(event:DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    return false;
   }
 
   dragleavePrimary(event:DragEvent) {
-    console.log("dragleave");
+    this.droppingPrimary = false;
     if(this.primaryTempName) {
       this.primaryTempName = null;
     }
@@ -151,21 +164,22 @@ export class StepComponent implements OnInit,OnDestroy {
 
   dragoverSecondary(event:DragEvent) {
     if(this.enableDrop(event)) {
+      this.droppingSecond = true;
       event.preventDefault();
       event.stopPropagation();
     }
   }
 
-  dragenterSecondary(event:DragEvent) {
-    if(this.enableDrop(event) && Draggable.TYPE.decode(event.dataTransfer.types) != "map") {
-      this.secondaryTempName = Draggable.TITLE.decode(event.dataTransfer.types)
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  }
+  // dragenterSecondary(event:DragEvent) {
+  //   if(this.enableDrop(event) && Draggable.TYPE.decode(event.dataTransfer.types) != "map") {
+  //     this.secondaryTempName = Draggable.TITLE.decode(event.dataTransfer.types)
+  //     event.preventDefault();
+  //     event.stopPropagation();
+  //   }
+  // }
 
   dragleaveSecondary(event:DragEvent) {
-    console.log("dragleave");
+    this.droppingSecond = false;
     if(this.secondaryTempName) {
       this.secondaryTempName = null;
     }

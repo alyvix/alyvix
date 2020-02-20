@@ -169,7 +169,6 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
 
 
 
-
   dragover(event:DragEvent) {
     if(!this.dragStep) {
       if(!event.dataTransfer.types.includes(Draggable.ORDER)) {
@@ -181,7 +180,8 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
           disabled: false,
           condition: type === "map" ? "for" : "run"
         };
-        this._steps.push(this.dragStep);
+        const position = this.dragPosition(event,1);
+        this._steps.splice(position,0,this.dragStep);
       } else if(event.dataTransfer.types.includes(Draggable.ORDER)) {
         const id = Draggable.ID.decode(event.dataTransfer.types);
         this.dragStep = this._steps.find(s => s.id === id);
@@ -189,7 +189,7 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
     }
 
     if(this.dragStep) {
-      const position = this.dragPosition(event);
+      const position = this.dragPosition(event,1);
       const currentPosition = this._steps.findIndex(s => s.id === this.dragStep.id);
 
       if(position != currentPosition) {
@@ -216,12 +216,12 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
   }
 
   drop(event:DragEvent) {
-    console.log("drop");
     if(this.dragStep && this.dragStep.id === Draggable.DRAGGING_ID) {
       this._steps = this._steps.filter(s => s.id !== this.dragStep.id);
       const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
       if(step) {
-        this._steps.splice(this.dragPosition(event),0,step);
+        const position = this.dragPosition(event,0);
+        this._steps.splice(position,0,step);
       }
     }
     this.dragStep = null;
@@ -233,13 +233,13 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
     return step.id === Draggable.DRAGGING_ID;
   }
 
-  dragPosition(event:DragEvent):number {
+  dragPosition(event:DragEvent,offset:number):number {
     return Math.min(
       Math.max(
         0,
-        Math.floor((event.clientY - this.actionList.nativeElement.offsetTop + 30)/60) - 1
+        Math.floor((event.clientY - this.actionList.nativeElement.offsetTop)/60) - 1
       ),
-      this._steps.length-1
+      this._steps.length-offset
     );
   }
 

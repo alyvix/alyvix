@@ -12,7 +12,7 @@
     >
       <div
         *ngFor="let step of _steps; last as isLast"
-        [ngClass]="{ 'no-pointer-events': isDragging(step) }"
+        [ngClass]="{ 'dragging': isDragging(step) }"
       >
         <script-step
           [selected]="isSelected(step)"

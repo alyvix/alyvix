@@ -42,7 +42,8 @@
           width: 200px;
         }
 
-        .no-pointer-events {
+        .dragging {
+          opacity: 0.5;
           pointer-events: none;
           * {
             pointer-events: none;
