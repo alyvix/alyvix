@@ -42,8 +42,13 @@
           width: 200px;
         }
 
+        .sorting {
+          padding-left: 10px;
+        }
+
         .dragging {
           opacity: 0.5;
+          padding-left: 10px;
           pointer-events: none;
           * {
             pointer-events: none;

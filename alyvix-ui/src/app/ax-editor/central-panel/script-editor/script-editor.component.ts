@@ -233,11 +233,19 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
     return step.id === Draggable.DRAGGING_ID;
   }
 
+  isSorting(step:Step) {
+    if(this.dragStep) {
+      return step.id === this.dragStep.id;
+    } else {
+      return false;
+    }
+  }
+
   dragPosition(event:DragEvent,offset:number):number {
     return Math.min(
       Math.max(
         0,
-        Math.floor((event.clientY - this.actionList.nativeElement.offsetTop)/60) - 1
+        Math.floor((event.clientY - this.actionList.nativeElement.offsetTop)/65) - 1
       ),
       this._steps.length-offset
     );

@@ -12,7 +12,7 @@
     >
       <div
         *ngFor="let step of _steps; last as isLast"
-        [ngClass]="{ 'dragging': isDragging(step) }"
+        [ngClass]="{ 'dragging': isDragging(step) , 'sorting': isSorting(step) }"
       >
         <script-step
           [selected]="isSelected(step)"
