@@ -39,6 +39,12 @@ $selectedColor: #222;
     z-index: 9999;
     align-items: flex-start;
 
+    .section-link{
+      margin-right: 10px;
+      pointer-events: all !important;
+      cursor: pointer;
+    }
+
     &.disable{
       .step-parameter{
         background-color: $gray !important;

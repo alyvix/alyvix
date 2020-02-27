@@ -36,7 +36,9 @@ export class ObjectsPanelComponent implements OnInit {
 
 
   ngOnInit() {
-
+    this.editorService.setSection.subscribe(x => {
+      this.script.sections.filter(s => s.name === x).forEach(s => this.selectSection(s));
+    })
     this.objectRegistry.objectList().subscribe(x => {
       setTimeout(() => {
         this.objectLists = x;
