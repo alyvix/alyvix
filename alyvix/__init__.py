@@ -29,7 +29,7 @@ info_manager = InfoManager()
 info_manager.update()
 
 screen_manager = ScreenManager()
-scaling_factor = screen_manager.get_scaling_factor()
+scaling_factor = screen_manager.get_scaling_factor_before_start()
 
 if sys.platform == "linux" or sys.platform == "linux2":
     #linux...
@@ -60,7 +60,7 @@ elif sys.platform == "win32":
                                               winreg.KEY_WRITE)
                 winreg.SetValueEx(registry_key, key_name, 0, winreg.REG_SZ, "~HIGHDPIAWARE")
                 winreg.CloseKey(registry_key)
-                print("dummy print!!")
+                print("Scaling factor setup completed. Please restart Alyvix.")
                 sys.exit(2)
             except WindowsError:
                 pass

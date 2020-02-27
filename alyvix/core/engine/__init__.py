@@ -65,9 +65,11 @@ class Result():
         self.screenshot = None
         self.annotation = None
         self.timeout = None
+        self.arguments = []
         self.records = {"text":"", "image":"", "extract":"", "check":False}
 
         self.group = None
+        self.map_key = None
         self.thresholds = {"warning_s": None, "critical_s": None}
         self.output = True
         self.exit = "false"
@@ -75,13 +77,15 @@ class Result():
 
 class EngineManager(object):
 
-    def __init__(self, object_json, args=None, maps={}, executed_objects=[], verbose=0):
+    def __init__(self, object_json, args=None, maps={}, map_key="", executed_objects=[], verbose=0):
 
         self._result = Result()
 
         self._executed_objects = executed_objects
 
         self._result.object_name = list(object_json.keys())[0]
+
+        self._result.arguments = []
 
         self._first_attempt_finished = False
 
@@ -105,6 +109,7 @@ class EngineManager(object):
         self._verbose = verbose
 
         self._maps = maps
+        self._result.map_key = map_key
 
         self._tmp_text_scraped = ""
         self._tmp_text_extracted = ""
@@ -141,7 +146,18 @@ class EngineManager(object):
         self._g1_found = False
         self._g2_found = False
 
+        self._cnt_text_components = 0
+        self._arr_scraped_txt = []
+        self._arr_extracted_txt = []
+
+
         for box in self._object_definition['boxes']:
+
+            if box["type"] == "T":
+                self._cnt_text_components += 1
+                self._arr_scraped_txt.append({"text": "", "group": box["group"], "index_in_group": box["index_in_group"]})
+                self._arr_extracted_txt.append({"text": "", "group": box["group"], "index_in_group": box["index_in_group"]})
+
             if box['group'] == 0:
                 self._group_0.append(box)
 
@@ -539,6 +555,8 @@ class EngineManager(object):
                     try:
                         i = int(arg_pattern.lower().replace("{","").replace("}",""))
 
+                        #self._result.arguments.append(self._arguments[i-1])
+
                         keyboard_string = keyboard_string.replace(arg_pattern, self._arguments[i-1])
                     except:
                         pass #not enought arguments
@@ -549,17 +567,19 @@ class EngineManager(object):
                 for arg_pattern in extract_args:
 
                     try:
-                        obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                        obj_name = arg_pattern.replace("{", "").replace("}", "")
                         obj_name = obj_name.split(".")[0]
 
                         extract_value = None
-                        for executed_obj in self._executed_objects:
+
+                        for executed_obj in reversed(self._executed_objects):
 
                             if executed_obj.object_name == obj_name:
                                 extract_value = executed_obj.records["extract"]
 
                         if extract_value is not None:
                             keyboard_string = keyboard_string.replace(arg_pattern, extract_value)
+                            #self._result.arguments.append(extract_value)
                     except:
                         pass  # not enought arguments
 
@@ -568,17 +588,18 @@ class EngineManager(object):
                 for arg_pattern in text_args:
 
                     try:
-                        obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                        obj_name = arg_pattern.replace("{", "").replace("}", "")
                         obj_name = obj_name.split(".")[0]
 
                         text_value = None
-                        for executed_obj in self._executed_objects:
+                        for executed_obj in reversed(self._executed_objects):
 
                             if executed_obj.object_name == obj_name:
                                 text_value = executed_obj.records["text"]
 
                         if text_value is not None:
                             keyboard_string = keyboard_string.replace(arg_pattern, text_value)
+                            #self._result.arguments.append(text_value)
                     except:
                         pass  # not enought arguments
 
@@ -587,17 +608,18 @@ class EngineManager(object):
                 for arg_pattern in check_args:
 
                     try:
-                        obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                        obj_name = arg_pattern.replace("{", "").replace("}", "")
                         obj_name = obj_name.split(".")[0]
 
                         check_value = None
-                        for executed_obj in self._executed_objects:
+                        for executed_obj in reversed(self._executed_objects):
 
                             if executed_obj.object_name == obj_name:
                                 check_value = executed_obj.records["check"]
 
                         if check_value is not None:
                             keyboard_string = keyboard_string.replace(arg_pattern, str(check_value))
+                            #self._result.arguments.append(str(check_value))
                     except:
                         pass  # not enought arguments
 
@@ -606,7 +628,7 @@ class EngineManager(object):
                 for arg_pattern in maps_args:
 
                     try:
-                        map_arg = arg_pattern.lower().replace("{", "").replace("}", "")
+                        map_arg = arg_pattern.replace("{", "").replace("}", "")
                         map_name = map_arg.split(".")[0]
                         map_key = map_arg.split(".")[1]
 
@@ -622,6 +644,7 @@ class EngineManager(object):
                             str_value = str(map_value)
 
                         keyboard_string = keyboard_string.replace(arg_pattern, str_value)
+                        #self._result.arguments.append(str_value)
                     except:
                         pass  # not enought arguments
 
@@ -641,6 +664,9 @@ class EngineManager(object):
 
         tmp_text_scraped = ""
         tmp_text_extracted = ""
+
+        arr_scraped_txt = copy.deepcopy(self._arr_scraped_txt)
+        arr_extracted_txt = copy.deepcopy(self._arr_extracted_txt)
 
         for cnt_g in range(3):
 
@@ -760,6 +786,11 @@ class EngineManager(object):
                                     scraped_text = sub_results[0].scraped_text
                                     tmp_text_scraped += scraped_text + ","
 
+                                    scraped_text = sub_results[0].scraped_text
+
+                                    scraper_dict = [s for s in arr_scraped_txt if s["group"] == box["group"] and s["index_in_group"] == box["index_in_group"]][0]
+                                    scraper_dict["text"] = scraper_dict["text"] + scraped_text + ","
+
                                     if sub_results[0].extract_text is None:
                                         sub_results = []
                                         tmp_text_extracted += "" + ","
@@ -767,11 +798,21 @@ class EngineManager(object):
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ","
 
+                                        extracted_dict = [s for s in arr_extracted_txt if s["group"] == box["group"] and s["index_in_group"] == box["index_in_group"]][0]
+
+                                        if extracted_dict["text"] == "":
+                                            extracted_dict["text"] = extracted_dict["text"] + extract_text + ","
+
                                 elif box["features"]["T"]["detection"] == "number":
                                     logic = "number_" + box["features"]["T"]["logic"]
 
                                     sub_results = tm.scrape(roi=roi, logic=logic)
                                     scraped_text = sub_results[0].scraped_text
+
+                                    scraped_text = sub_results[0].scraped_text
+                                    scraper_dict = [s for s in arr_scraped_txt if s["group"] == box["group"] and s["index_in_group"] == box["index_in_group"]][0]
+                                    scraper_dict["text"] = scraper_dict["text"] + scraped_text + ","
+
                                     tmp_text_scraped += scraped_text + ","
 
                                     if sub_results[0].extract_text is None:
@@ -780,6 +821,11 @@ class EngineManager(object):
                                     else:
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ","
+
+                                        extracted_dict = [s for s in arr_extracted_txt if s["group"] == box["group"] and s["index_in_group"] == box["index_in_group"]][0]
+
+                                        if extracted_dict["text"] == "":
+                                            extracted_dict["text"] = extracted_dict["text"] + extract_text + ","
 
                                 else:
                                     tm.set_regexp(box["features"]["T"]["regexp"], self._arguments, maps=self._maps,
@@ -787,6 +833,9 @@ class EngineManager(object):
                                     sub_results = tm.find(box["features"]["T"], roi=roi)
 
                                     scraped_text = sub_results[0].scraped_text
+                                    scraper_dict = [s for s in arr_scraped_txt if s["group"] == box["group"] and s["index_in_group"] == box["index_in_group"]][0]
+                                    scraper_dict["text"] = scraper_dict["text"] + scraped_text + ","
+
                                     tmp_text_scraped += scraped_text + ","
 
                                     if sub_results[0].extract_text is None:
@@ -795,6 +844,11 @@ class EngineManager(object):
                                     else:
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ","
+
+                                        extracted_dict = [s for s in arr_extracted_txt if s["group"] == box["group"] and s["index_in_group"] == box["index_in_group"]][0]
+
+                                        if extracted_dict["text"] == "":
+                                            extracted_dict["text"] = extracted_dict["text"] + extract_text + ","
 
                             elif box["features"]["T"]["type"] == "map":
 
@@ -805,6 +859,10 @@ class EngineManager(object):
                                     map_dict = self._maps[map_name]
                                     sub_results = tm.scrape(roi=roi, map_dict=map_dict)
                                     scraped_text = sub_results[0].scraped_text
+
+                                    scraper_dict = [s for s in arr_scraped_txt if s["group"] == box["group"] and s["index_in_group"] == box["index_in_group"]][0]
+                                    scraper_dict["text"] = scraper_dict["text"] + scraped_text + ","
+
                                     tmp_text_scraped += scraped_text + ","
 
                                     if sub_results[0].extract_text is None:
@@ -813,11 +871,23 @@ class EngineManager(object):
                                     else:
                                         extract_text = sub_results[0].extract_text
                                         tmp_text_extracted += extract_text + ","
+
+                                        extracted_dict = [s for s in arr_extracted_txt if s["group"] == box["group"] and s["index_in_group"] == box["index_in_group"]][0]
+
+                                        if extracted_dict["text"] == "":
+                                            extracted_dict["text"] = extracted_dict["text"] + extract_text + ","
                                 else:
                                     sub_results = tm.scrape(roi=roi)
                                     scraped_text = sub_results[0].scraped_text
                                     tmp_text_scraped += scraped_text + ","
                                     tmp_text_extracted += scraped_text + ","
+
+                                    scraper_dict = [s for s in arr_scraped_txt if s["group"] == box["group"] and s["index_in_group"] == box["index_in_group"]][0]
+                                    scraper_dict["text"] = scraper_dict["text"] + scraped_text + ","
+
+                                    extracted_dict = [s for s in arr_extracted_txt if s["group"] == box["group"] and s["index_in_group"] == box["index_in_group"]][0]
+                                    extracted_dict["text"] = extracted_dict["text"] + scraped_text + ","
+
 
 
                         if len(sub_results) > 0:
@@ -945,7 +1015,7 @@ class EngineManager(object):
             scraped_text = ""
             extract_text = ""
             check = True
-
+            """
             try:
                 for component in self._components_appeared:
                     if component.type == "T":
@@ -959,12 +1029,21 @@ class EngineManager(object):
                         #check = 1
             except:
                 pass
+            """
 
-            if scraped_text != "":
-                scraped_text = scraped_text[:-1]
+            if self._cnt_text_components > 0:
 
-            if extract_text != "":
-                extract_text = extract_text[:-1]
+                for scraped_element in arr_scraped_txt:
+                    scraped_text += scraped_element["text"][:-1] + ";"
+
+                for extracted_element in arr_extracted_txt:
+                    extract_text += extracted_element["text"][:-1] + ";"
+
+                if scraped_text != "":
+                    scraped_text = scraped_text[:-1]
+
+                if extract_text != "":
+                    extract_text = extract_text[:-1]
 
             self._result.records["text"] = scraped_text
             self._result.records["extract"] = extract_text
@@ -978,8 +1057,28 @@ class EngineManager(object):
 
         elif self.stop_threads is False: #timedout
 
-            self._tmp_text_scraped = tmp_text_scraped
-            self._tmp_text_extracted = tmp_text_extracted
+            #self._tmp_text_scraped = tmp_text_scraped
+            #self._tmp_text_extracted = tmp_text_extracted
+
+            extract_text = ""
+            scraped_text = ""
+
+            if self._cnt_text_components > 0:
+
+                for scraped_element in arr_scraped_txt:
+                    scraped_text += scraped_element["text"][:-1] + ";"
+
+                for extracted_element in arr_extracted_txt:
+                    extract_text += extracted_element["text"][:-1] + ";"
+
+                if scraped_text != "":
+                    scraped_text = scraped_text[:-1]
+
+                if extract_text != "":
+                    extract_text = extract_text[:-1]
+
+            self._tmp_text_scraped = scraped_text
+            self._tmp_text_extracted = extract_text
 
         self.total_threads -= 1
         self._first_attempt_finished = True
@@ -1686,12 +1785,6 @@ class EngineManager(object):
 
                 self._screen_with_objects = self._uncompress(self._screens[-1][0])
                 self._annotation_screen = self._get_annotation_screen()
-
-                if self._tmp_text_scraped != "":
-                    self._tmp_text_scraped = self._tmp_text_scraped[:-1]
-
-                if self._tmp_text_extracted != "":
-                    self._tmp_text_extracted = self._tmp_text_extracted[:-1]
 
                 self._result.records["text"] = self._tmp_text_scraped
                 self._result.records["extract"] = self._tmp_text_extracted
