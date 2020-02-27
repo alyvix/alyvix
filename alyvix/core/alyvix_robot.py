@@ -3,12 +3,22 @@ import sys
 import shlex
 import copy
 import os.path
+import cv2
+import base64
 from datetime import datetime
 from socket import gethostname
 from alyvix.core.output import OutputManager
 from alyvix.core.engine import EngineManager, Result
 from alyvix.core.utilities.parser import ParserManager
 from alyvix.tools.library import LibraryManager
+from alyvix.tools.screen import ScreenManager
+
+class ResultForOutput():
+
+    def __init__(self):
+        self.object_name = None
+
+        self.measures = []
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -65,6 +75,7 @@ ide_sub_path = None
 
 engine_arguments = []
 objects_names = []
+objects_name_for_nagios = []
 verbose = 0
 sys_exit = 0
 output_mode = "alyvix"
@@ -162,6 +173,8 @@ if filename is not None:
 
     timed_out_objects = []
 
+    objects_for_output = []
+
     code = ""
 
 
@@ -176,6 +189,10 @@ if filename is not None:
 
     t_start = time.time()
 
+    sm = ScreenManager()
+    w, h = sm.get_resolution()
+    scaling_factor = sm.get_scaling_factor()
+
     if len(objects_names) == 0:
 
         pm = ParserManager(library_json=library_json, chunk= chunk, engine_arguments=engine_arguments, verbose=verbose)
@@ -189,6 +206,73 @@ if filename is not None:
         performance_string = ""
         # OBJECT RUNNED OR IN TIMEDOUT
         for result in objects_result:
+
+            obj_name = result.object_name
+
+            measure_dict = {"perfomance_ms": int(result.performance_ms),
+                            "accuracy_ms": int(result.accuracy_ms),
+                            "timestamp": result.timestamp,
+                            "records": result.records,
+                            "group": result.group,
+                            #"thresholds": result.thresholds,
+                            "output": result.output,
+                            "exit": result.exit,
+                            "resolution": {
+                                "width": w,
+                                "height": h
+                            },
+                            #"arguments":result.arguments,
+                            "scaling_factor": int(scaling_factor * 100),
+                            }
+
+            if result.screenshot is not None:
+                png_image = cv2.imencode('.png', result.screenshot)
+
+                measure_dict["screenshot"] = base64.b64encode(png_image[1]).decode('ascii')
+
+            else:
+                measure_dict["screenshot"] = None
+
+            if result.annotation is not None:
+                png_image = cv2.imencode('.png', result.annotation)
+
+                measure_dict["annotation"] = base64.b64encode(png_image[1]).decode('ascii')
+            else:
+                measure_dict["annotation"] = None
+
+
+            if result.map_key is not None:
+                measure_dict["map_name"] = result.map_key[0]
+                measure_dict["map_key"] = result.map_key[1]
+
+                if True: #output_mode == "nagios":
+                    obj_name = result.object_name + "_" + measure_dict["map_key"]
+
+            if True: #output_mode == "nagios":
+                if len(objects_name_for_nagios) == 0:
+                    objects_name_for_nagios.append(obj_name)
+                else:
+                    cnt_obj_name = 1
+
+                    loop_name = obj_name
+
+                    while True:
+                        exists = False
+                        for obj_nagios_name in objects_name_for_nagios:
+                            if obj_nagios_name == loop_name:
+                                exists = True
+                                loop_name = obj_name + "_" + str(cnt_obj_name)
+                                cnt_obj_name += 1
+                                break
+
+                        if exists is False:
+                            obj_name = loop_name
+                            objects_name_for_nagios.append(obj_name)
+                            break
+
+            measure_dict["name_for_screen"] = obj_name
+
+
             warning_s = None
             critical_s = None
 
@@ -219,7 +303,7 @@ if filename is not None:
                 accuracy = round(result.accuracy_ms / 1000, 3)
 
                 if output_mode == "nagios" and result.output is True:
-                    curr_perf_string = result.object_name.replace(" ", "_") + "=" + str(int(result.performance_ms)) + "ms"
+                    curr_perf_string = obj_name.replace(" ", "_") + "=" + str(int(result.performance_ms)) + "ms"
                     if warning_s is not None:
                         curr_perf_string += ";" + str(warning_s) + "s"
                         if performance >= warning_s and sys_exit < 1:
@@ -238,27 +322,27 @@ if filename is not None:
                 elif output_mode != "nagios":
 
                     if result.output is True:
-                        print(date_formatted + ": " + result.object_name + " DETECTED in " + str(performance) + "s " +
+                        print(date_formatted + ": " + obj_name + " DETECTED in " + str(performance) + "s " +
                               "(+/-" + '{:.3f}'.format(accuracy) + ")")
                 result.exit = "true"
             else:
 
                 if result.output is True and result.has_to_break is True:
                     if output_mode == "nagios":
-                        curr_perf_string = result.object_name.replace(" ", "_") + "=ms"
+                        curr_perf_string = obj_name.replace(" ", "_") + "=ms"
                     else:
-                        print(date_formatted + ": " + result.object_name + " FAILED after " + str(result.timeout) + "s")
-                    timed_out_objects.append(result.object_name)
+                        print(date_formatted + ": " + obj_name + " FAILED after " + str(result.timeout) + "s")
+                    timed_out_objects.append(obj_name)
                     result.exit = "fail"
                     sys_exit = 2
                 elif result.output is True and result.has_to_break is False:
                     if output_mode == "nagios":
-                        curr_perf_string = result.object_name.replace(" ", "_") + "=" + str(result.timeout*1000) + "ms"
+                        curr_perf_string = obj_name.replace(" ", "_") + "=" + str(result.timeout*1000) + "ms"
                     else:
-                        print(date_formatted + ": " + result.object_name + " SKIPPED after " + str(result.timeout) + "s")
+                        print(date_formatted + ": " + obj_name + " SKIPPED after " + str(result.timeout) + "s")
                     result.exit = "false"
                 elif result.output is False and result.has_to_break is True:
-                    timed_out_objects.append(result.object_name)
+                    timed_out_objects.append(obj_name)
                     result.exit = "fail"
                     sys_exit = 2
                 elif result.output is False and result.has_to_break is False:
@@ -279,6 +363,22 @@ if filename is not None:
                     curr_perf_string += ";; "
 
             performance_string += curr_perf_string
+
+            obj = ResultForOutput()
+            obj.object_name = result.object_name
+            measure_dict["exit"] = result.exit
+            obj.measures.append(measure_dict)
+
+            exists = False
+
+            for obj_for_output in objects_for_output:
+                if obj_for_output.object_name == result.object_name:
+                    obj_for_output.measures.append(measure_dict)
+                    exists = True
+                    break
+
+            if exists == False:
+                objects_for_output.append(obj)
 
         #performance_string = performance_string[:-1]
 
@@ -438,7 +538,7 @@ if filename is not None:
     #json_output = om.build_json(chunk, objects_result)
 
     if verbose >= 2: #or is_foride is True:
-        om.save_screenshots(filename_path, objects_result, prefix=filename_no_extension)
+        om.save_screenshots(filename_path, objects_for_output, prefix=filename_no_extension)
 
     if not_executed_cnt > 0:
         if output_mode != "nagios":
@@ -504,5 +604,5 @@ if filename is not None:
         filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
 
         #if is_foride is False:
-        om.save(filename, lm.get_json(), chunk, objects_result, exit, t_end)
+        om.save(filename, lm.get_json(), chunk, objects_for_output, exit, t_end)
     sys.exit(sys_exit)

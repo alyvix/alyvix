@@ -99,14 +99,14 @@ class ParserManager:
     def get_executed_objects(self):
         return self._executed_object_name
 
-    def execute_object(self, object_name, args=None):
+    def execute_object(self, object_name, map_key=None, args=None):
         if self._lm.check_if_exist(object_name) is False:
             print(object_name + " does NOT exist")
             sys.exit(2)
 
         object_json = self._lm.add_chunk(object_name, self._chunk)
 
-        engine_manager = EngineManager(object_json, args=args, maps=self._script_maps,
+        engine_manager = EngineManager(object_json, args=args, maps=self._script_maps, map_key=map_key,
                                        executed_objects=self._objects_result, verbose=self._verbose)
 
         result = engine_manager.execute()
@@ -185,7 +185,7 @@ class ParserManager:
                         if flow_key in self._script_sections:
                             self._execute_section(section_name=flow_key, args=arguments)
                         else:
-                            self.execute_object(flow_key, args=arguments)
+                            self.execute_object(flow_key, map_key=(selected_map, map_key), args=arguments)
             elif key in self._script_sections:
                 self._execute_section(section_name=key)
             else:

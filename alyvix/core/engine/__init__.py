@@ -65,25 +65,27 @@ class Result():
         self.screenshot = None
         self.annotation = None
         self.timeout = None
+        self.arguments = []
         self.records = {"text":"", "image":"", "extract":"", "check":False}
 
         self.group = None
+        self.map_key = None
         self.thresholds = {"warning_s": None, "critical_s": None}
         self.output = True
         self.exit = "false"
 
-        self.measures = []
-
 
 class EngineManager(object):
 
-    def __init__(self, object_json, args=None, maps={}, executed_objects=[], verbose=0):
+    def __init__(self, object_json, args=None, maps={}, map_key="", executed_objects=[], verbose=0):
 
         self._result = Result()
 
         self._executed_objects = executed_objects
 
         self._result.object_name = list(object_json.keys())[0]
+
+        self._result.arguments = []
 
         self._first_attempt_finished = False
 
@@ -107,6 +109,7 @@ class EngineManager(object):
         self._verbose = verbose
 
         self._maps = maps
+        self._result.map_key = map_key
 
         self._tmp_text_scraped = ""
         self._tmp_text_extracted = ""
@@ -552,6 +555,8 @@ class EngineManager(object):
                     try:
                         i = int(arg_pattern.lower().replace("{","").replace("}",""))
 
+                        #self._result.arguments.append(self._arguments[i-1])
+
                         keyboard_string = keyboard_string.replace(arg_pattern, self._arguments[i-1])
                     except:
                         pass #not enought arguments
@@ -562,7 +567,7 @@ class EngineManager(object):
                 for arg_pattern in extract_args:
 
                     try:
-                        obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                        obj_name = arg_pattern.replace("{", "").replace("}", "")
                         obj_name = obj_name.split(".")[0]
 
                         extract_value = None
@@ -574,6 +579,7 @@ class EngineManager(object):
 
                         if extract_value is not None:
                             keyboard_string = keyboard_string.replace(arg_pattern, extract_value)
+                            #self._result.arguments.append(extract_value)
                     except:
                         pass  # not enought arguments
 
@@ -582,7 +588,7 @@ class EngineManager(object):
                 for arg_pattern in text_args:
 
                     try:
-                        obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                        obj_name = arg_pattern.replace("{", "").replace("}", "")
                         obj_name = obj_name.split(".")[0]
 
                         text_value = None
@@ -593,6 +599,7 @@ class EngineManager(object):
 
                         if text_value is not None:
                             keyboard_string = keyboard_string.replace(arg_pattern, text_value)
+                            #self._result.arguments.append(text_value)
                     except:
                         pass  # not enought arguments
 
@@ -601,7 +608,7 @@ class EngineManager(object):
                 for arg_pattern in check_args:
 
                     try:
-                        obj_name = arg_pattern.lower().replace("{", "").replace("}", "")
+                        obj_name = arg_pattern.replace("{", "").replace("}", "")
                         obj_name = obj_name.split(".")[0]
 
                         check_value = None
@@ -612,6 +619,7 @@ class EngineManager(object):
 
                         if check_value is not None:
                             keyboard_string = keyboard_string.replace(arg_pattern, str(check_value))
+                            #self._result.arguments.append(str(check_value))
                     except:
                         pass  # not enought arguments
 
@@ -620,7 +628,7 @@ class EngineManager(object):
                 for arg_pattern in maps_args:
 
                     try:
-                        map_arg = arg_pattern.lower().replace("{", "").replace("}", "")
+                        map_arg = arg_pattern.replace("{", "").replace("}", "")
                         map_name = map_arg.split(".")[0]
                         map_key = map_arg.split(".")[1]
 
@@ -636,6 +644,7 @@ class EngineManager(object):
                             str_value = str(map_value)
 
                         keyboard_string = keyboard_string.replace(arg_pattern, str_value)
+                        #self._result.arguments.append(str_value)
                     except:
                         pass  # not enought arguments
 

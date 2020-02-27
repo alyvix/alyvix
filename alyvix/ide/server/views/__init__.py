@@ -1382,6 +1382,27 @@ def set_viewer_handler_api():
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
+@app.route("/rename_object", methods=['GET'])
+def rename_object():
+    global library_dict
+    global current_objectname
+    global library_dict_in_editing
+
+    curr_name = request.args.get('old_name')
+    new_name = request.args.get('new_name')
+
+    library_dict["objects"][new_name] = library_dict["objects"][curr_name]
+    del library_dict["objects"][curr_name]
+
+    current_objectname = new_name
+
+    if library_dict_in_editing is not None:
+        library_dict_in_editing["objects"][new_name] = library_dict_in_editing["objects"][curr_name]
+        del library_dict_in_editing["objects"][curr_name]
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+
 @app.route("/load_objects", methods=['GET'])
 def load_objects():
     global autocontoured_rects
@@ -2257,11 +2278,11 @@ def get_scraped_txt():
         x1 = x
         x2 = x1 + w
 
-        tmpl_y1 = main_in_curr_group["y"]
-        tmpl_y2 = tmpl_y1 + main_in_curr_group["h"]
+        tmpl_y1 = int(main_in_curr_group["y"]*scaling_factor)
+        tmpl_y2 = tmpl_y1 + int(main_in_curr_group["h"]*scaling_factor)
 
-        tmpl_x1 = main_in_curr_group["x"]
-        tmpl_x2 = tmpl_x1 + main_in_curr_group["w"]
+        tmpl_x1 = int(main_in_curr_group["x"]*scaling_factor)
+        tmpl_x2 = tmpl_x1 + int(main_in_curr_group["w"]*scaling_factor)
 
         source_img_h = background_image.shape[0]
         source_img_w = background_image.shape[1]
@@ -2294,12 +2315,14 @@ def get_scraped_txt():
 
         source_image = background_image[y1:y2, x1:x2]
         current_gray_screen = cv2.cvtColor(source_image, cv2.COLOR_BGR2GRAY)
-        cv2.imwrite("d:\\aaa.png", source_image)
-        cv2.imwrite("d:\\aaa2.png", background_image)
+        cv2.imwrite("c:\\alyvix_test\\s.png", source_image)
+        cv2.imwrite("c:\\alyvix_test\\b.png", background_image)
 
         if main_in_curr_group["type"] == "I":
             im = ImageManager()
             template = background_image[tmpl_y1:tmpl_y2, tmpl_x1:tmpl_x2]
+
+            cv2.imwrite("c:\\alyvix_test\\template.png", template)
 
             im.set_template(template)
 
@@ -2346,9 +2369,9 @@ def get_scraped_txt():
 
         roi = Roi()
         roi.x = int(json_data[index-1]["roi_x"]*scaling_factor)
-        roi.x = roi.x - main_in_curr_group["x"]
+        roi.x = roi.x - int(main_in_curr_group["x"]*scaling_factor)
         roi.y = int(json_data[index-1]["roi_y"]*scaling_factor)
-        roi.y = roi.y - main_in_curr_group["y"]
+        roi.y = roi.y - int(main_in_curr_group["y"]*scaling_factor)
         roi.w = int(json_data[index-1]["roi_w"]*scaling_factor)
         roi.h = int(json_data[index-1]["roi_h"]*scaling_factor)
         roi.unlimited_left = json_data[index-1]["roi_unlimited_left"]
