@@ -26,7 +26,6 @@ export class ObjectsPanelComponent implements OnInit {
 
 
 
-  objectLists:string[] = [];
 
   maps:MapsVM[] = [];
   script:ScriptVM = ScriptEmpty;
@@ -39,11 +38,6 @@ export class ObjectsPanelComponent implements OnInit {
     this.editorService.setSection.subscribe(x => {
       this.script.sections.filter(s => s.name === x).forEach(s => this.selectSection(s));
     })
-    this.objectRegistry.objectList().subscribe(x => {
-      setTimeout(() => {
-        this.objectLists = x;
-      }, 200);
-    });
     this.selectorDatastore.getMaps().subscribe(m => this.maps = m);
     this.selectorDatastore.getScripts().subscribe(s => {
       if(s) {
@@ -195,6 +189,16 @@ export class ObjectsPanelComponent implements OnInit {
 
   sectionDrag(event:DragEvent,section: SectionVM) {
     Draggable.startDrag(event,"section",this.sectionToStep(section));
+  }
+
+  addSectionToScript(section:SectionVM,event:MouseEvent) {
+    event.stopPropagation();
+    this.objectRegistry.addStep.emit(this.sectionToStep(section));
+  }
+
+  addMapToScript(map:MapsVM,event:MouseEvent) {
+    event.stopPropagation();
+    this.objectRegistry.addStep.emit(this.mapToStep(map));
   }
 
 

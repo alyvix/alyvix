@@ -20,16 +20,12 @@ export interface Step{
   templateUrl: './step.component.html',
   styleUrls: ['./step.component.scss']
 })
-export class StepComponent implements OnInit,OnDestroy {
+export class StepComponent implements OnInit {
 
 
-
-  firstParameterId:string = 'list-' + Math.random().toString(36).substring(2);
-  secondParameterId:string = 'list-' + Math.random().toString(36).substring(2);
 
 
   constructor(
-    private objectRegistry:ObjectsRegistryService,
     private selectorDatastore:SelectorDatastoreService,
     private editorService:EditorService
     ) { }
@@ -60,9 +56,7 @@ export class StepComponent implements OnInit,OnDestroy {
     if(this.secondParameterValue && this.secondParameterValue !== '') {
       this.secondParameterType = this.selectorDatastore.objectOrSection(this.secondParameterValue);
     }
-    if (this.secondParameterEnabled) {
-      setTimeout(() => this.objectRegistry.addObjectList(this.secondParameterId), 200);
-    }
+
   }
 
   @Input() selected:boolean;
@@ -82,9 +76,6 @@ export class StepComponent implements OnInit,OnDestroy {
         break;
       default:
         this.secondParameterEnabled = true;
-    }
-    if (this.secondParameterEnabled) {
-      setTimeout(() => this.objectRegistry.addObjectList(this.secondParameterId), 200);
     }
     this.step.condition = this.condition;
     this.stepChange.emit(this.step);
@@ -129,13 +120,8 @@ export class StepComponent implements OnInit,OnDestroy {
   }
 
   ngOnInit() {
-    this.objectRegistry.addObjectList(this.firstParameterId);
   }
 
-  ngOnDestroy(): void {
-    this.objectRegistry.removeObjectList(this.firstParameterId);
-    this.objectRegistry.removeObjectList(this.secondParameterId);
-  }
 
   enableDropArea(event:DragEvent):boolean {
     return  this.step.id !== Draggable.DRAGGING_ID &&

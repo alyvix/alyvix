@@ -55,8 +55,9 @@ export class EditorService {
   }
 
   reloadObject(objectName:string) {
+    console.log('EditorService::reloadObject('+objectName+")")
     if(this.tab && this.tab.main) {
-      this.selectorDatastore.reload(objectName);
+     this.selectorDatastore.reload(objectName); // nedded for add
     }
     this.objectChanged.emit(objectName);
   }

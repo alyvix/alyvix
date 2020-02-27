@@ -42,14 +42,13 @@ export class AxTableComponent implements OnInit {
     private api:AlyvixApiService,
     private datastore:SelectorDatastoreService,
     private changeDetecor: ChangeDetectorRef,
-    private objectRegistry:ObjectsRegistryService
+    private objectRegistry:ObjectsRegistryService,
     ) {}
 
 
   production: boolean = environment.production;
   private _data: RowVM[] = [];
 
-  objectLists:string[] = [];
 
   @Output() import = new EventEmitter<RowVM[]>();
 
@@ -123,6 +122,7 @@ export class AxTableComponent implements OnInit {
   }
 
   @ViewChild('tableContainer',{static: true}) tableContainer: ElementRef;
+
   onResized(event: ResizedEvent) {
     this.tableContainer.nativeElement.style.height = (event.newHeight - 44 - 70 - 27) + "px"
   }
@@ -198,7 +198,7 @@ export class AxTableComponent implements OnInit {
       } else {
         this.selectedRows.push(row);
       }
-    } else if (!this.isSelected(row) || event.detail > 1) {
+    } else {
       this.selectedRows = [row];
     }
     this.datastore.setSelected(this.selectedRows);
@@ -320,23 +320,35 @@ export class AxTableComponent implements OnInit {
     return this.data.filter(x => name === x.name).length > 0;
   }
 
+  private originalName = "";
 
-  private tempName = '';
-
-  changeName(row:RowVM,name,invalid:boolean) {
-    if(!invalid) {
-      this.tempName = name;
-    } else {
-      this.tempName = row.name;
-    }
-    this.changeDetecor.markForCheck();
-    this.changeDetecor.detectChanges();
+  saveOriginalName(row:RowVM) {
+    this.originalName = row.name;
   }
 
-  onChangeName(row:RowVM,event) {
-    event.srcElement.value = this.tempName;
-    row.name = this.tempName;
-    this.datastore.changedNameRow.emit(row.name);
+  nameKeyup(event: KeyboardEvent, row:RowVM) {
+    if(event.keyCode === 13) { //enter
+      this.confirmName(row,event.srcElement as HTMLInputElement)
+    }
+  }
+
+  confirmName(row:RowVM, nameInput: HTMLInputElement) {
+    console.log("name focus out")
+    nameInput.value = row.name;
+    if(row.name !== this.originalName) {
+      this.api.renameObject(this.originalName,row.name).subscribe( x=> {
+        this.datastore.changedNameRow.emit(row.name);
+        this.originalName = row.name;
+      });
+    }
+  }
+
+  onChangeName(row:RowVM,name: string, nameInput: HTMLInputElement) {
+
+    if(this.isNameValid(nameInput) && !this.nameExists(row.name,name)) {
+      row.name = name;
+    }
+
   }
 
   changeTimeout(row:RowVM,timeout:number) {
@@ -416,6 +428,10 @@ export class AxTableComponent implements OnInit {
     row.object.measure.output = event.target.checked
   }
 
+  addToScript(row:RowVM) {
+    this.objectRegistry.addStep.emit(this.toStep(row));
+  }
+
 
 
 
@@ -423,7 +439,10 @@ export class AxTableComponent implements OnInit {
 
   ngOnInit(): void {
     this.datastore.editRow().subscribe(r => {
-      if (r && this.editing) {
+      if(this.editor && r && this.data.find(d => d.name === r.name)) {
+        this.filteredData.filter(d => d.name === r.name).forEach(d => d.object.date_modified = r.object.date_modified);
+        this.data.filter(d => d.name === r.name).forEach(d => d.object.date_modified = r.object.date_modified);
+      } else if (r && this.editing) {
         r.id = this.editing.id;
         r.selectedResolution = this.editing.selectedResolution;
 
@@ -453,11 +472,7 @@ export class AxTableComponent implements OnInit {
       }
     });
 
-    this.objectRegistry.objectList().subscribe(x => {
-      setTimeout(() => {
-        this.objectLists = x;
-      }, 200);
-    });
+
 
 
   }

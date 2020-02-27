@@ -309,11 +309,7 @@ hr {
 }
 
 
-.cdk-drag-preview {
-  .hide-on-drag{
-      display: none !important;
-  }
-}
+
 
 
 .node-content-wrapper, .tree-children {
@@ -513,9 +509,7 @@ hr {
       font-weight: normal;
   }
 
-  li.cdk-drag-preview div.interaction{
-    display: none !important;
-}
+
 
 .distribute{
   display: flex;
@@ -523,30 +517,6 @@ hr {
   justify-content: space-between;
 }
 
-.action-list{
-
-
-  .cdk-drag-placeholder {
-    // opacity: 0;
-    // height: 0;
-    // z-index: 0;
-    // //display: none;
-    height: 1px;
-    border: 1px solid gray;
-    margin: 10px 0 20px 0;
-    text-align: center;
-    font-weight: bold;
-    letter-spacing: 2px;
-    line-height: 50px;
-  }
-
-  ul {
-    span.cdk-drag-placeholder{
-      display: none;
-    }
-  }
-
-}
 
 
 .object-preview {
@@ -601,4 +571,41 @@ hr {
       }
     }
   }
+}
+
+.alyvix-icon{
+  width: 16px;
+  min-width: 16px;
+  max-width: 16px;
+  overflow: hidden;
+  text-align: center;
+  i {
+    font-size: 12px;
+    &.fa-arrows-alt{
+      cursor: -webkit-grab;
+      font-size: 14px;
+    }
+  }
+  &.ai-draggable{
+    height: 16px;
+    display: block;
+    min-width: 16px;
+    -webkit-transform: scaleY(-1);
+    background-image: url('/static/img/icons/add-to-list.svg')
+  }
+}
+
+
+.alyvix-actions{
+  width: 55px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  div {
+    margin: 1px;
+  }
+}
+
+.clickable{
+  cursor: pointer;
 }

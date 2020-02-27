@@ -22,18 +22,18 @@
     list-style: none;
     margin-bottom: 10px;
 
-    .pri-drag-placeholder li,.ax-object-element {
-      padding-left: 16px;
-      margin: 3px 0;
+    .ax-object-element {
+      //padding-left: 16px;
+      display: flex;
+      flex-direction: row;
+      //margin: 3px 0;
       line-height: 23px;
 
       &.ax-object-primary{
         cursor: default;
       }
 
-      i {
-        margin-right: 10px;
-      }
+
 
 
       &.selected{
@@ -54,6 +54,8 @@
         letter-spacing: 2px;
         background-color: transparent;
         width: 150px;
+        margin-left: 5px;
+        padding: 0 5px;
         &:hover, &:focus{
           outline: none;
           border-bottom: 1px solid $blue;

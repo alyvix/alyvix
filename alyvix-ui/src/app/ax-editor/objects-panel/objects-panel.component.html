@@ -10,7 +10,15 @@
 
       <div class="ax-object-list" name="sections">
         <div class="ax-object-element" *ngFor="let section of script.sections" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
-          <i draggable="true" (dragstart)="sectionDrag($event,section)" class="fas fa-bars"></i>
+          <div class="alyvix-actions">
+              <div class="alyvix-icon">
+                <i   draggable="true"  (dragstart)="sectionDrag($event,section)" class="fas fa-arrows-alt"></i>
+              </div>
+              <div class="alyvix-icon ai-draggable clickable" (click)="addSectionToScript(section,$event)"></div>
+              <div class="alyvix-icon">
+                  <i class="fas fa-play"></i>
+              </div>
+            </div>
           <input spellcheck="false" [ngModel]="section.name" (change)="changeSectionName(section,$event)" />
           <button class="btn light" (click)="removeSection(section)">Remove</button>
         </div>
@@ -19,7 +27,13 @@
   <h3>MAPS <button class="btn" (click)="addMap()">Add</button></h3>
       <div class="ax-object-list">
         <div class="ax-object-element" *ngFor="let map of maps"  (click)="selectMap(map)" [ngClass]="{'selected': isSelectedMap(map)}">
-          <i draggable="true" (dragstart)="mapDrag($event,map)" class="fas fa-bars" ></i>
+          <div class="alyvix-actions">
+              <div class="alyvix-icon">
+                <i   draggable="true" (dragstart)="mapDrag($event,map)" class="fas fa-arrows-alt"></i>
+              </div>
+              <div class="alyvix-icon ai-draggable clickable" (click)="addMapToScript(map,$event)"></div>
+
+            </div>
           <input spellcheck="false" [(ngModel)]="map.name" (change)="changeMapName(map,$event)"/>
           <button class="btn light" (click)="removeMap(map)">Remove</button>
         </div>
