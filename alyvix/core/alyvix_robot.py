@@ -213,9 +213,9 @@ if filename is not None:
                             "accuracy_ms": int(result.accuracy_ms),
                             "timestamp": result.timestamp,
                             "records": result.records,
-                            "group": result.group,
+                            #"group": result.group,
                             #"thresholds": result.thresholds,
-                            "output": result.output,
+                            #"output": result.output,
                             "exit": result.exit,
                             "resolution": {
                                 "width": w,
