@@ -2,7 +2,7 @@
 
 
 .name-popover{
-  z-index: 9999;
+  z-index: 1039;
   display:  flex;
   flex-direction: column;
   align-content: center;
@@ -10,7 +10,7 @@
   height: 45px;
   margin-bottom: -45px;
   .name-popover-content{
-    z-index: 9999;
+    z-index: 1039;
     font-size: 13px;
     font-weight: bold;
     color: white;

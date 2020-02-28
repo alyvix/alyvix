@@ -30,6 +30,7 @@
     "lodash": "^4.17.15",
     "ng2-validation": "^4.2.0",
     "ngx-contextmenu": "^5.2.0",
+    "ngx-smart-modal": "^7.4.0",
     "ngx-toastr": "^11.2.1",
     "node-sass": "^4.13.0",
     "purecss": "^1.0.1",

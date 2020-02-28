@@ -7,6 +7,7 @@ import { Step } from '../central-panel/script-editor/step/step.component';
 import { Utils } from 'src/app/utils';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
 import { Draggable } from 'src/app/utils/draggable';
+import { ModalService, Modal } from 'src/app/modal-service.service';
 
 
 
@@ -21,7 +22,8 @@ export class ObjectsPanelComponent implements OnInit {
     private objectRegistry:ObjectsRegistryService,
     private editorService:EditorService,
     private selectorDatastore:SelectorDatastoreService,
-    private alyvixApi:AlyvixApiService
+    private alyvixApi:AlyvixApiService,
+    private modal: ModalService
     ) { }
 
 
@@ -122,13 +124,26 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   removeMap(map:MapsVM) {
-    if(confirm('Are you sure you want to delete that map?')) {
-      this.maps = this.maps.filter(x => x !== map);
-      this.editorService.save().subscribe(saved => {})
-      if(this.selected.name == map.name) {
-        this.selectMain();
-      }
-    }
+
+    this.modal.open({
+      title: 'Delete map',
+      body: 'Are you sure you want to delete ' + map.name + '?',
+      actions: [
+        {
+          title: 'Delete',
+          importance: 'btn-danger',
+          callback: () => {
+            this.maps = this.maps.filter(x => x !== map);
+            this.editorService.save().subscribe(saved => {})
+            if(this.selected.name == map.name) {
+              this.selectMain();
+            }
+          }
+        }
+      ],
+      cancel: Modal.NOOP
+    });
+
   }
 
   changeMapName(map:MapsVM, name) {
@@ -147,13 +162,26 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   removeSection(section:SectionVM) {
-    if(confirm('Are you sure you want to delete that section?')) {
-      this.script.sections = this.script.sections.filter(x => x !== section);
-      this.editorService.save().subscribe(saved => {})
-      if(this.selected.name == section.name) {
-        this.selectMain();
-      }
-    }
+
+    this.modal.open({
+      title: 'Delete section',
+      body: 'Are you sure you want to delete ' + section.name + '?',
+      actions: [
+        {
+          title: 'Delete',
+          importance: 'btn-danger',
+          callback: () => {
+            this.script.sections = this.script.sections.filter(x => x !== section);
+            this.editorService.save().subscribe(saved => {})
+            if(this.selected.name === section.name) {
+              this.selectMain();
+            }
+          }
+        }
+      ],
+      cancel: Modal.NOOP
+    });
+
   }
 
   changeSectionName(section:SectionVM, name) {

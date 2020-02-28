@@ -3,6 +3,7 @@ import { SelectorGlobal } from 'src/app/ax-selector/global';
 import { EditorService } from '../editor.service';
 import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
+import { ModalService, Modal } from 'src/app/modal-service.service';
 
 @Component({
   selector: 'ax-header',
@@ -13,7 +14,8 @@ export class AxHeaderComponent implements OnInit {
 
   constructor(@Inject('GlobalRefSelector') private global: SelectorGlobal,
     private editorService:EditorService,
-    private api:AlyvixApiService
+    private api:AlyvixApiService,
+    private modal:ModalService
   ) { }
 
   name:string;
@@ -33,21 +35,55 @@ export class AxHeaderComponent implements OnInit {
   }
 
   exit() {
-    if(confirm("Are you sure you want to exit Alyvix Editor?")) {
-      this.api.exitIde();
-    }
+
+    this.modal.open({
+      title: 'Exit',
+      body: 'Are you sure you want to exit Alyvix Editor?',
+      actions: [
+        {
+          title: 'Exit',
+          importance: 'btn-secondary',
+          callback: () => { this.api.exitIde() }
+        }
+      ],
+      cancel: Modal.NOOP
+    });
+
   }
 
   newFile() {
-    if(confirm("Are you sure you want to close the current test case?")) {
-      this.api.newCase();
-    }
+
+    this.modal.open({
+      title: 'New file',
+      body: 'Are you sure you want to close the current test case?',
+      actions: [
+        {
+          title: 'New',
+          importance: 'btn-secondary',
+          callback: () => { this.api.newCase() }
+        }
+      ],
+      cancel: Modal.NOOP
+    });
+
   }
 
   openFile() {
-    if(confirm("Are you sure you want to close the current test case?")) {
-      this.api.openCase();
-    }
+
+    this.modal.open({
+      title: 'Open file',
+      body: 'Are you sure you want to close the current test case?',
+      actions: [
+        {
+          title: 'Open',
+          importance: 'btn-secondary',
+          callback: () => { this.api.openCase() }
+        }
+      ],
+      cancel: Modal.NOOP
+    });
+
+
   }
 
   run() {

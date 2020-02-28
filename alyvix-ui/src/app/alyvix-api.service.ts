@@ -100,6 +100,16 @@ export class AlyvixApiService {
     return this.httpClient.get<any>(baseUrl + '?delay=' +  delay);
   }
 
+  grab(delay: number,name:string):Observable<any> {
+
+    let subSystem = 'selector';
+    if (this.subSystem === 'editor') {
+      subSystem = 'ide';
+    }
+
+    return this.httpClient.get<any>('/button_grab_api?name='+name+'&delay='+delay+'&caller='+subSystem);
+  }
+
   selectorCancel() {
     return this.httpClient.get<any>('/selector_shutdown_and_close_api').subscribe(x => {
       console.log('cancel');
