@@ -44,9 +44,6 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     });
     this.selectorDatastore.changedNameRow.subscribe(name => {
       this._model.value.object_name = name
-      this.editorService.save().subscribe( y => { // I need to save the library to avoid having an unknown name saving the single object
-        console.log('saved after name change');
-      });
     });
     this.selectorDatastore.changedBreak.subscribe(b => this._model.value.detection.break = b );
     this.selectorDatastore.changedTimeout.subscribe(to => this._model.value.detection.timeout_s = to );

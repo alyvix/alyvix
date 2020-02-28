@@ -18,6 +18,10 @@ export class ConsoleComponent implements OnInit {
     return this._sanitizer.bypassSecurityTrustResourceUrl("data:image/png;base64," + image);
   }
 
+  parseHtml(html) {
+    return this._sanitizer.bypassSecurityTrustHtml(html);
+  }
+
   ngOnInit() {
     this.editorService.consoleElements().subscribe(i => this.consoleItems = i);
   }

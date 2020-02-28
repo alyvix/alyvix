@@ -1,7 +1,7 @@
 <div class="ax-table-container">
   <div class="ax-table-scroller">
     <div class="ax-selector-header">
-        <div class="xsmall"></div>
+        <div class="actions"></div>
         <div class="large"><a (click)="sortColumn('name')">Name<span *ngIf="sort.column == 'name' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'name' && !sort.asc"> &#9660;</span></a></div>
         <div><a (click)="sortColumn('transaction_group')">Transaction group<span *ngIf="sort.column == 'transaction_group' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'transaction_group' && !sort.asc"> &#9660;</span></a></div>
         <div class="medium"><a (click)="sortColumn('date')">Date modified<span *ngIf="sort.column == 'date' && sort.asc"> &#9650;</span><span *ngIf="sort.column == 'date' && !sort.asc"> &#9660;</span></a></div>
@@ -17,10 +17,17 @@
         <cdk-table [dataSource]="filteredData" >
             <!-- Name Definition -->
             <ng-container cdkColumnDef="handle"  >
-                <cdk-cell *cdkCellDef="let row"  class="xsmall" >
-                  <div draggable="{{editor && isSelectedResolutionWorkingResolution()}}"  (dragstart)="objectDrag($event,row)">
-                      <i  class="fas fa-bars"></i>
+                <cdk-cell *cdkCellDef="let row"  class="actions" >
+                  <div *ngIf="editor && isSelectedResolutionWorkingResolution()" class="alyvix-actions">
+                    <div class="alyvix-icon" draggable="{{editor && isSelectedResolutionWorkingResolution()}}"  (dragstart)="objectDrag($event,row)">
+                      <i class="fas fa-arrows-alt"></i>
+                    </div>
+                    <div class="alyvix-icon ai-draggable clickable" (click)="addToScript(row)"></div>
+                    <div class="alyvix-icon">
+                        <i class="fas fa-play"></i>
+                    </div>
                   </div>
+
                 </cdk-cell>
             </ng-container>
 
@@ -29,7 +36,10 @@
                 <cdk-cell *cdkCellDef="let row" class="large">
                   <span class="object-preview">{{row.name}}</span>
 
-                  <input #nameInput #name="ngModel" [disabled]="readonly" type="text" class="primary" [ngClass]="{'ng-invalid': nameExists(row.name,nameInput.value) || !isNameValid(nameInput) }" spellcheck="false" [ngModel]="row.name" (ngModelChange)="changeName(row,$event,!isNameValid(nameInput) || nameExists(row.name,nameInput.value))" (change)="onChangeName(row,$event)" pattern="[a-zA-Z0-9_\- ]+" />
+                  <input #nameInput #name="ngModel" [disabled]="readonly" type="text" class="primary"
+                    [ngClass]="{'ng-invalid': nameExists(row.name,nameInput.value) || !isNameValid(nameInput) }" spellcheck="false"
+                    [ngModel]="row.name" (ngModelChange)="onChangeName(row,$event,nameInput)" (focusout)="confirmName(row,nameInput)" (focus)="saveOriginalName(row)" (keyup)="nameKeyup($event,row)"
+                    pattern="[a-zA-Z0-9_\- ]+" />
 
                   <div *ngIf="!isNameValid(nameInput) && (name.dirty || name.touched)" class="name-popover">
                       <div class="name-popover-content">

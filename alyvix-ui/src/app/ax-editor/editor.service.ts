@@ -28,6 +28,7 @@ export class EditorService {
   private _selection:BehaviorSubject<LeftSelection> = new BehaviorSubject<LeftSelection>(null);
   objectChanged:EventEmitter<string> = new EventEmitter()
   runState:EventEmitter<string> = new EventEmitter()
+  setSection:EventEmitter<string> = new EventEmitter()
   private tab:AxFile
 
   private console:BehaviorSubject<ConsoleElement[]> = new BehaviorSubject<ConsoleElement[]>([])
@@ -54,8 +55,9 @@ export class EditorService {
   }
 
   reloadObject(objectName:string) {
+    console.log('EditorService::reloadObject('+objectName+")")
     if(this.tab && this.tab.main) {
-      this.selectorDatastore.reload(objectName);
+     this.selectorDatastore.reload(objectName); // nedded for add
     }
     this.objectChanged.emit(objectName);
   }
@@ -75,8 +77,6 @@ export class EditorService {
   private beforeSave():Promise<any> {
     return Promise.all(this.beforeSavePromises.map(x => x()));
   }
-
-
 
 
   saveThrottled() {

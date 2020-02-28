@@ -14,12 +14,10 @@ import { Draggable } from 'src/app/utils/draggable';
   templateUrl: './script-editor.component.html',
   styleUrls: ['./script-editor.component.scss']
 })
-export class ScriptEditorComponent implements OnInit,OnDestroy {
+export class ScriptEditorComponent implements OnInit {
 
 
 
-  listId:string = "list-" + Math.random().toString(36).substring(2);
-  lastListId:string = "list-" + Math.random().toString(36).substring(2);
 
   selectedSteps:Step[] = []
 
@@ -92,15 +90,14 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
   constructor(private objectRegistry:ObjectsRegistryService, private selectorDatastore:SelectorDatastoreService) { }
 
   ngOnInit() {
-    this.objectRegistry.addObjectList(this.listId);
-    this.objectRegistry.addObjectList(this.lastListId);
     this.selectorDatastore.getData().subscribe(d => this.objects = d);
+    this.objectRegistry.addStep.subscribe(s => {
+      this._steps.push(s);
+      this.emitChange();
+    })
   }
 
-  ngOnDestroy(): void {
-    this.objectRegistry.removeObjectList(this.listId);
-    this.objectRegistry.removeObjectList(this.lastListId);
-  }
+
 
 
 
@@ -233,11 +230,19 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
     return step.id === Draggable.DRAGGING_ID;
   }
 
+  isSorting(step:Step) {
+    if(this.dragStep) {
+      return step.id === this.dragStep.id;
+    } else {
+      return false;
+    }
+  }
+
   dragPosition(event:DragEvent,offset:number):number {
     return Math.min(
       Math.max(
         0,
-        Math.floor((event.clientY - this.actionList.nativeElement.offsetTop)/60) - 1
+        Math.floor((event.clientY - this.actionList.nativeElement.offsetTop)/65) - 1
       ),
       this._steps.length-offset
     );

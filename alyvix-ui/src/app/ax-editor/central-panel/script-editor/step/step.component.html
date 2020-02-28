@@ -1,22 +1,26 @@
-
-<div class="step-container" [ngClass]="{'disable': step.disabled, 'selected': selected}">
-  <div class="step-box" draggable="true" (dragstart)="startDrag($event)" >
-    <div class="step-condition step-main-condition" (dblclick)="nextCondition()" (dragover)="disableDrop($event)">
-      <div >{{condition}}</div>
+<div class="step-row">
+  <div class="selection-indicator" [ngClass]="{ 'selected': selected}"></div>
+  <div class="step-container" [ngClass]="{'disable': step.disabled, 'selected': selected}">
+    <div class="step-box" draggable="true" (dragstart)="startDrag($event)" >
+      <div class="step-condition step-main-condition" (dblclick)="nextCondition()" (dragover)="disableDrop($event)">
+        <div >{{condition}}</div>
+      </div>
+      <div class="step-parameter" [ngClass]="[step.type, step.condition != 'run' ? 'condition' : '', droppingPrimary ? 'dropping' : '' ]" (dragover)="dragoverPrimary($event)" (drop)="dropped($event)"  (dragleave)="dragleavePrimary($event)">
+        <!-- <span class="type">section</span> -->
+        <a class="section-link"  (click)="openSection(step.name)" *ngIf="step.type == 'section'"><i class="fas fa-link"></i></a>
+        <span>{{step.name}}</span>
+        <!-- <span *ngIf="primaryTempName">{{primaryTempName}}</span> -->
+      </div>
+      <div class="step-condition" *ngIf="secondParameterEnabled" (dragover)="disableDrop($event)">
+        <div>run</div>
+      </div>
+      <div class="step-parameter step-run-parameter" [ngClass]="[secondParameterType, droppingSecond ? 'dropping' : '']" [hidden]="!secondParameterEnabled" (dragover)="dragoverSecondary($event)" (drop)="droppedSecond($event)"  (dragleave)="dragleaveSecondary($event)">
+        <span *ngIf="!secondaryTempName && (!secondParameterValue ||  secondParameterValue == '')">DROP OBJECTS OR<br>SECTIONS HERE</span>
+        <a class="section-link"  (click)="openSection(secondParameterValue)" *ngIf="secondParameterType == 'section'"><i class="fas fa-link"></i></a>
+        <span>{{secondParameterValue}}</span>
+        <!-- <span *ngIf="secondaryTempName">{{secondaryTempName}}</span> -->
+      </div>
     </div>
-    <div class="step-parameter" [ngClass]="[step.type, step.condition != 'run' ? 'condition' : '', droppingPrimary ? 'dropping' : '' ]" (dragover)="dragoverPrimary($event)" (drop)="dropped($event)"  (dragleave)="dragleavePrimary($event)">
-      <span>{{step.name}}</span>
-      <!-- <span *ngIf="primaryTempName">{{primaryTempName}}</span> -->
-    </div>
-    <div class="step-condition" *ngIf="secondParameterEnabled" (dragover)="disableDrop($event)">
-      <div>run</div>
-    </div>
-    <div class="step-parameter step-run-parameter" [ngClass]="[secondParameterType, droppingSecond ? 'dropping' : '']" [hidden]="!secondParameterEnabled" (dragover)="dragoverSecondary($event)" (drop)="droppedSecond($event)"  (dragleave)="dragleaveSecondary($event)">
-      <span *ngIf="!secondaryTempName && (!secondParameterValue ||  secondParameterValue == '')">DROP OBJECTS OR SECTIONS HERE</span>
-      <span>{{secondParameterValue}}</span>
-      <!-- <span *ngIf="secondaryTempName">{{secondaryTempName}}</span> -->
-    </div>
+    <div class="arrow"></div>
   </div>
-  <div class="arrow"></div>
 </div>
-

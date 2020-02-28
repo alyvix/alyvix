@@ -3,6 +3,7 @@ import { CdkDragDrop, CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
 import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
 import { Draggable } from 'src/app/utils/draggable';
+import { EditorService } from 'src/app/ax-editor/editor.service';
 
 export interface Step{
   id: string;
@@ -13,20 +14,21 @@ export interface Step{
   parameterType?:string;
   disabled:boolean;
 }
+
 @Component({
   selector: 'script-step',
   templateUrl: './step.component.html',
   styleUrls: ['./step.component.scss']
 })
-export class StepComponent implements OnInit,OnDestroy {
+export class StepComponent implements OnInit {
 
 
 
-  firstParameterId:string = 'list-' + Math.random().toString(36).substring(2);
-  secondParameterId:string = 'list-' + Math.random().toString(36).substring(2);
 
-
-  constructor(private objectRegistry:ObjectsRegistryService, private selectorDatastore:SelectorDatastoreService) { }
+  constructor(
+    private selectorDatastore:SelectorDatastoreService,
+    private editorService:EditorService
+    ) { }
 
   private conditions = {
     'object': ['run', 'if true', 'if false'],
@@ -54,9 +56,7 @@ export class StepComponent implements OnInit,OnDestroy {
     if(this.secondParameterValue && this.secondParameterValue !== '') {
       this.secondParameterType = this.selectorDatastore.objectOrSection(this.secondParameterValue);
     }
-    if (this.secondParameterEnabled) {
-      setTimeout(() => this.objectRegistry.addObjectList(this.secondParameterId), 200);
-    }
+
   }
 
   @Input() selected:boolean;
@@ -77,61 +77,78 @@ export class StepComponent implements OnInit,OnDestroy {
       default:
         this.secondParameterEnabled = true;
     }
-    if (this.secondParameterEnabled) {
-      setTimeout(() => this.objectRegistry.addObjectList(this.secondParameterId), 200);
-    }
     this.step.condition = this.condition;
     this.stepChange.emit(this.step);
   }
 
   dropped(event: DragEvent) {
-    if(this.enableDrop(event)) {
-    const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
-    if(step) {
-      this._step.name = step.name;
-      if(this._step.type != step.type) {
-        this._step.condition = step.condition || this.conditions[this.step.type][0];
+    this.droppingPrimary = false;
+    if(this.enableDropArea(event)) {
+      if(this.enableDropPrimary(event)) {
+        const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
+        if(step) {
+          this._step.name = step.name;
+          if(this._step.type != step.type) {
+            this._step.condition = step.condition || this.conditions[this.step.type][0];
+          }
+          this.condition = this.step.condition;
+          this.secondParameterEnabled = !(this.step.condition === 'run');
+          this._step.type = step.type;
+          this._step.id = step.id;
+          this.stepChange.emit(this.step);
+        }
       }
-      this.condition = this.step.condition;
-      this.secondParameterEnabled = !(this.step.condition === 'run');
-      this._step.type = step.type;
-      this._step.id = step.id;
-      this.stepChange.emit(this.step);
-      }
+      event.stopPropagation();
     }
-    event.stopPropagation();
   }
 
+
   droppedSecond(event: DragEvent) {
-    if(this.enableDrop(event)) {
-      const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
-      if(step && step.type !== "map") {
-        this.secondParameterValue = step.name;
-        this.secondParameterType = step.type;
-        this.step.parameter = this.secondParameterValue;
-        this.stepChange.emit(this.step);
+    this.droppingSecond = false;
+    if(this.enableDropArea(event)) {
+      if(this.enableDropSecondary(event)) {
+        const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
+        if(step) {
+          this.secondParameterValue = step.name;
+          this.secondParameterType = step.type;
+          this.step.parameter = this.secondParameterValue;
+          this.stepChange.emit(this.step);
+        }
       }
+      event.stopPropagation();
     }
-    event.stopPropagation();
   }
 
   ngOnInit() {
-    this.objectRegistry.addObjectList(this.firstParameterId);
   }
 
-  ngOnDestroy(): void {
-    this.objectRegistry.removeObjectList(this.firstParameterId);
-    this.objectRegistry.removeObjectList(this.secondParameterId);
-  }
 
-  enableDrop(event:DragEvent) {
+  enableDropArea(event:DragEvent):boolean {
     return  this.step.id !== Draggable.DRAGGING_ID &&
             !event.dataTransfer.types.includes(Draggable.ORDER)
   }
 
+  enableDropPrimary(event:DragEvent):boolean {
+    switch(Draggable.TYPE.decode(event.dataTransfer.types)) {
+      case 'object': return this.step.type === "object" && this.step.condition !== "run";
+      case 'section': return false;
+      case 'map': return this.step.type === "map"
+    }
+  }
+
+  enableDropSecondary(event:DragEvent):boolean {
+    switch(Draggable.TYPE.decode(event.dataTransfer.types)) {
+      case 'object': return true;
+      case 'section': return true;
+      case 'map': return false;
+    }
+  }
+
   dragoverPrimary(event:DragEvent) {
-    if(this.enableDrop(event)) {
-      this.droppingPrimary = true;
+    if(this.enableDropArea(event)) {
+      if(this.enableDropPrimary(event)) {
+        this.droppingPrimary = true;
+      }
       event.preventDefault();
       event.stopPropagation();
     }
@@ -163,8 +180,10 @@ export class StepComponent implements OnInit,OnDestroy {
   secondaryTempName = null;
 
   dragoverSecondary(event:DragEvent) {
-    if(this.enableDrop(event)) {
-      this.droppingSecond = true;
+    if(this.enableDropArea(event)) {
+      if(this.enableDropSecondary(event)) {
+        this.droppingSecond = true;
+      }
       event.preventDefault();
       event.stopPropagation();
     }
@@ -192,6 +211,10 @@ export class StepComponent implements OnInit,OnDestroy {
     event.dataTransfer.setData(Draggable.STEP,JSON.stringify(this._step));
     event.dataTransfer.setData(Draggable.ORDER,"true");
     event.dataTransfer.setData(Draggable.ID.encode(this._step.id),"id");
+  }
+
+  openSection(section:string) {
+    this.editorService.setSection.emit(section);
   }
 
 

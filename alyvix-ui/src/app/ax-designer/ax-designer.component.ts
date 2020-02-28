@@ -128,6 +128,10 @@ export class AxDesignerComponent implements OnInit {
 
   showAdd():boolean {
 
+    if(this.editor) {
+      return true;
+    }
+
     //#166602599
     //`Add` button enable when screen component is selected (and disabled if the 3 groups already exist)
     if(!this.selectedNode.box) { //screen

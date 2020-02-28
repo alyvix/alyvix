@@ -149,7 +149,7 @@
         "logLevel": "debug",
         "changeOrigin": true
       },
-      "/api/*": {
+      "/rename_object": {
         "target": "http://localhost:5000",
         "secure": false,
         "logLevel": "debug",
