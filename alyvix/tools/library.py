@@ -26,6 +26,8 @@ import numpy as np
 import os
 import sys
 import copy
+
+import math
 from sys import platform as _platform
 
 
@@ -381,9 +383,21 @@ class LibraryManager:
                 try:
                     if (mouse_dict["features"]["point"]["dx"] != 0 or
                             mouse_dict["features"]["point"]["dy"] != 0):
+
+                        dx =  int(mouse_dict["features"]["point"]["dx"]/scaling_factor) + box["x"]
+                        dy = int(mouse_dict["features"]["point"]["dy"]/scaling_factor) + box["y"]
+
                         mouse_dict["features"]["point"] = \
-                            {"dx": int(mouse_dict["features"]["point"]["dx"]/scaling_factor) + box["x"],
-                             "dy": int(mouse_dict["features"]["point"]["dy"]/scaling_factor) + box["y"]}
+                            {"dx": dx,
+                             "dy": dy}
+
+                        box_x_middle = box["x"] + int(box["w"]/2);
+                        box_y_middle = box["y"] + int(box["h"]/2);
+
+                        angle_radiants = math.atan2(dy - box_y_middle, dx - box_x_middle)
+                        angle_degree = math.degrees(angle_radiants)
+                        angle_degree = (angle_degree + 360) % 360
+                        mouse_dict["features"]["point"]["angle"]  = angle_degree
                 except:
                     pass
 
@@ -465,9 +479,22 @@ class LibraryManager:
                     try:
                         if (mouse_dict["features"]["point"]["dx"] != 0 or
                                 mouse_dict["features"]["point"]["dy"] != 0):
+
+                            dx = int(mouse_dict["features"]["point"]["dx"] / scaling_factor) + box["x"]
+                            dy = int(mouse_dict["features"]["point"]["dy"] / scaling_factor) + box["y"]
+
                             mouse_dict["features"]["point"] = \
-                                {"dx": int( mouse_dict["features"]["point"]["dx"]/scaling_factor) + box["x"],
-                                 "dy": int(mouse_dict["features"]["point"]["dy"]/scaling_factor) + box["y"]}
+                                {"dx": dx,
+                                 "dy": dy}
+
+                            box_x_middle = box["x"] + int(box["w"] / 2);
+                            box_y_middle = box["y"] + int(box["h"] / 2);
+
+                            angle_radiants = math.atan2(dy - box_y_middle, dx - box_x_middle)
+                            angle_degree = math.degrees(angle_radiants)
+                            angle_degree = (angle_degree + 360) % 360
+                            mouse_dict["features"]["point"]["angle"] = angle_degree
+
                     except Exception as ex:
                         pass #print(ex)
 
