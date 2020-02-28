@@ -1138,6 +1138,173 @@ def ide_new_api():
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
+
+@app.route("/button_grab_api", methods=['GET', 'POST'])
+def ide_button_grab_api():
+
+    global current_objectname
+    global background_image
+    global base64png
+    global img_h
+    global img_w
+    global popen_process
+    global autocontoured_rects
+    global measure
+    global library_dict
+    global library_dict_in_editing
+
+    caller = request.args.get('caller')
+    object_name = request.args.get('name')
+
+    screen_manager = ScreenManager()
+    scaling_factor = screen_manager.get_scaling_factor()
+    w_h = screen_manager.get_resolution()
+    screen_w = w_h[0]
+    screen_h = w_h[1]
+
+    object_res_exists = False
+
+    res_string = str(screen_w) + "*" +  str(screen_h) + "@" + str(int(scaling_factor*100))
+
+    """
+    try:
+        obj_curr_res = library_dict["objects"][object_name]["components"][res_string]
+        object_res_exists = True
+    except:
+        pass
+    """
+
+    if caller == "ide":
+
+        browser_class.hide(browser_class._hwnd_3)
+
+        while True:
+            if browser_class.IsWindowVisible(browser_class._hwnd_3) is False \
+                    and browser_class.IsIconic(browser_class._hwnd_3) is False:
+                break
+
+
+    time.sleep(0.25)
+
+    #os.dup2(output_pipeline[0], 1)
+    #os.dup2(output_pipeline[1], 2)
+
+    browser_class.bring_last_window_on_top(3)
+
+    time.sleep(0.25)
+
+    delay = int(request.args.get('delay'))
+
+    screen_manager = ScreenManager()
+
+    scaling_factor = screen_manager.get_scaling_factor()
+
+    if delay != 0: #and lm.check_if_exist(object) is False:
+
+        seconds = delay #// 1
+        #milliseconds = args.delay - seconds
+
+        #print("Counting down")
+
+        for i in range(seconds):
+            #print(str(seconds - i))
+            time.sleep(1)
+
+        #print("Frame grabbing!")
+
+        background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+    elif delay == 0: #and lm.check_if_exist(object) is False:
+        #print("Frame grabbing!")
+
+        background_image = screen_manager.grab_desktop(screen_manager.get_color_mat)
+
+    png_image = cv2.imencode('.png', background_image)
+
+    base64png = base64.b64encode(png_image[1]).decode('ascii')
+    img_h = int(background_image.shape[0] / scaling_factor)
+    img_w = int(background_image.shape[1] / scaling_factor)
+
+    contouring_manager = ContouringManager(
+        canny_threshold1=250 * 0.2,
+        canny_threshold2=250 * 0.3,
+        canny_apertureSize=3,
+        hough_threshold=10,
+        hough_minLineLength=30,
+        hough_maxLineGap=1,
+        line_angle_tolerance=0,
+        ellipse_width=2,
+        ellipse_height=2,
+        text_roi_emptiness=0.45,
+        text_roi_proportion=1.3,
+        image_roi_emptiness=0.1,
+        vline_hw_proportion=2,
+        vline_w_maxsize=10,
+        hline_wh_proportion=2,
+        hline_h_maxsize=10,
+        rect_w_minsize=5,
+        rect_h_minsize=5,
+        rect_w_maxsize_01=800,
+        rect_h_maxsize_01=100,
+        rect_w_maxsize_02=100,
+        rect_h_maxsize_02=800,
+        rect_hw_proportion=2,
+        rect_hw_w_maxsize=10,
+        rect_wh_proportion=2,
+        rect_wh_h_maxsize=10,
+        hrect_proximity=10,
+        vrect_proximity=10,
+        vrect_others_proximity=40,
+        hrect_others_proximity=80)
+
+    contouring_manager.auto_contouring(background_image, scaling_factor)
+
+    autocontoured_rects = []
+    autocontoured_rects.extend(contouring_manager.getImageBoxes())
+    autocontoured_rects.extend(contouring_manager.getRectBoxes())
+    autocontoured_rects.extend(contouring_manager.getTextBoxes())
+
+
+    lm = LibraryManager()
+
+    lm.set_json(library_dict)
+
+    alyvix_file_dict = lm.build_objects_for_ide(current_objectname, resolution=res_string)
+
+    if bool(alyvix_file_dict):
+
+        library_dict["objects"][object_name]["components"][res_string]["screen"] = base64png
+
+        object_res = copy.deepcopy(library_dict["objects"][object_name]["components"][res_string])
+
+        library_dict_in_editing = {"objects": {}}
+        library_dict_in_editing["objects"][object_name] = {"components": {}}
+        library_dict_in_editing["objects"][object_name]["components"][res_string] = object_res
+        # library_dict_in_editing["objects"][object_name]["measure"] = copy.deepcopy(library_dict["objects"][object_name]["measure"])
+        library_dict_in_editing["objects"][object_name]["detection"] = copy.deepcopy(
+            library_dict["objects"][object_name]["detection"])
+        library_dict_in_editing["objects"][object_name]["date_modified"] = copy.deepcopy(
+            library_dict["objects"][object_name]["date_modified"])
+        library_dict_in_editing["objects"][object_name]["call"] = copy.deepcopy(
+            library_dict["objects"][object_name]["call"])
+        measure = copy.deepcopy(library_dict["objects"][object_name]["measure"])
+
+        #base_64_str = pass
+
+
+
+    current_objectname = object_name
+
+    if caller == "ide":
+        url = "http://127.0.0.1:" + str(current_port) + "/drawing?ide=true"
+    else:
+        url = "http://127.0.0.1:" + str(current_port) + "/drawing"
+
+    browser_class._browser_1.LoadUrl(url)
+
+    browser_class.show(browser_class._hwnd_1)
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
 @app.route("/ide_button_new_api", methods=['GET', 'POST'])
 def ide_button_new_api():
 
@@ -2315,14 +2482,14 @@ def get_scraped_txt():
 
         source_image = background_image[y1:y2, x1:x2]
         current_gray_screen = cv2.cvtColor(source_image, cv2.COLOR_BGR2GRAY)
-        cv2.imwrite("c:\\alyvix_test\\s.png", source_image)
-        cv2.imwrite("c:\\alyvix_test\\b.png", background_image)
+        #cv2.imwrite("c:\\alyvix_test\\s.png", source_image)
+        #cv2.imwrite("c:\\alyvix_test\\b.png", background_image)
 
         if main_in_curr_group["type"] == "I":
             im = ImageManager()
             template = background_image[tmpl_y1:tmpl_y2, tmpl_x1:tmpl_x2]
 
-            cv2.imwrite("c:\\alyvix_test\\template.png", template)
+            #cv2.imwrite("c:\\alyvix_test\\template.png", template)
 
             im.set_template(template)
 
