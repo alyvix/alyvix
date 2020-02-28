@@ -89,6 +89,7 @@
 
         //Interface to alyvix-ui project
         function axModel() {
+            console.log('axModel');
             if(!model.box_list) {
                 model = {
                     object_name:object_name,
@@ -614,6 +615,7 @@
             else
             {
                 detection = file_dict;
+                axModel();
             }
             
             
