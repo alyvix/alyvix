@@ -15,6 +15,7 @@ import { CdkDropList } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
 import { Step } from 'src/app/ax-editor/central-panel/script-editor/step/step.component';
 import { Draggable } from 'src/app/utils/draggable';
+import { ModalService, Modal } from 'src/app/modal-service.service';
 
 export interface RowVM{
   name:string
@@ -43,6 +44,7 @@ export class AxTableComponent implements OnInit {
     private datastore:SelectorDatastoreService,
     private changeDetecor: ChangeDetectorRef,
     private objectRegistry:ObjectsRegistryService,
+    private modal:ModalService
     ) {}
 
 
@@ -225,12 +227,26 @@ export class AxTableComponent implements OnInit {
   }
 
   remove() {
-    if (confirm('Do you really want to delete ' + this.selectedNames() + '?')) {
-      this.data = this.data.filter(d => !this.isSelected(d));
-      this.dataChange.emit(this.data);
-      this.selectedRows = [];
-      this.filterData();
-    }
+
+    this.modal.open({
+      title: 'Delete',
+      body: 'Do you really want to delete ' + this.selectedNames() + '?',
+      actions: [
+        {
+          title: 'Delete',
+          importance: 'btn-danger',
+          callback: () => {
+            this.data = this.data.filter(d => !this.isSelected(d));
+            this.dataChange.emit(this.data);
+            this.selectedRows = [];
+            this.filterData();
+          }
+        }
+      ],
+      cancel: Modal.NOOP
+    });
+
+
   }
 
   duplicate() {

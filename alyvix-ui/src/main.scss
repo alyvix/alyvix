@@ -239,6 +239,7 @@ input[type='radio'] {
 
     &:focus{
       color: $focusBlue;
+      outline-color: $focusBlue
     }
 }
 
@@ -255,6 +256,7 @@ input[type='radio'] {
   &:focus {
     color: white;
     background: $focusBlue;
+    outline-color: $focusBlue
   }
 }
 
@@ -270,6 +272,7 @@ input[type='radio'] {
   &:focus {
     color:$focusBlue;
     border-color: $focusBlue;
+    outline-color: $focusBlue;
   }
 }
 
@@ -285,6 +288,7 @@ input[type='radio'] {
   &:focus {
     color:$lightred;
     border-color: $lightred;
+    outline-color: $red;
   }
 }
 

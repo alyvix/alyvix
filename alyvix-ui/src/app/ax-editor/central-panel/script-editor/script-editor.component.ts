@@ -8,6 +8,7 @@ import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore
 import { RowVM } from 'src/app/ax-selector/ax-table/ax-table.component';
 import * as _ from 'lodash';
 import { Draggable } from 'src/app/utils/draggable';
+import { ModalService, Modal } from 'src/app/modal-service.service';
 
 @Component({
   selector: 'app-script-editor',
@@ -87,7 +88,11 @@ export class ScriptEditorComponent implements OnInit {
 
 
 
-  constructor(private objectRegistry:ObjectsRegistryService, private selectorDatastore:SelectorDatastoreService) { }
+  constructor(
+    private objectRegistry:ObjectsRegistryService,
+    private selectorDatastore:SelectorDatastoreService,
+    private modal:ModalService
+    ) { }
 
   ngOnInit() {
     this.selectorDatastore.getData().subscribe(d => this.objects = d);
@@ -151,11 +156,25 @@ export class ScriptEditorComponent implements OnInit {
   }
 
   deleteSelected() {
-    if(confirm("Are you sure you want to delete this step?")) {
-      this._steps = this._steps.filter(s => !this.selectedSteps.map(ss => ss.id).includes(s.id));
-      this.selectedSteps = [];
-      this.emitChange();
-    }
+
+    this.modal.open({
+      title: 'Delete',
+      body: 'Are you sure you want to delete this step?',
+      actions: [
+        {
+          title: 'Delete',
+          importance: 'btn-danger',
+          callback: () => {
+            this._steps = this._steps.filter(s => !this.selectedSteps.map(ss => ss.id).includes(s.id));
+            this.selectedSteps = [];
+            this.emitChange();
+          }
+        }
+      ],
+      cancel: Modal.NOOP
+    });
+
+
   }
 
 

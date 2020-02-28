@@ -124,13 +124,26 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   removeMap(map:MapsVM) {
-    if(confirm('Are you sure you want to delete that map?')) {
-      this.maps = this.maps.filter(x => x !== map);
-      this.editorService.save().subscribe(saved => {})
-      if(this.selected.name == map.name) {
-        this.selectMain();
-      }
-    }
+
+    this.modal.open({
+      title: 'Delete map',
+      body: 'Are you sure you want to delete ' + map.name + '?',
+      actions: [
+        {
+          title: 'Delete',
+          importance: 'btn-danger',
+          callback: () => {
+            this.maps = this.maps.filter(x => x !== map);
+            this.editorService.save().subscribe(saved => {})
+            if(this.selected.name == map.name) {
+              this.selectMain();
+            }
+          }
+        }
+      ],
+      cancel: Modal.NOOP
+    });
+
   }
 
   changeMapName(map:MapsVM, name) {

@@ -13,6 +13,8 @@ import { CopyClipboardDirective } from '../directives/copy-clipboard.directive';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
+import { AxModalComponent } from '../common/ax-modal/ax-modal.component';
+import { NgxSmartModalModule } from 'ngx-smart-modal';
 
 
 @NgModule({
@@ -20,7 +22,8 @@ import { ToastrModule } from 'ngx-toastr';
     SelectorComponent,
     AxSelectorComponent,
     AxTableComponent,
-    CopyClipboardDirective
+    CopyClipboardDirective,
+    AxModalComponent
   ],
   imports: [
     BrowserModule,
@@ -30,7 +33,8 @@ import { ToastrModule } from 'ngx-toastr';
     FormsModule,
     DragDropModule,
     BrowserAnimationsModule, // required animations module
-    ToastrModule.forRoot()
+    ToastrModule.forRoot(),
+    NgxSmartModalModule.forRoot()
   ],
   providers: [
     {provide: 'GlobalRefSelector', useClass: environment.globalTypeSelector},
