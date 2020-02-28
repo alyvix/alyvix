@@ -41,6 +41,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
 import { NgProgressModule } from '@ngx-progressbar/core';
 import { ConsoleComponent } from './central-panel/console/console.component';
+import { NgxSmartModalModule } from 'ngx-smart-modal';
+import { AxModalComponent } from '../common/ax-modal/ax-modal.component';
 
 
 
@@ -70,6 +72,7 @@ import { ConsoleComponent } from './central-panel/console/console.component';
     MonitorComponent,
     MapEditorComponent,
     ConsoleComponent,
+    AxModalComponent
   ],
   imports: [
     NgxResizableModule,
@@ -93,7 +96,8 @@ import { ConsoleComponent } from './central-panel/console/console.component';
     AutocompleteLibModule,
     BrowserAnimationsModule, // required animations module
     ToastrModule.forRoot(),
-    NgProgressModule
+    NgProgressModule,
+    NgxSmartModalModule.forRoot()
   ],
   providers: [
     {provide: 'GlobalRefSelector', useClass: environment.globalTypeSelector},
