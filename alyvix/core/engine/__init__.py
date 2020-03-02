@@ -73,6 +73,8 @@ class Result():
         self.thresholds = {"warning_s": None, "critical_s": None}
         self.output = True
         self.exit = "false"
+        self.extended_name = None
+        self.state = 0
 
 
 class EngineManager(object):
@@ -1714,7 +1716,10 @@ class EngineManager(object):
                     if self._result.performance_ms < 0:
                         self._result.performance_ms *= -1
 
+                    self._result.timeout = timeout
+
                     self._result.end_timestamp = time.time()
+
                     return self._result
 
                     #return (appear_time, appear_accuracy)
@@ -1760,6 +1765,8 @@ class EngineManager(object):
 
                 if self._result.performance_ms < 0:
                     self._result.performance_ms *= -1
+
+                self._result.timeout = timeout
 
                 self._result.end_timestamp = time.time()
                 return self._result

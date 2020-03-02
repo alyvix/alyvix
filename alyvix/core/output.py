@@ -51,6 +51,9 @@ class OutputManager:
             # json_object["objects"][object.object_name] ["components"][resolution_string]
             object_dict = json_object["objects"][object.object_name]
 
+            for measure in object.measures:
+                del measure["name_for_screen"]
+
             object_dict["measure"]["series"] = object.measures
 
 
