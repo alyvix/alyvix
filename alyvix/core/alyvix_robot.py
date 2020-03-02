@@ -12,6 +12,7 @@ from alyvix.core.engine import EngineManager, Result
 from alyvix.core.utilities.parser import ParserManager
 from alyvix.tools.library import LibraryManager
 from alyvix.tools.screen import ScreenManager
+from alyvix.tools.nats import NatsManager
 
 class ResultForOutput():
 
@@ -80,6 +81,11 @@ verbose = 0
 sys_exit = 0
 output_mode = "alyvix"
 
+publish_nats = False
+nats_server = ""
+nats_db = ""
+nats_measure = ""
+
 not_executed_cnt = 0
 
 for i in range(0, len(sys.argv)):
@@ -104,6 +110,23 @@ for i in range(0, len(sys.argv)):
         is_foride = True
     elif sys.argv[i] == "-m" or sys.argv[i] == "--mode":
         output_mode = sys.argv[i + 1]
+
+if "nats-influxdb" in output_mode:
+
+    nats_args = output_mode.split(" ")
+    nats_args.pop(0)
+
+    nats_server = nats_args[0]
+    nats_db = nats_args[1]
+
+    try:
+        nats_measure = nats_args[2]
+    except:
+        pass
+
+    publish_nats = True
+    output_mode = "nagios"
+
 
 if filename is None:
     python_name = os.path.basename(__file__)
@@ -271,6 +294,7 @@ if filename is not None:
                             break
 
             measure_dict["name_for_screen"] = obj_name
+            result.extended_name = obj_name
 
 
             warning_s = None
@@ -308,6 +332,7 @@ if filename is not None:
                         curr_perf_string += ";" + str(warning_s) + "s"
                         if performance >= warning_s and sys_exit < 1:
                             sys_exit = 1
+                            result.state = 1
                     else:
                         curr_perf_string += ";"
 
@@ -315,6 +340,7 @@ if filename is not None:
                         curr_perf_string += ";" + str(critical_s) + "s"
                         if performance >= critical_s and sys_exit < 2:
                             sys_exit = 2
+                            result.state = 2
                     else:
                         curr_perf_string += ";"
                     curr_perf_string += ";; "
@@ -330,6 +356,7 @@ if filename is not None:
                 if result.output is True and result.has_to_break is True:
                     if output_mode == "nagios":
                         curr_perf_string = obj_name.replace(" ", "_") + "=ms"
+                        result.state = 2
                     else:
                         print(date_formatted + ": " + obj_name + " FAILED after " + str(result.timeout) + "s")
                     timed_out_objects.append(obj_name)
@@ -605,4 +632,9 @@ if filename is not None:
 
         #if is_foride is False:
         om.save(filename, lm.get_json(), chunk, objects_for_output, exit, t_end)
+
+    if publish_nats is True:
+        nats_manager = NatsManager()
+        nats_manager.publish_message(objects_result, start_time=start_time,
+                                     server=nats_server,db=nats_db,measure=nats_measure, filename=filename_no_extension)
     sys.exit(sys_exit)
