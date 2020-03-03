@@ -61,6 +61,11 @@ class NatsManager:
             warning_threshold = None
             critical_threshold = None
 
+            group_msg = ""
+
+            if object.group is not None:
+                group_msg = ",transaction_group=" + object.group.replace(" ", "\ ")
+
             curr_perf_string = ""
 
             try:
@@ -108,7 +113,10 @@ class NatsManager:
 
                 timed_out = True
 
+            accuracy_msg = ""
 
+            if object.accuracy_ms != -1 and object.accuracy_ms is not None:
+                accuracy_msg = ",accuracy=" + str(int(object.accuracy_ms))
 
             msg_cumsum = ""
 
@@ -124,7 +132,7 @@ class NatsManager:
 
             elif not_executed is False: #timedout
 
-                value = int(cumsum_value + (object.timeout))
+                value = int(cumsum_value + (object.timeout*1000))
 
                 msg_cumsum = ",cumulative=" + str(value)
 
@@ -134,16 +142,10 @@ class NatsManager:
 
                 msg_cumsum = ",cumulative=" + str(cumsum_value)
 
+            records_msg=""
 
-            msg_errorlevel = ",error_level=" + str(object.state)
-
-            point_pre_msg = ""
-
-            point_start_msg = ""
-
-            if not_executed is False:
-                point_pre_msg = ",point=pre"
-                point_start_msg = ",point=start"
+            if object.records["extract"] != "":
+                records_msg = ",records=\"" + object.records["extract"].replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 
             user_msg = ",username=" + os.environ['username']
@@ -180,20 +182,20 @@ class NatsManager:
 
 
             message= str(measure) + user_msg + host_msg + ",test_name=" +filename + ",transaction_name=" + \
-                object.extended_name.replace(" ", "\ ") + ",transaction_group=" + object.group.replace(" ", "\ ") + \
+                object.extended_name.replace(" ", "\ ") + group_msg + \
                 ",state=" + object.exit + \
                  " " + \
-                 msg_warning + msg_critical + msg_timeout + msg_perf + msg_cumsum + \
-                ",error_level=" + str(object.state) + unique_tag_msg + \
-                ",records=\"" + object.records["extract"].replace("\\", "\\\\").replace("\"", "\\\"") + "\"" + \
-                 " " + \
-                 perf_timestamp
+                 msg_warning + msg_critical + msg_timeout + msg_perf + accuracy_msg + msg_cumsum + \
+                ",error_level=" + str(object.state) + unique_tag_msg
+
+            message = message.replace(" ,"," ")
+
+            message += records_msg + " " + perf_timestamp
 
             #.replace(" ", "\ ").replace(",", "\,").replace("=", "\=")
 
 
-
-            message = message.replace(" ,"," ")
+            #print(message)
 
             client.publish(db, payload=message)
 

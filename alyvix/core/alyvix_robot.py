@@ -425,6 +425,9 @@ if filename is not None:
                 dummy_result.performance_ms = -1
                 dummy_result.accuracy_ms = -1
                 dummy_result.thresholds = library_json["objects"][object]["measure"]["thresholds"]
+                dummy_result.timeout = library_json["objects"][object]["detection"]["timeout_s"]
+                dummy_result.extended_name = object
+                dummy_result.state = 2
                 dummy_result.exit = "not_executed"
 
                 not_executed_cnt += 1
@@ -483,10 +486,13 @@ if filename is not None:
                 if cnt > len(objects_result):
                     result = Result()
                     result.object_name = object_name
+                    result.extended_name = object_name
                     result.timestamp = -1
                     result.performance_ms = -1
                     result.accuracy_ms = -1
                     result.thresholds = library_json["objects"][object]["measure"]["thresholds"]
+                    result.timeout = library_json["objects"][object]["detection"]["timeout_s"]
+                    result.state = 2
                     result.exit = "not_executed"
                     not_executed_cnt += 1
                     objects_result.append(result)
