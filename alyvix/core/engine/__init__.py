@@ -1572,7 +1572,7 @@ class EngineManager(object):
 
         #sm = ScreenManager()
 
-        MAX_THREADS = 1 #3
+        MAX_THREADS = 3 #3
 
         timeout = self._detection["timeout_s"]
         has_to_break = self._detection["break"]

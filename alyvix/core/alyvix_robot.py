@@ -271,11 +271,44 @@ if filename is not None:
                 if True: #output_mode == "nagios":
                     obj_name = result.object_name + "_" + measure_dict["map_key"]
 
+                    start_index = 0
+
+                    cnt_obj = 0
+                    for exec_obj in objects_result:
+                        if exec_obj.map_key is not None:
+                            measure_dict["map_name"] = exec_obj.map_key[0]
+                            measure_dict["map_key"] = exec_obj.map_key[1]
+
+                            obj_name_2 = exec_obj.object_name + "_" + measure_dict["map_key"]
+
+                            if obj_name == obj_name_2:
+
+                                cnt_obj += 1
+
+                        if cnt_obj > 1:
+                            start_index = 1
+                            obj_name = obj_name + "_1"
+                            break
+
+            else:
+
+                start_index = 0
+
+                cnt_obj = 0
+                for exec_obj in objects_result:
+                    if result.object_name == exec_obj.object_name:
+                        cnt_obj += 1
+
+                    if cnt_obj > 1:
+                        start_index = 1
+                        obj_name = obj_name + "_1"
+                        break
+
             if True: #output_mode == "nagios":
                 if len(objects_name_for_nagios) == 0:
                     objects_name_for_nagios.append(obj_name)
                 else:
-                    cnt_obj_name = 1
+                    cnt_obj_name = 2
 
                     loop_name = obj_name
 
@@ -284,7 +317,7 @@ if filename is not None:
                         for obj_nagios_name in objects_name_for_nagios:
                             if obj_nagios_name == loop_name:
                                 exists = True
-                                loop_name = obj_name + "_" + str(cnt_obj_name)
+                                loop_name = obj_name[:-2] + "_" + str(cnt_obj_name)
                                 cnt_obj_name += 1
                                 break
 
@@ -426,6 +459,7 @@ if filename is not None:
                 dummy_result.accuracy_ms = -1
                 dummy_result.thresholds = library_json["objects"][object]["measure"]["thresholds"]
                 dummy_result.timeout = library_json["objects"][object]["detection"]["timeout_s"]
+                dummy_result.output = library_json["objects"][object]["measure"]["output"]
                 dummy_result.extended_name = object
                 dummy_result.state = 2
                 dummy_result.exit = "not_executed"
@@ -492,6 +526,7 @@ if filename is not None:
                     result.accuracy_ms = -1
                     result.thresholds = library_json["objects"][object]["measure"]["thresholds"]
                     result.timeout = library_json["objects"][object]["detection"]["timeout_s"]
+                    result.output = library_json["objects"][object]["measure"]["output"]
                     result.state = 2
                     result.exit = "not_executed"
                     not_executed_cnt += 1
@@ -579,7 +614,7 @@ if filename is not None:
         for result in objects_result:
             if result.timestamp == -1:
 
-                if output_mode == "nagios":
+                if output_mode == "nagios" and result.output is True:
                     warning_s = None
                     critical_s = None
 
