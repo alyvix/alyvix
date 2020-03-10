@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { BoxListEntity, AxSelectorObjects, DesignerModel, AxModel, AxMap } from './ax-model/model';
 import { map, retry, catchError } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from 'src/environments/environment';
 
 export interface ScrapedText{
   regexp?: string,
@@ -133,7 +134,16 @@ export class AlyvixApiService {
   saveObject(model:AxModel):Observable<any> {
     if(model) {
       model.designerFromEditor = (this.subSystem === 'editor');
-      return this.httpClient.post<any>('/save_json',model);
+      return this.httpClient.post<any>('/save_json',model).pipe(map(x => {
+        if(!environment.production) {
+          setTimeout(() => {
+            if(this.subSystem === 'editor' && (window as any).reloadAlyvixIde) {
+              (window as any).reloadAlyvixIde(model.object_name);
+            }
+          }, 100);
+        }
+        return x;
+      }));
     } else {
       return of('')
     }

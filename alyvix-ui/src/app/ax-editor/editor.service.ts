@@ -26,7 +26,6 @@ export interface ConsoleElement{
 export class EditorService {
 
   private _selection:BehaviorSubject<LeftSelection> = new BehaviorSubject<LeftSelection>(null);
-  objectChanged:EventEmitter<string> = new EventEmitter()
   runState:EventEmitter<string> = new EventEmitter()
   setSection:EventEmitter<string> = new EventEmitter()
   private tab:AxFile
@@ -56,10 +55,10 @@ export class EditorService {
 
   reloadObject(objectName:string) {
     console.log('EditorService::reloadObject('+objectName+")")
-    if(this.tab && this.tab.main) {
-     this.selectorDatastore.reload(objectName); // nedded for add
+    if(this.tab && this.tab.main) { // do only when the working case tab is open
+     this.selectorDatastore.reload(objectName);
     }
-    this.objectChanged.emit(objectName);
+
   }
 
   setLeftSelection(s:LeftSelection) {

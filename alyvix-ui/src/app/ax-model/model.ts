@@ -61,7 +61,8 @@ export interface AxModel {
     date_modified: string,
     detection: Detection,
     thresholds?: any,
-    measure?: Measure
+    measure?: Measure,
+    call?:AxSystemCall
   }
 
   export interface Measure{
@@ -210,6 +211,7 @@ export interface AxModel {
   export interface Point {
     dx: number;
     dy: number;
+    angle?:number;
   }
   export interface Keyboard {
     delays_ms: number;

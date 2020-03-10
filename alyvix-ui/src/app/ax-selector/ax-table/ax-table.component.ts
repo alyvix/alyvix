@@ -453,11 +453,22 @@ export class AxTableComponent implements OnInit {
 
   selectorColumns = ['handle','name','transactionGroup','dateModified','timeout','break','measure','warning','critical','resolution','screen']
 
+  private updateRow(r:RowVM,d:RowVM) {
+    d.object.date_modified = r.object.date_modified
+    d.object.components = r.object.components
+    d.object.call = r.object.call
+  }
+
+  private updateLibrary(r:RowVM) {
+    this.filteredData.filter(d => d.name === r.name).forEach(d => this.updateRow(r,d));
+    this._data.filter(d => d.name === r.name).forEach(d => this.updateRow(r,d));
+    this.selectedRows.filter(d => d.name === r.name).forEach(d => this.updateRow(r,d));
+  }
+
   ngOnInit(): void {
     this.datastore.editRow().subscribe(r => {
       if(this.editor && r && this.data.find(d => d.name === r.name)) {
-        this.filteredData.filter(d => d.name === r.name).forEach(d => d.object.date_modified = r.object.date_modified);
-        this.data.filter(d => d.name === r.name).forEach(d => d.object.date_modified = r.object.date_modified);
+        this.updateLibrary(r);
       } else if (r && this.editing) {
         r.id = this.editing.id;
         r.selectedResolution = this.editing.selectedResolution;
