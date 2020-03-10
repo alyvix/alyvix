@@ -1,5 +1,5 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { AxSelectorObjects, AxSelectorComponentGroups, AxScript, AxMaps, AxScriptFlow, AxMap } from '../ax-model/model';
+import { AxSelectorObjects, AxSelectorComponentGroups, AxScript, AxMaps, AxScriptFlow,AxScriptFlowObj, AxMap, AxSelectorComponent, T } from '../ax-model/model';
 import { RowVM } from './ax-table/ax-table.component';
 import { Utils } from '../utils';
 import { AlyvixApiService } from '../alyvix-api.service';
@@ -144,6 +144,8 @@ export class SelectorDatastoreService {
   }
 
   setData(data:RowVM[]) {
+    console.log('data')
+    console.log(data)
     this.data = data;
   }
 
@@ -256,6 +258,69 @@ export class SelectorDatastoreService {
       )
     };
 
+  }
+
+
+
+  private checkInObject(mapName:string):string[] {
+    return this.data.flatMap(d => {
+      return Object.keys(d.object.components).flatMap(k => {
+        const textComponents:AxSelectorComponent[] = d.object.components[k].groups
+                                                      .flatMap(g => g.subs)
+                                                      .filter(c => (c as any).detection && (c as any).detection.type === 'text' )
+                                                      .map(c => c as AxSelectorComponent)
+        if(textComponents.some(c => (c.detection.features as T).type === 'map' && (c.detection.features as T).map === mapName)) {
+          return ["Used in object " + d.name + "@"+k]
+        } else {
+          return []
+        }
+      })
+    })
+  }
+
+
+
+  private checkInScript(objectName:string, label:string, firstPlace:boolean, objTest:((o:AxScriptFlowObj) => boolean)):string[] {
+    const inFlow:((name:string,flow:AxScriptFlow[]) => string[]) = (name,flow) => {
+      let contains = flow.some(f => {
+        if(typeof f === "string") {
+          return objectName === f && firstPlace;
+        } else {
+          return  objTest(f)
+        }
+      });
+      return contains ? [label + " used in script: " + name] : []
+    }
+
+    const script = this.script.getValue();
+    if(script) {
+      return [
+        ...inFlow('main',script.main),
+        ...inFlow('fail',script.fail),
+        ...inFlow('exit',script.exit),
+        ...script.sections.flatMap(s => inFlow(s.name,s.instructions))
+      ]
+    } else {
+      return []
+    }
+  }
+
+  objectUsage(objectName:string):string[] {
+    return this.checkInScript(objectName,"Object",true,f =>
+      (f.flow && f.flow === objectName) ||
+      (f.if_true && f.if_true === objectName) ||
+      (f.if_false && f.if_true === objectName)
+    )
+  }
+
+  sectionUsage(objectName:string):string[] {
+    return this.checkInScript(objectName,"Section",true,f => f.flow && f.flow === objectName)
+  }
+
+  mapUsage(mapName:string):string[] {
+    let scripts =  this.checkInScript(mapName,"Map",false,f => f.flow && f.for && f.for === mapName)
+    let objects = this.checkInObject(mapName);
+    return scripts.concat(objects);
   }
 
 

@@ -9,6 +9,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 export interface ModalVM {
   title:string;
   body:string;
+  list?:string[];
   actions: ModalAction[];
   cancel: ModalAction;
 }

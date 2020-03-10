@@ -1,6 +1,9 @@
 <ngx-smart-modal identifier="{{id}}" [escapable]="false" [closable]="false" [dismissable]="false" (onOpenFinished)="focusFirst()">
     <h1>{{vm.title}}</h1>
     <p>{{vm.body}}</p>
+    <ul *ngIf="vm.list">
+      <li *ngFor="let el of vm.list">{{el}}</li>
+    </ul>
     <div class="ax-modal-actions" #actions>
       <div *ngFor="let action of allActions()">
         <button class="btn" [ngClass]="action.importance"  (click)="do(action)" (keyup)="keyupButton(action,$event)" >{{action.title}}</button>

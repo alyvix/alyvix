@@ -125,9 +125,12 @@ export class ObjectsPanelComponent implements OnInit {
 
   removeMap(map:MapsVM) {
 
+
+
     this.modal.open({
       title: 'Delete map',
       body: 'Are you sure you want to delete ' + map.name + '?',
+      list: this.selectorDatastore.mapUsage(map.name),
       actions: [
         {
           title: 'Delete',
@@ -166,6 +169,7 @@ export class ObjectsPanelComponent implements OnInit {
     this.modal.open({
       title: 'Delete section',
       body: 'Are you sure you want to delete ' + section.name + '?',
+      list: this.selectorDatastore.sectionUsage(section.name),
       actions: [
         {
           title: 'Delete',

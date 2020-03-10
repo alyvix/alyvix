@@ -231,6 +231,7 @@ export class AxTableComponent implements OnInit {
     this.modal.open({
       title: 'Delete',
       body: 'Do you really want to delete ' + this.selectedNames() + '?',
+      list: this.selectedRows.flatMap(r => this.datastore.objectUsage(r.name)),
       actions: [
         {
           title: 'Delete',
