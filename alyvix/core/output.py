@@ -74,9 +74,11 @@ class OutputManager:
             for measure in object.measures:
 
                 #object_name = measure["name_for_screen"]
+                try:
 
-                date_from_ts = datetime.fromtimestamp(measure["timestamp"])
-
+                    date_from_ts = datetime.fromtimestamp(measure["timestamp"])
+                except:
+                    continue
                 try:
                     millis_from_ts = date_from_ts.strftime("%f")[: -3]
                 except:

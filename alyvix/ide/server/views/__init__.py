@@ -1,5 +1,5 @@
 # Alyvix allows you to automate and monitor all types of applications
-# Copyright (C) 2019 Alan Pipitone
+# Copyright (C) 2020 Alan Pipitone
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1024,17 +1024,17 @@ def ide_run_api_process():
 
             for key, value in objects.items():
                 try:
-                    if value["measure"]["timestamp"] != -1 and value["measure"]["exit"]=="fail":
+                    if value["measure"]["series"][0]["timestamp"] != -1 and value["measure"]["series"][0]["exit"]=="fail":
                         ordered_object.append(value)
                 except:
                     pass #keyword is not executed, so measure is empty
-            ordered_object = sorted(ordered_object, key=lambda k: k['measure']['timestamp'])
+            ordered_object = sorted(ordered_object, key=lambda k: k['measure']["series"][0]['timestamp'])
 
             sm = ScreenManager()
             scaling_factor = sm.get_scaling_factor()
 
             if scaling_factor > 1:
-                np_array = np.frombuffer(base64.b64decode(ordered_object[0]['measure']['annotation']), np.uint8)
+                np_array = np.frombuffer(base64.b64decode(ordered_object[0]['measure']["series"][0]['annotation']), np.uint8)
 
                 background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
@@ -1048,7 +1048,7 @@ def ide_run_api_process():
 
                 base64png = base64.b64encode(png_image[1]).decode('ascii')
             else:
-                base64png = ordered_object[0]['measure']['annotation']
+                base64png = ordered_object[0]['measure']["series"][0]['annotation']
 
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine (' ')")
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('The screen appeared as follows:')")

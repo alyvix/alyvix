@@ -13,6 +13,7 @@ from alyvix.core.utilities.parser import ParserManager
 from alyvix.tools.library import LibraryManager
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.nats import NatsManager
+from alyvix.tools.crypto import CryptoManager
 
 class ResultForOutput():
 
@@ -26,7 +27,8 @@ def eprint(*args, **kwargs):
 
 help_main_string = '''
 usage: alyvix_robot.py [-h] --filename FILENAME [--object OBJECT]
-                          [--args ARGUMENTS]
+                          [--args ARGUMENTS] [--mode MODE]
+                          [--key KEY]
 '''
 
 def print_help():
@@ -39,13 +41,15 @@ def print_help():
       --object OBJECT,  -o OBJECT
                             dummy description for help
       --args ARGUMENTS, -a ARGUMENTS
-                            dummy description for help
+                            dummy description for args
       --mode MODE, -m MODE
-                            dummy description for help
+                            dummy description for mode
+      --key KEY, -k KEY
+                            dummy description for key  
     
     required named arguments:
       --filename FILENAME, -f FILENAME
-                            dummy description for help
+                            dummy description for filename
     '''
     print(help_info)
 
@@ -80,6 +84,9 @@ objects_name_for_nagios = []
 verbose = 0
 sys_exit = 0
 output_mode = "alyvix"
+encrypt_pwd = None
+cipher_key = None
+cipher_iv = None
 
 publish_nats = False
 nats_server = ""
@@ -106,10 +113,28 @@ for i in range(0, len(sys.argv)):
             pass
     elif sys.argv[i] == "-h" or sys.argv == "--help":
         print_help()
+        exit(0)
     elif sys.argv[i] == "--is_foride":
         is_foride = True
     elif sys.argv[i] == "-m" or sys.argv[i] == "--mode":
         output_mode = sys.argv[i + 1]
+    elif sys.argv[i] == "-k" or sys.argv[i] == "--key":
+        encrypt_pwd = sys.argv[i + 1]
+        if len(encrypt_pwd) < 8:
+            print("the encryption key must be at least eight characters long")
+            exit(2)
+
+
+cm = CryptoManager()
+
+if encrypt_pwd is not None:
+    cm.create_key(encrypt_pwd)
+
+    cipher_key = cm.get_key()
+    cipher_iv = cm.get_iv()
+
+#aaaaaa = cm.decrypt(encrypt)
+
 
 if "nats-influxdb" in output_mode:
 
@@ -218,7 +243,8 @@ if filename is not None:
 
     if len(objects_names) == 0:
 
-        pm = ParserManager(library_json=library_json, chunk= chunk, engine_arguments=engine_arguments, verbose=verbose)
+        pm = ParserManager(library_json=library_json, chunk= chunk, engine_arguments=engine_arguments,
+                           verbose=verbose, cipher_key=cipher_key, cipher_iv=cipher_iv)
 
         pm.execute_script()
 
@@ -464,9 +490,31 @@ if filename is not None:
                 dummy_result.state = 2
                 dummy_result.exit = "not_executed"
 
-                not_executed_cnt += 1
 
                 objects_result.append(dummy_result)
+
+                measure_dict = {"perfomance_ms": -1,
+                                "accuracy_ms": -1,
+                                "timestamp": -1,
+                                "records": dummy_result.records,
+                                "exit": dummy_result.exit,
+                                "resolution": {
+                                    "width": w,
+                                    "height": h
+                                },
+                                # "arguments":result.arguments,
+                                "scaling_factor": int(scaling_factor * 100),
+                                "name_for_screen": dummy_result.object_name
+                                }
+
+                obj = ResultForOutput()
+                obj.object_name = dummy_result.object_name
+                obj.measures.append(measure_dict)
+                objects_for_output.append(obj)
+
+
+                not_executed_cnt += 1
+
 
                 #print(object + " NOT EXECUTED")
 
@@ -490,7 +538,8 @@ if filename is not None:
             object_json = lm.add_chunk(object_name, chunk)
 
             engine_manager = EngineManager(object_json, args=engine_arguments,
-                                           maps=maps, executed_objects=objects_result, verbose=verbose)
+                                           maps=maps, executed_objects=objects_result, verbose=verbose,
+                                           cipher_key=cipher_key, cipher_iv=cipher_iv)
             result = engine_manager.execute()
 
             objects_result.append(result)
@@ -614,37 +663,39 @@ if filename is not None:
         for result in objects_result:
             if result.timestamp == -1:
 
-                if output_mode == "nagios" and result.output is True:
-                    warning_s = None
-                    critical_s = None
+                if output_mode == "nagios":
+                    if result.output is True:
+                        warning_s = None
+                        critical_s = None
 
-                    curr_perf_string = ""
+                        curr_perf_string = ""
 
-                    try:
-                        warning_s = result.thresholds["warning_s"]
-                    except:
-                        pass
+                        try:
+                            warning_s = result.thresholds["warning_s"]
+                        except:
+                            pass
 
-                    try:
-                        critical_s = result.thresholds["critical_s"]
-                    except:
-                        pass
+                        try:
+                            critical_s = result.thresholds["critical_s"]
+                        except:
+                            pass
 
-                    curr_perf_string = result.object_name.replace(" ", "_") + "=ms"
+                        curr_perf_string = result.object_name.replace(" ", "_") + "=ms"
 
-                    if warning_s is not None:
-                        curr_perf_string += ";" + str(warning_s) + "s"
-                    else:
-                        curr_perf_string += ";"
+                        if warning_s is not None:
+                            curr_perf_string += ";" + str(warning_s) + "s"
+                        else:
+                            curr_perf_string += ";"
 
-                    if critical_s is not None:
-                        curr_perf_string += ";" + str(critical_s) + "s"
-                    else:
-                        curr_perf_string += ";"
+                        if critical_s is not None:
+                            curr_perf_string += ";" + str(critical_s) + "s"
+                        else:
+                            curr_perf_string += ";"
 
-                    curr_perf_string += ";; "
+                        curr_perf_string += ";; "
 
-                    performance_string += curr_perf_string
+                        performance_string += curr_perf_string
+
                     not_exec_print += result.object_name.replace(" ", "_") + "; "
                 else:
                     print("        " + result.object_name)

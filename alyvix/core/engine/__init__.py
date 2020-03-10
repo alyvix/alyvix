@@ -33,6 +33,7 @@ import numpy as np
 from datetime import datetime
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.library import LibraryManager
+from alyvix.tools.crypto import CryptoManager
 from .image import ImageManager
 from .rectangle import RectangleManager
 from .text import TextManager
@@ -79,7 +80,7 @@ class Result():
 
 class EngineManager(object):
 
-    def __init__(self, object_json, args=None, maps={}, map_key="", executed_objects=[], verbose=0):
+    def __init__(self, object_json, args=None, maps={}, map_key="", executed_objects=[], verbose=0, cipher_key=None, cipher_iv=None):
 
         self._result = Result()
 
@@ -90,6 +91,10 @@ class EngineManager(object):
         self._result.arguments = []
 
         self._first_attempt_finished = False
+
+        self._crypto_manager = CryptoManager()
+        self._crypto_manager.set_key(cipher_key)
+        self._crypto_manager.set_iv(cipher_iv)
 
         try:
             self._result.group = object_json[self._result.object_name]["measure"]["group"]
@@ -541,6 +546,15 @@ class EngineManager(object):
             keyboard_dict = component.keyboard
 
             keyboard_string = keyboard_dict["string"]
+
+            if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
+                try:
+                    unenc_string = base64.b64decode(keyboard_string)
+                    decrypted_str = self._crypto_manager.decrypt(keyboard_string)
+                    if decrypted_str != "": #wrong password
+                        keyboard_string = decrypted_str
+                except: #string is not base 64
+                    pass
 
             if keyboard_string != "":
                 time.sleep(0.2)

@@ -7,7 +7,7 @@ from alyvix.tools.library import LibraryManager
 
 class ParserManager:
 
-    def __init__(self, library_json=None, chunk= None, engine_arguments=None, verbose=0):
+    def __init__(self, library_json=None, chunk= None, engine_arguments=None, verbose=0, cipher_key=None, cipher_iv=None):
         self._verbose = verbose
         self._lm = LibraryManager()
 
@@ -20,6 +20,9 @@ class ParserManager:
         self._executed_object_name = []
         self._executed_object_instance = []
 
+        self._key = cipher_key
+        self._iv = cipher_iv
+
         self._script_case = copy.deepcopy(library_json["script"]["case"])
         self._script_sections = copy.deepcopy(library_json["script"]["sections"])
 
@@ -27,6 +30,7 @@ class ParserManager:
             self._script_maps = copy.deepcopy(library_json["maps"])
         except:
             self._script_maps = {}
+
 
     def _get_timestamp_formatted(self):
         timestamp = time.time()
@@ -107,7 +111,8 @@ class ParserManager:
         object_json = self._lm.add_chunk(object_name, self._chunk)
 
         engine_manager = EngineManager(object_json, args=args, maps=self._script_maps, map_key=map_and_key,
-                                       executed_objects=self._objects_result, verbose=self._verbose)
+                                       executed_objects=self._objects_result, verbose=self._verbose,
+                                       cipher_key=self._key, cipher_iv=self._iv)
 
         result = engine_manager.execute()
 
