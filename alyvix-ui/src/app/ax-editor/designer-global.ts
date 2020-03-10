@@ -50,6 +50,9 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     this.selectorDatastore.getMaps().subscribe(maps => {
       this._maps.next(SelectorDatastoreService.toAxMaps(maps));
     });
+    this.editorService.objectChanged.subscribe(object => {
+      this.loadNext(this.selectedRows);
+    });
     this.editorService.setObjectSave((objects:string[]) => { // check if the current object needs to be saved
       if(this._model.value && objects.includes(this._model.value.object_name)) {
         return this.api.saveObject(this._model.value)

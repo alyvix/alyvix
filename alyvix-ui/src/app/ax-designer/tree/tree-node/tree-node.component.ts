@@ -117,7 +117,9 @@ export class TreeNodeComponent implements OnInit,DoCheck {
   ngOnInit() {
 
     if(this.node.box)
-	  this.group = this.node.box.group
+    this.group = this.node.box.group
+
+    console.log(this.node)
 
 	/*var ctx = this.canvas.nativeElement.getContext("2d");
 	var dpi = window.devicePixelRatio || 1;
@@ -240,6 +242,14 @@ export class TreeNodeComponent implements OnInit,DoCheck {
       }
     }
     return null;
+  }
+
+  interactionMouseDirection():number {
+    if(this.node.box && this.node.box.mouse && this.node.box.mouse.features.point.angle) {
+      return this.node.box.mouse.features.point.angle
+    } else {
+      return -1
+    }
   }
 
   private _interactionKeyboardIcon():string {
