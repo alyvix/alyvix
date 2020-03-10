@@ -22,11 +22,16 @@ export interface ModalAction{
 
 export namespace Modal {
   export const ID = 'axModal'
-  export const NOOP:ModalAction = {
-    title: "Cancel",
-    importance: '',
-    callback: () => { console.log('NOOP') }
+  export const NOOP:ModalAction = cancel(() => console.log('NOOP'))
+
+  export function cancel(callback: () => any):ModalAction {
+    return {
+      title: 'Cancel',
+      importance: '',
+      callback: callback
+    }
   }
+
 }
 
 @Injectable({

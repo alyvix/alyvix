@@ -149,10 +149,40 @@ export class ObjectsPanelComponent implements OnInit {
 
   }
 
-  changeMapName(map:MapsVM, name) {
-    map.name = name.target.value;
-    this.selectMap(map);
-    this.editorService.saveThrottled();
+  changeMapName(map:MapsVM, event:Event) {
+
+    const target = (event.target as HTMLInputElement)
+    const usages = this.selectorDatastore.mapUsage(map.name);
+
+    const rename = () => {
+      map.name = target.value;
+      this.selectMap(map);
+      this.editorService.saveThrottled();
+    }
+
+    if(usages.length > 0) {
+      this.modal.open({
+        title: 'Rename map',
+        body: 'Are you sure you want to rename ' + map.name + ' to ' + target.value + '?',
+        list: usages,
+        actions: [
+          {
+            title: 'Rename All',
+            importance: 'btn-primary',
+            callback: () => alert("TODO")
+          },
+          {
+            title: 'Rename',
+            importance: 'btn-danger',
+            callback: rename
+          }
+        ],
+        cancel: Modal.cancel(() => { target.value = map.name })
+      });
+    } else {
+      rename();
+    }
+
   }
 
   addSection() {
@@ -188,10 +218,40 @@ export class ObjectsPanelComponent implements OnInit {
 
   }
 
-  changeSectionName(section:SectionVM, name) {
-    section.name = name.target.value;
-    this.selectSection(section);
-    this.editorService.saveThrottled();
+  changeSectionName(section:SectionVM, event:Event) {
+
+    const target = (event.target as HTMLInputElement)
+    const usages = this.selectorDatastore.sectionUsage(section.name);
+
+    const rename = () => {
+      section.name = target.value;
+      this.selectSection(section);
+      this.editorService.saveThrottled();
+    }
+
+    if(usages.length > 0) {
+      this.modal.open({
+        title: 'Rename map',
+        body: 'Are you sure you want to rename ' + section.name + ' to ' + target.value + '?',
+        list: usages,
+        actions: [
+          {
+            title: 'Rename All',
+            importance: 'btn-primary',
+            callback: () => alert("TODO")
+          },
+          {
+            title: 'Rename',
+            importance: 'btn-danger',
+            callback: rename
+          }
+        ],
+        cancel: Modal.cancel(() => { target.value = section.name })
+      });
+    } else {
+      rename();
+    }
+
   }
 
   mapToStep(map: MapsVM):Step {

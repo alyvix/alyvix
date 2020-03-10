@@ -34,7 +34,7 @@
               <div class="alyvix-icon ai-draggable clickable" (click)="addMapToScript(map,$event)"></div>
 
             </div>
-          <input spellcheck="false" [(ngModel)]="map.name" (change)="changeMapName(map,$event)"/>
+          <input spellcheck="false" [ngModel]="map.name" (change)="changeMapName(map,$event)"/>
           <button class="btn light" (click)="removeMap(map)">Remove</button>
         </div>
       </div>

@@ -293,6 +293,7 @@ export class SelectorDatastoreService {
     }
 
     const script = this.script.getValue();
+    console.log(script)
     if(script) {
       return [
         ...inFlow('main',script.main),
@@ -318,7 +319,7 @@ export class SelectorDatastoreService {
   }
 
   mapUsage(mapName:string):string[] {
-    let scripts =  this.checkInScript(mapName,"Map",false,f => f.flow && f.for && f.for === mapName)
+    let scripts =  this.checkInScript(mapName,"Map",false,f => f.for && f.for === mapName)
     let objects = this.checkInObject(mapName);
     return scripts.concat(objects);
   }
