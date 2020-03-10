@@ -99,6 +99,7 @@ class ServerManager():
 
     def set_json(self, json_dict):
         views.library_dict = json_dict
+        views.original_library_dict = copy.deepcopy(json_dict)
 
     def auto_contouring(self, image, scaling_factor=1):
         contouring_manager = ContouringManager(
