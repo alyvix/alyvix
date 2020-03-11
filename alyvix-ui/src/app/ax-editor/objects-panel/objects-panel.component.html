@@ -11,10 +11,12 @@
       <div class="ax-object-list" name="sections">
         <div class="ax-object-element" *ngFor="let section of script.sections" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
           <div class="alyvix-actions">
-              <div class="alyvix-icon">
+              <div class="alyvix-icon" *ngIf="!isSelected(section.name)">
                 <i   draggable="true"  (dragstart)="sectionDrag($event,section)" class="fas fa-arrows-alt"></i>
               </div>
-              <div class="alyvix-icon ai-draggable clickable" (click)="addSectionToScript(section,$event)"></div>
+              <div *ngIf="!isSelected(section.name)" class="alyvix-icon ai-draggable clickable" (click)="addSectionToScript(section,$event)"></div>
+              <div class="alyvix-icon" *ngIf="isSelected(section.name)"></div>
+              <div class="alyvix-icon" *ngIf="isSelected(section.name)"></div>
               <div class="alyvix-icon">
                   <i class="fas fa-play"></i>
               </div>
