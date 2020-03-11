@@ -1,5 +1,5 @@
 # Alyvix allows you to automate and monitor all types of applications
-# Copyright (C) 2019 Alan Pipitone
+# Copyright (C) 2020 Alan Pipitone
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -101,6 +101,7 @@ alyvix_run_process = None
 original_screens = {}
 
 library_dict = None
+original_library_dict = None
 library_dict_in_editing = None
 
 win32_window = None
@@ -1024,17 +1025,17 @@ def ide_run_api_process():
 
             for key, value in objects.items():
                 try:
-                    if value["measure"]["timestamp"] != -1 and value["measure"]["exit"]=="fail":
+                    if value["measure"]["series"][0]["timestamp"] != -1 and value["measure"]["series"][0]["exit"]=="fail":
                         ordered_object.append(value)
                 except:
                     pass #keyword is not executed, so measure is empty
-            ordered_object = sorted(ordered_object, key=lambda k: k['measure']['timestamp'])
+            ordered_object = sorted(ordered_object, key=lambda k: k['measure']["series"][0]['timestamp'])
 
             sm = ScreenManager()
             scaling_factor = sm.get_scaling_factor()
 
             if scaling_factor > 1:
-                np_array = np.frombuffer(base64.b64decode(ordered_object[0]['measure']['annotation']), np.uint8)
+                np_array = np.frombuffer(base64.b64decode(ordered_object[0]['measure']["series"][0]['annotation']), np.uint8)
 
                 background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
@@ -1048,7 +1049,7 @@ def ide_run_api_process():
 
                 base64png = base64.b64encode(png_image[1]).decode('ascii')
             else:
-                base64png = ordered_object[0]['measure']['annotation']
+                base64png = ordered_object[0]['measure']["series"][0]['annotation']
 
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine (' ')")
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('The screen appeared as follows:')")
@@ -1099,6 +1100,55 @@ def ide_run_api():
         alyvix_run_process.kill()
         browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('"+get_timestamp_formatted()+": Alyvix stopped')")
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
+@app.route("/selector_run_api", methods=['GET', 'POST'])
+def selector_run_api():
+    global alyvix_run_thread
+    global alyvix_run_process
+    global kill_alyvix_process
+    global current_filename
+    global library_dict
+    global alyvix_run_tmp_path
+    #action=run, stop
+    action = request.args.get("action")
+    if action == "run":
+        browser_class._browser_3.ExecuteJavascript("consoleClear()")
+        alyvix_run_thread = threading.Thread(target=ide_run_api_process)
+        alyvix_run_thread.start()
+    elif action == "stop":
+        kill_alyvix_process = True
+        try:
+            shutil.rmtree(alyvix_run_tmp_path)
+        except:
+            pass
+        alyvix_run_process.kill()
+        browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('"+get_timestamp_formatted()+": Alyvix stopped')")
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
+@app.route("/central_panel_run_api", methods=['GET', 'POST'])
+def central_panel_run_api():
+    global alyvix_run_thread
+    global alyvix_run_process
+    global kill_alyvix_process
+    global current_filename
+    global library_dict
+    global alyvix_run_tmp_path
+    #action=run, stop
+    action = request.args.get("action")
+    if action == "run":
+        browser_class._browser_3.ExecuteJavascript("consoleClear()")
+        alyvix_run_thread = threading.Thread(target=ide_run_api_process)
+        alyvix_run_thread.start()
+    elif action == "stop":
+        kill_alyvix_process = True
+        try:
+            shutil.rmtree(alyvix_run_tmp_path)
+        except:
+            pass
+        alyvix_run_process.kill()
+        browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('"+get_timestamp_formatted()+": Alyvix stopped')")
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
 
 @app.route("/ide_new_api", methods=['GET', 'POST'])
 def ide_new_api():
@@ -1569,6 +1619,15 @@ def rename_object():
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
+@app.route("/is_lib_changed_api", methods=['GET'])
+def is_lib_changed_api():
+    global library_dict
+    global original_library_dict
+
+    if library_dict != original_library_dict:
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+    else:
+        return json.dumps({'success': False}), 200, {'ContentType': 'application/json'}
 
 @app.route("/load_objects", methods=['GET'])
 def load_objects():

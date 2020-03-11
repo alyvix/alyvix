@@ -7,7 +7,7 @@ from alyvix.tools.library import LibraryManager
 
 class ParserManager:
 
-    def __init__(self, library_json=None, chunk= None, engine_arguments=None, verbose=0):
+    def __init__(self, library_json=None, chunk= None, engine_arguments=None, verbose=0, cipher_key=None, cipher_iv=None):
         self._verbose = verbose
         self._lm = LibraryManager()
 
@@ -20,6 +20,9 @@ class ParserManager:
         self._executed_object_name = []
         self._executed_object_instance = []
 
+        self._key = cipher_key
+        self._iv = cipher_iv
+
         self._script_case = copy.deepcopy(library_json["script"]["case"])
         self._script_sections = copy.deepcopy(library_json["script"]["sections"])
 
@@ -27,6 +30,7 @@ class ParserManager:
             self._script_maps = copy.deepcopy(library_json["maps"])
         except:
             self._script_maps = {}
+
 
     def _get_timestamp_formatted(self):
         timestamp = time.time()
@@ -99,15 +103,16 @@ class ParserManager:
     def get_executed_objects(self):
         return self._executed_object_name
 
-    def execute_object(self, object_name, map_key=None, args=None):
+    def execute_object(self, object_name, map_and_key=None, args=None):
         if self._lm.check_if_exist(object_name) is False:
             print(object_name + " does NOT exist")
             sys.exit(2)
 
         object_json = self._lm.add_chunk(object_name, self._chunk)
 
-        engine_manager = EngineManager(object_json, args=args, maps=self._script_maps, map_key=map_key,
-                                       executed_objects=self._objects_result, verbose=self._verbose)
+        engine_manager = EngineManager(object_json, args=args, maps=self._script_maps, map_key=map_and_key,
+                                       executed_objects=self._objects_result, verbose=self._verbose,
+                                       cipher_key=self._key, cipher_iv=self._iv)
 
         result = engine_manager.execute()
 
@@ -132,7 +137,7 @@ class ParserManager:
     def get_results(self):
         return self._objects_result
 
-    def _execute_section(self, section_name=None, args=None):
+    def _execute_section(self, section_name=None, args=None, map_and_key=None):
 
         if args is None:
             arguments = self._engine_arguments
@@ -157,14 +162,14 @@ class ParserManager:
                     if self.execute_object(key["if_true"]):
 
                         if flow_key in self._script_sections:
-                            self._execute_section(section_name=flow_key, args=arguments)
+                            self._execute_section(section_name=flow_key, map_and_key=map_and_key, args=arguments)
                         else:
                             self.execute_object(flow_key, args=arguments)
 
                 elif if_key_false is not None:
                     if not self.execute_object(key["if_false"]):
                         if flow_key in self._script_sections:
-                            self._execute_section(section_name=flow_key, args=arguments)
+                            self._execute_section(section_name=flow_key, map_and_key=map_and_key, args=arguments)
                         else:
                             self.execute_object(flow_key, args=arguments)
 
@@ -183,15 +188,15 @@ class ParserManager:
                             arguments.append(self._script_maps[selected_map][map_key])
 
                         if flow_key in self._script_sections:
-                            self._execute_section(section_name=flow_key, args=arguments)
+                            self._execute_section(map_and_key=(selected_map, map_key), section_name=flow_key, args=arguments)
                         else:
-                            self.execute_object(flow_key, map_key=(selected_map, map_key), args=arguments)
+                            self.execute_object(flow_key, map_and_key=(selected_map, map_key), args=arguments)
             elif key in self._script_sections:
-                self._execute_section(section_name=key)
+                self._execute_section(section_name=key, map_and_key=map_and_key)
             else:
                 if key[0] == "#":
                     continue
-                self.execute_object(key, args=arguments)
+                self.execute_object(key, args=arguments, map_and_key=map_and_key)
 
     def execute_script(self):
         aaa = self.get_all_objects()

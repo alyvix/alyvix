@@ -55,6 +55,9 @@ class NatsManager:
 
         for object in objects:
 
+            if object.output is False:
+                continue
+
             timed_out = False
             not_executed = False
 
@@ -93,7 +96,7 @@ class NatsManager:
 
             if object.timestamp != -1:
 
-                perf_timestamp = str(int(object.timestamp * 1000 * 1000))
+                perf_timestamp = str(int(object.timestamp * 1000 * 1000 * 1000))
 
             else:
 
