@@ -302,10 +302,10 @@ if filename is not None:
                     cnt_obj = 0
                     for exec_obj in objects_result:
                         if exec_obj.map_key is not None:
-                            measure_dict["map_name"] = exec_obj.map_key[0]
-                            measure_dict["map_key"] = exec_obj.map_key[1]
+                            #measure_dict["map_name"] = exec_obj.map_key[0]
+                            #measure_dict["map_key"] = exec_obj.map_key[1]
 
-                            obj_name_2 = exec_obj.object_name + "_" + measure_dict["map_key"]
+                            obj_name_2 = exec_obj.object_name + "_" + exec_obj.map_key[1]
 
                             if obj_name == obj_name_2:
 
