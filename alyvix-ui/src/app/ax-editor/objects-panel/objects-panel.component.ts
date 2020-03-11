@@ -46,6 +46,22 @@ export class ObjectsPanelComponent implements OnInit {
         this.script = s;
         if(!this.selected) {
           this.selectMain();
+        } else {
+          if(this.selected.type == 'object') {
+            switch(this.selected.name) {
+              case 'MAIN': this.selectMain(); break;
+              case 'FAIL': this.selectFail(); break;
+              case 'EXIT': this.selectExit(); break;
+              default: {
+                const section = this.script.sections.find(x => x.name === this.selected.name)
+                if(section) {
+                  this.selectSection(section)
+                } else {
+                  this.selectMain()
+                }
+              }
+            }
+          }
         }
       }
     });
@@ -76,6 +92,7 @@ export class ObjectsPanelComponent implements OnInit {
       this.selectorDatastore.setScripts(this.script);
       this.editorService.save().subscribe(x => {});
     }};
+    console.log('select Main')
     this.editorService.setLeftSelection(this.selected);
   }
 
@@ -169,7 +186,10 @@ export class ObjectsPanelComponent implements OnInit {
           {
             title: 'Rename All',
             importance: 'btn-primary',
-            callback: () => alert("TODO")
+            callback: () => {
+              this.selectorDatastore.refactorMap(map.name,target.value)
+              rename();
+            }
           },
           {
             title: 'Rename',
@@ -238,7 +258,10 @@ export class ObjectsPanelComponent implements OnInit {
           {
             title: 'Rename All',
             importance: 'btn-primary',
-            callback: () => alert("TODO")
+            callback: () => {
+              this.selectorDatastore.refactorSection(section.name,target.value)
+              rename()
+            }
           },
           {
             title: 'Rename',

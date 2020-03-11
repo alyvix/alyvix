@@ -41,6 +41,11 @@ export interface SectionVM{
   instructions: AxScriptFlow[];
 }
 
+export interface MapRename{
+  oldName:string
+  newName:string
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -58,6 +63,7 @@ export class SelectorDatastoreService {
   changedBreak:EventEmitter<boolean> = new EventEmitter();
   changedTimeout:EventEmitter<number> = new EventEmitter();
   changeTab:EventEmitter<AxFile> = new EventEmitter();
+  renameMap:EventEmitter<MapRename> = new EventEmitter();
   private _tabSelected: BehaviorSubject<AxFile> = new BehaviorSubject<AxFile>(null);
 
   static modelToData(model: AxSelectorObjects): RowVM[] {
@@ -322,6 +328,79 @@ export class SelectorDatastoreService {
     let scripts =  this.checkInScript(mapName,"Map",false,f => f.for && f.for === mapName)
     let objects = this.checkInObject(mapName);
     return scripts.concat(objects);
+  }
+
+
+  private refactorInObject(oldName:string,newName:string):void {
+    this.renameMap.emit({oldName: oldName, newName:newName})
+    this.data.forEach(d => {
+      Object.keys(d.object.components).forEach(k => {
+        const textComponents:AxSelectorComponent[] = d.object.components[k].groups
+                                                      .flatMap(g => g.subs)
+                                                      .filter(c => (c as any).detection && (c as any).detection.type === 'text' )
+                                                      .map(c => c as AxSelectorComponent)
+        textComponents.forEach(c => {
+          if((c.detection.features as T).type === 'map' && (c.detection.features as T).map === oldName) {
+            (c.detection.features as T).map = newName
+          }
+        })
+      })
+    })
+  }
+
+  private refactorInScript(oldName:string, newName:string, firstPlace:boolean, objRename:((o:AxScriptFlowObj) => void)):void {
+    const renameFlow:((flow:AxScriptFlow[]) => void) = (flow) => {
+      flow.forEach((f,i) => {
+        if(typeof f === "string") {
+          if(oldName === f && firstPlace) {
+            flow[i] = newName
+          }
+        } else {
+          objRename(f)
+        }
+      });
+    }
+
+    const script = this.script.getValue();
+    if(script) {
+      renameFlow(script.main),
+      renameFlow(script.fail),
+      renameFlow(script.exit),
+      script.sections.forEach(s => renameFlow(s.instructions))
+    }
+    this.setScripts(script);
+  }
+
+  refactorObject(oldName:string,newName:string) {
+    this.refactorInScript(oldName,newName,true,flow => {
+      if(flow.flow && flow.flow === oldName) {
+        flow.flow = newName
+      }
+      if(flow.if_false && flow.if_false === oldName) {
+        flow.if_false = newName
+      }
+      if(flow.if_true && flow.if_true === oldName) {
+        flow.if_true = newName
+      }
+    })
+  }
+
+  refactorSection(oldName:string,newName:string) {
+    this.refactorInScript(oldName,newName,true,flow => {
+      if(flow.flow && flow.flow === oldName) {
+        flow.flow = newName
+      }
+    })
+  }
+
+  refactorMap(oldName:string,newName:string) {
+    this.refactorInScript(oldName,newName,false,flow => {
+      if(flow.for && flow.for === oldName) {
+        flow.for = newName
+      }
+    })
+
+    this.refactorInObject(oldName,newName)
   }
 
 

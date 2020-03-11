@@ -352,11 +352,52 @@ export class AxTableComponent implements OnInit {
   confirmName(row:RowVM, nameInput: HTMLInputElement) {
     console.log("name focus out")
     nameInput.value = row.name;
+
     if(row.name !== this.originalName) {
-      this.api.renameObject(this.originalName,row.name).subscribe( x=> {
-        this.datastore.changedNameRow.emit(row.name);
-        this.originalName = row.name;
-      });
+
+      const usages = this.datastore.objectUsage(this.originalName);
+
+
+      if(usages.length > 0) {
+        this.modal.open({
+          title: 'Rename object',
+          body: 'Are you sure you want to rename ' + this.originalName + ' to ' + row.name + '?',
+          list: usages,
+          actions: [
+            {
+              title: 'Rename All',
+              importance: 'btn-primary',
+              callback: () => {
+                this.datastore.refactorObject(this.originalName,row.name)
+                this.api.renameObject(this.originalName,row.name).subscribe( x=> {
+                  this.datastore.changedNameRow.emit(row.name);
+                  this.originalName = row.name;
+                  this.datastore.save().subscribe(() => { });
+                });
+              }
+            },
+            {
+              title: 'Rename',
+              importance: 'btn-danger',
+              callback: () => {
+                this.api.renameObject(this.originalName,row.name).subscribe( x=> {
+                  this.datastore.changedNameRow.emit(row.name);
+                  this.originalName = row.name;
+                });
+              }
+            }
+          ],
+          cancel: Modal.cancel(() => {
+            row.name == this.originalName
+            nameInput.value = this.originalName
+          })
+        });
+      } else {
+        this.api.renameObject(this.originalName,row.name).subscribe( x=> {
+          this.datastore.changedNameRow.emit(row.name);
+          this.originalName = row.name;
+        });
+      }
     }
   }
 

@@ -50,6 +50,13 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     this.selectorDatastore.getMaps().subscribe(maps => {
       this._maps.next(SelectorDatastoreService.toAxMaps(maps));
     });
+    this.selectorDatastore.renameMap.subscribe( map => {
+      this._model.value.box_list.filter(b => b.type === 'T').forEach(textBox => {
+        if(textBox.features && textBox.features.T.map && textBox.features.T.map === map.oldName) {
+          textBox.features.T.map = map.newName
+        }
+      })
+    });
     this.editorService.objectChanged.subscribe(object => {
       this.loadNext(this.selectedRows);
     });

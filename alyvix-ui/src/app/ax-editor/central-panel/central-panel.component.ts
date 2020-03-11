@@ -72,7 +72,7 @@ export class CentralPanelComponent implements OnInit {
     })
 
     this.editorService.getLeftSelection().subscribe(s => {
-
+      console.log(s)
       if(s) {
         this.tabs = [s].concat(this.baseTabs);
         this.selected = s;

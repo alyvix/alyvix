@@ -31,6 +31,7 @@ export class ScriptEditorComponent implements OnInit {
   @Output() change:EventEmitter<AxScriptFlow[]> = new EventEmitter();
 
   @Input() set steps(steps: AxScriptFlow[]) {
+    console.log('set steps') // not reaching this point while refactoring
     this._steps = [];
     if(steps) {
       this._steps = steps.map(s => this.toStep(s));
