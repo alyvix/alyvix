@@ -9,6 +9,7 @@ import { SelectorGlobal } from 'src/app/ax-selector/global';
 import { debounce } from 'rxjs/operators';
 import { timer } from 'rxjs';
 import { MapWithName } from './map-editor/map-editor.component';
+import { Step } from './script-editor/step/step.component';
 
 
 
@@ -27,6 +28,7 @@ export class CentralPanelComponent implements OnInit {
   baseTabs: LeftSelection[] = [this.monitorTab,this.consoleTab];
 
   tabs: LeftSelection[] = [];
+  steps:AxScriptFlow[] = [];
 
   selected: LeftSelection = this.tabs[0];
 
@@ -72,12 +74,14 @@ export class CentralPanelComponent implements OnInit {
     })
 
     this.editorService.getLeftSelection().subscribe(s => {
-      console.log(s)
       if(s) {
         this.tabs = [s].concat(this.baseTabs);
         this.selected = s;
         if(this.selected.map) {
           this.mapSelected = this.mapName(this.selected.map());
+        }
+        if(this.selected.steps) {
+          this.steps = Array.from(this.selected.steps()); // need to do a copy for the script editor to catch the change
         }
       }
     })

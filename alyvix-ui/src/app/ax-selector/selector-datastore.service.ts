@@ -6,6 +6,7 @@ import { AlyvixApiService } from '../alyvix-api.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { isArray } from 'util';
+import * as _ from 'lodash';
 
 
 export interface AxFile {
@@ -174,6 +175,9 @@ export class SelectorDatastoreService {
   objectOrSection(name:string):string {
     if(!name) return null;
 
+    console.log(name)
+    console.log(this.data)
+
     if(this.data.find(x => x.name === name)) {
       return 'object';
     } else {
@@ -269,10 +273,9 @@ export class SelectorDatastoreService {
 
 
   private checkInObject(mapName:string):string[] {
-    return this.data.flatMap(d => {
-      return Object.keys(d.object.components).flatMap(k => {
-        const textComponents:AxSelectorComponent[] = d.object.components[k].groups
-                                                      .flatMap(g => g.subs)
+    return _.flatMap(this.data,d => {
+      return _.flatMap(Object.keys(d.object.components),k => {
+        const textComponents:AxSelectorComponent[] = _.flatMap(d.object.components[k].groups,g => g.subs)
                                                       .filter(c => (c as any).detection && (c as any).detection.type === 'text' )
                                                       .map(c => c as AxSelectorComponent)
         if(textComponents.some(c => (c.detection.features as T).type === 'map' && (c.detection.features as T).map === mapName)) {
@@ -301,11 +304,12 @@ export class SelectorDatastoreService {
     const script = this.script.getValue();
     console.log(script)
     if(script) {
+      let sections = script.sections ? _.flatMap(script.sections,s => inFlow(s.name,s.instructions)) : []
       return [
         ...inFlow('main',script.main),
         ...inFlow('fail',script.fail),
         ...inFlow('exit',script.exit),
-        ...script.sections.flatMap(s => inFlow(s.name,s.instructions))
+        ...sections
       ]
     } else {
       return []
@@ -335,8 +339,7 @@ export class SelectorDatastoreService {
     this.renameMap.emit({oldName: oldName, newName:newName})
     this.data.forEach(d => {
       Object.keys(d.object.components).forEach(k => {
-        const textComponents:AxSelectorComponent[] = d.object.components[k].groups
-                                                      .flatMap(g => g.subs)
+        const textComponents:AxSelectorComponent[] = _.flatMap(d.object.components[k].groups,g => g.subs)
                                                       .filter(c => (c as any).detection && (c as any).detection.type === 'text' )
                                                       .map(c => c as AxSelectorComponent)
         textComponents.forEach(c => {
@@ -363,15 +366,23 @@ export class SelectorDatastoreService {
 
     const script = this.script.getValue();
     if(script) {
-      renameFlow(script.main),
-      renameFlow(script.fail),
-      renameFlow(script.exit),
-      script.sections.forEach(s => renameFlow(s.instructions))
+      renameFlow(script.main)
+      renameFlow(script.fail)
+      renameFlow(script.exit)
+      if(script.sections) {
+        script.sections.forEach(s => renameFlow(s.instructions))
+      }
     }
     this.setScripts(script);
   }
 
   refactorObject(oldName:string,newName:string) {
+
+    this.data.filter(x => x.name === oldName).forEach(x => {
+      console.log('rename on this data')
+      x.name = newName
+    })
+
     this.refactorInScript(oldName,newName,true,flow => {
       if(flow.flow && flow.flow === oldName) {
         flow.flow = newName
