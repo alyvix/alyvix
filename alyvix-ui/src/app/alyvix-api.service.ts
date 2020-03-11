@@ -181,6 +181,10 @@ export class AlyvixApiService {
     return this.httpClient.get<any>('/ide_exit_api').subscribe(x => {})
   }
 
+  checkModification():Observable<DefaultResponse> {
+    return this.httpClient.get<DefaultResponse>('/is_lib_changed_api')
+  }
+
   saveAs() {
     this.startLoading.emit(true);
     return this.httpClient.get<any>('/ide_save_as_api').subscribe(x => {

@@ -36,54 +36,76 @@ export class AxHeaderComponent implements OnInit {
 
   exit() {
 
-    this.modal.open({
-      title: 'Exit',
-      body: 'Are you sure you want to exit Alyvix Editor?',
-      actions: [
-        {
-          title: 'Exit',
-          importance: 'btn-secondary',
-          callback: () => { this.api.exitIde() }
+    this.editorService.save().subscribe(x => {
+      this.api.checkModification().subscribe(modifications => {
+        if(modifications.success) {
+          this.modal.open({
+            title: 'Exit',
+            body: 'Are you sure you want to exit Alyvix Editor?',
+            actions: [
+              {
+                title: 'Exit',
+                importance: 'btn-secondary',
+                callback: () => { this.api.exitIde() }
+              }
+            ],
+            cancel: Modal.NOOP
+          });
+        } else {
+          this.api.exitIde();
         }
-      ],
-      cancel: Modal.NOOP
-    });
+      })
+    })
+
+
 
   }
 
   newFile() {
-
-    this.modal.open({
-      title: 'New file',
-      body: 'Are you sure you want to close the current test case?',
-      actions: [
-        {
-          title: 'New',
-          importance: 'btn-secondary',
-          callback: () => { this.api.newCase() }
+    this.editorService.save().subscribe(x => {
+      this.api.checkModification().subscribe(modifications => {
+        if(modifications.success) {
+          this.modal.open({
+            title: 'New file',
+            body: 'Are you sure you want to close the current test case?',
+            actions: [
+              {
+                title: 'New',
+                importance: 'btn-secondary',
+                callback: () => { this.api.newCase() }
+              }
+            ],
+            cancel: Modal.NOOP
+          });
+        } else {
+          this.api.newCase()
         }
-      ],
-      cancel: Modal.NOOP
+      });
     });
 
   }
 
   openFile() {
-
-    this.modal.open({
-      title: 'Open file',
-      body: 'Are you sure you want to close the current test case?',
-      actions: [
-        {
-          title: 'Open',
-          importance: 'btn-secondary',
-          callback: () => { this.api.openCase() }
+    this.editorService.save().subscribe(x => {
+      this.api.checkModification().subscribe(modifications => {
+        if(modifications.success) {
+          this.modal.open({
+            title: 'Open file',
+            body: 'Are you sure you want to close the current test case?',
+            actions: [
+              {
+                title: 'Open',
+                importance: 'btn-secondary',
+                callback: () => { this.api.openCase() }
+              }
+            ],
+            cancel: Modal.NOOP
+          });
+        } else {
+          this.api.openCase()
         }
-      ],
-      cancel: Modal.NOOP
-    });
-
-
+      })
+    })
   }
 
   run() {
