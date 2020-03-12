@@ -256,7 +256,7 @@ class ViewerManager(ViewerManagerBase):
         settings = {
             "multi_threaded_message_loop": g_multi_threaded,
             "log_severity":cef.LOGSEVERITY_DISABLE,
-            'cache_path': tempfile.gettempdir()
+            'cache_path': ''
 
         }
 
