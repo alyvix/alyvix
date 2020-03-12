@@ -997,7 +997,7 @@ def ide_run_api_process():
         nextline = nextline.splitlines()[0]
         if "ends FAILED" in nextline:
             failed = True
-        #nextline = nextline.replace(" ","&nbsp;")
+        nextline = nextline.replace(" ","&nbsp;")
         browser_class._browser_3.ExecuteJavascript("consoleAppendLine('"+nextline+"')")
         #print(str(nextline))
         #browser_class._browser_3.ExecuteJavascript("alert('"+nextline+"')")
@@ -1054,9 +1054,9 @@ def ide_run_api_process():
             else:
                 base64png = ordered_object[0]['measure']["series"][0]['annotation']
 
-            browser_class._browser_3.ExecuteJavascript("consoleAppendLine (' ')")
+            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('<br/>')")
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('The screen appeared as follows:')")
-            browser_class._browser_3.ExecuteJavascript("consoleAppendLine (' ')")
+            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('<br/>')")
             browser_class._browser_3.ExecuteJavascript("consoleAppendImage ('" + base64png + "')")
 
     except:
