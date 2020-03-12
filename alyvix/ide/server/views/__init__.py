@@ -587,6 +587,7 @@ def selector_edit_api():
 @app.route("/ide_open_file_api")
 def ide_open_file_api():
     global library_dict
+    global original_library_dict
     global current_filename
 
     import tempfile, base64, zlib
@@ -611,21 +612,23 @@ def ide_open_file_api():
     file_path = filedialog.askopenfilename(initialdir=filename_path, filetypes=[("Alyvix Library","*.alyvix"), ("all files", "*.*")])
     #print(file_path)
 
-    lm = LibraryManager()
-    lm.load_file(file_path)
-    library_dict = lm.get_json()
+    if file_path != "":
+        lm = LibraryManager()
+        lm.load_file(file_path)
+        library_dict = lm.get_json()
+        original_library_dict = copy.deepcopy(library_dict)
 
-    current_filename = file_path
+        current_filename = file_path
 
-    filename_path = os.path.dirname(current_filename)
-    filename_no_path = os.path.basename(current_filename)
-    filename_no_extension = os.path.splitext(filename_no_path)[0]
+        filename_path = os.path.dirname(current_filename)
+        filename_no_path = os.path.basename(current_filename)
+        filename_no_extension = os.path.splitext(filename_no_path)[0]
 
-    browser_class.change_title(browser_class._hwnd_3, "Alyvix Editor - " + filename_no_extension)
+        browser_class.change_title(browser_class._hwnd_3, "Alyvix Editor - " + filename_no_extension)
 
-    browser_class._browser_3.Reload()
+        browser_class._browser_3.Reload()
 
-    #browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
+        #browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -1155,12 +1158,28 @@ def ide_new_api():
     global library_dict
     global library_dict_in_editing
     global current_filename
+    global original_library_dict
 
     library_dict_in_editing = None
 
     lm = LibraryManager()
     lm.load_file(None)
     library_dict = lm.get_json()
+
+    original_library_dict = copy.deepcopy(library_dict)
+
+    original_library_dict["objects"] = {}
+
+    original_library_dict["script"]= {
+                        "case": [
+
+                        ],
+                        "sections": {
+                            "exit": [],
+                            "fail": []
+                        }
+                    }
+    original_library_dict["maps"] = {}
 
     filename_start_index = 1
     default_library_name = "VisualTestCase"
@@ -1624,7 +1643,18 @@ def is_lib_changed_api():
     global library_dict
     global original_library_dict
 
-    if library_dict != original_library_dict:
+    dict_1 = copy.copy(library_dict)
+    a = findb("rect_type", dict_1)
+
+
+    with open("d:\\lib_dict", 'w') as f:
+        json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+
+    with open("d:\\lib_dict_ori", 'w') as f:
+        json.dump(original_library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+
+
+    if dict_1 != original_library_dict:
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
     else:
         return json.dumps({'success': False}), 200, {'ContentType': 'application/json'}
@@ -2152,7 +2182,21 @@ def save_json():
             if current_objectname in current_json["objects"]:
                 del current_json["objects"][current_objectname]
 
-        if original_object_dict != current_json["objects"][object_name]:
+        """
+        with open("d:\\original_object_dict.json", 'w') as f:
+            json.dump(original_object_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+
+        with open("d:\\curren_tobject_dict.json", 'w') as f:
+            json.dump(current_json["objects"][object_name], f, indent=4, sort_keys=True, ensure_ascii=False)
+        """
+
+        dict_1 = copy.copy(original_object_dict)
+        a = findb("rect_type", dict_1)
+
+        dict_2 = copy.copy(current_json["objects"][object_name])
+        a = findb("rect_type", dict_2)
+
+        if dict_1 != dict_2:
 
             current_json["objects"][object_name]["date_modified"] = \
                 datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
@@ -2217,6 +2261,9 @@ def findb(key, dictionary):
 @app.route("/save_all", methods=['GET', 'POST'])
 def save_all():
     global library_dict
+    global original_library_dict
+
+    original_library_dict = copy.deepcopy(library_dict)
 
     close_editor = request.args.get("close_editor")
 
