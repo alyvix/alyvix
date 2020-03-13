@@ -1055,7 +1055,7 @@ def ide_run_api_process():
                 base64png = ordered_object[0]['measure']["series"][0]['annotation']
 
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('<br/>')")
-            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('The screen appeared as follows:')")
+            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('At the moment of test case failure, the following was displayed on the screen:')")
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('<br/>')")
             browser_class._browser_3.ExecuteJavascript("consoleAppendImage ('" + base64png + "')")
 
@@ -1647,12 +1647,13 @@ def is_lib_changed_api():
     a = findb("rect_type", dict_1)
 
 
+    """
     with open("d:\\lib_dict", 'w') as f:
         json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
 
     with open("d:\\lib_dict_ori", 'w') as f:
         json.dump(original_library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
-
+    """
 
     if dict_1 != original_library_dict:
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
