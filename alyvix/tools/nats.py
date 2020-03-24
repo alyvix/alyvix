@@ -112,9 +112,11 @@ class NatsManager:
 
             elif not_executed is False:
 
-                #msg_perf = ",performance=" + str(int(perfdata.timeout_threshold * 1000))
+                if object.has_to_break is False:
+                    msg_perf = ",performance=" + str(int(object.timeout * 1000))
 
                 timed_out = True
+
 
             accuracy_msg = ""
 

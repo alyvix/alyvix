@@ -1594,6 +1594,11 @@ class EngineManager(object):
 
         call = self._call
 
+        if timeout is None:
+            timeout = 10
+
+        self._result.timeout = timeout
+
 
         add_t_call = False
         t_call = time.time()
@@ -1662,6 +1667,7 @@ class EngineManager(object):
             self._result.accuracy_ms = 0
             self._result.screenshot = self._screen_with_objects
             self._result.annotation = self._annotation_screen
+            self._result.timeout = timeout
             self._result.end_timestamp = time.time()
 
             return self._result

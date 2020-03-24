@@ -147,7 +147,7 @@ if "nats-influxdb" in output_mode:
     try:
         nats_measure = nats_args[2]
     except:
-        pass
+        nats_measure = "alyvix"
 
     publish_nats = True
     output_mode = "nagios"
@@ -258,7 +258,7 @@ if filename is not None:
 
             obj_name = result.object_name
 
-            measure_dict = {"perfomance_ms": int(result.performance_ms),
+            measure_dict = {"performance_ms": int(result.performance_ms),
                             "accuracy_ms": int(result.accuracy_ms),
                             "timestamp": result.timestamp,
                             "records": result.records,
@@ -493,7 +493,7 @@ if filename is not None:
 
                 objects_result.append(dummy_result)
 
-                measure_dict = {"perfomance_ms": -1,
+                measure_dict = {"performance_ms": -1,
                                 "accuracy_ms": -1,
                                 "timestamp": -1,
                                 "records": dummy_result.records,
