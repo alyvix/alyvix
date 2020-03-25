@@ -195,6 +195,17 @@ if filename is not None:
 
     library_json = lm.get_json()
 
+    old_script = copy.deepcopy(lm.get_script())
+
+    if len(objects_names) > 0:
+        lib = lm.get_script()
+        lib["case"] = []
+        lib["sections"] = {}
+
+        for obj in objects_names:
+            lib["case"].append(obj)
+
+
     """
     if is_foride is True:
         os.remove(filename)
@@ -241,391 +252,288 @@ if filename is not None:
     w, h = sm.get_resolution()
     scaling_factor = sm.get_scaling_factor()
 
-    if len(objects_names) == 0:
 
-        pm = ParserManager(library_json=library_json, chunk= chunk, engine_arguments=engine_arguments,
-                           verbose=verbose, cipher_key=cipher_key, cipher_iv=cipher_iv)
+    pm = ParserManager(library_json=library_json, chunk= chunk, engine_arguments=engine_arguments,
+                       verbose=verbose, cipher_key=cipher_key, cipher_iv=cipher_iv)
 
-        pm.execute_script()
+    pm.execute_script()
 
-        objects_result = pm.get_results()
+    objects_result = pm.get_results()
 
-        not_executed_ts = time.time()
+    not_executed_ts = time.time()
 
-        performance_string = ""
-        # OBJECT RUNNED OR IN TIMEDOUT
-        for result in objects_result:
+    performance_string = ""
+    # OBJECT RUNNED OR IN TIMEDOUT
+    for result in objects_result:
 
-            obj_name = result.object_name
+        obj_name = result.object_name
 
-            measure_dict = {"performance_ms": int(result.performance_ms),
-                            "accuracy_ms": int(result.accuracy_ms),
-                            "timestamp": result.timestamp,
-                            "records": result.records,
-                            #"group": result.group,
-                            #"thresholds": result.thresholds,
-                            #"output": result.output,
-                            "exit": result.exit,
-                            "resolution": {
-                                "width": w,
-                                "height": h
-                            },
-                            #"arguments":result.arguments,
-                            "scaling_factor": int(scaling_factor * 100),
-                            }
+        measure_dict = {"performance_ms": int(result.performance_ms),
+                        "accuracy_ms": int(result.accuracy_ms),
+                        "timestamp": result.timestamp,
+                        "records": result.records,
+                        #"group": result.group,
+                        #"thresholds": result.thresholds,
+                        #"output": result.output,
+                        "exit": result.exit,
+                        "resolution": {
+                            "width": w,
+                            "height": h
+                        },
+                        #"arguments":result.arguments,
+                        "scaling_factor": int(scaling_factor * 100),
+                        }
 
-            if result.screenshot is not None:
-                png_image = cv2.imencode('.png', result.screenshot)
+        if result.screenshot is not None:
+            png_image = cv2.imencode('.png', result.screenshot)
 
-                measure_dict["screenshot"] = base64.b64encode(png_image[1]).decode('ascii')
+            measure_dict["screenshot"] = base64.b64encode(png_image[1]).decode('ascii')
 
-            else:
-                measure_dict["screenshot"] = None
+        else:
+            measure_dict["screenshot"] = None
 
-            if result.annotation is not None:
-                png_image = cv2.imencode('.png', result.annotation)
+        if result.annotation is not None:
+            png_image = cv2.imencode('.png', result.annotation)
 
-                measure_dict["annotation"] = base64.b64encode(png_image[1]).decode('ascii')
-            else:
-                measure_dict["annotation"] = None
+            measure_dict["annotation"] = base64.b64encode(png_image[1]).decode('ascii')
+        else:
+            measure_dict["annotation"] = None
 
 
-            if result.map_key is not None:
-                measure_dict["map_name"] = result.map_key[0]
-                measure_dict["map_key"] = result.map_key[1]
+        if result.map_key is not None:
+            measure_dict["map_name"] = result.map_key[0]
+            measure_dict["map_key"] = result.map_key[1]
 
-                if True: #output_mode == "nagios":
-                    obj_name = result.object_name + "_" + measure_dict["map_key"]
-
-                    start_index = 0
-
-                    cnt_obj = 0
-                    for exec_obj in objects_result:
-                        if exec_obj.map_key is not None:
-                            #measure_dict["map_name"] = exec_obj.map_key[0]
-                            #measure_dict["map_key"] = exec_obj.map_key[1]
-
-                            obj_name_2 = exec_obj.object_name + "_" + exec_obj.map_key[1]
-
-                            if obj_name == obj_name_2:
-
-                                cnt_obj += 1
-
-                        if cnt_obj > 1:
-                            start_index = 1
-                            obj_name = obj_name + "_1"
-                            break
-
-            else:
+            if True: #output_mode == "nagios":
+                obj_name = result.object_name + "_" + measure_dict["map_key"]
 
                 start_index = 0
 
                 cnt_obj = 0
                 for exec_obj in objects_result:
-                    if result.object_name == exec_obj.object_name:
-                        cnt_obj += 1
+                    if exec_obj.map_key is not None:
+                        #measure_dict["map_name"] = exec_obj.map_key[0]
+                        #measure_dict["map_key"] = exec_obj.map_key[1]
+
+                        obj_name_2 = exec_obj.object_name + "_" + exec_obj.map_key[1]
+
+                        if obj_name == obj_name_2:
+
+                            cnt_obj += 1
 
                     if cnt_obj > 1:
                         start_index = 1
                         obj_name = obj_name + "_1"
                         break
 
-            if True: #output_mode == "nagios":
-                if len(objects_name_for_nagios) == 0:
-                    objects_name_for_nagios.append(obj_name)
-                else:
-                    cnt_obj_name = 2
+        else:
 
-                    loop_name = obj_name
+            start_index = 0
 
-                    while True:
-                        exists = False
-                        for obj_nagios_name in objects_name_for_nagios:
-                            if obj_nagios_name == loop_name:
-                                exists = True
-                                loop_name = obj_name[:-2] + "_" + str(cnt_obj_name)
-                                cnt_obj_name += 1
-                                break
+            cnt_obj = 0
+            for exec_obj in objects_result:
+                if result.object_name == exec_obj.object_name:
+                    cnt_obj += 1
 
-                        if exists is False:
-                            obj_name = loop_name
-                            objects_name_for_nagios.append(obj_name)
-                            break
-
-            measure_dict["name_for_screen"] = obj_name
-            result.extended_name = obj_name
-
-
-            warning_s = None
-            critical_s = None
-
-            curr_perf_string = ""
-
-            try:
-                warning_s = result.thresholds["warning_s"]
-            except:
-                pass
-
-            try:
-                critical_s = result.thresholds["critical_s"]
-            except:
-                pass
-
-
-            date_from_ts = datetime.fromtimestamp(result.end_timestamp)
-            # millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
-            try:
-                millis_from_ts = date_from_ts.strftime("%f")[: -3]
-            except:
-                millis_from_ts = "000"
-
-            date_formatted = date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts)
-
-            if result.performance_ms != -1:
-                performance = round(result.performance_ms / 1000, 3)
-                accuracy = round(result.accuracy_ms / 1000, 3)
-
-                if output_mode == "nagios" and result.output is True:
-                    curr_perf_string = obj_name.replace(" ", "_") + "=" + str(int(result.performance_ms)) + "ms"
-                    if warning_s is not None:
-                        curr_perf_string += ";" + str(warning_s) + "s"
-                        if performance >= warning_s and sys_exit < 1:
-                            sys_exit = 1
-                            result.state = 1
-                    else:
-                        curr_perf_string += ";"
-
-                    if critical_s is not None:
-                        curr_perf_string += ";" + str(critical_s) + "s"
-                        if performance >= critical_s and sys_exit < 2:
-                            sys_exit = 2
-                            result.state = 2
-                    else:
-                        curr_perf_string += ";"
-                    curr_perf_string += ";; "
-
-                elif output_mode != "nagios":
-
-                    if result.output is True:
-                        print(date_formatted + ": " + obj_name + " DETECTED in " + str(performance) + "s " +
-                              "(+/-" + '{:.3f}'.format(accuracy) + ")")
-                result.exit = "true"
-            else:
-
-                if result.output is True and result.has_to_break is True:
-                    if output_mode == "nagios":
-                        curr_perf_string = obj_name.replace(" ", "_") + "=ms"
-                        result.state = 2
-                    else:
-                        print(date_formatted + ": " + obj_name + " FAILED after " + str(result.timeout) + "s")
-                    timed_out_objects.append(obj_name)
-                    result.exit = "fail"
-                    sys_exit = 2
-                elif result.output is True and result.has_to_break is False:
-                    if output_mode == "nagios":
-                        curr_perf_string = obj_name.replace(" ", "_") + "=" + str(result.timeout*1000) + "ms"
-                    else:
-                        print(date_formatted + ": " + obj_name + " SKIPPED after " + str(result.timeout) + "s")
-                    result.exit = "false"
-                elif result.output is False and result.has_to_break is True:
-                    timed_out_objects.append(obj_name)
-                    result.exit = "fail"
-                    sys_exit = 2
-                elif result.output is False and result.has_to_break is False:
-                    result.exit = "false"
-                    #state = 2
-
-                if output_mode == "nagios" and result.output is True:
-                    if warning_s is not None:
-                        curr_perf_string += ";" + str(warning_s) + "s"
-                    else:
-                        curr_perf_string += ";"
-
-                    if critical_s is not None:
-                        curr_perf_string += ";" + str(critical_s) + "s"
-                    else:
-                        curr_perf_string += ";"
-
-                    curr_perf_string += ";; "
-
-            performance_string += curr_perf_string
-
-            obj = ResultForOutput()
-            obj.object_name = result.object_name
-            measure_dict["exit"] = result.exit
-            obj.measures.append(measure_dict)
-
-            exists = False
-
-            for obj_for_output in objects_for_output:
-                if obj_for_output.object_name == result.object_name:
-                    obj_for_output.measures.append(measure_dict)
-                    exists = True
+                if cnt_obj > 1:
+                    start_index = 1
+                    obj_name = obj_name + "_1"
                     break
 
-            if exists == False:
-                objects_for_output.append(obj)
-
-        #performance_string = performance_string[:-1]
-
-        all_objects = pm.get_all_objects()
-
-        executed_object = pm.get_executed_objects()
-
-        for object in all_objects:
-            if object in executed_object:
-                continue
+        if True: #output_mode == "nagios":
+            if len(objects_name_for_nagios) == 0:
+                objects_name_for_nagios.append(obj_name)
             else:
+                cnt_obj_name = 2
 
-                dummy_result = Result()
+                loop_name = obj_name
 
-                dummy_result.object_name = object
-                dummy_result.timestamp = -1
-                dummy_result.performance_ms = -1
-                dummy_result.accuracy_ms = -1
-                dummy_result.thresholds = library_json["objects"][object]["measure"]["thresholds"]
-                dummy_result.timeout = library_json["objects"][object]["detection"]["timeout_s"]
-                dummy_result.output = library_json["objects"][object]["measure"]["output"]
-                dummy_result.extended_name = object
-                dummy_result.state = 2
-                dummy_result.exit = "not_executed"
+                while True:
+                    exists = False
+                    for obj_nagios_name in objects_name_for_nagios:
+                        if obj_nagios_name == loop_name:
+                            exists = True
+                            loop_name = obj_name[:-2] + "_" + str(cnt_obj_name)
+                            cnt_obj_name += 1
+                            break
 
+                    if exists is False:
+                        obj_name = loop_name
+                        objects_name_for_nagios.append(obj_name)
+                        break
 
-                objects_result.append(dummy_result)
-
-                measure_dict = {"performance_ms": -1,
-                                "accuracy_ms": -1,
-                                "timestamp": -1,
-                                "records": dummy_result.records,
-                                "exit": dummy_result.exit,
-                                "resolution": {
-                                    "width": w,
-                                    "height": h
-                                },
-                                # "arguments":result.arguments,
-                                "scaling_factor": int(scaling_factor * 100),
-                                "name_for_screen": dummy_result.object_name
-                                }
-
-                obj = ResultForOutput()
-                obj.object_name = dummy_result.object_name
-                obj.measures.append(measure_dict)
-                objects_for_output.append(obj)
+        measure_dict["name_for_screen"] = obj_name
+        result.extended_name = obj_name
 
 
-                not_executed_cnt += 1
+        warning_s = None
+        critical_s = None
+
+        curr_perf_string = ""
+
+        try:
+            warning_s = result.thresholds["warning_s"]
+        except:
+            pass
+
+        try:
+            critical_s = result.thresholds["critical_s"]
+        except:
+            pass
 
 
-                #print(object + " NOT EXECUTED")
+        date_from_ts = datetime.fromtimestamp(result.end_timestamp)
+        # millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
+        try:
+            millis_from_ts = date_from_ts.strftime("%f")[: -3]
+        except:
+            millis_from_ts = "000"
 
+        date_formatted = date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts)
 
-    else:
-        maps = lm.get_map()
+        if result.performance_ms != -1:
+            performance = round(result.performance_ms / 1000, 3)
+            accuracy = round(result.accuracy_ms / 1000, 3)
 
-        for object_name in objects_names:
-
-            """
-            if lm.check_valid_object_name(object_name) is False:
-                print(object_name + " contains invalid characters, only alphanumeric characters and -_' ' (space) are allowed.")
-                sys.exit(2)
-            """
-            if lm.check_if_exist(object_name) is False:
-                print(object_name + " does NOT exist")
-                sys.exit(2)
-
-        for object_name in objects_names:
-
-            object_json = lm.add_chunk(object_name, chunk)
-
-            engine_manager = EngineManager(object_json, args=engine_arguments,
-                                           maps=maps, executed_objects=objects_result, verbose=verbose,
-                                           cipher_key=cipher_key, cipher_iv=cipher_iv)
-            result = engine_manager.execute()
-
-            objects_result.append(result)
-
-            if result.performance_ms == -1 and result.has_to_break is True:
-                """
-                if verbose >= 1:
-                    print(get_timestamp_formatted() + ": Alyvix breaks " + result.object_name + " after " + str(result.timeout) + "s")
-                """
-                timed_out_objects.append(result.object_name)
-                state = 2
-                break
-            elif result.performance_ms == -1 and result.has_to_break is False:
-                pass
-                """
-                if verbose >= 1:
-                    print(get_timestamp_formatted() + ": Alyvix skips " + result.object_name + " after " + str(result.timeout) + "s")
-                """
-
-        if len(objects_result) < len(objects_names):
-
-            #state = 2
-
-            cnt = 1
-            for object_name in objects_names:
-
-                if cnt > len(objects_result):
-                    result = Result()
-                    result.object_name = object_name
-                    result.extended_name = object_name
-                    result.timestamp = -1
-                    result.performance_ms = -1
-                    result.accuracy_ms = -1
-                    result.thresholds = library_json["objects"][object]["measure"]["thresholds"]
-                    result.timeout = library_json["objects"][object]["detection"]["timeout_s"]
-                    result.output = library_json["objects"][object]["measure"]["output"]
-                    result.state = 2
-                    result.exit = "not_executed"
-                    not_executed_cnt += 1
-                    objects_result.append(result)
-                cnt += 1
-        """
-        elif len(objects_result) == len(objects_names) and objects_result[0].performance_ms == -1:
-            state = 2
-        """
-
-        not_executed_ts = time.time()
-        for result in objects_result:
-            # YYYYMMDD_hhmmss_lll : <object_name> measures <performance_ms> (+/-<accuracy>)
-            if result.timestamp != -1:
-
-                date_from_ts = datetime.fromtimestamp(result.end_timestamp)
-                # millis_from_ts = int(round(float(date_from_ts.strftime("0.%f")), 3) * 1000)
-                try:
-                    millis_from_ts = date_from_ts.strftime("%f")[: -3]
-                except:
-                    millis_from_ts = "000"
-
-                date_formatted = date_from_ts.strftime("%Y/%m/%d %H:%M:%S") + "." + str(millis_from_ts)
-
-                if result.performance_ms != -1:
-                    performance = round(result.performance_ms / 1000, 3)
-                    accuracy = round(result.accuracy_ms / 1000, 3)
-                    if result.output is True:
-                        print(date_formatted + ": " + result.object_name + " DETECTED in " + str(performance) + "s " +
-                              "(+/-" + '{:.3f}'.format(accuracy) + ")")
-                    result.exit = "true"
+            if output_mode == "nagios" and result.output is True:
+                curr_perf_string = obj_name.replace(" ", "_") + "=" + str(int(result.performance_ms)) + "ms"
+                if warning_s is not None:
+                    curr_perf_string += ";" + str(warning_s) + "s"
+                    if performance >= warning_s and sys_exit < 1:
+                        sys_exit = 1
+                        result.state = 1
                 else:
-                    if result.output is True and result.has_to_break is True:
-                        print(date_formatted + ": " + result.object_name + " FAILED after " + str(result.timeout) + "s")
-                        result.exit = "fail"
-                        sys_exit = 2
-                    elif result.output is True and result.has_to_break is False:
-                        print(date_formatted + ": " + result.object_name + " SKIPPED after " + str(result.timeout) + "s")
-                        result.exit = "false"
-                    elif result.output is False and result.has_to_break is True:
-                        result.exit = "fail"
-                        sys_exit = 2
-                    elif result.output is False and result.has_to_break is False:
-                        result.exit = "false"
+                    curr_perf_string += ";"
 
-            else:
-                #print(result.object_name + " NOT EXECUTED")
-                result.exit = "not_executed"
+                if critical_s is not None:
+                    curr_perf_string += ";" + str(critical_s) + "s"
+                    if performance >= critical_s and sys_exit < 2:
+                        sys_exit = 2
+                        result.state = 2
+                else:
+                    curr_perf_string += ";"
+                curr_perf_string += ";; "
+
+            elif output_mode != "nagios":
+
+                if result.output is True:
+                    print(date_formatted + ": " + obj_name + " DETECTED in " + str(performance) + "s " +
+                          "(+/-" + '{:.3f}'.format(accuracy) + ")")
+            result.exit = "true"
+        else:
+
+            if result.output is True and result.has_to_break is True:
+                if output_mode == "nagios":
+                    curr_perf_string = obj_name.replace(" ", "_") + "=ms"
+                    result.state = 2
+                else:
+                    print(date_formatted + ": " + obj_name + " FAILED after " + str(result.timeout) + "s")
+                timed_out_objects.append(obj_name)
+                result.exit = "fail"
+                sys_exit = 2
+            elif result.output is True and result.has_to_break is False:
+                if output_mode == "nagios":
+                    curr_perf_string = obj_name.replace(" ", "_") + "=" + str(result.timeout*1000) + "ms"
+                else:
+                    print(date_formatted + ": " + obj_name + " SKIPPED after " + str(result.timeout) + "s")
+                result.exit = "false"
+            elif result.output is False and result.has_to_break is True:
+                timed_out_objects.append(obj_name)
+                result.exit = "fail"
+                sys_exit = 2
+            elif result.output is False and result.has_to_break is False:
+                result.exit = "false"
+                #state = 2
+
+            if output_mode == "nagios" and result.output is True:
+                if warning_s is not None:
+                    curr_perf_string += ";" + str(warning_s) + "s"
+                else:
+                    curr_perf_string += ";"
+
+                if critical_s is not None:
+                    curr_perf_string += ";" + str(critical_s) + "s"
+                else:
+                    curr_perf_string += ";"
+
+                curr_perf_string += ";; "
+
+        performance_string += curr_perf_string
+
+        obj = ResultForOutput()
+        obj.object_name = result.object_name
+        measure_dict["exit"] = result.exit
+        obj.measures.append(measure_dict)
+
+        exists = False
+
+        for obj_for_output in objects_for_output:
+            if obj_for_output.object_name == result.object_name:
+                obj_for_output.measures.append(measure_dict)
+                exists = True
+                break
+
+        if exists == False:
+            objects_for_output.append(obj)
+
+    #performance_string = performance_string[:-1]
+
+    all_objects = pm.get_all_objects()
+
+    executed_object = pm.get_executed_objects()
+
+    for object in all_objects:
+        if object in executed_object:
+            continue
+        else:
+
+            dummy_result = Result()
+
+            dummy_result.object_name = object
+            dummy_result.timestamp = -1
+            dummy_result.performance_ms = -1
+            dummy_result.accuracy_ms = -1
+            dummy_result.thresholds = library_json["objects"][object]["measure"]["thresholds"]
+            dummy_result.timeout = library_json["objects"][object]["detection"]["timeout_s"]
+            dummy_result.output = library_json["objects"][object]["measure"]["output"]
+            dummy_result.extended_name = object
+            dummy_result.state = 2
+            dummy_result.exit = "not_executed"
+
+
+            objects_result.append(dummy_result)
+
+            measure_dict = {"performance_ms": -1,
+                            "accuracy_ms": -1,
+                            "timestamp": -1,
+                            "records": dummy_result.records,
+                            "exit": dummy_result.exit,
+                            "resolution": {
+                                "width": w,
+                                "height": h
+                            },
+                            # "arguments":result.arguments,
+                            "scaling_factor": int(scaling_factor * 100),
+                            "name_for_screen": dummy_result.object_name
+                            }
+
+            obj = ResultForOutput()
+            obj.object_name = dummy_result.object_name
+            obj.measures.append(measure_dict)
+            objects_for_output.append(obj)
+
+
+            not_executed_cnt += 1
+
+
+            #print(object + " NOT EXECUTED")
+
+
+
 
     t_end = time.time() - t_start
+
+    library_json["script"] = old_script
 
 
     message_to_print = ""

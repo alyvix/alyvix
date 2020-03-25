@@ -207,9 +207,9 @@ class ParserManager:
         except ValueError as e:
             try:
                 self._execute_section(section_name="fail")
-            except ValueError as e:
+            except:
                 pass
         try:
             self._execute_section(section_name="exit")
-        except ValueError as e:
+        except:
             pass
