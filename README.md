@@ -13,5 +13,3 @@ Alyvix is an **open source APM software tool** for visual monitoring.
 [Get started with Alyvix](https://alyvix.com/learn/getting_started.html)
 
 [Watch Alyvix Tutorials](https://www.youtube.com/watch?v=fU4d0DY-t0s&list=PLwzDvE46yA6FFGisTjD4crHY0M_Av7SyK)
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/fU4d0DY-t0s" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
