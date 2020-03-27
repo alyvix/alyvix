@@ -80,13 +80,40 @@ class Result():
 
 class EngineManager(object):
 
-    def __init__(self, object_json, args=None, maps={}, map_key="", executed_objects=[], verbose=0, cipher_key=None, cipher_iv=None):
+    def __init__(self, object_json, args=None, maps={}, verbose=0, output_mode="alyvix", cipher_key=None, cipher_iv=None,
+                 performances=None, map_names_map_keys=None):
 
         self._result = Result()
 
-        self._executed_objects = executed_objects
+        #self._executed_objects = executed_objects
+        self._executed_objects = []
+
+
+        self._performances = performances
+
+        self._map_names_map_keys = map_names_map_keys
+
+        self._output_mode = output_mode
 
         self._result.object_name = list(object_json.keys())[0]
+
+        self._series_name = ""
+
+        if map_names_map_keys is None:
+            self._series_name  = self._result.object_name
+        else:
+            map_name_map_key = ""
+
+            if map_names_map_keys is not None:
+                for m_n_m_k in map_names_map_keys:
+                    map_name_map_key += m_n_m_k["map_name"] + "-" + m_n_m_k["map_key"] + "_"
+                map_name_map_key = map_name_map_key[:-1]
+                self._series_name  = map_name_map_key
+
+        if self._result.object_name != self._series_name:
+            self._performance_name = self._result.object_name + "_" + self._series_name
+        else:
+            self._performance_name = self._result.object_name
 
         self._result.arguments = []
 
@@ -116,7 +143,7 @@ class EngineManager(object):
         self._verbose = verbose
 
         self._maps = maps
-        self._result.map_key = map_key
+        self._result.map_key = None #map_key
 
         self._tmp_text_scraped = ""
         self._tmp_text_extracted = ""
@@ -135,6 +162,9 @@ class EngineManager(object):
 
         self._object_definition = self._library_manager.build_objects_for_engine(self._object_json)
         self._detection = self._library_manager.get_detection_from_string(self._object_json)
+
+        if self._detection["timeout_s"] == None:
+            self._detection["timeout_s"] = 10
 
         self._call = self._library_manager.get_call_from_string(self._object_json)
 
@@ -588,10 +618,16 @@ class EngineManager(object):
 
                         extract_value = None
 
-                        for executed_obj in reversed(self._executed_objects):
+                        for perf in reversed(self._performances):
 
-                            if executed_obj.object_name == obj_name:
-                                extract_value = executed_obj.records["extract"]
+                            if perf.object_name == obj_name:
+
+                                for series in perf.series:
+                                    if series["exit"] == "not_executed":
+                                        continue
+                                    else:
+                                        extract_value = series["records"]["extract"]
+
 
                         if extract_value is not None:
                             keyboard_string = keyboard_string.replace(arg_pattern, extract_value)
@@ -608,10 +644,15 @@ class EngineManager(object):
                         obj_name = obj_name.split(".")[0]
 
                         text_value = None
-                        for executed_obj in reversed(self._executed_objects):
+                        for perf in reversed(self._performances):
 
-                            if executed_obj.object_name == obj_name:
-                                text_value = executed_obj.records["text"]
+                            if perf.object_name == obj_name:
+
+                                for series in perf.series:
+                                    if series["exit"] == "not_executed":
+                                        continue
+                                    else:
+                                        text_value = series["records"]["text"]
 
                         if text_value is not None:
                             keyboard_string = keyboard_string.replace(arg_pattern, text_value)
@@ -628,10 +669,15 @@ class EngineManager(object):
                         obj_name = obj_name.split(".")[0]
 
                         check_value = None
-                        for executed_obj in reversed(self._executed_objects):
+                        for perf in reversed(self._performances):
 
-                            if executed_obj.object_name == obj_name:
-                                check_value = executed_obj.records["check"]
+                            if perf.object_name == obj_name:
+
+                                for series in perf.series:
+                                    if series["exit"] == "not_executed":
+                                        continue
+                                    else:
+                                        check_value = series["check"]
 
                         if check_value is not None:
                             keyboard_string = keyboard_string.replace(arg_pattern, str(check_value))
@@ -845,7 +891,7 @@ class EngineManager(object):
 
                                 else:
                                     tm.set_regexp(box["features"]["T"]["regexp"], self._arguments, maps=self._maps,
-                                                  executed_objects=self._executed_objects)
+                                                  executed_objects=self._performances)
                                     sub_results = tm.find(box["features"]["T"], roi=roi)
 
                                     scraped_text = sub_results[0].scraped_text
@@ -1546,6 +1592,101 @@ class EngineManager(object):
     def _get_output_json(self):
         pass
 
+    def _insert_perf(self):
+        for perf in self._performances:
+            if perf.object_name == self._result.object_name:
+
+                cur_series = {}
+                cur_series["series_name"] = self._series_name
+                cur_series["object_name"] = self._result.object_name
+                cur_series["performance_name"] = self._performance_name
+                cur_series["maps"] = self._map_names_map_keys
+                cur_series["performance_ms"] = self._result.performance_ms
+                cur_series["accuracy_ms"] = self._result.accuracy_ms
+                cur_series["timestamp"] = self._result.timestamp
+                cur_series["end_timestamp"] = self._result.end_timestamp
+                cur_series["records"] = self._result.records
+                cur_series["timeout"] = self._result.timeout
+                cur_series["thresholds"] = self._result.thresholds
+                cur_series["group"] = self._result.group
+                cur_series["output"] = self._result.output
+                cur_series["screenshot"] = self._result.screenshot
+                cur_series["annotation"] = self._result.annotation
+                cur_series["initialize_cnt"] = len(self._performances)
+
+
+                cur_series["state"] = 2
+                cur_series["exit"] = "fail"
+
+                if self._result.performance_ms != -1:
+
+                    self._result.state = 0
+                    self._result.exit = "true"
+
+                    cur_series["state"] = self._result.state
+                    cur_series["exit"] = self._result.exit
+
+                    try:
+                        warning_ms = self._result.thresholds["warning_s"] * 1000
+
+                        if self._result.performance_ms >= warning_ms:
+                            self._result.state = 1
+                            cur_series["state"] = self._result.state
+                    except:
+                        pass
+
+                    try:
+                        critical_ms = self._result.thresholds["warning_s"] * 1000
+
+                        if self._result.performance_ms >= critical_ms:
+                            self._result.state = 2
+                            cur_series["state"] = self._result.state
+                    except:
+                        pass
+
+                else:
+
+                    if self._result.has_to_break is True:
+                        self._result.state = 2
+                        self._result.exit = "fail"
+
+                        cur_series["state"] = self._result.state
+                        cur_series["exit"] = self._result.exit
+
+                    else:
+                        self._result.state = 2
+                        self._result.exit = "false"
+
+                        cur_series["state"] = self._result.state
+                        cur_series["exit"] = self._result.exit
+
+                not_exec = False
+                cnt = 0
+                for series in perf.series:
+                    if series["series_name"] == self._series_name and series["exit"] == "not_executed":
+
+                        series["maps"]  = cur_series["maps"]
+                        series["performance_ms"] = cur_series["performance_ms"]
+                        series["accuracy_ms"] = cur_series["accuracy_ms"]
+                        series["timestamp"] = cur_series["timestamp"]
+                        series["end_timestamp"] = cur_series["end_timestamp"]
+                        series["records"] = cur_series["records"]
+                        series["timeout"] = cur_series["timeout"]
+                        series["screenshot"] = cur_series["screenshot"]
+                        series["annotation"] = cur_series["annotation"]
+                        series["state"] = cur_series["state"]
+                        series["exit"]  = cur_series["exit"]
+                        not_exec = True
+
+                if not_exec is False:
+                    perf.series.append(cur_series)
+
+
+
+
+
+
+
     def execute(self):
 
         self._result.timestamp = time.time()
@@ -1591,6 +1732,7 @@ class EngineManager(object):
         timeout = self._detection["timeout_s"]
         has_to_break = self._detection["break"]
         detection_type = self._detection["type"]
+        self._result.timeout = timeout
 
         call = self._call
 
@@ -1664,6 +1806,8 @@ class EngineManager(object):
             self._result.annotation = self._annotation_screen
             self._result.end_timestamp = time.time()
 
+            self._insert_perf()
+
             return self._result
 
         disappear_mode = False
@@ -1683,7 +1827,7 @@ class EngineManager(object):
 
         if self._verbose >= 1:
 
-            print(self._get_timestamp_formatted() + ": Alyvix looks at " + self._result.object_name)
+            print(self._get_timestamp_formatted() + ": Alyvix looks at " + self._performance_name)
 
         while True:
 
@@ -1705,7 +1849,7 @@ class EngineManager(object):
             if self._objects_appeared is True and disappear_mode is False:
 
                 if self._verbose >= 1:
-                    print(self._get_timestamp_formatted() + ": Alyvix detected " + self._result.object_name)
+                    print(self._get_timestamp_formatted() + ": Alyvix detected " + self._performance_name)
 
                 if detection_type =='appear':
                     #cv2.imwrite("D:\\programdata\\log\\" + str(time.time()) + "_find.png", self._uncompress(self._screens[-2][0]))
@@ -1730,9 +1874,11 @@ class EngineManager(object):
                     if self._result.performance_ms < 0:
                         self._result.performance_ms *= -1
 
-                    self._result.timeout = timeout
+                    #self._result.timeout = timeout
 
                     self._result.end_timestamp = time.time()
+
+                    self._insert_perf()
 
                     return self._result
 
@@ -1780,9 +1926,10 @@ class EngineManager(object):
                 if self._result.performance_ms < 0:
                     self._result.performance_ms *= -1
 
-                self._result.timeout = timeout
+                #self._result.timeout = timeout
 
                 self._result.end_timestamp = time.time()
+                self._insert_perf()
                 return self._result
 
             self.lock.acquire()
@@ -1793,9 +1940,9 @@ class EngineManager(object):
 
                 if self._verbose >= 1:
                     if has_to_break is True:
-                        print(self._get_timestamp_formatted() + ": Alyvix failed at " + self._result.object_name)
+                        print(self._get_timestamp_formatted() + ": Alyvix failed at " + self._performance_name)
                     else:
-                        print(self._get_timestamp_formatted() + ": Alyvix skipped " + self._result.object_name)
+                        print(self._get_timestamp_formatted() + ": Alyvix skipped " + self._performance_name)
 
                 self._timedout = True
 
@@ -1814,9 +1961,10 @@ class EngineManager(object):
                 self._result.accuracy_ms = -1
                 self._result.screenshot = self._screen_with_objects
                 self._result.annotation = self._annotation_screen
-                self._result.timeout = timeout
+                #self._result.timeout = timeout
 
                 self._result.end_timestamp = time.time()
+                self._insert_perf()
                 return self._result
 
 

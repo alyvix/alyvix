@@ -204,6 +204,65 @@ class LibraryManager:
 
         return measure_dict
 
+    def get_timeout(self, object_name):
+
+        if object_name is None:
+            return {}
+
+        try:
+            timeout = self._json_object["objects"][object_name]["detection"]["timeout_s"]
+        except:
+            return 10
+
+        if timeout is None or timeout == "":
+            timeout = 10
+
+        return timeout
+
+    def measure_is_enable(self, object_name):
+
+        if object_name is None:
+            return {}
+
+        try:
+            output = self._json_object["objects"][object_name]["measure"]["output"]
+        except:
+            return False
+
+        return output
+
+    def break_is_enable(self, object_name):
+
+        if object_name is None:
+            return {}
+
+        try:
+            break_is_enable = self._json_object["objects"][object_name]["detection"]["break"]
+        except:
+            return False
+
+        return break_is_enable
+
+    def get_warning_thresholds(self, object_name):
+
+
+        try:
+            warning = self._json_object["objects"][object_name]["measure"]["thresholds"]["warning_s"]
+        except:
+            return None
+
+        return warning
+
+
+    def get_critical_thresholds(self, object_name):
+
+        try:
+            critical = self._json_object["objects"][object_name]["measure"]["thresholds"]["critical_s"]
+        except:
+            return None
+
+        return critical
+
     def get_map(self):
 
         try:

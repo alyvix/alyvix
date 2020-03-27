@@ -158,7 +158,12 @@ class TextManager():
                 for executed_obj in reversed(executed_objects):
 
                     if executed_obj.object_name == obj_name:
-                        extract_value = executed_obj.records["extract"]
+
+                        for series in executed_obj.series:
+                            if series["exit"] == "not_executed":
+                                continue
+                            else:
+                                extract_value = series["records"]["extract"]
 
                 if extract_value is not None:
                     self._regexp = self._regexp.replace(arg_pattern, extract_value)
@@ -177,7 +182,12 @@ class TextManager():
                 for executed_obj in reversed(executed_objects):
 
                     if executed_obj.object_name == obj_name:
-                        text_value = executed_obj.records["text"]
+
+                        for series in executed_obj.series:
+                            if series["exit"] == "not_executed":
+                                continue
+                            else:
+                                text_value = series["records"]["text"]
 
                 if text_value is not None:
                     self._regexp = self._regexp.replace(arg_pattern, text_value)
@@ -196,7 +206,12 @@ class TextManager():
                 for executed_obj in reversed(executed_objects):
 
                     if executed_obj.object_name == obj_name:
-                        check_value = executed_obj.records["check"]
+
+                        for series in executed_obj.series:
+                            if series["exit"] == "not_executed":
+                                continue
+                            else:
+                                check_value = series["check"]
 
                 if check_value is not None:
                     self._regexp = self._regexp.replace(arg_pattern, str(check_value))

@@ -51,10 +51,40 @@ class OutputManager:
             # json_object["objects"][object.object_name] ["components"][resolution_string]
             object_dict = json_object["objects"][object.object_name]
 
-            for measure in object.measures:
-                del measure["name_for_screen"]
+            for series in object.series:
+                del series["series_name"]
+                del series["object_name"]
+                del series["performance_name"]
+                del series["timeout"]
+                del series["group"]
+                del series["thresholds"]
+                del series["output"]
+                del series["end_timestamp"]
+                del series["initialize_cnt"]
 
-            object_dict["measure"]["series"] = object.measures
+                series["performance_ms"] = int(series["performance_ms"])
+                series["accuracy_ms"] = int(series["accuracy_ms"])
+
+                if series["maps"] == None:
+                    series["maps"] = {}
+
+                try:
+                    if series["screenshot"] is not None:
+                        png_image = cv2.imencode('.png', series["screenshot"])
+                        base64png = base64.b64encode(png_image[1]).decode('ascii')
+                        series["screenshot"] = base64png
+                except:
+                    pass
+
+                try:
+                    if series["annotation"] is not None:
+                        png_image = cv2.imencode('.png', series["annotation"])
+                        base64png = base64.b64encode(png_image[1]).decode('ascii')
+                        series["annotation"] = base64png
+                except:
+                    pass
+
+            object_dict["measure"]["series"] = object.series
 
 
             json_object["objects"][object.object_name] = object_dict
@@ -66,61 +96,59 @@ class OutputManager:
 
         return json_object
 
-    def save_screenshots(self, file_path, object_list, prefix=None):
-        for object in object_list:
+    def save_screenshots(self, file_path, performances, prefix=None):
+        for perf in performances:
 
-            object_name = object.object_name
+            object_name = perf["performance_name"]
 
-            for measure in object.measures:
+            #for measure in object.measures:
 
-                #object_name = measure["name_for_screen"]
-                try:
+            #object_name = measure["name_for_screen"]
+            try:
 
-                    date_from_ts = datetime.fromtimestamp(measure["timestamp"])
-                except:
-                    continue
-                try:
-                    millis_from_ts = date_from_ts.strftime("%f")[: -3]
-                except:
-                    millis_from_ts = "000"
+                date_from_ts = datetime.fromtimestamp(perf["timestamp"])
+            except:
+                continue
+            try:
+                millis_from_ts = date_from_ts.strftime("%f")[: -3]
+            except:
+                millis_from_ts = "000"
 
 
-                try:
-                    np_array = np.frombuffer(base64.b64decode(measure["screenshot"]),np.uint8)
+            try:
+                #np_array = np.frombuffer(base64.b64decode(perf["screenshot"]),np.uint8)
+                #img = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-                    img = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+                date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) \
+                                 + "_UTC" + time.strftime("%z")
 
-                    date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) \
-                                     + "_UTC" + time.strftime("%z")
+                if prefix is not None:
+                    filename = date_formatted + "_" + prefix + "_" + object_name + "_screenshot.png"
+                else:
+                    filename = date_formatted + "_" + object_name + "_screenshot.png"
 
-                    if prefix is not None:
-                        filename =  prefix + "_" + object_name + "_" + date_formatted + "_screenshot.png"
-                    else:
-                        filename = object_name + "_" + date_formatted + "_screenshot.png"
+                cv2.imwrite(file_path + os.sep + filename, perf["screenshot"])
 
-                    cv2.imwrite(file_path + os.sep + filename, img)
+            except:
+                pass
 
-                except:
-                    pass
+            try:
 
-                try:
+                #np_array = np.frombuffer(base64.b64decode(perf["annotation"]),np.uint8)
+                #img = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-                    np_array = np.frombuffer(base64.b64decode(measure["annotation"]),np.uint8)
+                date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) \
+                                 + "_UTC" + time.strftime("%z")
 
-                    img = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+                if prefix is not None:
+                    filename = date_formatted + "_" + prefix + "_" + object_name + "_annotation.png"
+                else:
+                    filename = date_formatted + "_" + prefix + "_" + object_name + "_annotation.png"
 
-                    date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) \
-                                     + "_UTC" + time.strftime("%z")
+                cv2.imwrite(file_path + os.sep + filename, perf["annotation"])
 
-                    if prefix is not None:
-                        filename =  prefix + "_" + object_name + "_" + date_formatted + "_annotation.png"
-                    else:
-                        filename = object_name + "_" + date_formatted + "_annotation.png"
-
-                    cv2.imwrite(file_path + os.sep + filename, img)
-
-                except:
-                    pass
+            except:
+                pass
 
     def save(self, filename, json_object, chunk, object_list, exit, duration):
 

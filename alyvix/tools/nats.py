@@ -55,7 +55,7 @@ class NatsManager:
 
         for object in objects:
 
-            if object.output is False:
+            if object["output"] is False:
                 continue
 
             timed_out = False
@@ -66,18 +66,18 @@ class NatsManager:
 
             group_msg = ""
 
-            if object.group is not None:
-                group_msg = ",transaction_group=" + object.group.replace(" ", "\ ")
+            if object["group"] is not None:
+                group_msg = ",transaction_group=" + object["group"].replace(" ", "\ ")
 
             curr_perf_string = ""
 
             try:
-                warning_threshold = object.thresholds["warning_s"]
+                warning_threshold = object["thresholds"]["warning_s"]
             except:
                 pass
 
             try:
-                critical_threshold = object.thresholds["critical_s"]
+                critical_threshold = object["thresholds"]["critical_s"]
             except:
                 pass
 
@@ -92,11 +92,11 @@ class NatsManager:
                 msg_critical = ",critical_threshold=" + str(int(critical_threshold * 1000))
 
             #if object.timeout != None:
-            msg_timeout = ",timeout_threshold=" + str(int(object.timeout * 1000))
+            msg_timeout = ",timeout_threshold=" + str(int(object["timeout"] * 1000))
 
-            if object.timestamp != -1:
+            if object["timestamp"] != -1:
 
-                perf_timestamp = str(int(object.timestamp * 1000 * 1000 * 1000))
+                perf_timestamp = str(int(object["timestamp"] * 1000 * 1000 * 1000))
 
             else:
 
@@ -106,28 +106,28 @@ class NatsManager:
 
             msg_perf = ""
 
-            if object.performance_ms != -1:
+            if object["performance_ms"] != -1:
 
-                msg_perf = ",performance=" + str(int(object.performance_ms))
+                msg_perf = ",performance=" + str(int(object["performance_ms"]))
 
             elif not_executed is False:
 
-                #msg_perf = ",performance=" + str(int(perfdata.timeout_threshold * 1000))
+                msg_perf = ",performance=" + str(int(object["timeout"] * 1000))
 
                 timed_out = True
 
             accuracy_msg = ""
 
-            if object.accuracy_ms != -1 and object.accuracy_ms is not None:
-                accuracy_msg = ",accuracy=" + str(int(object.accuracy_ms))
+            if object["accuracy_ms"] != -1 and object["accuracy_ms"] is not None:
+                accuracy_msg = ",accuracy=" + str(int(object["accuracy_ms"]))
 
             msg_cumsum = ""
 
             msg_cumsumpre = ",cumulative=" + str(cumsum_value)
 
-            if object.performance_ms != -1:
+            if object["performance_ms"] != -1:
 
-                value = int(cumsum_value + object.performance_ms)
+                value = int(cumsum_value + object["performance_ms"])
 
                 msg_cumsum = ",cumulative=" + str(value)
 
@@ -135,7 +135,7 @@ class NatsManager:
 
             elif not_executed is False: #timedout
 
-                value = int(cumsum_value + (object.timeout*1000))
+                value = int(cumsum_value + (object["timeout"]*1000))
 
                 msg_cumsum = ",cumulative=" + str(value)
 
@@ -147,8 +147,8 @@ class NatsManager:
 
             records_msg=""
 
-            if object.records["extract"] != "":
-                records_msg = ",records=\"" + object.records["extract"].replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+            if object["records"]["extract"] != "":
+                records_msg = ",records=\"" + object["records"]["extract"].replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 
             user_msg = ",username=" + os.environ['username']
@@ -185,11 +185,11 @@ class NatsManager:
 
 
             message= str(measure) + user_msg + host_msg + ",test_name=" +filename + ",transaction_name=" + \
-                object.extended_name.replace(" ", "\ ") + group_msg + \
-                ",state=" + object.exit + \
+                object["performance_name"].replace(" ", "\ ") + group_msg + \
+                ",state=" + object["exit"] + \
                  " " + \
                  msg_warning + msg_critical + msg_timeout + msg_perf + accuracy_msg + msg_cumsum + \
-                ",error_level=" + str(object.state) + unique_tag_msg
+                ",error_level=" + str(object["state"]) + unique_tag_msg
 
             message = message.replace(" ,"," ")
 
