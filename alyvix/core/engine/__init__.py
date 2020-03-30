@@ -67,7 +67,7 @@ class Result():
         self.annotation = None
         self.timeout = None
         self.arguments = []
-        self.records = {"text":"", "image":"", "extract":"", "check":False}
+        self.records = {"text":"", "image":"", "extract":"", "check":"false"}
 
         self.group = None
         self.map_key = None
@@ -155,6 +155,7 @@ class EngineManager(object):
 
         self._screen_manager = ScreenManager()
         self._scaling_factor = self._screen_manager.get_scaling_factor()
+        self._res_w, self._res_h = self._screen_manager.get_resolution()
 
         self._object_json = object_json
         self._object_definition = None
@@ -1076,7 +1077,7 @@ class EngineManager(object):
 
             scraped_text = ""
             extract_text = ""
-            check = True
+            check = "true"
             """
             try:
                 for component in self._components_appeared:
@@ -1614,6 +1615,13 @@ class EngineManager(object):
                 cur_series["annotation"] = self._result.annotation
                 cur_series["initialize_cnt"] = len(self._performances)
 
+                cur_series["resolution"] = {
+                    "width": self._res_w,
+                    "height": self._res_h
+                }
+
+                cur_series["scaling_factor"] = int(self._scaling_factor * 100),
+
 
                 cur_series["state"] = 2
                 cur_series["exit"] = "fail"
@@ -1800,7 +1808,7 @@ class EngineManager(object):
                 self._result.performance_ms = t_call * 1000
             else:
                 self._result.performance_ms = 0
-            self._result.records["check"] = True
+            self._result.records["check"] = "true"
             self._result.accuracy_ms = 0
             self._result.screenshot = self._screen_with_objects
             self._result.annotation = self._annotation_screen

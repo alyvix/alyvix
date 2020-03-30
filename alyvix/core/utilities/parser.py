@@ -46,7 +46,7 @@ class ParserManager:
             "timestamp": -1,
             "end_timestamp": -1,
             "initialize_cnt": 0,
-            "records": {"text":"", "image":"", "extract":"", "check":False},
+            "records": {"text":"", "image":"", "extract":"", "check":"not_executed"},
             "timeout": None,
             "exit": "not_executed",
             "state": 2,
