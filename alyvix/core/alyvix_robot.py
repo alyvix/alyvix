@@ -3,6 +3,7 @@ import sys
 import shlex
 import copy
 import os.path
+import re
 import cv2
 import base64
 from datetime import datetime
@@ -95,6 +96,8 @@ nats_measure = ""
 
 not_executed_cnt = 0
 
+cli_map = {}
+
 for i in range(0, len(sys.argv)):
     if sys.argv[i] == "-f" or sys.argv[i] == "--filename":
         filename = sys.argv[i+1]
@@ -103,9 +106,18 @@ for i in range(0, len(sys.argv)):
         objects_names = shlex.split(objects_names)
     elif sys.argv[i] == "-a" or sys.argv == "--args":
         engine_arguments = sys.argv[i + 1]
+
         lexer = shlex.shlex(engine_arguments, posix=True)
+        lexer.whitespace_split = True
         lexer.escapedquotes = r"\'"
         engine_arguments = list(lexer)
+
+        cnt_arg = 0
+        for earg in engine_arguments:
+            cnt_arg+=1
+
+            cli_map["arg"+str(cnt_arg)] = earg
+
     elif sys.argv[i] == "-v" or sys.argv == "--verbose":
         try:
             verbose = int(sys.argv[i + 1])
@@ -194,6 +206,10 @@ if filename is not None:
     lm.load_file(filename)
 
     library_json = lm.get_json()
+
+    library_json["maps"] = lm.get_map()
+
+    library_json["maps"]["cli"] = cli_map
 
     old_script = copy.deepcopy(lm.get_script())
 
