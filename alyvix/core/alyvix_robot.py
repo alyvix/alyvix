@@ -389,7 +389,7 @@ if filename is not None:
     else:
 
         if sys_exit == 0:
-            print (get_timestamp_formatted() + ": " + filename_no_extension + " ends OK, it takes " + '{:.3f}'.format(t_end) + "s.")
+            print (get_timestamp_formatted() + ": " + filename_no_extension + " ends OK, taking " + '{:.3f}'.format(t_end) + "s.")
             exit = "true"
         else:
             print (get_timestamp_formatted() + ": " + filename_no_extension + " ends FAILED because of " + failed_objects[0] +", it takes " + '{:.3f}'.format(t_end) + "s.")
