@@ -264,7 +264,7 @@ class TextManager():
             self._regexp = self._regexp.replace(arg_pattern, text_value)
             # self._result.arguments.append(text_value)
 
-        check_args = re.findall(r"\{[\w]+\.check\}", self._regexp, re.IGNORECASE | re.UNICODE)
+        check_args = re.findall(r"(\{[\w]+\.check\|{[\w]+\.check,[^\}]+\})}", self._regexp, re.IGNORECASE|re.UNICODE)
         # re.findall("\\{.*\\.check\\}", keyboard_string, re.IGNORECASE)
 
         for arg_pattern in check_args:
@@ -306,7 +306,7 @@ class TextManager():
             self._regexp = self._regexp.replace(arg_pattern, check_value)
             # self._result.arguments.append(text_value)
 
-        maps_args = re.findall(r"\{[\w]+\.[\w]+\}", self._regexp, re.IGNORECASE | re.UNICODE)
+        maps_args = re.findall(r"(\{[\w]+\.[\w]+\}|{[\w]+\.[\w]+,[^\}]+\})", self._regexp, re.IGNORECASE|re.UNICODE)
         # re.findall("\\{.*\\..*\\}", keyboard_string, re.IGNORECASE)
 
         for arg_pattern in maps_args:

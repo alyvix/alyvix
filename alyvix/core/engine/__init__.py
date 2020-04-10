@@ -723,7 +723,7 @@ class EngineManager(object):
                     #self._result.arguments.append(text_value)
 
 
-                check_args = re.findall(r"\{[\w]+\.check\}", keyboard_string, re.IGNORECASE|re.UNICODE)
+                check_args = re.findall(r"(\{[\w]+\.check\|{[\w]+\.check,[^\}]+\})}", keyboard_string, re.IGNORECASE|re.UNICODE)
                 #re.findall("\\{.*\\.check\\}", keyboard_string, re.IGNORECASE)
 
                 for arg_pattern in check_args:
@@ -767,17 +767,24 @@ class EngineManager(object):
                     # self._result.arguments.append(text_value)
 
 
-                maps_args = re.findall(r"\{[\w]+\.[\w]+\}", keyboard_string, re.IGNORECASE|re.UNICODE)
+                maps_args = re.findall(r"(\{[\w]+\.[\w]+\}|{[\w]+\.[\w]+,[^\}]+\})", keyboard_string, re.IGNORECASE|re.UNICODE)
                 #re.findall("\\{.*\\..*\\}", keyboard_string, re.IGNORECASE)
 
                 for arg_pattern in maps_args:
 
                     str_value = ""
 
+                    if "," in pattern:
+
+                        map_n_k, default_arg = pattern.split(",", 1)
+                        map_name = map_n_k.split(".")[0]
+                        map_key = map_n_k.split(".")[1]
+                        str_value = default_arg
+                    else:
+                        map_name = pattern.split(".")[0]
+                        map_key = pattern.split(".")[1]
+
                     try:
-                        map_arg = arg_pattern.replace("{", "").replace("}", "")
-                        map_name = map_arg.split(".")[0]
-                        map_key = map_arg.split(".")[1]
 
                         map_value = self._maps[map_name][map_key]
 
@@ -2016,17 +2023,26 @@ class EngineManager(object):
                     args = args.replace(arg_pattern, check_value)
                     # self._result.arguments.append(text_value)
 
-                maps_args = re.findall(r"\{[\w]+\.[\w]+\}", args, re.IGNORECASE | re.UNICODE)
+                maps_args = re.findall(r"(\{[\w]+\.[\w]+\}|{[\w]+\.[\w]+,[^\}]+\})", args, re.IGNORECASE|re.UNICODE)
                 # re.findall("\\{.*\\..*\\}", keyboard_string, re.IGNORECASE)
 
                 for arg_pattern in maps_args:
 
                     str_value = ""
 
+                    pattern = arg_pattern.replace("{", "").replace("}", "")
+
+                    if "," in pattern:
+
+                        map_n_k, default_arg = pattern.split(",", 1)
+                        map_name = map_n_k.split(".")[0]
+                        map_key = map_n_k.split(".")[1]
+                        str_value = default_arg
+                    else:
+                        map_name = pattern.split(".")[0]
+                        map_key = pattern.split(".")[1]
+
                     try:
-                        map_arg = arg_pattern.replace("{", "").replace("}", "")
-                        map_name = map_arg.split(".")[0]
-                        map_key = map_arg.split(".")[1]
 
                         map_value = self._maps[map_name][map_key]
 
