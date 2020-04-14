@@ -2076,7 +2076,7 @@ class EngineManager(object):
                     popen_input = []
                     popen_input.append(exe)
                     if args is not None:
-                        popen_input.extend(shlex.split(args))
+                        popen_input.extend(args.split(" "))
                     if self._verbose >= 1:
                         print(self._get_timestamp_formatted() + ": Alyvix calls " + exe)
 

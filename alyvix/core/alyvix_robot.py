@@ -107,16 +107,35 @@ for i in range(0, len(sys.argv)):
     elif sys.argv[i] == "-a" or sys.argv == "--args":
         engine_arguments = sys.argv[i + 1]
 
-        lexer = shlex.shlex(engine_arguments, posix=True)
-        lexer.whitespace_split = True
-        lexer.escapedquotes = r"\'"
-        engine_arguments = list(lexer)
+        engine_arguments = engine_arguments.replace("\\'", "<alyvix_escp_quote>")
+
+        cnt_sq = engine_arguments.count("'")
+
+        if (cnt_sq % 2) != 0:
+            print ("Error on -a: odd single quotes!")
+            sys.exit(2)
+
+        single_quote_args = re.findall(r"'[^'][^\\']*'", engine_arguments, re.IGNORECASE | re.UNICODE)
+
+
+        for sq_arg in single_quote_args:
+
+            engine_arguments = engine_arguments.replace(sq_arg, sq_arg.replace(" ", "<alyvix_repl_space>"))
+
+        engine_arguments = engine_arguments.replace("'", "")
+
+        engine_arguments = engine_arguments.split(" ")
+
+        for i, v in enumerate(engine_arguments):
+            engine_arguments[i] = engine_arguments[i].replace("<alyvix_repl_space>", " ").replace("<alyvix_escp_quote>", "'")
 
         cnt_arg = 0
-        for earg in engine_arguments:
-            cnt_arg+=1
 
-            cli_map["arg"+str(cnt_arg)] = earg
+        for earg in engine_arguments:
+            cnt_arg += 1
+
+            cli_map["arg" + str(cnt_arg)] = earg
+
 
     elif sys.argv[i] == "-v" or sys.argv == "--verbose":
         try:
