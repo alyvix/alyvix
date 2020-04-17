@@ -34,6 +34,7 @@ from datetime import datetime
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.library import LibraryManager
 from alyvix.tools.crypto import CryptoManager
+from alyvix.core.utilities.args import ArgsManager
 from .image import ImageManager
 from .rectangle import RectangleManager
 from .text import TextManager
@@ -87,6 +88,8 @@ class EngineManager(object):
 
         #self._executed_objects = executed_objects
         self._executed_objects = []
+
+        self._arguments_manager = ArgsManager()
 
 
         self._performances = performances
@@ -593,226 +596,8 @@ class EngineManager(object):
                 keyboard_duration = keyboard_dict["durations_ms"]
                 keyboard_delay = keyboard_dict["delays_ms"]
 
-                #keyboard_string = "sadfasfdasf asfdf {arg1} dfdfdfd {arg2}"
-
-                #args_in_string = re.findall("\\{arg[0-9]+\\}", keyboard_string,re.IGNORECASE)
-                args_in_string = re.findall(r"\{[1-9]\d*\}|\{[1-9]\d*[^\}]+\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in args_in_string:
-
-                    str_value = ""
-
-
-                    pattern = arg_pattern.replace("{", "").replace("}", "")
-
-                    if "," in pattern:
-
-                        index, default_arg = pattern.split(",", 1)
-                        str_value = default_arg
-                    else:
-                        index = pattern
-
-                    try:
-                        i = int(index)
-
-                        #self._result.arguments.append(self._arguments[i-1])
-                        str_value = self._arguments[i - 1]
-                    except:
-                        pass
-
-
-                    if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
-                        try:
-                            unenc_string = base64.b64decode(str_value)
-                            decrypted_str = self._crypto_manager.decrypt(str_value)
-                            if decrypted_str != "":  # wrong password
-                                str_value = decrypted_str
-                        except:  # string is not base 64
-                            pass
-
-                    keyboard_string = keyboard_string.replace(arg_pattern, str_value)
-
-
-                #args_in_string = re.findall("\\{arg[0-9]+\\}", keyboard_string,re.IGNORECASE)
-                extract_args = re.findall(r"(\{[\w]+\.extract\}|{[\w]+\.extract,[^\}]+\})", keyboard_string, re.IGNORECASE|re.UNICODE)
-                #re.findall("\\{.*\\.extract\\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in extract_args:
-
-                    extract_value = ""
-
-                    pattern = arg_pattern.replace("{", "").replace("}", "")
-
-                    if "," in pattern:
-
-                        obj_name, default_arg = pattern.split(",", 1)
-                        obj_name = obj_name.split(".")[0]
-                        extract_value = default_arg
-                    else:
-                        obj_name = pattern.split(".")[0]
-
-                    for perf in reversed(self._performances):
-
-                        try:
-                            if perf.object_name == obj_name:
-
-                                for series in perf.series:
-                                    if series["exit"] == "not_executed":
-                                        continue
-                                    else:
-                                        extract_value = series["records"]["extract"]
-                        except:
-                            pass  # not enought arguments
-
-                    if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
-                        try:
-                            unenc_string = base64.b64decode(extract_value)
-                            decrypted_str = self._crypto_manager.decrypt(extract_value)
-                            if decrypted_str != "":  # wrong password
-                                extract_value = decrypted_str
-                        except:  # string is not base 64
-                            pass
-
-
-                    keyboard_string = keyboard_string.replace(arg_pattern, extract_value)
-                    #self._result.arguments.append(extract_value)
-
-                #[ ^\}] all that is not parentesdi graffa
-                text_args = re.findall(r"(\{[\w]+\.text\}|{[\w]+\.text,[^\}]+\})", keyboard_string, re.IGNORECASE|re.UNICODE)
-
-                #a = keyboard_string[keyboard_string.find("{")+1:keyboard_string.find("}")]
-
-                for arg_pattern in text_args:
-
-                    text_value = ""
-
-                    pattern = arg_pattern.replace("{", "").replace("}", "")
-
-                    if "," in pattern:
-
-                        obj_name, default_arg = pattern.split(",", 1)
-                        obj_name = obj_name.split(".")[0]
-                        text_value = default_arg
-                    else:
-                        obj_name = pattern.split(".")[0]
-
-                    for perf in reversed(self._performances):
-
-                        try:
-
-                            if perf.object_name == obj_name:
-
-                                for series in perf.series:
-                                    if series["exit"] == "not_executed":
-                                        continue
-                                    else:
-                                        text_value = series["records"]["text"]
-                        except:
-                            pass  # not enought arguments
-
-                    if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
-                        try:
-                            unenc_string = base64.b64decode(text_value)
-                            decrypted_str = self._crypto_manager.decrypt(text_value)
-                            if decrypted_str != "":  # wrong password
-                                text_value = decrypted_str
-                        except:  # string is not base 64
-                            pass
-
-                    keyboard_string = keyboard_string.replace(arg_pattern, text_value)
-                    #self._result.arguments.append(text_value)
-
-
-                check_args = re.findall(r"(\{[\w]+\.check\|{[\w]+\.check,[^\}]+\})}", keyboard_string, re.IGNORECASE|re.UNICODE)
-                #re.findall("\\{.*\\.check\\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in check_args:
-
-                    check_value = ""
-
-                    pattern = arg_pattern.replace("{", "").replace("}", "")
-
-                    if "," in pattern:
-
-                        obj_name, default_arg = pattern.split(",", 1)
-                        obj_name = obj_name.split(".")[0]
-                        text_value = default_arg
-                    else:
-                        obj_name = pattern.split(".")[0]
-
-
-                    for perf in reversed(self._performances):
-                        try:
-
-                            if perf.object_name == obj_name:
-
-                                for series in perf.series:
-                                    if series["exit"] == "not_executed":
-                                        continue
-                                    else:
-                                        check_value = series["check"]
-                        except:
-                            pass  # not enought arguments
-
-                    if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
-                        try:
-                            unenc_string = base64.b64decode(check_value)
-                            decrypted_str = self._crypto_manager.decrypt(check_value)
-                            if decrypted_str != "":  # wrong password
-                                check_value = decrypted_str
-                        except:  # string is not base 64
-                            pass
-
-                    keyboard_string = keyboard_string.replace(arg_pattern, check_value)
-                    # self._result.arguments.append(text_value)
-
-
-                maps_args = re.findall(r"(\{[\w]+\.[\w]+\}|{[\w]+\.[\w]+,[^\}]+\})", keyboard_string, re.IGNORECASE|re.UNICODE)
-                #re.findall("\\{.*\\..*\\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in maps_args:
-
-                    str_value = ""
-
-                    if "," in pattern:
-
-                        map_n_k, default_arg = pattern.split(",", 1)
-                        map_name = map_n_k.split(".")[0]
-                        map_key = map_n_k.split(".")[1]
-                        str_value = default_arg
-                    else:
-                        map_name = pattern.split(".")[0]
-                        map_key = pattern.split(".")[1]
-
-                    try:
-
-                        map_value = self._maps[map_name][map_key]
-
-                        if isinstance(map_value, list):
-                            str_value = ""
-                            for obj in map_value:
-                                str_value += str(obj) + " "
-
-                            str_value = str_value[:-1]
-                        else:
-                            str_value = str(map_value)
-
-                        if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
-                            try:
-                                unenc_string = base64.b64decode(str_value)
-                                decrypted_str = self._crypto_manager.decrypt(str_value)
-                                if decrypted_str != "":  # wrong password
-                                    str_value = decrypted_str
-                            except:  # string is not base 64
-                                pass
-
-                    except:
-                        pass  # not enought arguments
-
-                    keyboard_string = keyboard_string.replace(arg_pattern, str_value)
-                    # self._result.arguments.append(str_value)
-
-
+                keyboard_string = self._arguments_manager.get_string(keyboard_string,self._arguments,
+                                                self._performances, self._maps, self._crypto_manager)
 
                 self._keyboard_manager.send(keyboard_string, False, keyboard_delay, keyboard_duration)
 
@@ -1857,217 +1642,32 @@ class EngineManager(object):
                 except:
                     pass
 
-                args_in_string = re.findall(r"\{[1-9]\d*\}|\{[1-9]\d*[^\}]+\}", args, re.IGNORECASE)
+                args = self._arguments_manager.get_string(args, self._arguments,
+                                                   self._performances, self._maps, self._crypto_manager)
 
-                for arg_pattern in args_in_string:
+                #args = args.replace("\\'", "<alyvix_escp_quote>")
 
-                    str_value = ""
+                args = args.replace("'", "\"")
 
-                    pattern = arg_pattern.replace("{", "").replace("}", "")
+                #cnt_sq = args.count("'")
 
-                    if "," in pattern:
+                """
+                if (cnt_sq % 2) != 0:
+                    print("Error on -a: odd single quotes!")
+                    sys.exit(2)
+                """
 
-                        index, default_arg = pattern.split(",", 1)
-                        str_value = default_arg
-                    else:
-                        index = pattern
+                double_quote_args = re.findall(r"\"[^\"]*\"", args, re.IGNORECASE | re.UNICODE)
 
-                    try:
-                        i = int(index)
+                for dq_arg in double_quote_args:
+                    args = args.replace(dq_arg, dq_arg.replace(" ", "<alyvix_repl_space>"))
 
-                        # self._result.arguments.append(self._arguments[i-1])
-                        str_value = self._arguments[i - 1]
-                    except:
-                        pass
+                args = args.replace("\"", "")
 
-                    if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
-                        try:
-                            unenc_string = base64.b64decode(str_value)
-                            decrypted_str = self._crypto_manager.decrypt(str_value)
-                            if decrypted_str != "":  # wrong password
-                                str_value = decrypted_str
-                        except:  # string is not base 64
-                            pass
+                args = args.split(" ")
 
-                    args = args.replace(arg_pattern, str_value)
-
-                # args_in_string = re.findall("\\{arg[0-9]+\\}", keyboard_string,re.IGNORECASE)
-                extract_args = re.findall(r"(\{[\w]+\.extract\}|{[\w]+\.extract,[^\}]+\})", args,
-                                          re.IGNORECASE | re.UNICODE)
-                # re.findall("\\{.*\\.extract\\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in extract_args:
-
-                    extract_value = ""
-
-                    pattern = arg_pattern.replace("{", "").replace("}", "")
-
-                    if "," in pattern:
-
-                        obj_name, default_arg = pattern.split(",", 1)
-                        obj_name = obj_name.split(".")[0]
-                        extract_value = default_arg
-                    else:
-                        obj_name = pattern.split(".")[0]
-
-                    for perf in reversed(self._performances):
-
-                        try:
-                            if perf.object_name == obj_name:
-
-                                for series in perf.series:
-                                    if series["exit"] == "not_executed":
-                                        continue
-                                    else:
-                                        extract_value = series["records"]["extract"]
-                        except:
-                            pass  # not enought arguments
-
-                    if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
-                        try:
-                            unenc_string = base64.b64decode(extract_value)
-                            decrypted_str = self._crypto_manager.decrypt(extract_value)
-                            if decrypted_str != "":  # wrong password
-                                extract_value = decrypted_str
-                        except:  # string is not base 64
-                            pass
-
-                    args = args.replace(arg_pattern, extract_value)
-                    # self._result.arguments.append(extract_value)
-
-                # [ ^\}] all that is not parentesdi graffa
-                text_args = re.findall(r"(\{[\w]+\.text\}|{[\w]+\.text,[^\}]+\})", args,
-                                       re.IGNORECASE | re.UNICODE)
-
-                # a = keyboard_string[keyboard_string.find("{")+1:keyboard_string.find("}")]
-
-                for arg_pattern in text_args:
-
-                    text_value = ""
-
-                    pattern = arg_pattern.replace("{", "").replace("}", "")
-
-                    if "," in pattern:
-
-                        obj_name, default_arg = pattern.split(",", 1)
-                        obj_name = obj_name.split(".")[0]
-                        text_value = default_arg
-                    else:
-                        obj_name = pattern.split(".")[0]
-
-                    for perf in reversed(self._performances):
-
-                        try:
-
-                            if perf.object_name == obj_name:
-
-                                for series in perf.series:
-                                    if series["exit"] == "not_executed":
-                                        continue
-                                    else:
-                                        text_value = series["records"]["text"]
-                        except:
-                            pass  # not enought arguments
-
-                    if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
-                        try:
-                            unenc_string = base64.b64decode(text_value)
-                            decrypted_str = self._crypto_manager.decrypt(text_value)
-                            if decrypted_str != "":  # wrong password
-                                text_value = decrypted_str
-                        except:  # string is not base 64
-                            pass
-
-                    args = args.replace(arg_pattern, text_value)
-                    # self._result.arguments.append(text_value)
-
-                check_args = re.findall(r"\{[\w]+\.check\}", args, re.IGNORECASE | re.UNICODE)
-                # re.findall("\\{.*\\.check\\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in check_args:
-
-                    check_value = ""
-
-                    pattern = arg_pattern.replace("{", "").replace("}", "")
-
-                    if "," in pattern:
-
-                        obj_name, default_arg = pattern.split(",", 1)
-                        obj_name = obj_name.split(".")[0]
-                        text_value = default_arg
-                    else:
-                        obj_name = pattern.split(".")[0]
-
-                    for perf in reversed(self._performances):
-                        try:
-
-                            if perf.object_name == obj_name:
-
-                                for series in perf.series:
-                                    if series["exit"] == "not_executed":
-                                        continue
-                                    else:
-                                        check_value = series["check"]
-                        except:
-                            pass  # not enought arguments
-
-                    if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
-                        try:
-                            unenc_string = base64.b64decode(check_value)
-                            decrypted_str = self._crypto_manager.decrypt(check_value)
-                            if decrypted_str != "":  # wrong password
-                                check_value = decrypted_str
-                        except:  # string is not base 64
-                            pass
-
-                    args = args.replace(arg_pattern, check_value)
-                    # self._result.arguments.append(text_value)
-
-                maps_args = re.findall(r"(\{[\w]+\.[\w]+\}|{[\w]+\.[\w]+,[^\}]+\})", args, re.IGNORECASE|re.UNICODE)
-                # re.findall("\\{.*\\..*\\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in maps_args:
-
-                    str_value = ""
-
-                    pattern = arg_pattern.replace("{", "").replace("}", "")
-
-                    if "," in pattern:
-
-                        map_n_k, default_arg = pattern.split(",", 1)
-                        map_name = map_n_k.split(".")[0]
-                        map_key = map_n_k.split(".")[1]
-                        str_value = default_arg
-                    else:
-                        map_name = pattern.split(".")[0]
-                        map_key = pattern.split(".")[1]
-
-                    try:
-
-                        map_value = self._maps[map_name][map_key]
-
-                        if isinstance(map_value, list):
-                            str_value = ""
-                            for obj in map_value:
-                                str_value += str(obj) + " "
-
-                            str_value = str_value[:-1]
-                        else:
-                            str_value = str(map_value)
-
-                        if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
-                            try:
-                                unenc_string = base64.b64decode(str_value)
-                                decrypted_str = self._crypto_manager.decrypt(str_value)
-                                if decrypted_str != "":  # wrong password
-                                    str_value = decrypted_str
-                            except:  # string is not base 64
-                                pass
-
-                    except:
-                        pass  # not enought arguments
-
-                    args = args.replace(arg_pattern, str_value)
+                for i, v in enumerate(args):
+                    args[i] = args[i].replace("<alyvix_repl_space>", " ")
 
                 exe = call["features"]["path"]
 

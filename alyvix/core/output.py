@@ -66,7 +66,7 @@ class OutputManager:
                 series["accuracy_ms"] = int(series["accuracy_ms"])
 
                 if series["maps"] == None:
-                    series["maps"] = {}
+                    series["maps"] = []
 
                 try:
                     if series["screenshot"] is not None:
