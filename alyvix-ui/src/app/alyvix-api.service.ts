@@ -1,7 +1,7 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { Observable, throwError, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { BoxListEntity, AxSelectorObjects, DesignerModel, AxModel, AxMap } from './ax-model/model';
+import { BoxListEntity, AxSelectorObjects, DesignerModel, AxModel, AxMap, AxScriptFlow } from './ax-model/model';
 import { map, retry, catchError } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from 'src/environments/environment';
@@ -198,11 +198,11 @@ export class AlyvixApiService {
   }
 
   runOne(name:string) {
-
+    return this.httpClient.get<any>('/selector_run_api?action=run&name=' + name).subscribe(x => console.log(x));
   }
 
-  runSelection() {
-
+  runSelection(flow:AxScriptFlow[]) {
+    return this.httpClient.post('/central_panel_run_api?action=run',flow).subscribe(x => console.log(x))
   }
 
 

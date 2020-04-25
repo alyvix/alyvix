@@ -17,7 +17,7 @@
               <div *ngIf="!isSelected(section.name)" class="alyvix-icon ai-draggable clickable" (click)="addSectionToScript(section,$event)"></div>
               <div class="alyvix-icon" *ngIf="isSelected(section.name)"></div>
               <div class="alyvix-icon" *ngIf="isSelected(section.name)"></div>
-              <div class="alyvix-icon">
+              <div class="alyvix-icon clickable" (click)="runSection(section)">
                   <i class="fas fa-play"></i>
               </div>
             </div>

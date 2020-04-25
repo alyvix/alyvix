@@ -317,6 +317,10 @@ export class ObjectsPanelComponent implements OnInit {
     Draggable.startDrag(event,"section",this.sectionToStep(section));
   }
 
+  runSection(section:SectionVM) {
+    this.alyvixApi.runOne(section.name)
+  }
+
   addSectionToScript(section:SectionVM,event:MouseEvent) {
     event.stopPropagation();
     this.objectRegistry.addStep.emit(this.sectionToStep(section));

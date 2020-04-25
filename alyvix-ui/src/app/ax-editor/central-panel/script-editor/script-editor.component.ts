@@ -9,6 +9,7 @@ import { RowVM } from 'src/app/ax-selector/ax-table/ax-table.component';
 import * as _ from 'lodash';
 import { Draggable } from 'src/app/utils/draggable';
 import { ModalService, Modal } from 'src/app/modal-service.service';
+import { AlyvixApiService } from 'src/app/alyvix-api.service';
 
 @Component({
   selector: 'app-script-editor',
@@ -91,7 +92,8 @@ export class ScriptEditorComponent implements OnInit {
   constructor(
     private objectRegistry:ObjectsRegistryService,
     private selectorDatastore:SelectorDatastoreService,
-    private modal:ModalService
+    private modal:ModalService,
+    private alyvixApi:AlyvixApiService,
     ) { }
 
   ngOnInit() {
@@ -265,6 +267,11 @@ export class ScriptEditorComponent implements OnInit {
       ),
       this._steps.length-offset
     );
+  }
+
+  runSelection() {
+    const flow = this.selectedSteps.map(s => this.fromStep(s));
+    this.alyvixApi.runSelection(flow);
   }
 
 

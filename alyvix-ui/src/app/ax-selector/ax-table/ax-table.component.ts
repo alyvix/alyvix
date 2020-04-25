@@ -484,6 +484,10 @@ export class AxTableComponent implements OnInit {
     this.objectRegistry.addStep.emit(this.toStep(row));
   }
 
+  run(row:RowVM) {
+    this.api.runOne(row.name);
+  }
+
 
 
 
