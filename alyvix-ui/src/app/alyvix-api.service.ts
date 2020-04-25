@@ -193,16 +193,16 @@ export class AlyvixApiService {
     })
   }
 
-  run(action:string) {
+  run(action:string):Observable<any> {
     return this.httpClient.get<any>('/ide_run_api?action='+action)
   }
 
-  runOne(name:string) {
-    return this.httpClient.get<any>('/selector_run_api?action=run&name=' + name).subscribe(x => console.log(x));
+  runOne(name:string):Observable<any> {
+    return this.httpClient.get<any>('/selector_run_api?action=run&name=' + name);
   }
 
-  runSelection(flow:AxScriptFlow[]) {
-    return this.httpClient.post('/central_panel_run_api?action=run',flow).subscribe(x => console.log(x))
+  runSelection(flow:AxScriptFlow[]):Observable<any> {
+    return this.httpClient.post('/central_panel_run_api?action=run',flow)
   }
 
 

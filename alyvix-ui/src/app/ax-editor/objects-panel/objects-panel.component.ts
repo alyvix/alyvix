@@ -8,6 +8,7 @@ import { Utils } from 'src/app/utils';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
 import { Draggable } from 'src/app/utils/draggable';
 import { ModalService, Modal } from 'src/app/modal-service.service';
+import { RunnerService } from 'src/app/runner.service';
 
 
 
@@ -23,6 +24,7 @@ export class ObjectsPanelComponent implements OnInit {
     private editorService:EditorService,
     private selectorDatastore:SelectorDatastoreService,
     private alyvixApi:AlyvixApiService,
+    private runner:RunnerService,
     private modal: ModalService
     ) { }
 
@@ -318,7 +320,7 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   runSection(section:SectionVM) {
-    this.alyvixApi.runOne(section.name)
+    this.runner.runOne(section.name)
   }
 
   addSectionToScript(section:SectionVM,event:MouseEvent) {

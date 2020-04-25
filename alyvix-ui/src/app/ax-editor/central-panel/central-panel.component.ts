@@ -20,12 +20,14 @@ import { Step } from './script-editor/step/step.component';
 })
 export class CentralPanelComponent implements OnInit {
 
+  static consoleTab:LeftSelection = {name: 'Console', type:'console'};
+
   private throttledChange:EventEmitter<[LeftSelection,MapRowVM[]]> = new EventEmitter();
 
   monitorTab:LeftSelection = {name: 'Monitor', type:'monitor'};
-  consoleTab:LeftSelection = {name: 'Console', type:'console'};
 
-  baseTabs: LeftSelection[] = [this.monitorTab,this.consoleTab];
+
+  baseTabs: LeftSelection[] = [this.monitorTab,CentralPanelComponent.consoleTab];
 
   tabs: LeftSelection[] = [];
   steps:AxScriptFlow[] = [];
@@ -56,13 +58,13 @@ export class CentralPanelComponent implements OnInit {
 
         let isCurrentResolution = s && s.length > 0 && s.every(x => x.selectedResolution === this.global.res_string)
         if(isCurrentResolution) {
-          this.baseTabs = [this.monitorTab,this.consoleTab];
+          this.baseTabs = [this.monitorTab,CentralPanelComponent.consoleTab];
           if(!this.tabs.includes(this.monitorTab)) {
-            this.tabs = this.tabs.filter(x => x.name !== this.consoleTab.name)
+            this.tabs = this.tabs.filter(x => x.name !== CentralPanelComponent.consoleTab.name)
             this.tabs = this.tabs.concat(this.baseTabs);
           }
         } else {
-          this.baseTabs = [this.consoleTab];
+          this.baseTabs = [CentralPanelComponent.consoleTab];
           if(this.tabs.includes(this.monitorTab)) {
             this.tabs = this.tabs.filter(x => x.name !== this.monitorTab.name)
             if(this.selected.name === this.monitorTab.name && this.tabs[0]) {
@@ -75,13 +77,17 @@ export class CentralPanelComponent implements OnInit {
 
     this.editorService.getLeftSelection().subscribe(s => {
       if(s) {
-        this.tabs = [s].concat(this.baseTabs);
-        this.selected = s;
-        if(this.selected.map) {
-          this.mapSelected = this.mapName(this.selected.map());
-        }
-        if(this.selected.steps) {
-          this.steps = Array.from(this.selected.steps()); // need to do a copy for the script editor to catch the change
+        if(s.name === CentralPanelComponent.consoleTab.name) {
+          this.selectTab(s)
+        } else {
+          this.tabs = [s].concat(this.baseTabs);
+          this.selected = s;
+          if(this.selected.map) {
+            this.mapSelected = this.mapName(this.selected.map());
+          }
+          if(this.selected.steps) {
+            this.steps = Array.from(this.selected.steps()); // need to do a copy for the script editor to catch the change
+          }
         }
       }
     })

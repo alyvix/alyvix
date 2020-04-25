@@ -10,6 +10,7 @@ import { DesignerDatastoreService } from './app/ax-designer/designer-datastore.s
 import { EditorModule } from './app/ax-editor/editor.module';
 import { AxModelMock } from './app/ax-model/mock';
 import { EditorService } from './app/ax-editor/editor.service';
+import { RunnerService } from './app/runner.service';
 
 
 if (environment.production) {
@@ -120,8 +121,8 @@ function setRunState(state:string) {
     zone.run(() => {
       console.log('set run state ' + state);
       if (editor) {
-        const editorService = editor.injector.get(EditorService);
-        editorService.runState.emit(state);
+        const runnerService = editor.injector.get(RunnerService);
+        runnerService.setState(state);
       }
     });
   }

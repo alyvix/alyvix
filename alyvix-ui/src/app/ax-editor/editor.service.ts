@@ -4,6 +4,8 @@ import { BehaviorSubject, Observable, from, timer } from 'rxjs';
 import { AxScriptFlow } from '../ax-model/model';
 import { Step } from './central-panel/script-editor/step/step.component';
 import { debounce } from 'rxjs/operators';
+import { RunnerService } from '../runner.service';
+import { CentralPanelComponent } from './central-panel/central-panel.component';
 
 
 export interface LeftSelection{
@@ -27,7 +29,6 @@ export class EditorService {
 
   private _selection:BehaviorSubject<LeftSelection> = new BehaviorSubject<LeftSelection>(null);
   objectChanged:EventEmitter<string> = new EventEmitter()
-  runState:EventEmitter<string> = new EventEmitter()
   setSection:EventEmitter<string> = new EventEmitter()
   private tab:AxFile
 
@@ -40,13 +41,22 @@ export class EditorService {
   private throttledChange:EventEmitter<any> = new EventEmitter();
 
 
+  private running = false;
+
   constructor(
-    private selectorDatastore:SelectorDatastoreService
+    private selectorDatastore:SelectorDatastoreService,
+    private runnerService:RunnerService
   ) {
     this.selectorDatastore.tabSelected().subscribe(tab => this.tab = tab);
     this.throttledChange.pipe(debounce(() => timer(500))).subscribe(x =>{
       this.save().subscribe(x => {});
     });
+    this.runnerService.running().subscribe(x => {
+      if(this.running && !x) { // end run
+        this.setLeftSelection(CentralPanelComponent.consoleTab)
+      }
+      this.running = x;
+    })
   }
 
 

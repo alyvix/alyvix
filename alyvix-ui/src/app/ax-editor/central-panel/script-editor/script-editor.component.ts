@@ -10,6 +10,7 @@ import * as _ from 'lodash';
 import { Draggable } from 'src/app/utils/draggable';
 import { ModalService, Modal } from 'src/app/modal-service.service';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
+import { RunnerService } from 'src/app/runner.service';
 
 @Component({
   selector: 'app-script-editor',
@@ -93,7 +94,7 @@ export class ScriptEditorComponent implements OnInit {
     private objectRegistry:ObjectsRegistryService,
     private selectorDatastore:SelectorDatastoreService,
     private modal:ModalService,
-    private alyvixApi:AlyvixApiService,
+    private runner:RunnerService
     ) { }
 
   ngOnInit() {
@@ -271,7 +272,7 @@ export class ScriptEditorComponent implements OnInit {
 
   runSelection() {
     const flow = this.selectedSteps.map(s => this.fromStep(s));
-    this.alyvixApi.runSelection(flow);
+    this.runner.runSelection(flow);
   }
 
 

@@ -16,6 +16,7 @@ import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.servi
 import { Step } from 'src/app/ax-editor/central-panel/script-editor/step/step.component';
 import { Draggable } from 'src/app/utils/draggable';
 import { ModalService, Modal } from 'src/app/modal-service.service';
+import { RunnerService } from 'src/app/runner.service';
 
 export interface RowVM{
   name:string
@@ -41,6 +42,7 @@ export class AxTableComponent implements OnInit {
     private _sanitizer: DomSanitizer,
     @Inject('GlobalRefSelector') private global: SelectorGlobal,
     private api:AlyvixApiService,
+    private runner:RunnerService,
     private datastore:SelectorDatastoreService,
     private changeDetecor: ChangeDetectorRef,
     private objectRegistry:ObjectsRegistryService,
@@ -485,7 +487,7 @@ export class AxTableComponent implements OnInit {
   }
 
   run(row:RowVM) {
-    this.api.runOne(row.name);
+    this.runner.runOne(row.name);
   }
 
 

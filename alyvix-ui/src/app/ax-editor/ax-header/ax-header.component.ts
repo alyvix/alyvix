@@ -4,6 +4,7 @@ import { EditorService } from '../editor.service';
 import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
 import { ModalService, Modal } from 'src/app/modal-service.service';
+import { RunnerService } from 'src/app/runner.service';
 
 @Component({
   selector: 'ax-header',
@@ -14,6 +15,7 @@ export class AxHeaderComponent implements OnInit {
 
   constructor(@Inject('GlobalRefSelector') private global: SelectorGlobal,
     private editorService:EditorService,
+    private runnerService:RunnerService,
     private api:AlyvixApiService,
     private modal:ModalService
   ) { }
@@ -23,7 +25,7 @@ export class AxHeaderComponent implements OnInit {
 
   ngOnInit() {
     this.name = this.global.current_library_name;
-    this.editorService.runState.subscribe(state => this.running = state === 'run');
+    this.runnerService.running().subscribe(x => this.running = x)
   }
 
   save() {
@@ -109,11 +111,13 @@ export class AxHeaderComponent implements OnInit {
   }
 
   run() {
-    this.editorService.save().subscribe(x =>
-      this.api.run(this.running ? 'stop' : 'run').subscribe(x => {
-        this.running = !this.running;
-      })
-    );
+    this.editorService.save().subscribe(x => {
+      if(this.running) {
+        this.runnerService.stop()
+      } else {
+        this.runnerService.runAll()
+      }
+    });
   }
 
 
