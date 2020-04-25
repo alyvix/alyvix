@@ -263,9 +263,7 @@ export class AxTableComponent implements OnInit {
     return document.activeElement === input;
   }
 
-  isNameValid(input:HTMLInputElement):boolean {
-    return input.validity.valid && input.value.length > 0;
-  }
+
 
   sortColumn(column) {
     if (this.sort.column === column) {
@@ -332,10 +330,7 @@ export class AxTableComponent implements OnInit {
     return SelectorUtils.isDuplicatedName(name, this.data);
   }
 
-  nameExists(old:string, name:string):boolean {
-    if(old === name) { return false; }
-    return this.data.filter(x => name === x.name).length > 0;
-  }
+
 
   private originalName = "";
 
@@ -402,8 +397,7 @@ export class AxTableComponent implements OnInit {
   }
 
   onChangeName(row:RowVM,name: string, nameInput: HTMLInputElement) {
-
-    if(this.isNameValid(nameInput) && !this.nameExists(row.name,name)) {
+    if(this.datastore.nameValidation(nameInput, row.name) == null) {
       row.name = name;
     }
 

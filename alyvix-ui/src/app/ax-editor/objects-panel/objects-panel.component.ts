@@ -166,6 +166,10 @@ export class ObjectsPanelComponent implements OnInit {
 
   }
 
+  hasFocus(input:HTMLInputElement):boolean {
+    return document.activeElement === input;
+  }
+
   changeMapName(map:MapsVM, event:Event) {
 
     const target = (event.target as HTMLInputElement)
@@ -235,6 +239,13 @@ export class ObjectsPanelComponent implements OnInit {
       ],
       cancel: Modal.NOOP
     });
+
+  }
+
+  onChangeSectionName(section:SectionVM,name: string, nameInput: HTMLInputElement) {
+    if(this.selectorDatastore.nameValidation(nameInput, section.name) == null) {
+      section.name = name;
+    }
 
   }
 

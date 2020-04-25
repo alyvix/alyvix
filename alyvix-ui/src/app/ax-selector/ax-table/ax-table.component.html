@@ -37,20 +37,15 @@
                   <span class="object-preview">{{row.name}}</span>
 
                   <input #nameInput #name="ngModel" [disabled]="readonly" type="text" class="primary"
-                    [ngClass]="{'ng-invalid': nameExists(row.name,nameInput.value) || !isNameValid(nameInput) }" spellcheck="false"
+                    [ngClass]="{'ng-invalid': datastore.nameValidation(nameInput,row.name) != null  }" spellcheck="false"
                     [ngModel]="row.name" (ngModelChange)="onChangeName(row,$event,nameInput)" (focusout)="confirmName(row,nameInput)" (focus)="saveOriginalName(row)" (keyup)="nameKeyup($event,row)"
                     pattern="[a-zA-Z0-9_\- ]+" />
+                  <div *ngIf="hasFocus(nameInput)  && datastore.nameValidation(nameInput,row.name) && (name.dirty || name.touched)" class="name-popover">
+                      <div class="name-popover-content">
+                        {{ datastore.nameValidation(nameInput,row.name) }}
+                      </div>
+                  </div>
 
-                  <div *ngIf="!isNameValid(nameInput) && (name.dirty || name.touched)" class="name-popover">
-                      <div class="name-popover-content">
-                        Only alphanumeric characters and - _ ` ` (space) are allowed
-                      </div>
-                  </div>
-                  <div *ngIf="hasFocus(nameInput)  && nameExists(row.name,nameInput.value)" class="name-popover">
-                      <div class="name-popover-content">
-                        Object name already in use
-                      </div>
-                  </div>
                 </cdk-cell>
             </ng-container>
 

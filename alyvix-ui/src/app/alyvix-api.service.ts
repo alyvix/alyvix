@@ -197,6 +197,14 @@ export class AlyvixApiService {
     return this.httpClient.get<any>('/ide_run_api?action='+action)
   }
 
+  runOne(name:string) {
+
+  }
+
+  runSelection() {
+
+  }
+
 
 
 

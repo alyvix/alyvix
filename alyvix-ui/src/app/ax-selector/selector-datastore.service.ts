@@ -414,6 +414,27 @@ export class SelectorDatastoreService {
     this.refactorInObject(oldName,newName)
   }
 
+  nameCheck(name:string):boolean {
+    return name === "main" ||
+    name === "fail" ||
+    name === "exit" ||
+    this.data.some(x => name === x.name) ||
+    this.script.value.sections.some(x => name === x.name) ||
+    this.maps.value.some(x => name === x.name)
+  }
+
+  nameValidation(input:HTMLInputElement, old:string):string {
+      const valid = input.validity.valid && input.value.length > 0;
+
+      const duplicate = input.value === old ? false : this.nameCheck(input.value);
+
+      let result = null
+
+      if(!valid) result = "Only alphanumeric characters and - _ ` ` (space) are allowed"
+      if(duplicate) result =  'Object name already in use'
+      return result
+  }
+
 
 
 

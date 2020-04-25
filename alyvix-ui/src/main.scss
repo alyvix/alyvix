@@ -38,6 +38,33 @@ body{
 }
 
 
+input[type=date],
+input[type=datetime],
+input[type=datetime-local],
+input[type=email],
+input[type=month],
+input[type=number],
+input[type=password],
+input[type=range],
+input[type=search],
+input[type=tel],
+input[type=text],
+input[type=time],
+input[type=url],
+input[type=week]
+{
+
+
+
+
+    &.ng-invalid {
+      border-bottom: 1px solid $red !important;
+      background-color: $lightred !important;
+    }
+
+
+}
+
 .form-group input[type=date],
 .form-group input[type=datetime],
 .form-group input[type=datetime-local],
