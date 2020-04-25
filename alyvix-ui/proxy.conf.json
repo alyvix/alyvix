@@ -166,5 +166,11 @@
         "secure": false,
         "logLevel": "debug",
         "changeOrigin": true
+      },
+      "/button_grab_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
       }
   }

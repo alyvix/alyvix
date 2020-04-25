@@ -53,6 +53,8 @@ export class AxTableComponent implements OnInit {
   production: boolean = environment.production;
   private _data: RowVM[] = [];
 
+  imageUpdate = 0;
+
 
   @Output() import = new EventEmitter<RowVM[]>();
 
@@ -162,6 +164,19 @@ export class AxTableComponent implements OnInit {
         });
       }
     });
+  }
+
+  regrabObject() {
+    if (this.singleSelection()) {
+      this.editing = this.selectedRows[0];
+      this.datastore.saveData(this.data,false).subscribe(x => {
+        if (x.success) {
+          this.api.grab(this.delay,this.editing.name).subscribe(x => {
+
+          });
+        }
+      });
+    }
   }
 
   changeTransactionGroup(row:RowVM,tg:string) {
@@ -509,6 +524,7 @@ export class AxTableComponent implements OnInit {
 
   ngOnInit(): void {
     this.datastore.editRow().subscribe(r => {
+      this.imageUpdate++
       if(this.editor && r && this.data.find(d => d.name === r.name)) {
         this.updateLibrary(r);
       } else if (r && this.editing) {

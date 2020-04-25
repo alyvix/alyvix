@@ -103,7 +103,7 @@
             <ng-container cdkColumnDef="screen">
                 <cdk-cell *cdkCellDef="let row" class="small">
                   <img *ngIf="row.object.components[row.selectedResolution] && readonly" [src]="imageFor(row.object.components[row.selectedResolution].screen)">
-                  <img *ngIf="row.object.components[row.selectedResolution] && !readonly" src="/get_screen_for_selector?object_name={{row.name}}&resolution_string={{row.selectedResolution}}">
+                  <img *ngIf="row.object.components[row.selectedResolution] && !readonly" src="/get_screen_for_selector?object_name={{row.name}}&resolution_string={{row.selectedResolution}}&update={{imageUpdate}}">
                 </cdk-cell>
             </ng-container>
 
@@ -152,10 +152,10 @@
 </div>
 
 <ng-template #modificationButtons >
-    <button class="btn btn-secondary add-btn" [disabled]="hasError()" (click)="newObject()">
-        <span class="inline-label">Delay [sec]</span>
-        <input class="small" [(ngModel)]="delay" type="number" (click)="preventClick($event)"  min="0" />
-      Add</button>
+    <span class="inline-label">Delay [sec]</span>
+    <input class="small" [(ngModel)]="delay" type="number" (click)="preventClick($event)"  min="0" /> &nbsp;
+    <button class="btn btn-secondary" [disabled]="hasError()"  *ngIf="singleSelection()" (click)="regrabObject()">Grab</button>
+    <button class="btn btn-secondary" [disabled]="hasError()" (click)="newObject()">Add</button>
     <button class="btn btn-secondary" [disabled]="hasError()" *ngIf="singleSelection() && isSelectedInWorkingResolution() && !editor" (click)="edit()">Edit</button>
     <button class="btn btn-secondary" [disabled]="hasError()" *ngIf="isSomethingSelected()" (click)="duplicate()">Duplicate</button>
     <button class="btn btn-danger" [disabled]="hasError()" *ngIf="isSomethingSelected()" (click)="remove()">Remove</button>
