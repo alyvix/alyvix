@@ -946,7 +946,7 @@ def ide_run_api_process_old(current_filename, library_dict):
     browser_class._browser_3.ExecuteJavascript("setFilePath('" + "sds" + "')")
 
 
-def ide_run_api_process():
+def ide_run_api_process(selections=None):
     global current_filename
     global library_dict
     global alyvix_run_process
@@ -972,8 +972,19 @@ def ide_run_api_process():
         # directory already exists
         pass
 
-    with open(alyvix_run_tmp_path + os.sep + alyvix_file_name, 'w') as f:
-        json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+    if selections is not None:
+        library_dict_tmp = copy.copy(library_dict)
+
+        if isinstance(selections,list):
+            library_dict_tmp["script"]["case"] = selections
+        else:
+            library_dict_tmp["script"]["case"] = [selections]
+
+        with open(alyvix_run_tmp_path + os.sep + alyvix_file_name, 'w') as f:
+            json.dump(library_dict_tmp, f, indent=4, sort_keys=True, ensure_ascii=False)
+    else:
+        with open(alyvix_run_tmp_path + os.sep + alyvix_file_name, 'w') as f:
+            json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
 
     python_interpreter = sys.executable
 
@@ -1114,9 +1125,12 @@ def selector_run_api():
     global alyvix_run_tmp_path
     #action=run, stop
     action = request.args.get("action")
+
+    selections = request.args.get("name")
+
     if action == "run":
         browser_class._browser_3.ExecuteJavascript("consoleClear()")
-        alyvix_run_thread = threading.Thread(target=ide_run_api_process)
+        alyvix_run_thread = threading.Thread(target=ide_run_api_process, args=(selections,))
         alyvix_run_thread.start()
     elif action == "stop":
         kill_alyvix_process = True
@@ -1137,10 +1151,13 @@ def central_panel_run_api():
     global library_dict
     global alyvix_run_tmp_path
     #action=run, stop
+
+    selections = request.json
+
     action = request.args.get("action")
     if action == "run":
         browser_class._browser_3.ExecuteJavascript("consoleClear()")
-        alyvix_run_thread = threading.Thread(target=ide_run_api_process)
+        alyvix_run_thread = threading.Thread(target=ide_run_api_process, args=(selections,))
         alyvix_run_thread.start()
     elif action == "stop":
         kill_alyvix_process = True
@@ -1250,6 +1267,15 @@ def ide_button_grab_api():
         while True:
             if browser_class.IsWindowVisible(browser_class._hwnd_3) is False \
                     and browser_class.IsIconic(browser_class._hwnd_3) is False:
+                break
+
+    elif caller == "selector":
+
+        browser_class.hide(browser_class._hwnd_2)
+
+        while True:
+            if browser_class.IsWindowVisible(browser_class._hwnd_2) is False \
+                    and browser_class.IsIconic(browser_class._hwnd_2) is False:
                 break
 
 
@@ -2408,8 +2434,12 @@ def set_library_api():
     global library_dict
     global original_screens
     global library_dict_in_editing
+    global original_library_dict
 
     json_string = json.loads(request.data)
+
+    if bool(original_library_dict) is False:
+        original_library_dict = copy.deepcopy(json_string["library"])
 
     objects = json_string["library"]["objects"]
 
@@ -2686,7 +2716,7 @@ def test_txt_regexp():
         #args_in_string = re.findall("\\{[1-9]\d*\\}|\\{.*\\.extract\\}|\\{.*\\.text\\}|\\{.*\\.check\\}|\\{.*\\..*\\}",
         #                            regexp, re.IGNORECASE)
 
-        args_in_string = re.findall("\\{[1-9]\d*\\}|\\{.*\\..*\\}", regexp, re.IGNORECASE)
+        args_in_string = re.findall("\{[1-9]\d*\}|\{[1-9]\d*[^\}]+\}|\{[\w]+\.[\w]+\}|\{[\w]+\.[\w]+,[^\}]+\}", regexp, re.IGNORECASE)
 
         if len(args_in_string) > 0:
             ret_dict = {'match': 'yellow'}
