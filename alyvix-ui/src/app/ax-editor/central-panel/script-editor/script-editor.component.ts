@@ -29,6 +29,7 @@ export class ScriptEditorComponent implements OnInit {
   objects:RowVM[] = [];
 
   @ViewChild('actionList',{static: true}) actionList:ElementRef;
+  @ViewChild('actionScroll',{static: true}) actionScroll:ElementRef;
 
   @Output() change:EventEmitter<AxScriptFlow[]> = new EventEmitter();
 
@@ -261,13 +262,11 @@ export class ScriptEditorComponent implements OnInit {
   }
 
   dragPosition(event:DragEvent,offset:number):number {
-    return Math.min(
-      Math.max(
-        0,
-        Math.floor((event.clientY - this.actionList.nativeElement.offsetTop)/65) - 1
-      ),
-      this._steps.length-offset
-    );
+    const position = Math.max(
+      0,
+      Math.floor((this.actionScroll.nativeElement.scrollTop + (event.clientY - this.actionList.nativeElement.offsetTop))/65) - 1
+    )
+    return Math.min(position,this._steps.length-offset);
   }
 
   runSelection() {
