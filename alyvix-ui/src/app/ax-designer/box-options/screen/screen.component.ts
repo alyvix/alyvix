@@ -49,7 +49,11 @@ export class ScreenComponent implements OnInit {
     });
     this.datastore.getSelectedFile().subscribe(f => {
       if (f.length > 0) {
-        this.changePath(f);
+        if(this.select_file) {
+          this.changePath(f);
+        } else {
+          this.changeArguments(f);
+        }
         this.datastore.setSelectedFile("");
         this.changeDetecor.markForCheck();
         this.changeDetecor.detectChanges();
@@ -99,8 +103,14 @@ export class ScreenComponent implements OnInit {
   }
 
 
-
+  select_file = true
   selectFile() {
+    this.select_file = true;
+    this.alyvixApi.openOpenFileDialog().subscribe(x => {});
+  }
+
+  selectArgument() {
+    this.select_file = false;
     this.alyvixApi.openOpenFileDialog().subscribe(x => {});
   }
 
