@@ -271,7 +271,8 @@ export class ScriptEditorComponent implements OnInit {
   }
 
   runSelection() {
-    const flow = this.selectedSteps.map(s => this.fromStep(s));
+    const flow = this._steps.filter(s => this.selectedSteps.includes(s)) // filter the main list so the order should be garanteed
+                    .map(s => this.fromStep(s));
     this.runner.runSelection(flow);
   }
 
