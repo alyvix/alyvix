@@ -973,7 +973,7 @@ def ide_run_api_process(selections=None):
         pass
 
     if selections is not None:
-        library_dict_tmp = copy.copy(library_dict)
+        library_dict_tmp = copy.deepcopy(library_dict)
 
         if isinstance(selections,list):
             library_dict_tmp["script"]["case"] = selections
@@ -1362,6 +1362,8 @@ def ide_button_grab_api():
     lm = LibraryManager()
 
     lm.set_json(library_dict)
+
+    current_objectname = object_name
 
     alyvix_file_dict = lm.build_objects_for_ide(current_objectname, resolution=res_string)
 
