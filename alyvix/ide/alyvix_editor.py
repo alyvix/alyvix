@@ -124,15 +124,16 @@ if __name__ == '__main__':
 
     server_port = 5000
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
     while True:
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = sock.connect_ex(('127.0.0.1', server_port))
 
         if result != 0:
             break # the port doesn't exist
         else:
             server_port += 1
+            sock.close()
 
 
     sock.close()

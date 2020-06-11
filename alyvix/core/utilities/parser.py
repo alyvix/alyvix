@@ -5,7 +5,7 @@ from datetime import datetime
 from alyvix.core.engine import EngineManager
 from alyvix.tools.library import LibraryManager
 from alyvix.tools.screen import ScreenManager
-
+from alyvix.core.utilities import common
 
 class Performance():
 
@@ -490,6 +490,10 @@ class ParserManager:
         #self._objects_result.append(result)
         #self._executed_object_name.append(object_name)
 
+        #for server: stop or brake
+        if result is None:
+            raise ValueError('server')
+
         if result.performance_ms == -1 and result.has_to_break is True:
             raise ValueError()
         elif result.performance_ms == -1 and result.has_to_break is False:
@@ -501,6 +505,9 @@ class ParserManager:
         return self._objects_result
 
     def _execute_section(self, section_name=None, args=None, map_names_map_keys=None):
+
+        if common.break_flag is True or common.stop_flag is True:
+            return
 
         if args is None:
             arguments = self._engine_arguments
@@ -520,6 +527,10 @@ class ParserManager:
             map_name_map_key = map_name_map_key[:-1]
 
         for key in section:
+
+            if common.break_flag is True or common.stop_flag is True:
+                return
+
             if isinstance(key, dict):
                 flow_key = key.get("flow", None)
 
@@ -549,6 +560,9 @@ class ParserManager:
                     current_map_name = for_key
 
                     for current_map_key in self._script_maps[current_map_name]:
+
+                        if common.break_flag is True or common.stop_flag is True:
+                            return
 
                         current_map = {"map_name": current_map_name, "map_key": current_map_key}
 
@@ -594,10 +608,13 @@ class ParserManager:
             self._execute_section()
         except ValueError as e:
             try:
-                self._execute_section(section_name="fail")
+                if common.stop_flag is False:
+                    common.break_flag = False
+                    self._execute_section(section_name="fail")
             except:
                 pass
         try:
-            self._execute_section(section_name="exit")
+            if common.stop_flag is False:
+                self._execute_section(section_name="exit")
         except:
             pass

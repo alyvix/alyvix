@@ -40,6 +40,7 @@ from .rectangle import RectangleManager
 from .text import TextManager
 from alyvix.core.interaction.mouse import MouseManager
 from alyvix.core.interaction.keyboard import KeyboardManager
+from alyvix.core.utilities import common
 
 
 class Roi:
@@ -617,7 +618,14 @@ class EngineManager(object):
         arr_scraped_txt = copy.deepcopy(self._arr_scraped_txt)
         arr_extracted_txt = copy.deepcopy(self._arr_extracted_txt)
 
+        if common.break_flag is True or common.stop_flag is True:
+            return
+
         for cnt_g in range(3):
+
+            if common.break_flag is True or common.stop_flag is True:
+                return
+
 
             # main component g0
             box = None
@@ -676,7 +684,8 @@ class EngineManager(object):
 
             if len(mains_found) > 0:
                 for main_found in mains_found:
-
+                    if common.break_flag is True or common.stop_flag is True:
+                        return
 
                     sub_results = []
 
@@ -1584,6 +1593,9 @@ class EngineManager(object):
 
     def execute(self):
 
+        if common.break_flag is True or common.stop_flag is True:
+            return
+
         self._result.timestamp = time.time()
 
         while self.total_threads != 0:
@@ -1675,6 +1687,10 @@ class EngineManager(object):
 
                     popen_input = []
                     popen_input.append(exe)
+
+                    if len(args) == 1 and args[0] == '':
+                        args = None
+
                     if args is not None:
                         popen_input.extend(args)
                     if self._verbose >= 1:
@@ -1752,6 +1768,9 @@ class EngineManager(object):
             print(self._get_timestamp_formatted() + ": Alyvix looks at " + self._performance_name)
 
         while True:
+
+            if common.break_flag is True or common.stop_flag is True:
+                return
 
             #t_before_grab = time.time()
             current_color_screen = self._screen_manager.grab_desktop(self._screen_manager.get_color_mat)
