@@ -230,6 +230,7 @@ export class AxTableComponent implements OnInit {
     this.changeDetecor.markForCheck();
     this.changeDetecor.detectChanges();
     this.datastore.setSelected(this.selectedRows);
+    this.datastore.changedSelection.emit(this.selectedRows);
   }
 
   deselectAll() {
@@ -237,6 +238,7 @@ export class AxTableComponent implements OnInit {
     this.changeDetecor.markForCheck();
     this.changeDetecor.detectChanges();
     this.datastore.setSelected(this.selectedRows);
+    this.datastore.changedSelection.emit(this.selectedRows);
   }
 
   selectedNames(): string {

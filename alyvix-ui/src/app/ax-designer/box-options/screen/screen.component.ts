@@ -23,7 +23,11 @@ export class ScreenComponent implements OnInit {
   call:AxSystemCall
 
 
-
+    // TO REPRODUCE
+    // 1. Create new object
+    // 2. Define a call using the select
+    // 3. Save
+    // 4. reopen the object
 
   processes: string[] = [];
 
