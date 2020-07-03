@@ -332,6 +332,8 @@ def draaawing():
 def designer_open_file_api():
     import tempfile, base64, zlib
 
+    caller = request.args.get('caller')
+
     ICON = zlib.decompress(base64.b64decode('eJxjYGAEQgEBBiDJwZDBy'
                                             'sAgxsDAoAHEQCEGBQaIOAg4sDIgACMUj4JRMApGwQgF/ykEAFXxQRc='))
 
@@ -351,9 +353,9 @@ def designer_open_file_api():
     #print(file_path)
 
     if browser_class._browser_3 is not None:
-        browser_class._browser_3.ExecuteJavascript("setExePath('" + file_path + "')")
+        browser_class._browser_3.ExecuteJavascript("setExePath('" + file_path + "','" + caller + "')")
     else:
-        browser_class._browser_1.ExecuteJavascript("setExePath('" + file_path + "')")
+        browser_class._browser_1.ExecuteJavascript("setExePath('" + file_path + "','" + caller + "')")
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
