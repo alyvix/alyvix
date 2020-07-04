@@ -92,12 +92,12 @@ export class AxHeaderComponent implements OnInit {
       this.api.checkModification().subscribe(modifications => {
         if(modifications.success) {
           this.modal.open({
-            title: 'Open file',
-            body: 'Are you sure you want to close the current test case?',
+            title: 'Open new Alyvix file',
+            body: 'You first need to close the current file, would you like to proceed?',
             actions: [
               {
-                title: 'Open',
-                importance: 'btn-secondary',
+                title: 'Close',
+                importance: 'btn-danger',
                 callback: () => { this.api.openCase() }
               }
             ],
