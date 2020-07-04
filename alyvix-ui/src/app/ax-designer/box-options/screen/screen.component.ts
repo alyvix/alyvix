@@ -34,6 +34,10 @@ export class ScreenComponent implements OnInit {
 
   @ViewChild('selectProcess',{static: true}) selectProcess: ElementRef;
 
+
+  private CALLER_PATH = 'path'
+  private CALLER_ARG = 'arg'
+
   ngOnInit() {
     this.axService.getModelAsync().subscribe(ax => {
       if(this.axService.axModel) {
@@ -51,14 +55,14 @@ export class ScreenComponent implements OnInit {
     this.alyvixApi.getProcesses().subscribe(x => {
       this.processes = _.uniq(x.object_exists);
     });
-    this.datastore.getSelectedFile().subscribe(f => {
-      if (f.length > 0) {
-        if(this.select_file) {
-          this.changePath(f);
-        } else {
-          this.changeArguments(f);
+    this.datastore.getSelectedFile().subscribe(o => {
+      if (o) {
+        if(o.caller === this.CALLER_PATH) {
+          this.changePath(o.file);
+        } else if(o.caller === this.CALLER_ARG) {
+          this.changeArguments(o.file);
         }
-        this.datastore.setSelectedFile("");
+        this.datastore.resetFile();
         this.changeDetecor.markForCheck();
         this.changeDetecor.detectChanges();
       }
@@ -107,15 +111,12 @@ export class ScreenComponent implements OnInit {
   }
 
 
-  select_file = true
   selectFile() {
-    this.select_file = true;
-    this.alyvixApi.openOpenFileDialog().subscribe(x => {});
+    this.alyvixApi.openOpenFileDialog(this.CALLER_PATH).subscribe(x => {});
   }
 
   selectArgument() {
-    this.select_file = false;
-    this.alyvixApi.openOpenFileDialog().subscribe(x => {});
+    this.alyvixApi.openOpenFileDialog(this.CALLER_ARG).subscribe(x => {});
   }
 
 

@@ -66,19 +66,17 @@ function unloadAlyvixSelector() {
   }
 }
 
-function setExePath(path) {
-  console.log("Calling setExePath("+ path + ")")
+function setExePath(path,caller) {
+  console.log("Calling setExePath("+ path + "," + caller +")")
   const zone = ngZone();
   if(zone) {
     zone.run(() => {
-      console.log('setExePath ' + path );
       if(designer) {
         const datastore = designer.injector.get(DesignerDatastoreService);
-        datastore.setSelectedFile(path);
+        datastore.setSelectedFile(path,caller);
       } else if(editor) {
-        console.log("in editor")
         const datastore = editor.injector.get(DesignerDatastoreService);
-        datastore.setSelectedFile(path);
+        datastore.setSelectedFile(path,caller);
       }
     });
   }

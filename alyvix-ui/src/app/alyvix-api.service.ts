@@ -79,8 +79,8 @@ export class AlyvixApiService {
     return this.httpClient.get<any>("/get_user_process_api");
   }
 
-  openOpenFileDialog():Observable<any> {
-    return this.httpClient.get<any>("/designer_open_file_api");
+  openOpenFileDialog(caller:string):Observable<any> {
+    return this.httpClient.get<any>("/designer_open_file_api?caller="+caller);
   }
 
   checkTextDate(request:ScrapedValidation):Observable<ValidationResult> {
