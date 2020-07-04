@@ -49,7 +49,13 @@
               <div class="alyvix-icon ai-draggable clickable" (click)="addMapToScript(map,$event)"></div>
 
             </div>
-          <input spellcheck="false" [ngModel]="map.name" (change)="changeMapName(map,$event)"/>
+          <input #mapNameInput #mapName="ngModel" type="text" spellcheck="false" [ngModel]="map.name" (change)="changeMapName(map,$event)" pattern="[a-zA-Z0-9_\- ]+" 
+          [ngClass]="{'ng-invalid': selectorDatastore.nameValidation(mapNameInput,map.name) != null  }"/>
+          <div *ngIf="hasFocus(mapNameInput)  && selectorDatastore.nameValidation(mapNameInput,map.name) && (mapName.dirty || mapName.touched)" class="name-popover">
+            <div class="name-popover-content">
+              {{ selectorDatastore.nameValidation(mapNameInput,map.name) }}
+            </div>
+        </div>
           <button class="btn light" (click)="removeMap(map)">Remove</button>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { isArray } from 'util';
 import * as _ from 'lodash';
+import { identifierModuleUrl } from '@angular/compiler';
 
 
 export interface AxFile {
@@ -428,10 +429,13 @@ export class SelectorDatastoreService {
 
       const duplicate = input.value === old ? false : this.nameCheck(input.value);
 
+      const isCli = input.value === "cli"
+
       let result = null
 
       if(!valid) result = "Only alphanumeric characters and - _ ` ` (space) are allowed"
       if(duplicate) result =  'Object name already in use'
+      if(isCli) result = '`cli` is not a valid name'
       return result
   }
 
