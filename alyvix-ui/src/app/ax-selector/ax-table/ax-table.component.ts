@@ -402,7 +402,7 @@ export class AxTableComponent implements OnInit {
             }
           ],
           cancel: Modal.cancel(() => {
-            row.name == this.originalName
+            row.name = this.originalName
             nameInput.value = this.originalName
           })
         });
