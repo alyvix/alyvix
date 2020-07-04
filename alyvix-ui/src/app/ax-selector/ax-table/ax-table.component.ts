@@ -275,6 +275,7 @@ export class AxTableComponent implements OnInit {
     this.datastore.saveData(this.data,false).subscribe(d => {
       this.filterData();
     });
+    this.datastore.changedSelection.emit(this.selectedRows);
 
   }
 
