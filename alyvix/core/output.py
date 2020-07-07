@@ -26,7 +26,7 @@ class OutputManager:
             if isinstance(value, MutableMapping):
                 self._delete_keys_from_dict(value, keys)
 
-    def _build_json(self, json_object, chunk, object_list, exit, duration):
+    def _build_json(self, json_object, chunk, object_list, engine_arguments_text, exit, state, duration):
 
         for object in json_object["objects"]:
             try:
@@ -89,10 +89,16 @@ class OutputManager:
 
             json_object["objects"][object.object_name] = object_dict
 
+        alias = ""
+
+        if chunk["alias"] is not None:
+            alias = chunk["alias"]
+
         json_object["run"] = {"host": chunk["host"], "user": chunk["user"],
                               "test": chunk["test"], "code": chunk["code"],
-                              "duration_s": round(duration,3),
-                              "exit": exit}
+                              "alias": alias, "duration_s": round(duration,3),
+                              "arguments": engine_arguments_text,
+                              "exit": exit, "state": state}
 
         return json_object
 
@@ -150,8 +156,8 @@ class OutputManager:
             except:
                 pass
 
-    def save(self, filename, json_object, chunk, object_list, exit, duration):
+    def save(self, filename, json_object, chunk, object_list, engine_arguments_text, exit, state, duration):
 
         with open(filename, 'w') as f:
-            json.dump(self._build_json(json_object, chunk, object_list, exit, duration), f, indent=4,
+            json.dump(self._build_json(json_object, chunk, object_list, engine_arguments_text, exit, state, duration), f, indent=4,
                       sort_keys=True, ensure_ascii=False)
