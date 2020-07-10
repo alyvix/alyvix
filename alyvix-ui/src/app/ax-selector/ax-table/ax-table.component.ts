@@ -17,6 +17,8 @@ import { Step } from 'src/app/ax-editor/central-panel/script-editor/step/step.co
 import { Draggable } from 'src/app/utils/draggable';
 import { ModalService, Modal } from 'src/app/modal-service.service';
 import { RunnerService } from 'src/app/runner.service';
+import { EditorService } from 'src/app/ax-editor/editor.service';
+import { Observable } from 'rxjs';
 
 export interface RowVM{
   name:string
@@ -46,7 +48,8 @@ export class AxTableComponent implements OnInit {
     private datastore:SelectorDatastoreService,
     private changeDetecor: ChangeDetectorRef,
     private objectRegistry:ObjectsRegistryService,
-    private modal:ModalService
+    private modal:ModalService,
+    private editorService:EditorService,
     ) {}
 
 
@@ -143,13 +146,19 @@ export class AxTableComponent implements OnInit {
       this.api.selectorCancel()
   }
 
+  private save(close:boolean):Observable<any> {
+    if(this.editor) {
+      return this.editorService.save()
+    } else {
+      return this.datastore.saveData(this.data,close)
+    }
+  }
+
   edit() {
     if (this.singleSelection()) {
       this.editing = this.selectedRows[0];
-      this.datastore.saveData(this.data,false).subscribe(x => {
-        if (x.success) {
+      this.save(false).subscribe(x => {
           this.api.selectorEdit(this.selectedRows[0].name, this.selectedRows[0].selectedResolution);
-        }
       });
     }
 
@@ -157,24 +166,20 @@ export class AxTableComponent implements OnInit {
 
   delay:number = 0;
   newObject() {
-    this.datastore.saveData(this.data,false).subscribe(x => {
-      if (x.success) {
+    this.save(false).subscribe(x => {
         this.api.newObject(this.delay).subscribe(x => {
 
         });
-      }
     });
   }
 
   regrabObject() {
     if (this.singleSelection()) {
       this.editing = this.selectedRows[0];
-      this.datastore.saveData(this.data,false).subscribe(x => {
-        if (x.success) {
+      this.save(false).subscribe(x => {
           this.api.grab(this.delay,this.editing.name).subscribe(x => {
 
           });
-        }
       });
     }
   }
@@ -272,7 +277,7 @@ export class AxTableComponent implements OnInit {
   duplicate() {
     SelectorUtils.duplicateRows(this.selectedRows, this.data).forEach(r => this.selectedRows.push(r));
     this.dataChange.emit(this.data);
-    this.datastore.saveData(this.data,false).subscribe(d => {
+    this.save(false).subscribe(x => {
       this.filterData();
     });
     this.datastore.changedSelection.emit(this.selectedRows);

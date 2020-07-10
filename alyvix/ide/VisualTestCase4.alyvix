@@ -1,0 +1,11 @@
+{
+    "maps": {},
+    "objects": {},
+    "script": {
+        "case": [],
+        "sections": {
+            "exit": [],
+            "fail": []
+        }
+    }
+}
