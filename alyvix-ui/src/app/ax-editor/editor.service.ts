@@ -38,7 +38,6 @@ export class EditorService {
 
   private beforeSavePromises:(() => Promise<any>)[] = [];
 
-  private throttledChange:EventEmitter<any> = new EventEmitter();
 
 
   private running = false;
@@ -48,9 +47,6 @@ export class EditorService {
     private runnerService:RunnerService
   ) {
     this.selectorDatastore.tabSelected().subscribe(tab => this.tab = tab);
-    this.throttledChange.pipe(debounce(() => timer(500))).subscribe(x =>{
-      this.save().subscribe(x => {});
-    });
     this.runnerService.running().subscribe(x => {
       if(this.running && !x) { // end run
         this.setLeftSelection(CentralPanelComponent.consoleTab)
@@ -88,10 +84,6 @@ export class EditorService {
     return Promise.all(this.beforeSavePromises.map(x => x()));
   }
 
-
-  saveThrottled() {
-    this.throttledChange.emit(true);
-  }
 
   save():Observable<any> {
     let self = this;

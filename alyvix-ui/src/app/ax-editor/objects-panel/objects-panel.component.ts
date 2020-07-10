@@ -89,13 +89,17 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   selectMain() {
-    this.selected = {name:'MAIN', type: 'object', steps: () => this.script.main, onChangeSteps: s => {
-      this.script.main = s;
-      this.selectorDatastore.setScripts(this.script);
-      this.editorService.save().subscribe(x => {});
-    }};
-    console.log('select Main')
-    this.editorService.setLeftSelection(this.selected);
+    console.log('selectMain')
+    setTimeout(() => {
+      this.selected = {name:'MAIN', type: 'object', steps: () => this.script.main, onChangeSteps: s => {
+        this.script.main = s;
+        this.selectorDatastore.setScripts(this.script);
+        this.editorService.save().subscribe(x => {});
+      }};
+      console.log('select Main')
+      this.editorService.setLeftSelection(this.selected);
+    }, 0);
+    
   }
 
   selectFail() {
@@ -173,14 +177,14 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   changeMapName(map:MapsVM, event:Event) {
-
+    console.log('changeMapName')
     const target = (event.target as HTMLInputElement)
     const usages = this.selectorDatastore.mapUsage(map.name);
 
     const rename = () => {
       map.name = target.value;
       this.selectMap(map);
-      this.editorService.saveThrottled();
+      this.editorService.save();
     }
 
     if(usages.length > 0) {
@@ -259,7 +263,7 @@ export class ObjectsPanelComponent implements OnInit {
     const rename = () => {
       section.name = target.value;
       this.selectSection(section);
-      this.editorService.saveThrottled();
+      this.editorService.save();
     }
 
     if(usages.length > 0) {
