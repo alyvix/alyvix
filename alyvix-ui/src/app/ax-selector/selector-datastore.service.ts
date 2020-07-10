@@ -280,7 +280,7 @@ export class SelectorDatastoreService {
                                                       .filter(c => (c as any).detection && (c as any).detection.type === 'text' )
                                                       .map(c => c as AxSelectorComponent)
         if(textComponents.some(c => (c.detection.features as T).type === 'map' && (c.detection.features as T).map === mapName)) {
-          return ["Used in object " + d.name + "@"+k]
+          return ["Used in object " + d.name + " at "+k]
         } else {
           return []
         }

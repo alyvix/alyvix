@@ -306,12 +306,14 @@ export class AxTableComponent implements OnInit {
       }
     });
     this.filterData();
+    this.datastore.changedSelection.emit(this.selectedRows);
   }
 
   resetFilters() {
     this.searchElementQuery = '';
     this.selectedResolution = this.currentResolution;
     this.filterData();
+    this.datastore.changedSelection.emit(this.selectedRows);
   }
 
   filterData() {
@@ -336,6 +338,10 @@ export class AxTableComponent implements OnInit {
         case 'transaction_group': return compare(x => x.object.measure.group);
         case 'date': return compare(x => x.object.date_modified);
       }
+    }).map(x => {
+      if(this.selectedResolution != 'All')
+        x.selectedResolution = this.selectedResolution
+      return x;
     })
 
     this.selectedRows = this.selectedRows.filter(r => this.filteredData.some(r1 => r.id == r1.id)); //reduce selection to only visibles

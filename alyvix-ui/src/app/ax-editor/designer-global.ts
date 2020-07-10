@@ -81,11 +81,20 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     });
   }
 
+  private resolution:String
+
   private checkIfChangedRows(rows:RowVM[]):boolean {
     let result = true;
     if(this.selectedRows) {
-      result = rows.length !== this.selectedRows.length || rows.some(x => this.selectedRows.map(y => y.name).findIndex(y => y !== x.name) >= 0)
+      const newResolution = Array.from(new Set(...rows.map(x => x.selectedResolution))).sort((a, b) => a.localeCompare(b)).join(',')
+      result = rows.length !== this.selectedRows.length ||
+               rows.some(x => this.selectedRows.map(y => y.name).findIndex(y => y !== x.name) >= 0) ||
+               this.resolution != newResolution
+      this.resolution = newResolution;
     }
+
+
+    console.log(result)
     return result;
   }
 
