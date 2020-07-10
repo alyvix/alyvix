@@ -29,6 +29,7 @@ def eprint(*args, **kwargs):
 help_main_string = '''
 usage: alyvix_robot.py [-h] --filename FILENAME [--object OBJECT]
                           [--args ARGUMENTS] [--mode MODE]
+                          [--pseudonym PSEUDONYM]
                           [--key KEY]
 '''
 
@@ -45,6 +46,8 @@ def print_help():
                             dummy description for args
       --mode MODE, -m MODE
                             dummy description for mode
+      --pseudonym PSEUDONYM, -p PSEUDONYM
+                            dummy description for pseudonym
       --key KEY, -k KEY
                             dummy description for key  
     
@@ -80,6 +83,7 @@ is_foride = False
 ide_sub_path = None
 
 engine_arguments = []
+engine_arguments_text = ""
 objects_names = []
 objects_name_for_nagios = []
 verbose = 0
@@ -88,6 +92,7 @@ output_mode = "alyvix"
 encrypt_pwd = None
 cipher_key = None
 cipher_iv = None
+alias = None
 
 publish_nats = False
 nats_server = ""
@@ -106,6 +111,7 @@ for i in range(0, len(sys.argv)):
         objects_names = shlex.split(objects_names)
     elif sys.argv[i] == "-a" or sys.argv == "--args":
         engine_arguments = sys.argv[i + 1]
+        engine_arguments_text = engine_arguments
 
         engine_arguments = engine_arguments.replace("\\'", "<alyvix_escp_quote>")
 
@@ -149,6 +155,8 @@ for i in range(0, len(sys.argv)):
         is_foride = True
     elif sys.argv[i] == "-m" or sys.argv[i] == "--mode":
         output_mode = sys.argv[i + 1]
+    elif sys.argv[i] == "-p" or sys.argv[i] == "--pseudonym":
+        alias = sys.argv[i + 1]
     elif sys.argv[i] == "-k" or sys.argv[i] == "--key":
         encrypt_pwd = sys.argv[i + 1]
         if len(encrypt_pwd) < 8:
@@ -270,10 +278,13 @@ if filename is not None:
 
     #< host > _ < user > _ < test > _ < YYYYMMDD_hhmmss_lll >
 
+    if alias is None:
+        test_name = filename_no_extension
+    else:
+        test_name = alias
+    code = hostname + "_" + username + "_" + test_name + "_" + date_formatted
 
-    code = hostname + "_" + username + "_" + filename_no_extension + "_" + date_formatted
-
-    chunk = {"host": hostname, "user": username, "test": filename_no_extension, "code": code}
+    chunk = {"host": hostname, "user": username, "test": filename_no_extension, "code": code, "alias": alias}
 
     state=0
 
@@ -325,14 +336,14 @@ if filename is not None:
             if output_mode == "nagios" and lm.measure_is_enable(perf["object_name"]) is True:
                 curr_perf_string = perf["performance_name"].replace(" ", "_") + "=" + str(int(perf["performance_ms"] )) + "ms"
                 if warning_s is not None:
-                    curr_perf_string += ";" + str(warning_s) + "s"
+                    curr_perf_string += ";" + str(warning_s*1000)
                     if perf["state"] == 1 and sys_exit < 1:
                         sys_exit = 1
                 else:
                     curr_perf_string += ";"
 
                 if critical_s is not None:
-                    curr_perf_string += ";" + str(critical_s) + "s"
+                    curr_perf_string += ";" + str(critical_s*1000)
                     if perf["state"] == 2 and sys_exit < 2:
                         sys_exit = 2
                 else:
@@ -344,6 +355,7 @@ if filename is not None:
                 if lm.measure_is_enable(perf["object_name"]) is True:
                     print(date_formatted + ": " + perf["performance_name"] + " DETECTED in " + '{:.3f}'.format(performance) + "s " +
                           "(+/-" + '{:.3f}'.format(accuracy) + ")")
+                sys_exit = 0
 
         else:
 
@@ -373,12 +385,12 @@ if filename is not None:
             """
             if output_mode == "nagios" and lm.measure_is_enable(perf["object_name"]) is True:
                 if warning_s is not None:
-                    curr_perf_string += ";" + str(warning_s) + "s"
+                    curr_perf_string += ";" + str(warning_s*1000)
                 else:
                     curr_perf_string += ";"
 
                 if critical_s is not None:
-                    curr_perf_string += ";" + str(critical_s) + "s"
+                    curr_perf_string += ";" + str(critical_s*1000)
                 else:
                     curr_perf_string += ";"
 
@@ -440,12 +452,12 @@ if filename is not None:
                         curr_perf_string = perf["performance_name"].replace(" ", "_") + "=ms"
 
                         if warning_s is not None:
-                            curr_perf_string += ";" + str(warning_s) + "s"
+                            curr_perf_string += ";" + str(warning_s*1000)
                         else:
                             curr_perf_string += ";"
 
                         if critical_s is not None:
-                            curr_perf_string += ";" + str(critical_s) + "s"
+                            curr_perf_string += ";" + str(critical_s*1000)
                         else:
                             curr_perf_string += ";"
 
@@ -480,7 +492,7 @@ if filename is not None:
         filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
 
         #if is_foride is False:
-        om.save(filename, lm.get_json(), chunk, pm.get_performances(), exit, t_end)
+        om.save(filename, lm.get_json(), chunk, pm.get_performances(),engine_arguments_text, exit, sys_exit, t_end)
 
     if publish_nats is True:
         nats_manager = NatsManager()
