@@ -148,27 +148,28 @@ export class ObjectsPanelComponent implements OnInit {
 
   removeMap(map:MapsVM) {
 
+    this.editorService.save().subscribe(x => {
 
-
-    this.modal.open({
-      title: 'Delete map',
-      body: 'Are you sure you want to delete ' + map.name + '?',
-      list: this.selectorDatastore.mapUsage(map.name),
-      actions: [
-        {
-          title: 'Delete',
-          importance: 'btn-danger',
-          callback: () => {
-            this.maps = this.maps.filter(x => x !== map);
-            this.editorService.save().subscribe(saved => {})
-            if(this.selected.name == map.name) {
-              this.selectMain();
+      this.modal.open({
+        title: 'Delete map',
+        body: 'Are you sure you want to delete ' + map.name + '?',
+        list: this.selectorDatastore.mapUsage(map.name),
+        actions: [
+          {
+            title: 'Delete',
+            importance: 'btn-danger',
+            callback: () => {
+              this.maps = this.maps.filter(x => x !== map);
+              this.editorService.save().subscribe(saved => {})
+              if(this.selected.name == map.name) {
+                this.selectMain();
+              }
             }
           }
-        }
-      ],
-      cancel: Modal.NOOP
-    });
+        ],
+        cancel: Modal.NOOP
+      });
+    })
 
   }
 
@@ -177,41 +178,43 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   changeMapName(map:MapsVM, event:Event) {
-    console.log('changeMapName')
-    const target = (event.target as HTMLInputElement)
-    const usages = this.selectorDatastore.mapUsage(map.name);
+    this.editorService.save().subscribe(x => {
+      console.log('changeMapName')
+      const target = (event.target as HTMLInputElement)
+      const usages = this.selectorDatastore.mapUsage(map.name);
 
-    const rename = () => {
-      map.name = target.value;
-      this.selectMap(map);
-      this.editorService.save();
-    }
+      const rename = () => {
+        map.name = target.value;
+        this.selectMap(map);
+        this.editorService.save();
+      }
 
-    if(usages.length > 0) {
-      this.modal.open({
-        title: 'Rename map',
-        body: 'Are you sure you want to rename ' + map.name + ' to ' + target.value + '?',
-        list: usages,
-        actions: [
-          {
-            title: 'Rename All',
-            importance: 'btn-primary',
-            callback: () => {
-              this.selectorDatastore.refactorMap(map.name,target.value)
-              rename();
+      if(usages.length > 0) {
+        this.modal.open({
+          title: 'Rename map',
+          body: 'Are you sure you want to rename ' + map.name + ' to ' + target.value + '?',
+          list: usages,
+          actions: [
+            {
+              title: 'Rename All',
+              importance: 'btn-primary',
+              callback: () => {
+                this.selectorDatastore.refactorMap(map.name,target.value)
+                rename();
+              }
+            },
+            {
+              title: 'Rename',
+              importance: 'btn-danger',
+              callback: rename
             }
-          },
-          {
-            title: 'Rename',
-            importance: 'btn-danger',
-            callback: rename
-          }
-        ],
-        cancel: Modal.cancel(() => { target.value = map.name })
-      });
-    } else {
-      rename();
-    }
+          ],
+          cancel: Modal.cancel(() => { target.value = map.name })
+        });
+      } else {
+        rename();
+      }
+    })
 
   }
 

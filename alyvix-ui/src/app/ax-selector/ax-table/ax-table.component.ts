@@ -516,7 +516,9 @@ export class AxTableComponent implements OnInit {
   }
 
   run(row:RowVM) {
-    this.runner.runOne(row.name);
+    this.save(false).subscribe(x => {
+      this.runner.runOne(row.name);
+    })
   }
 
 

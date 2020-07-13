@@ -90,7 +90,11 @@ export class EditorService {
     const promise = new Promise( function(resolve) {
       self.beforeSave().then(function() {
         self.selectorDatastore.save().subscribe(x => {
-          self.objectSave(x.map(x => x.name)).subscribe( y => resolve());
+          self.objectSave(x.map(x => x.name)).subscribe( y => {
+            self.selectorDatastore.getData().subscribe( z => {
+              resolve()
+            })
+          });
         });
       });
     });
