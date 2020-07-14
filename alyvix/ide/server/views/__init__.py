@@ -977,8 +977,12 @@ def ide_run_api_process(selections=None):
     if selections is not None:
         library_dict_tmp = copy.deepcopy(library_dict)
 
+        library_dict_tmp["script"]["sections"]["fail"] = []
+        library_dict_tmp["script"]["sections"]["exit"] = []
+
         if isinstance(selections,list):
             library_dict_tmp["script"]["case"] = selections
+
         else:
             library_dict_tmp["script"]["case"] = [selections]
 
@@ -2288,6 +2292,12 @@ def findb(key, dictionary):
             for d in v:
                 if isinstance(d, dict):
                     findb(key, d)
+
+@app.route("/force_set_lib", methods=['GET', 'POST'])
+def force_set_lib():
+    global current_objectname
+    browser_class._browser_3.ExecuteJavascript("reloadAlyvixIde('" + current_objectname + "')")
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 @app.route("/save_all", methods=['GET', 'POST'])
 def save_all():

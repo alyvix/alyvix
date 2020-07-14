@@ -31,6 +31,7 @@ import platform
 import sys
 
 import time
+import json
 
 import win32api
 import win32con
@@ -540,16 +541,33 @@ class ViewerManager(ViewerManagerBase):
 
     def close_window_3(self, window_handle, message, wparam, lparam):
 
-        try:
-            browser3 = cef.GetBrowserByWindowHandle(self._hwnd_3)
-            browser3.CloseBrowser(True)
+        result = 1
 
-            # selector_close_api close the web server without do anything else
-            aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
-        except:
-            pass
+        #res = urllib.request.urlopen(self._base_url + "/force_set_lib").read()
 
-        return win32gui.DefWindowProc(window_handle, message, wparam, lparam)
+        res = urllib.request.urlopen(self._base_url + "/is_lib_changed_api").read()
+
+        json_re = json.loads(res)
+
+        if json_re["success"] is True:
+            result = win32api.MessageBox(None, "Are you sure you want to exit Alyvix Editor?", "Exit", 1)
+        #result = 2
+
+        if result == 1:
+
+            try:
+                browser3 = cef.GetBrowserByWindowHandle(self._hwnd_3)
+                browser3.CloseBrowser(True)
+
+                # selector_close_api close the web server without do anything else
+                aa = urllib.request.urlopen(self._base_url + "/selector_close_api").read()
+            except:
+                pass
+
+            return win32gui.DefWindowProc(window_handle, message, wparam, lparam)
+        elif result == 2:
+            return
+
 
 
 
