@@ -2730,9 +2730,20 @@ def test_txt_regexp():
         #args_in_string = re.findall("\\{[1-9]\d*\\}|\\{.*\\.extract\\}|\\{.*\\.text\\}|\\{.*\\.check\\}|\\{.*\\..*\\}",
         #                            regexp, re.IGNORECASE)
 
+        #if "{cli."
+
+        cli_fail = False
+
         args_in_string = re.findall("\{[1-9]\d*\}|\{[1-9]\d*[^\}]+\}|\{[\w]+\.[\w]+\}|\{[\w]+\.[\w]+,[^\}]+\}", regexp, re.IGNORECASE)
 
-        if len(args_in_string) > 0:
+        for arg in args_in_string:
+            if "cli." in arg:
+                after_dot = re.findall("\{cli\.arg[1-9]\}", regexp, re.IGNORECASE)
+
+                if len(after_dot) == 0:
+                    cli_fail = True
+
+        if len(args_in_string) > 0 and cli_fail is False:
             ret_dict = {'match': 'yellow'}
         else:
 
