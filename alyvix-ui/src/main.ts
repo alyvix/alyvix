@@ -82,6 +82,19 @@ function setExePath(path,caller) {
   }
 }
 
+function saveState() {
+  console.log("Calling saveState()")
+  const zone = ngZone();
+  if(zone) {
+    zone.run(() => {
+      if(editor) {
+        const editorService = editor.injector.get(EditorService);
+        editorService.save();
+      }
+    });
+  }
+}
+
 function changeResolution(resolution) {
   console.log(resolution)
 }
@@ -176,6 +189,7 @@ function consoleClear() {
 (window as any).reloadAlyvixSelector = reloadAlyvixSelector;
 (window as any).unloadAlyvixSelector = unloadAlyvixSelector;
 (window as any).setExePath = setExePath;
+(window as any).saveState = saveState;
 (window as any).changeResolution = changeResolution;
 (window as any).reloadAlyvixIde = reloadAlyvixIde;
 (window as any).setRunState = setRunState;
