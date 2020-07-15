@@ -38,6 +38,7 @@ class ParserManager:
             "object_name": None,
             "series_name": None,
             "performance_name": None,
+            "detection_type": None,
             "group": None,
             "output": True,
             "thresholds": {},
@@ -301,6 +302,7 @@ class ParserManager:
 
         series_dict["series_name"] = series_name
         series_dict["object_name"] = object_name
+        series_dict["detection_type"] = self._lm.get_detection(object_name)["type"]
         series_dict["timeout"] = self._lm.get_timeout(object_name)
         try:
             series_dict["group"] = self._lm.get_measure(object_name)["group"]
