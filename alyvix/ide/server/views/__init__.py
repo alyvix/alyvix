@@ -2239,7 +2239,7 @@ def save_json():
         # close from x button
         if browser_class._ask_popup is True:
 
-            if dict_1 != dict_2:
+            if original_library_dict != current_json:
 
                 browser_class.close_with_popup()
             else:
