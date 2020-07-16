@@ -184,9 +184,13 @@ export class ObjectsPanelComponent implements OnInit {
       const usages = this.selectorDatastore.mapUsage(map.name);
 
       const rename = () => {
-        map.name = target.value;
-        this.selectMap(map);
-        this.editorService.save();
+        console.log(target.value)
+        const newMap = this.maps.find(x => x.name == map.name) //I need to find again the map because after saving the maps get reloaded in 181 so the reference is not valid anymore
+        if(newMap) {
+          newMap.name = target.value;
+          this.selectMap(newMap);
+        }
+        this.editorService.save().subscribe(x => '');
       }
 
       if(usages.length > 0) {
