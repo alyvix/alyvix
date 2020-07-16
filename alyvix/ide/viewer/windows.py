@@ -88,7 +88,8 @@ class ViewerManager(ViewerManagerBase):
         self._hwnd_3 = None
         self._sm = ScreenManager()
 
-        self._check_dont_check_libdiff = False
+        self._ask_popup = False
+        self._close_from_server = False
 
         self.shell = win32com.client.Dispatch("WScript.Shell")
 
@@ -96,11 +97,27 @@ class ViewerManager(ViewerManagerBase):
 
         win32gui.PostMessage(self._hwnd_1, win32con.WM_CLOSE, 0, 0)
 
+        self._close_from_server = True
+
         if self._father == "selector":
             win32gui.PostMessage(self._hwnd_2, win32con.WM_CLOSE, 0, 0)
         elif self._father == "ide":
-            self._check_dont_check_libdiff = True
             win32gui.PostMessage(self._hwnd_3, win32con.WM_CLOSE, 0, 0)
+
+    def close_with_popup(self):
+        result = win32api.MessageBox(None, "Are you sure you want to exit Alyvix Editor?", "Exit", 1)
+
+        if result == 1:
+
+            self._close_from_server = True
+
+            win32gui.PostMessage(self._hwnd_1, win32con.WM_CLOSE, 0, 0)
+
+            win32gui.PostMessage(self._hwnd_3, win32con.WM_CLOSE, 0, 0)
+        else:
+            self._close_from_server = False
+            self._ask_popup = False
+            return
 
     def bring_last_window_on_top(self, source=1):
         enumerated_windows = []
@@ -547,18 +564,21 @@ class ViewerManager(ViewerManagerBase):
 
         result = 1
 
-        #res = urllib.request.urlopen(self._base_url + "/force_set_lib").read()
+        if self._close_from_server is False:
 
-        if self._check_dont_check_libdiff is False:
-            res = urllib.request.urlopen(self._base_url + "/is_lib_changed_api").read()
+            self._ask_popup = True
 
-            json_re = json.loads(res)
+            res = urllib.request.urlopen(self._base_url + "/force_set_lib").read()
 
-            if json_re["success"] is True:
-                result = win32api.MessageBox(None, "Are you sure you want to exit Alyvix Editor?", "Exit", 1)
+            #res = urllib.request.urlopen(self._base_url + "/is_lib_changed_api").read()
+
+            #json_re = json.loads(res)
+
+            #if json_re["success"] is True:
+                #result = win32api.MessageBox(None, "Are you sure you want to exit Alyvix Editor?", "Exit", 1)
             #result = 2
 
-        if result == 1:
+        else:
 
             try:
                 browser3 = cef.GetBrowserByWindowHandle(self._hwnd_3)
@@ -570,8 +590,7 @@ class ViewerManager(ViewerManagerBase):
                 pass
 
             return win32gui.DefWindowProc(window_handle, message, wparam, lparam)
-        elif result == 2:
-            return
+
 
 
 

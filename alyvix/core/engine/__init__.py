@@ -1497,6 +1497,7 @@ class EngineManager(object):
                 cur_series["series_name"] = self._series_name
                 cur_series["object_name"] = self._result.object_name
                 cur_series["performance_name"] = self._performance_name
+                cur_series["detection_type"] = self._result.detection_type
                 cur_series["maps"] = self._map_names_map_keys
                 cur_series["performance_ms"] = self._result.performance_ms
                 cur_series["accuracy_ms"] = self._result.accuracy_ms

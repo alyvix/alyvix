@@ -18,7 +18,7 @@
             <!-- Name Definition -->
             <ng-container cdkColumnDef="handle"  >
                 <cdk-cell *cdkCellDef="let row"  class="actions" >
-                  <div *ngIf="editor && isSelectedResolutionWorkingResolution()" class="alyvix-actions">
+                  <div *ngIf="editor && isSelectedResolutionWorkingResolution() && !readonly" class="alyvix-actions">
                     <div class="alyvix-icon" draggable="{{editor && isSelectedResolutionWorkingResolution()}}"  (dragstart)="objectDrag($event,row)">
                       <i class="fas fa-arrows-alt"></i>
                     </div>

@@ -2236,6 +2236,14 @@ def save_json():
             current_json["objects"][object_name]["date_modified"] = \
                 datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
+        # close from x button
+        if browser_class._ask_popup is True:
+
+            if original_library_dict != current_json:
+
+                browser_class.close_with_popup()
+            else:
+                browser_class.close()
 
         if browser_class._browser_2 is not None:
 
@@ -2296,7 +2304,8 @@ def findb(key, dictionary):
 @app.route("/force_set_lib", methods=['GET', 'POST'])
 def force_set_lib():
     global current_objectname
-    browser_class._browser_3.ExecuteJavascript("reloadAlyvixIde('" + current_objectname + "')")
+    browser_class._browser_3.ExecuteJavascript("saveState()")
+
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 @app.route("/save_all", methods=['GET', 'POST'])
@@ -2449,6 +2458,7 @@ def set_library_api():
     global original_screens
     global library_dict_in_editing
     global original_library_dict
+    global browser_class
 
     json_string = json.loads(request.data)
 

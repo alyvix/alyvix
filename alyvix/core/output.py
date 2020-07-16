@@ -61,6 +61,7 @@ class OutputManager:
                 del series["output"]
                 del series["end_timestamp"]
                 del series["initialize_cnt"]
+                del series["detection_type"]
 
                 series["performance_ms"] = int(series["performance_ms"])
                 series["accuracy_ms"] = int(series["accuracy_ms"])
