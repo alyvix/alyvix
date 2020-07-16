@@ -275,12 +275,14 @@ export class AxTableComponent implements OnInit {
   }
 
   duplicate() {
-    SelectorUtils.duplicateRows(this.selectedRows, this.data).forEach(r => this.selectedRows.push(r));
-    this.dataChange.emit(this.data);
     this.save(false).subscribe(x => {
-      this.filterData();
-    });
-    this.datastore.changedSelection.emit(this.selectedRows);
+      SelectorUtils.duplicateRows(this.selectedRows, this.data).forEach(r => this.selectedRows.push(r));
+      this.dataChange.emit(this.data);
+      this.save(false).subscribe(x => {
+        this.filterData();
+      });
+      this.datastore.changedSelection.emit(this.selectedRows);
+    })
 
   }
 

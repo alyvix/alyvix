@@ -9,6 +9,7 @@ import { AlyvixApiService } from 'src/app/alyvix-api.service';
 import { Draggable } from 'src/app/utils/draggable';
 import { ModalService, Modal } from 'src/app/modal-service.service';
 import { RunnerService } from 'src/app/runner.service';
+import { AxDesignerService } from 'src/app/ax-designer/ax-designer-service';
 
 
 
@@ -25,7 +26,8 @@ export class ObjectsPanelComponent implements OnInit {
     private selectorDatastore:SelectorDatastoreService,
     private alyvixApi:AlyvixApiService,
     private runner:RunnerService,
-    private modal: ModalService
+    private modal: ModalService,
+    private axDesignerService:AxDesignerService
     ) { }
 
 
@@ -148,12 +150,17 @@ export class ObjectsPanelComponent implements OnInit {
 
   removeMap(map:MapsVM) {
 
-    this.editorService.save().subscribe(x => {
+      const usageCurrent = this.checkUsageMapForObject(map.name)
+
+      let usages = this.selectorDatastore.mapUsage(map.name)
+      if(usageCurrent) {
+        usages.push(usageCurrent)
+      }
 
       this.modal.open({
         title: 'Delete map',
         body: 'Are you sure you want to delete ' + map.name + '?',
-        list: this.selectorDatastore.mapUsage(map.name),
+        list: usages,
         actions: [
           {
             title: 'Delete',
@@ -169,7 +176,7 @@ export class ObjectsPanelComponent implements OnInit {
         ],
         cancel: Modal.NOOP
       });
-    })
+    
 
   }
 
@@ -177,19 +184,50 @@ export class ObjectsPanelComponent implements OnInit {
     return document.activeElement === input;
   }
 
+
+  private checkUsageMapForObject(mapName:string):string {
+    const model = this.axDesignerService.getModel()
+    console.log(model)
+    if(!model) return null
+    return model.box_list.every(x => {
+      if(x.features && x.features.T && x.features.T.map) {
+        return x.features.T.map != mapName
+      } else {
+        return true
+      }
+    }) ?
+    null :
+    "Used in object " + model.object_name
+  }
+
+  private refactorMapForObject(oldName:string, newName:string) {
+    const model = this.axDesignerService.getModel()
+    console.log(model)
+    if(!model) return null
+    model.box_list.forEach(x => {
+      if(x.features && x.features.T && x.features.T.map && x.features.T.map == oldName) {
+        x.features.T.map = newName
+      } 
+    })
+  }
+
+
   changeMapName(map:MapsVM, event:Event) {
-    this.editorService.save().subscribe(x => {
       console.log('changeMapName')
       const target = (event.target as HTMLInputElement)
-      const usages = this.selectorDatastore.mapUsage(map.name);
+      let usages = this.selectorDatastore.mapUsage(map.name);
+      const usageCurrent = this.checkUsageMapForObject(map.name)
+
+      if(usageCurrent) {
+        usages.push(usageCurrent)
+      }
 
       const rename = () => {
         console.log(target.value)
-        const newMap = this.maps.find(x => x.name == map.name) //I need to find again the map because after saving the maps get reloaded in 181 so the reference is not valid anymore
-        if(newMap) {
-          newMap.name = target.value;
-          this.selectMap(newMap);
-        }
+
+        map.name = target.value;
+        this.selectMap(map);
+        
         this.editorService.save().subscribe(x => '');
       }
 
@@ -204,6 +242,7 @@ export class ObjectsPanelComponent implements OnInit {
               importance: 'btn-primary',
               callback: () => {
                 this.selectorDatastore.refactorMap(map.name,target.value)
+                this.refactorMapForObject(map.name,target.value)
                 rename();
               }
             },
@@ -218,7 +257,7 @@ export class ObjectsPanelComponent implements OnInit {
       } else {
         rename();
       }
-    })
+
 
   }
 

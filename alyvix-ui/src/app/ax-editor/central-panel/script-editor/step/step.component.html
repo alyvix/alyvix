@@ -1,13 +1,13 @@
 <div class="step-row">
   <div class="selection-indicator" [ngClass]="{ 'selected': selected}"></div>
-  <div class="step-container" [ngClass]="{'disable': step.disabled, 'selected': selected}">
+  <div class="step-container" [ngClass]="{'disable': step.disabled, 'selected': selected, 'missing': missing}">
     <div class="step-box" draggable="true" (dragstart)="startDrag($event)" >
       <div class="step-condition step-main-condition" (dblclick)="nextCondition()" (dragover)="disableDrop($event)">
         <div >{{condition}}</div>
       </div>
       <div class="step-parameter" [ngClass]="[step.type, step.condition != 'run' ? 'condition' : '', droppingPrimary ? 'dropping' : '' ]" (dragover)="dragoverPrimary($event)" (drop)="dropped($event)"  (dragleave)="dragleavePrimary($event)">
         <!-- <span class="type">section</span> -->
-        <a class="section-link"  (click)="openSection(step.name)" *ngIf="step.type == 'section'"><i class="fas fa-link"></i></a>
+        <a class="section-link"  (click)="openSection(step.name)" *ngIf="step.type == 'section' && !missing"><i class="fas fa-link"></i></a>
         <span>{{step.name}}</span>
         <!-- <span *ngIf="primaryTempName">{{primaryTempName}}</span> -->
       </div>

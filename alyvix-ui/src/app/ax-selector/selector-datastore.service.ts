@@ -317,6 +317,10 @@ export class SelectorDatastoreService {
     }
   }
 
+  unsafeData():RowVM[] {
+    return this.data
+  }
+
   objectUsage(objectName:string):string[] {
     return this.checkInScript(objectName,"Object",true,f =>
       (f.flow && f.flow === objectName) ||

@@ -45,6 +45,14 @@ $selectedColor: #222;
       cursor: pointer;
     }
 
+    &.missing {
+      .step-parameter{
+        background-color: $warning !important;
+        font-weight: 100;
+        font-style: italic;
+      }
+    }
+
     &.disable{
       .step-parameter{
         background-color: $gray !important;

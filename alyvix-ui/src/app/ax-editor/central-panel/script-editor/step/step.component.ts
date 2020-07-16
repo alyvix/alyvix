@@ -1,9 +1,10 @@
 import { Component, OnInit, Input, ViewChild, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CdkDragDrop, CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
-import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
+import { SelectorDatastoreService, MapsVM, SectionVM } from 'src/app/ax-selector/selector-datastore.service';
 import { Draggable } from 'src/app/utils/draggable';
 import { EditorService } from 'src/app/ax-editor/editor.service';
+import { RowVM } from 'src/app/ax-selector/ax-table/ax-table.component';
 
 export interface Step{
   id: string;
@@ -57,6 +58,19 @@ export class StepComponent implements OnInit {
       this.secondParameterType = this.selectorDatastore.objectOrSection(this.secondParameterValue);
     }
 
+  }
+
+  get missing(): boolean {
+    if(this.selectorDatastore.unsafeData() && this.selectorDatastore.unsafeData().some(x => this.step.name == x.name)) {
+      return false
+    }
+    if(this.sections && this.sections.some(x => this.step.name == x.name)) {
+      return false
+    }
+    if(this.maps && this.maps.some(x => this.step.name == x.name)) {
+      return false
+    }
+    return true
   }
 
   @Input() selected:boolean;
@@ -119,7 +133,12 @@ export class StepComponent implements OnInit {
     }
   }
 
+  maps:MapsVM[] = []
+  sections:SectionVM[] = []
+
   ngOnInit() {
+    this.selectorDatastore.getMaps().subscribe(m => this.maps = m)
+    this.selectorDatastore.getScripts().subscribe(s => this.sections = s.sections)
   }
 
 
