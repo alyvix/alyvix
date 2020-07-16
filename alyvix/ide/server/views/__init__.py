@@ -2303,7 +2303,7 @@ def findb(key, dictionary):
 
 @app.route("/force_set_lib", methods=['GET', 'POST'])
 def force_set_lib():
-    global current_objectname
+    #global current_objectname
     browser_class._browser_3.ExecuteJavascript("saveState()")
 
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
@@ -2385,6 +2385,7 @@ def check_if_object_exists_api():
 def get_library_api():
     global library_dict
     global original_screens
+    global original_library_dict
 
     #ret_dict = copy.deepcopy(library_dict)
 
@@ -2432,6 +2433,16 @@ def get_library_api():
             id += 1
 
     """
+    # close from x button if testcase is new
+    if browser_class._ask_popup is True:
+
+        if original_library_dict != library_dict:
+
+            browser_class.close_with_popup()
+        else:
+            browser_class.close()
+
+
     #return jsonify(ret_dict)
     return jsonify(library_dict)
 
@@ -2463,7 +2474,7 @@ def set_library_api():
     json_string = json.loads(request.data)
 
     if bool(original_library_dict) is False:
-        original_library_dict = copy.deepcopy(json_string["library"])
+        original_library_dict = {'objects': {}, 'script': {'case': [], 'sections': {'exit': [], 'fail': []}}, 'maps': {}} #copy.deepcopy(json_string["library"])
 
     objects = json_string["library"]["objects"]
 
@@ -2748,10 +2759,15 @@ def test_txt_regexp():
 
         for arg in args_in_string:
             if "cli." in arg:
-                after_dot = re.findall("\{cli\.arg[1-9]\}", regexp, re.IGNORECASE)
+                after_dot = re.findall("\{cli\.arg[1-9]\}", arg, re.IGNORECASE)
 
                 if len(after_dot) == 0:
                     cli_fail = True
+
+                default = re.findall("(\{cli\.arg[1-9],[^\}]+\})", arg, re.IGNORECASE)
+
+                if len(default) > 0:
+                    cli_fail = False
 
         if len(args_in_string) > 0 and cli_fail is False:
             ret_dict = {'match': 'yellow'}

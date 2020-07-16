@@ -32,6 +32,7 @@ import sys
 
 import time
 import json
+import ctypes
 
 import win32api
 import win32con
@@ -99,17 +100,34 @@ class ViewerManager(ViewerManagerBase):
 
         self._close_from_server = True
 
+        #print("close_from_server")
+
         if self._father == "selector":
             win32gui.PostMessage(self._hwnd_2, win32con.WM_CLOSE, 0, 0)
         elif self._father == "ide":
             win32gui.PostMessage(self._hwnd_3, win32con.WM_CLOSE, 0, 0)
 
     def close_with_popup(self):
-        result = win32api.MessageBox(None, "Are you sure you want to exit Alyvix Editor?", "Exit", 1)
+        MB_TOPMOST = 4096 #0x00040000
+
+        MB_OK = 0
+        MB_OKCANCEL = 1
+        MB_YESNOCANCEL = 3
+        MB_YESNO = 4
+
+        IDOK = 0
+        IDCANCEL = 2
+        IDABORT = 3
+        IDYES = 6
+        IDNO = 7
+
+        #result = win32api.MessageBoxW(None, "Are you sure you want to exit Alyvix Editor?", "Exit", 0 )
+        result = ctypes.windll.user32.MessageBoxExW(0, "Are you sure you want to exit Alyvix Editor?", "Exit", MB_TOPMOST + MB_OKCANCEL)
 
         if result == 1:
 
             self._close_from_server = True
+            self._ask_popup = False
 
             win32gui.PostMessage(self._hwnd_1, win32con.WM_CLOSE, 0, 0)
 
@@ -198,7 +216,7 @@ class ViewerManager(ViewerManagerBase):
 
     def close_and_no_shutdown(self):
         win32gui.PostMessage(self._hwnd_2, win32con.WM_CLOSE, 0, 0)
-        print("close {}".format(self._hwnd_2))
+        #print("close {}".format(self._hwnd_2))
 
     def hide(self, hwnd):
         win32gui.ShowWindow(hwnd, win32con.SW_HIDE)
@@ -229,7 +247,7 @@ class ViewerManager(ViewerManagerBase):
         #print((x,y))
 
     def resize_event(self):
-        print("resize")
+        #print("resize")
         a = 10
         pass
 
@@ -567,8 +585,10 @@ class ViewerManager(ViewerManagerBase):
         if self._close_from_server is False:
 
             self._ask_popup = True
-
+            #print("force per libe")
             res = urllib.request.urlopen(self._base_url + "/force_set_lib").read()
+
+            #print("force libe")
 
             #res = urllib.request.urlopen(self._base_url + "/is_lib_changed_api").read()
 
@@ -579,7 +599,7 @@ class ViewerManager(ViewerManagerBase):
             #result = 2
 
         else:
-
+            #print("close_from_Ser")
             try:
                 browser3 = cef.GetBrowserByWindowHandle(self._hwnd_3)
                 browser3.CloseBrowser(True)
