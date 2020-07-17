@@ -73,6 +73,22 @@ export class StepComponent implements OnInit {
     return true
   }
 
+  get missingCondition(): boolean {
+    if(!this.step.parameter) return false;
+
+
+    if(this.selectorDatastore.unsafeData() && this.selectorDatastore.unsafeData().some(x => this.step.parameter == x.name)) {
+      return false
+    }
+    if(this.sections && this.sections.some(x => this.step.parameter == x.name)) {
+      return false
+    }
+    if(this.maps && this.maps.some(x => this.step.parameter == x.name)) {
+      return false
+    }
+    return true
+  }
+
   @Input() selected:boolean;
 
   get step(): Step {

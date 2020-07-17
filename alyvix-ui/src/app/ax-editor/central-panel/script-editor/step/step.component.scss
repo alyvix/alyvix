@@ -45,8 +45,8 @@ $selectedColor: #222;
       cursor: pointer;
     }
 
-    &.missing {
-      .step-parameter{
+    .step-parameter {
+      &.missing{
         background-color: $warning !important;
         font-weight: 100;
         font-style: italic;

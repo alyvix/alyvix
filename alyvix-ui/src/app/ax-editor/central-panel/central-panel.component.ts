@@ -104,15 +104,16 @@ export class CentralPanelComponent implements OnInit {
 
   selectTab(tab:LeftSelection) {
     if(tab.type == 'map') {
-      this.selectorDatastore.getData().subscribe(x => {
-        this.selectorDatastore.getMaps().subscribe(y => {
-          this.mapSelected = y.map(z => { return {name: z.name, rows: z.rows}}).find(x => x.name == tab.name)
-          this.selected = tab
-        })
-      })
-    } else {
-      this.selected = tab
-    }
+      this.mapSelected = this.mapName(tab.map());
+      // this.selectorDatastore.getData().subscribe(x => {
+      //   this.selectorDatastore.getMaps().subscribe(y => {
+      //     this.mapSelected = y.map(z => { return {name: z.name, rows: z.rows}}).find(x => x.name == tab.name)
+      //     this.selected = tab
+      //   })
+      // })
+    } 
+    this.selected = tab
+    
     
   }
 
