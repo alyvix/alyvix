@@ -237,15 +237,15 @@ export class ObjectsPanelComponent implements OnInit {
           body: 'Are you sure you want to rename ' + map.name + ' to ' + target.value + '?',
           list: usages,
           actions: [
-            {
-              title: 'Rename All',
-              importance: 'btn-primary',
-              callback: () => {
-                this.selectorDatastore.refactorMap(map.name,target.value)
-                this.refactorMapForObject(map.name,target.value)
-                rename();
-              }
-            },
+            // {
+            //   title: 'Rename All',
+            //   importance: 'btn-primary',
+            //   callback: () => {
+            //     this.selectorDatastore.refactorMap(map.name,target.value)
+            //     this.refactorMapForObject(map.name,target.value)
+            //     rename();
+            //   }
+            // },
             {
               title: 'Rename',
               importance: 'btn-danger',
