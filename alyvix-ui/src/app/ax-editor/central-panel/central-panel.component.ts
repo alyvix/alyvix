@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, EventEmitter } from '@angular/core';
 import { EditorService, LeftSelection } from '../editor.service';
 import { AxScriptFlow } from 'src/app/ax-model/model';
-import { MapRowVM, SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
+import { MapRowVM, SelectorDatastoreService, MapsVM } from 'src/app/ax-selector/selector-datastore.service';
 import { EditorGlobal } from '../editor-global';
 import { DesignerGlobal } from 'src/app/ax-designer/ax-global';
 import { SelectorGlobal } from 'src/app/ax-selector/global';
@@ -101,8 +101,19 @@ export class CentralPanelComponent implements OnInit {
 
   }
 
+
   selectTab(tab:LeftSelection) {
-    this.selected = tab;
+    if(tab.type == 'map') {
+      this.selectorDatastore.getData().subscribe(x => {
+        this.selectorDatastore.getMaps().subscribe(y => {
+          this.mapSelected = y.map(z => { return {name: z.name, rows: z.rows}}).find(x => x.name == tab.name)
+          this.selected = tab
+        })
+      })
+    } else {
+      this.selected = tab
+    }
+    
   }
 
   isSelectedTab(tab:LeftSelection):boolean {

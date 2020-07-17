@@ -5,7 +5,7 @@
   <div class="ax-main-main" >
     <div class="ax-main-tabs">
         <div class="ax-main-tab"  *ngFor="let tab of tabs" [ngClass]="{'selected': isSelectedTab(tab)}" (click)="selectTab(tab)">
-            <a (click)="selectTab(tab)" >
+            <a >
               <span *ngIf="tab.type == 'object'">Script:</span>
               <span *ngIf="tab.type == 'map'">Map:</span>
               {{tab.name}}</a>
