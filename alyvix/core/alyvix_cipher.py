@@ -29,19 +29,22 @@ usage: alyvix_robot.py [-h] --key FILENAME
 
 
 def print_help():
+    print("""\r\nAlyvix Cipher protects sensitive information like credentials by encrypting
+it with a private key.  The encrypted key can then be used in an Alyvix test
+case even though it has an open format.\r\n""")
+
     print(help_main_string)
 
     help_info = '''
-    optional arguments:
-      -h, --help            show this help message and exit
-    
-    required named arguments:
-      --key KEY, -k KEY
-                            dummy description for key
-      
-      --encrypt TEXT_TO_ENCRYPT, -e TEXT_TO_ENCRYPT
-      [or --decrypt TEXT_TO_DECRYPT, -d TEXT_TO_DECRYPT]
-                            dummy description for key
+
+Optional arguments:
+  -h, --help     Show this help message and exit
+Required arguments:
+  --key KEY, -k KEY
+                 Specify the private key to use for encryption
+  --encrypt TEXT_TO_ENCRYPT, -e TEXT_TO_ENCRYPT
+    [or --decrypt TEXT_TO_DECRYPT, -d TEXT_TO_DECRYPT]
+                 Specify the information to be encrypted (e.g. credentials)
     '''
     print(help_info)
 

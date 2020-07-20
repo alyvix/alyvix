@@ -37,12 +37,17 @@ default_object_name = "VisualObject"
 #requiredNamed.add_argument('--filename', '-f', help="dummy description for help", type=str, default=None, required=True)
 #requiredNamed.add_argument('--object', '-o', help="dummy description for help", type=str, default=None, required=True)
 
-parser.add_argument('--filename', '-f', help="dummy description for help", type=str, default=None)
-parser.add_argument('--window', '-w', help="dummy description for help", type=str2bool, default=True)
-parser.add_argument('--verbose', '-v', help="dummy description for help", type=int, default=0)
+parser.add_argument('--filename', '-f', help="""Specify a filename or path pointing to an Alyvix file.
+The .alyvix extension will be automatically added.""", type=str, default=None)
+parser.add_argument('--window', '-w', help=argparse.SUPPRESS, type=str2bool, default=True)
+parser.add_argument('--verbose', '-v', help="""Set the amount of debugging information to display, ranging
+from 0 (minimal information) to 2 (maximal).""", type=int, default=0)
 
 
 #print(parser.format_help())
+for i in range(0, len(sys.argv)):
+    if sys.argv[i] == "-h":
+        print("\r\nAlyvix Selector helps manage (inspect, copy, edit, delete, import) large numbers of test case objects.\r\n")
 
 args = parser.parse_args()
 

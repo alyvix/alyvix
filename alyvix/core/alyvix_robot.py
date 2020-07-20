@@ -34,26 +34,31 @@ usage: alyvix_robot.py [-h] --filename FILENAME [--object OBJECT]
 '''
 
 def print_help():
+    print("\r\nAlyvix Robot runs an existing .alyvix file and reports the resulting measures.\r\n")
 
     print(help_main_string)
 
     help_info = '''
-    optional arguments:
-      -h, --help            show this help message and exit
-      --object OBJECT,  -o OBJECT
-                            dummy description for help
-      --args ARGUMENTS, -a ARGUMENTS
-                            dummy description for args
-      --mode MODE, -m MODE
-                            dummy description for mode
-      --pseudonym PSEUDONYM, -p PSEUDONYM
-                            dummy description for pseudonym
-      --key KEY, -k KEY
-                            dummy description for key  
-    
-    required named arguments:
-      --filename FILENAME, -f FILENAME
-                            dummy description for filename
+Required arguments:
+  --filename FILENAME, -f FILENAME
+                 Specify a filename or path pointing to an Alyvix file.
+                 The .alyvix extension will be automatically added.
+                 
+Optional arguments:
+  -h, --help     Show this help message and exit
+  --args ARGUMENTS, -a ARGUMENTS
+                 Supply one or more strings to use with
+  --key KEY, -k KEY
+                 Supply a private key for use with encryption
+  --mode MODE, -m MODE
+                 Specify the output mode (alyvix, nagios, or nats-influxdb)
+  --object OBJECT,  -o OBJECT
+                 Execute a specific test case object within the test case, or
+                 multiple objects by inserting each in a quoted string with a
+                 space separating them.
+  --pseudonym PSEUDONYM, -p PSEUDONYM
+                 Specify an additional name that allows you to differentiate
+                 two test case runs with different sets of arguments.
     '''
     print(help_info)
 
