@@ -22,10 +22,8 @@ import sys
 import base64
 from alyvix.tools.crypto import CryptoManager
 
-help_main_string = '''
-usage: alyvix_robot.py [-h] --key FILENAME 
-                            --encrypt TEXT_TO_ENCRYPT [or --decrypt TEXT_TO_DECRYPT]
-'''
+help_main_string = '''usage: alyvix_robot.py [-h] --key FILENAME 
+                            --encrypt TEXT_TO_ENCRYPT [or --decrypt TEXT_TO_DECRYPT]'''
 
 
 def print_help():
@@ -36,16 +34,15 @@ case even though it has an open format.\r\n""")
     print(help_main_string)
 
     help_info = '''
-
 Optional arguments:
   -h, --help     Show this help message and exit
+  
 Required arguments:
   --key KEY, -k KEY
                  Specify the private key to use for encryption
   --encrypt TEXT_TO_ENCRYPT, -e TEXT_TO_ENCRYPT
     [or --decrypt TEXT_TO_DECRYPT, -d TEXT_TO_DECRYPT]
-                 Specify the information to be encrypted (e.g. credentials)
-    '''
+                 Specify the information to be encrypted (e.g. credentials)'''
     print(help_info)
 
     sys.exit(0)

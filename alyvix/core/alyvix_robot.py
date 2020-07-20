@@ -26,12 +26,10 @@ class ResultForOutput():
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-help_main_string = '''
-usage: alyvix_robot.py [-h] --filename FILENAME [--object OBJECT]
+help_main_string = '''usage: alyvix_robot.py [-h] --filename FILENAME [--object OBJECT]
                           [--args ARGUMENTS] [--mode MODE]
                           [--pseudonym PSEUDONYM]
-                          [--key KEY]
-'''
+                          [--key KEY]'''
 
 def print_help():
     print("\r\nAlyvix Robot runs an existing .alyvix file and reports the resulting measures.\r\n")
@@ -47,7 +45,8 @@ Required arguments:
 Optional arguments:
   -h, --help     Show this help message and exit
   --args ARGUMENTS, -a ARGUMENTS
-                 Supply one or more strings to use with
+                 Supply one or more strings to use as values in the String
+                 field template of a test case object.
   --key KEY, -k KEY
                  Supply a private key for use with encryption
   --mode MODE, -m MODE
@@ -58,8 +57,7 @@ Optional arguments:
                  space separating them.
   --pseudonym PSEUDONYM, -p PSEUDONYM
                  Specify an additional name that allows you to differentiate
-                 two test case runs with different sets of arguments.
-    '''
+                 two test case runs with different sets of arguments.'''
     print(help_info)
 
     sys.exit(0)
