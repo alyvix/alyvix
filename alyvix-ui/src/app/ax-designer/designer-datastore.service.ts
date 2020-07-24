@@ -1,21 +1,31 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+
+export interface SelectPath{
+  file: string,
+  caller:string
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class DesignerDatastoreService {
 
-  private _selectedFile:BehaviorSubject<string> = new BehaviorSubject<string>("");
+  private _selectedFile:BehaviorSubject<SelectPath> = new BehaviorSubject<SelectPath>(null);
 
 
   constructor() { }
 
-  setSelectedFile(f:string) {
-    this._selectedFile.next(f);
+  setSelectedFile(f:string,caller:string) {
+    this._selectedFile.next({file:f, caller:caller});
   }
 
-  getSelectedFile():Observable<string> {
+  resetFile() {
+    this._selectedFile.next(null);
+  }
+
+  getSelectedFile():Observable<SelectPath> {
     return this._selectedFile;
   }
 

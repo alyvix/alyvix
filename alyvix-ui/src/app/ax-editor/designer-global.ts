@@ -44,14 +44,18 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     });
     this.selectorDatastore.changedNameRow.subscribe(name => {
       this._model.value.object_name = name
-      this.editorService.save().subscribe( y => { // I need to save the library to avoid having an unknown name saving the single object
-        console.log('saved after name change');
-      });
     });
     this.selectorDatastore.changedBreak.subscribe(b => this._model.value.detection.break = b );
     this.selectorDatastore.changedTimeout.subscribe(to => this._model.value.detection.timeout_s = to );
     this.selectorDatastore.getMaps().subscribe(maps => {
       this._maps.next(SelectorDatastoreService.toAxMaps(maps));
+    });
+    this.selectorDatastore.renameMap.subscribe( map => {
+      this._model.value.box_list.filter(b => b.type === 'T').forEach(textBox => {
+        if(textBox.features && textBox.features.T.map && textBox.features.T.map === map.oldName) {
+          textBox.features.T.map = map.newName
+        }
+      })
     });
     this.editorService.objectChanged.subscribe(object => {
       this.loadNext(this.selectedRows);
@@ -77,11 +81,20 @@ export class EditorDesignerGlobal extends environment.globalTypeDesigner {
     });
   }
 
+  private resolution:String
+
   private checkIfChangedRows(rows:RowVM[]):boolean {
     let result = true;
     if(this.selectedRows) {
-      result = rows.length !== this.selectedRows.length || rows.some(x => this.selectedRows.map(y => y.name).findIndex(y => y !== x.name) >= 0)
+      const newResolution = Array.from(new Set(...rows.map(x => x.selectedResolution))).sort((a, b) => a.localeCompare(b)).join(',')
+      result = rows.length !== this.selectedRows.length ||
+               rows.some(x => this.selectedRows.map(y => y.name).findIndex(y => y !== x.name) >= 0) ||
+               this.resolution != newResolution
+      this.resolution = newResolution;
     }
+
+
+    console.log(result)
     return result;
   }
 

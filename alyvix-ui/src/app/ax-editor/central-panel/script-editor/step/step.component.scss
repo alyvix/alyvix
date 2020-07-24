@@ -5,142 +5,240 @@ $objects: #c7f0db;
 $maps: #ffc55c;
 $conditions: #f1f1b0;
 
-.step-container{
-  display: flex;
-  flex-direction: column;
-  z-index: 9999;
+$arrowHeight: 15px;
+$unselectedColor: #444;
+$selectedColor: #222;
 
-  &.disable{
-    .step-parameter{
-      background-color: $gray !important;
+
+.step-row{
+
+  &:hover{
+    .selection-indicator {
+      background-color: lighten($blue,0%);
     }
-
-    .step-box{
-      .step-condition{
-        background-color: #666;
-      }
-    }
-
-    .arrow{
-      border-top: 10px solid #666;
-    }
-
-
   }
 
-  &.selected{
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
 
-    .step-box{
-      .step-condition{
-        background-color: #222;
+  .selection-indicator{
+    height: 50px;
+    width: 10px;
+    margin-right: 5px;
+
+    &.selected {
+      background-color: $blue;
+      //  background-color: $unselectedColor;
+    }
+  }
+
+  .step-container{
+    display: flex;
+    flex-direction: column;
+    z-index: 1039;
+    align-items: flex-start;
+
+    .section-link{
+      margin-right: 10px;
+      pointer-events: all !important;
+      cursor: pointer;
+    }
+
+    .step-parameter {
+      &.missing{
+        background-color: $warning !important;
+        font-weight: 100;
+        font-style: italic;
+      }
+    }
+
+    &.disable{
+      .step-parameter{
+        background-color: $gray !important;
       }
 
-      .step-parameter{
-        font-weight: bold;
+      .step-box{
+        .step-condition{
+          background-color: #888;
+        }
+      }
 
-        &.object{
-          background-color: darken($objects,10%);
+      .arrow{
+        border-top: $arrowHeight solid #888;
+      }
+
+
+    }
+
+    &.selected{
+
+      .step-box{
+        .step-condition{
+          background-color: $selectedColor;
         }
-        &.section{
-          background-color: darken($sections,10%);
-        }
-        &.warning{
-          background-color: darken($warning,10%);
-        }
-        &.condition{
-          &.map{
-            background-color: darken($maps,10%);
+
+        .step-parameter{
+          font-weight: bold;
+          text-decoration: underline;
+
+          &.dropping{
+            &.object{
+              background-color: darken($objects,30%);
+            }
+            &.section{
+              background-color: darken($sections,30%);
+            }
+            &.warning{
+              background-color: darken($warning,30%);
+            }
+            &.condition{
+              &.map{
+                background-color: darken($maps,30%);
+              }
+
+              &.object{
+                background-color: darken($conditions,30%);
+              }
+            }
           }
 
           &.object{
-            background-color: darken($conditions,10%);
+            background-color: darken($objects,10%);
+          }
+          &.section{
+            background-color: darken($sections,10%);
+          }
+          &.warning{
+            background-color: darken($warning,10%);
+          }
+          &.condition{
+            &.map{
+              background-color: darken($maps,10%);
+            }
+
+            &.object{
+              background-color: darken($conditions,10%);
+            }
+          }
+
+        }
+      }
+
+
+
+      .arrow{
+        border-top: $arrowHeight solid $selectedColor;
+      }
+
+    }
+
+    .step-box{
+
+
+      height: 50px;
+      display: flex;
+      align-items: flex-start;
+
+      .step-condition{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: $unselectedColor;
+        width: 50px;
+        height: 50px;
+        border: 5px;
+
+        div{
+          text-align: center;
+          color: white;
+          font-weight: bold;
+          font-size: 15px;
+          text-transform: uppercase;
+        }
+
+        &.step-main-condition{
+          cursor: pointer;
+        }
+      }
+
+      .step-parameter{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 50px;
+        padding: 0 20px;
+        min-width: 100px;
+
+        .type{
+          font-size: 50%;
+        }
+
+        * {
+          pointer-events: none;
+          font-weight: bold;
+        }
+
+        &.dropping{
+          &.object{
+            background-color: darken($objects,30%);
+          }
+          &.section{
+            background-color: darken($sections,30%);
+          }
+          &.warning{
+            background-color: darken($warning,30%);
+          }
+          &.condition{
+            &.map{
+              background-color: darken($maps,30%);
+            }
+
+            &.object{
+              background-color: darken($conditions,30%);
+            }
           }
         }
 
+
+        &.object{
+          background-color: $objects;
+        }
+        &.section{
+          background-color: $sections;
+        }
+        &.warning{
+          background-color: $warning;
+          font-size: 80%;
+          font-weight: 100;
+            font-style: italic;
+            text-transform: lowercase;
+        }
+        &.condition{
+          &.map{
+            background-color: $maps;
+          }
+
+          &.object{
+            background-color: $conditions;
+          }
+        }
+
+        div{
+          text-align: center;
+          font-weight: bold;
+        }
       }
+
     }
 
     .arrow{
-      border-top: 10px solid #222;
+      width: 0;
+      height: 0;
+      border-left: 25px solid transparent;
+      border-right: 25px solid transparent;
+      border-top: $arrowHeight solid $unselectedColor;
     }
-
   }
 
-  .step-box{
-
-
-    height: 50px;
-    display: flex;
-
-    .step-condition{
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #444;
-      width: 50px;
-      height: 50px;
-      padding: 5px;
-
-      div{
-        text-align: center;
-        color: white;
-        font-weight: bold;
-        text-transform: uppercase;
-      }
-
-      &.step-main-condition{
-        cursor: pointer;
-      }
-    }
-
-    .step-parameter{
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 50px;
-      padding: 0 20px;
-      min-width: 100px;
-
-
-      &.object{
-        background-color: $objects;
-      }
-      &.section{
-        background-color: $sections;
-      }
-      &.warning{
-        background-color: $warning;
-      }
-      &.condition{
-        &.map{
-          background-color: $maps;
-        }
-
-        &.object{
-          background-color: $conditions;
-        }
-      }
-      &.cdk-drop-list-dragging{
-        span {
-          display: none;
-        }
-        span.cdk-drag-placeholder{
-          display: inline;
-        }
-      }
-      div{
-        text-align: center;
-        font-weight: bold;
-      }
-    }
-
-  }
-
-  .arrow{
-    width: 0;
-    height: 0;
-    border-left: 25px solid transparent;
-    border-right: 25px solid transparent;
-    border-top: 10px solid #444;
-  }
 }

@@ -50,8 +50,10 @@ class KeyboardManager(KeyboardManagerBase):
 
         self.ahk.ahkExec("SetKeyDelay \"" + str(delay) + " " + str(duration) + "\"")
 
+        text = keys.replace("!", "{!}").replace("^", "{^}").replace("#", "{#}").replace("+", "{+}")
+
         if encrypted == False:
-            self.ahk.ahkExec("SendEvent \"" + keys + "\"")
+            self.ahk.ahkExec("SendEvent \"" + text + "\"")
         else:
             pass
             #cm = CryptoManager()

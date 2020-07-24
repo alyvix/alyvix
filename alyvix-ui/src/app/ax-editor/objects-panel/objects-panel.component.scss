@@ -6,6 +6,7 @@
   font-family: $font;
   letter-spacing: 2px;
   width: 100%;
+  height: 100%;
   overflow-x: hidden;
 
   h3 {
@@ -22,18 +23,18 @@
     list-style: none;
     margin-bottom: 10px;
 
-    .pri-drag-placeholder li,.ax-object-element {
-      padding-left: 16px;
-      margin: 3px 0;
+    .ax-object-element {
+      //padding-left: 16px;
+      display: flex;
+      flex-direction: row;
+      //margin: 3px 0;
       line-height: 23px;
 
       &.ax-object-primary{
         cursor: default;
       }
 
-      i {
-        margin-right: 10px;
-      }
+
 
 
       &.selected{
@@ -53,7 +54,9 @@
         font-family: $font;
         letter-spacing: 2px;
         background-color: transparent;
-        width: 150px;
+        width: 100%;
+        margin-left: 5px;
+        padding: 0 5px;
         &:hover, &:focus{
           outline: none;
           border-bottom: 1px solid $blue;
@@ -74,6 +77,45 @@
         }
       }
     }
+  }
+
+
+  .name-popover:before {
+    width: 0px;
+    height: 0px;
+    z-index: 5;
+    content: "";
+    margin-top: 15px;
+    border-style: solid;
+    border-width: 10px 10px 10px 10px;
+    border-color: transparent transparent $darkred transparent;
+  }
+
+  .name-popover{
+    z-index: 1039;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    text-align: center;
+    align-items: center;
+    height: 40px;
+    height: 40px;
+    margin-top: 0px;
+    margin-left: -160px;
+    width: 298px;
+    height: 0;
+    .name-popover-content{
+      z-index: 1039;
+      font-size: 13px;
+      font-weight: bold;
+      color: white;
+      padding: 5px;
+      background-color: $darkred;
+      text-align: center;
+      box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+
+    }
+
   }
 
 }

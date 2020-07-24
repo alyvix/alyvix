@@ -34,11 +34,13 @@ from datetime import datetime
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.library import LibraryManager
 from alyvix.tools.crypto import CryptoManager
+from alyvix.core.utilities.args import ArgsManager
 from .image import ImageManager
 from .rectangle import RectangleManager
 from .text import TextManager
 from alyvix.core.interaction.mouse import MouseManager
 from alyvix.core.interaction.keyboard import KeyboardManager
+from alyvix.core.utilities import common
 
 
 class Roi:
@@ -67,7 +69,7 @@ class Result():
         self.annotation = None
         self.timeout = None
         self.arguments = []
-        self.records = {"text":"", "image":"", "extract":"", "check":False}
+        self.records = {"text":"", "image":"", "extract":"", "check":"false"}
 
         self.group = None
         self.map_key = None
@@ -80,13 +82,42 @@ class Result():
 
 class EngineManager(object):
 
-    def __init__(self, object_json, args=None, maps={}, map_key="", executed_objects=[], verbose=0, cipher_key=None, cipher_iv=None):
+    def __init__(self, object_json, args=None, maps={}, verbose=0, output_mode="alyvix", cipher_key=None, cipher_iv=None,
+                 performances=None, map_names_map_keys=None):
 
         self._result = Result()
 
-        self._executed_objects = executed_objects
+        #self._executed_objects = executed_objects
+        self._executed_objects = []
+
+        self._arguments_manager = ArgsManager()
+
+
+        self._performances = performances
+
+        self._map_names_map_keys = map_names_map_keys
+
+        self._output_mode = output_mode
 
         self._result.object_name = list(object_json.keys())[0]
+
+        self._series_name = ""
+
+        if map_names_map_keys is None:
+            self._series_name  = self._result.object_name
+        else:
+            map_name_map_key = ""
+
+            if map_names_map_keys is not None:
+                for m_n_m_k in map_names_map_keys:
+                    map_name_map_key += m_n_m_k["map_name"] + "-" + m_n_m_k["map_key"] + "_"
+                map_name_map_key = map_name_map_key[:-1]
+                self._series_name  = map_name_map_key
+
+        if self._result.object_name != self._series_name:
+            self._performance_name = self._result.object_name + "_" + self._series_name
+        else:
+            self._performance_name = self._result.object_name
 
         self._result.arguments = []
 
@@ -116,7 +147,7 @@ class EngineManager(object):
         self._verbose = verbose
 
         self._maps = maps
-        self._result.map_key = map_key
+        self._result.map_key = None #map_key
 
         self._tmp_text_scraped = ""
         self._tmp_text_extracted = ""
@@ -128,6 +159,7 @@ class EngineManager(object):
 
         self._screen_manager = ScreenManager()
         self._scaling_factor = self._screen_manager.get_scaling_factor()
+        self._res_w, self._res_h = self._screen_manager.get_resolution()
 
         self._object_json = object_json
         self._object_definition = None
@@ -135,6 +167,9 @@ class EngineManager(object):
 
         self._object_definition = self._library_manager.build_objects_for_engine(self._object_json)
         self._detection = self._library_manager.get_detection_from_string(self._object_json)
+
+        if self._detection["timeout_s"] == None:
+            self._detection["timeout_s"] = 10
 
         self._call = self._library_manager.get_call_from_string(self._object_json)
 
@@ -547,6 +582,7 @@ class EngineManager(object):
 
             keyboard_string = keyboard_dict["string"]
 
+            #try to decrypt all line
             if self._crypto_manager.get_key() is not None and self._crypto_manager.get_iv() is not None:
                 try:
                     unenc_string = base64.b64decode(keyboard_string)
@@ -561,110 +597,8 @@ class EngineManager(object):
                 keyboard_duration = keyboard_dict["durations_ms"]
                 keyboard_delay = keyboard_dict["delays_ms"]
 
-                #keyboard_string = "sadfasfdasf asfdf {arg1} dfdfdfd {arg2}"
-
-                #args_in_string = re.findall("\\{arg[0-9]+\\}", keyboard_string,re.IGNORECASE)
-                args_in_string = re.findall("\\{[1-9]\d*\\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in args_in_string:
-
-                    try:
-                        i = int(arg_pattern.lower().replace("{","").replace("}",""))
-
-                        #self._result.arguments.append(self._arguments[i-1])
-
-                        keyboard_string = keyboard_string.replace(arg_pattern, self._arguments[i-1])
-                    except:
-                        pass #not enought arguments
-
-                #args_in_string = re.findall("\\{arg[0-9]+\\}", keyboard_string,re.IGNORECASE)
-                extract_args = re.findall("\\{.*\\.extract\\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in extract_args:
-
-                    try:
-                        obj_name = arg_pattern.replace("{", "").replace("}", "")
-                        obj_name = obj_name.split(".")[0]
-
-                        extract_value = None
-
-                        for executed_obj in reversed(self._executed_objects):
-
-                            if executed_obj.object_name == obj_name:
-                                extract_value = executed_obj.records["extract"]
-
-                        if extract_value is not None:
-                            keyboard_string = keyboard_string.replace(arg_pattern, extract_value)
-                            #self._result.arguments.append(extract_value)
-                    except:
-                        pass  # not enought arguments
-
-                text_args = re.findall("\\{.*\\.text\\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in text_args:
-
-                    try:
-                        obj_name = arg_pattern.replace("{", "").replace("}", "")
-                        obj_name = obj_name.split(".")[0]
-
-                        text_value = None
-                        for executed_obj in reversed(self._executed_objects):
-
-                            if executed_obj.object_name == obj_name:
-                                text_value = executed_obj.records["text"]
-
-                        if text_value is not None:
-                            keyboard_string = keyboard_string.replace(arg_pattern, text_value)
-                            #self._result.arguments.append(text_value)
-                    except:
-                        pass  # not enought arguments
-
-                check_args = re.findall("\\{.*\\.check\\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in check_args:
-
-                    try:
-                        obj_name = arg_pattern.replace("{", "").replace("}", "")
-                        obj_name = obj_name.split(".")[0]
-
-                        check_value = None
-                        for executed_obj in reversed(self._executed_objects):
-
-                            if executed_obj.object_name == obj_name:
-                                check_value = executed_obj.records["check"]
-
-                        if check_value is not None:
-                            keyboard_string = keyboard_string.replace(arg_pattern, str(check_value))
-                            #self._result.arguments.append(str(check_value))
-                    except:
-                        pass  # not enought arguments
-
-                maps_args = re.findall("\\{.*\\..*\\}", keyboard_string, re.IGNORECASE)
-
-                for arg_pattern in maps_args:
-
-                    try:
-                        map_arg = arg_pattern.replace("{", "").replace("}", "")
-                        map_name = map_arg.split(".")[0]
-                        map_key = map_arg.split(".")[1]
-
-                        map_value = self._maps[map_name][map_key]
-
-                        if isinstance(map_value, list):
-                            str_value = ""
-                            for obj in map_value:
-                                str_value += str(obj) + " "
-
-                            str_value = str_value[:-1]
-                        else:
-                            str_value = str(map_value)
-
-                        keyboard_string = keyboard_string.replace(arg_pattern, str_value)
-                        #self._result.arguments.append(str_value)
-                    except:
-                        pass  # not enought arguments
-
-
+                keyboard_string = self._arguments_manager.get_string(keyboard_string,self._arguments,
+                                                self._performances, self._maps, self._crypto_manager)
 
                 self._keyboard_manager.send(keyboard_string, False, keyboard_delay, keyboard_duration)
 
@@ -684,7 +618,14 @@ class EngineManager(object):
         arr_scraped_txt = copy.deepcopy(self._arr_scraped_txt)
         arr_extracted_txt = copy.deepcopy(self._arr_extracted_txt)
 
+        if common.break_flag is True or common.stop_flag is True:
+            return
+
         for cnt_g in range(3):
+
+            if common.break_flag is True or common.stop_flag is True:
+                return
+
 
             # main component g0
             box = None
@@ -743,7 +684,8 @@ class EngineManager(object):
 
             if len(mains_found) > 0:
                 for main_found in mains_found:
-
+                    if common.break_flag is True or common.stop_flag is True:
+                        return
 
                     sub_results = []
 
@@ -787,7 +729,8 @@ class EngineManager(object):
                             sub_results = rm.find(box["features"]["R"], roi=roi)
 
                         elif box['type'] == 'T':
-                            tm = TextManager()
+                            tm = TextManager(cipher_key=self._crypto_manager.get_key(),
+                                             cipher_iv=self._crypto_manager.get_iv())
 
                             tm.set_color_screen(current_color_screen)
                             tm.set_gray_screen(current_gray_screen)
@@ -845,7 +788,7 @@ class EngineManager(object):
 
                                 else:
                                     tm.set_regexp(box["features"]["T"]["regexp"], self._arguments, maps=self._maps,
-                                                  executed_objects=self._executed_objects)
+                                                  performances=self._performances)
                                     sub_results = tm.find(box["features"]["T"], roi=roi)
 
                                     scraped_text = sub_results[0].scraped_text
@@ -1030,7 +973,7 @@ class EngineManager(object):
 
             scraped_text = ""
             extract_text = ""
-            check = True
+            check = "true"
             """
             try:
                 for component in self._components_appeared:
@@ -1546,7 +1489,113 @@ class EngineManager(object):
     def _get_output_json(self):
         pass
 
+    def _insert_perf(self):
+        for perf in self._performances:
+            if perf.object_name == self._result.object_name:
+
+                cur_series = {}
+                cur_series["series_name"] = self._series_name
+                cur_series["object_name"] = self._result.object_name
+                cur_series["performance_name"] = self._performance_name
+                cur_series["detection_type"] = self._result.detection_type
+                cur_series["maps"] = self._map_names_map_keys
+                cur_series["performance_ms"] = self._result.performance_ms
+                cur_series["accuracy_ms"] = self._result.accuracy_ms
+                cur_series["timestamp"] = self._result.timestamp
+                cur_series["end_timestamp"] = self._result.end_timestamp
+                cur_series["records"] = self._result.records
+                cur_series["timeout"] = self._result.timeout
+                cur_series["thresholds"] = self._result.thresholds
+                cur_series["group"] = self._result.group
+                cur_series["output"] = self._result.output
+                cur_series["screenshot"] = self._result.screenshot
+                cur_series["annotation"] = self._result.annotation
+                cur_series["initialize_cnt"] = len(self._performances)
+
+                cur_series["resolution"] = {
+                    "width": self._res_w,
+                    "height": self._res_h
+                }
+
+                cur_series["scaling_factor"] = int(self._scaling_factor * 100),
+
+
+                cur_series["state"] = 2
+                cur_series["exit"] = "fail"
+
+                if self._result.performance_ms != -1:
+
+                    self._result.state = 0
+                    self._result.exit = "true"
+
+                    cur_series["state"] = self._result.state
+                    cur_series["exit"] = self._result.exit
+
+                    try:
+                        warning_ms = self._result.thresholds["warning_s"] * 1000
+
+                        if self._result.performance_ms >= warning_ms:
+                            self._result.state = 1
+                            cur_series["state"] = self._result.state
+                    except:
+                        pass
+
+                    try:
+                        critical_ms = self._result.thresholds["warning_s"] * 1000
+
+                        if self._result.performance_ms >= critical_ms:
+                            self._result.state = 2
+                            cur_series["state"] = self._result.state
+                    except:
+                        pass
+
+                else:
+
+                    if self._result.has_to_break is True:
+                        self._result.state = 2
+                        self._result.exit = "fail"
+
+                        cur_series["state"] = self._result.state
+                        cur_series["exit"] = self._result.exit
+
+                    else:
+                        self._result.state = 2
+                        self._result.exit = "false"
+
+                        cur_series["state"] = self._result.state
+                        cur_series["exit"] = self._result.exit
+
+                not_exec = False
+                cnt = 0
+                for series in perf.series:
+                    if series["series_name"] == self._series_name and series["exit"] == "not_executed":
+
+                        series["maps"]  = cur_series["maps"]
+                        series["performance_ms"] = cur_series["performance_ms"]
+                        series["accuracy_ms"] = cur_series["accuracy_ms"]
+                        series["timestamp"] = cur_series["timestamp"]
+                        series["end_timestamp"] = cur_series["end_timestamp"]
+                        series["records"] = cur_series["records"]
+                        series["timeout"] = cur_series["timeout"]
+                        series["screenshot"] = cur_series["screenshot"]
+                        series["annotation"] = cur_series["annotation"]
+                        series["state"] = cur_series["state"]
+                        series["exit"]  = cur_series["exit"]
+                        not_exec = True
+
+                if not_exec is False:
+                    perf.series.append(cur_series)
+
+
+
+
+
+
+
     def execute(self):
+
+        if common.break_flag is True or common.stop_flag is True:
+            return
 
         self._result.timestamp = time.time()
 
@@ -1591,6 +1640,7 @@ class EngineManager(object):
         timeout = self._detection["timeout_s"]
         has_to_break = self._detection["break"]
         detection_type = self._detection["type"]
+        self._result.timeout = timeout
 
         call = self._call
 
@@ -1599,11 +1649,38 @@ class EngineManager(object):
         t_call = time.time()
         if call["type"] == "run":
             try:
-                args = None
+                args = ""
                 try:
                     args = call["features"]["arguments"]
                 except:
                     pass
+
+                args = self._arguments_manager.get_string(args, self._arguments,
+                                                   self._performances, self._maps, self._crypto_manager)
+
+                #args = args.replace("\\'", "<alyvix_escp_quote>")
+
+                args = args.replace("'", "\"")
+
+                #cnt_sq = args.count("'")
+
+                """
+                if (cnt_sq % 2) != 0:
+                    print("Error on -a: odd single quotes!")
+                    sys.exit(2)
+                """
+
+                double_quote_args = re.findall(r"\"[^\"]*\"", args, re.IGNORECASE | re.UNICODE)
+
+                for dq_arg in double_quote_args:
+                    args = args.replace(dq_arg, dq_arg.replace(" ", "<alyvix_repl_space>"))
+
+                args = args.replace("\"", "")
+
+                args = args.split(" ")
+
+                for i, v in enumerate(args):
+                    args[i] = args[i].replace("<alyvix_repl_space>", " ")
 
                 exe = call["features"]["path"]
 
@@ -1611,8 +1688,12 @@ class EngineManager(object):
 
                     popen_input = []
                     popen_input.append(exe)
+
+                    if len(args) == 1 and args[0] == '':
+                        args = None
+
                     if args is not None:
-                        popen_input.extend(shlex.split(args))
+                        popen_input.extend(args)
                     if self._verbose >= 1:
                         print(self._get_timestamp_formatted() + ": Alyvix calls " + exe)
 
@@ -1658,11 +1739,13 @@ class EngineManager(object):
                 self._result.performance_ms = t_call * 1000
             else:
                 self._result.performance_ms = 0
-            self._result.records["check"] = True
+            self._result.records["check"] = "true"
             self._result.accuracy_ms = 0
             self._result.screenshot = self._screen_with_objects
             self._result.annotation = self._annotation_screen
             self._result.end_timestamp = time.time()
+
+            self._insert_perf()
 
             return self._result
 
@@ -1683,9 +1766,12 @@ class EngineManager(object):
 
         if self._verbose >= 1:
 
-            print(self._get_timestamp_formatted() + ": Alyvix looks at " + self._result.object_name)
+            print(self._get_timestamp_formatted() + ": Alyvix looks at " + self._performance_name)
 
         while True:
+
+            if common.break_flag is True or common.stop_flag is True:
+                return
 
             #t_before_grab = time.time()
             current_color_screen = self._screen_manager.grab_desktop(self._screen_manager.get_color_mat)
@@ -1705,7 +1791,7 @@ class EngineManager(object):
             if self._objects_appeared is True and disappear_mode is False:
 
                 if self._verbose >= 1:
-                    print(self._get_timestamp_formatted() + ": Alyvix detected " + self._result.object_name)
+                    print(self._get_timestamp_formatted() + ": Alyvix detected " + self._performance_name)
 
                 if detection_type =='appear':
                     #cv2.imwrite("D:\\programdata\\log\\" + str(time.time()) + "_find.png", self._uncompress(self._screens[-2][0]))
@@ -1730,9 +1816,11 @@ class EngineManager(object):
                     if self._result.performance_ms < 0:
                         self._result.performance_ms *= -1
 
-                    self._result.timeout = timeout
+                    #self._result.timeout = timeout
 
                     self._result.end_timestamp = time.time()
+
+                    self._insert_perf()
 
                     return self._result
 
@@ -1780,9 +1868,10 @@ class EngineManager(object):
                 if self._result.performance_ms < 0:
                     self._result.performance_ms *= -1
 
-                self._result.timeout = timeout
+                #self._result.timeout = timeout
 
                 self._result.end_timestamp = time.time()
+                self._insert_perf()
                 return self._result
 
             self.lock.acquire()
@@ -1793,9 +1882,9 @@ class EngineManager(object):
 
                 if self._verbose >= 1:
                     if has_to_break is True:
-                        print(self._get_timestamp_formatted() + ": Alyvix failed at " + self._result.object_name)
+                        print(self._get_timestamp_formatted() + ": Alyvix failed at " + self._performance_name)
                     else:
-                        print(self._get_timestamp_formatted() + ": Alyvix skipped " + self._result.object_name)
+                        print(self._get_timestamp_formatted() + ": Alyvix skipped " + self._performance_name)
 
                 self._timedout = True
 
@@ -1814,9 +1903,10 @@ class EngineManager(object):
                 self._result.accuracy_ms = -1
                 self._result.screenshot = self._screen_with_objects
                 self._result.annotation = self._annotation_screen
-                self._result.timeout = timeout
+                #self._result.timeout = timeout
 
                 self._result.end_timestamp = time.time()
+                self._insert_perf()
                 return self._result
 
 

@@ -27,15 +27,20 @@
   </div>
 </div>
 <div class="pure-u-1-1" *ngIf="call.type == 'run'">
-  <div class="form-group">
-    <label>Arguments</label>
-    <input
-      [ngModel]="arguments"
-      (ngModelChange)="changeArguments($event)"
-      class="mousetrap"
-      type="text"
-      spellcheck="false"
-    />
+  <div class="form-group" style="align-items: flex-end; display: flex;">
+    <div class="form-group" style="flex-grow: 1;">
+      <label>Arguments</label>
+      <input
+        [ngModel]="arguments"
+        (ngModelChange)="changeArguments($event)"
+        class="mousetrap"
+        type="text"
+        spellcheck="false"
+      />
+    </div>
+    <div class="form-group">
+      <button class="btn" (click)="selectArgument()">Select</button>
+    </div>
   </div>
 </div>
 

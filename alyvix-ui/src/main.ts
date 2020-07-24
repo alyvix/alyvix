@@ -10,6 +10,7 @@ import { DesignerDatastoreService } from './app/ax-designer/designer-datastore.s
 import { EditorModule } from './app/ax-editor/editor.module';
 import { AxModelMock } from './app/ax-model/mock';
 import { EditorService } from './app/ax-editor/editor.service';
+import { RunnerService } from './app/runner.service';
 
 
 if (environment.production) {
@@ -33,20 +34,24 @@ function ngZone():NgZone {
 }
 
 function loadAlyvixDesigner() {
+  console.log('loadAlyvixDesigner');
   platformBrowserDynamic().bootstrapModule(DesignerModule).catch(err => console.log(err)).then(module => designer = module)
 }
 
 function loadAlyvixSelector() {
+  console.log('loadAlyvixSelector');
   platformBrowserDynamic().bootstrapModule(SelectorModule).catch(err => console.log(err)).then(module => selector = module)
 }
 
 function loadAlyvixEditor() {
+  console.log('loadAlyvixEditor');
   platformBrowserDynamic().bootstrapModule(EditorModule).catch(err => console.log(err)).then(module => editor = module)
 }
 
 
 
 function unloadAlyvixDesigner() {
+  console.log('unloadAlyvixDesigner');
   if (designer) {
     const hotkeyService = designer.injector.get(HotkeysService);
     hotkeyService.reset();
@@ -55,23 +60,36 @@ function unloadAlyvixDesigner() {
 }
 
 function unloadAlyvixSelector() {
+  console.log('unloadAlyvixSelector');
   if (selector) {
     selector.destroy();
   }
 }
 
-function setExePath(path) {
-  console.log("Calling setExePath("+ path + ")")
+function setExePath(path,caller) {
+  console.log("Calling setExePath("+ path + "," + caller +")")
   const zone = ngZone();
   if(zone) {
     zone.run(() => {
       if(designer) {
         const datastore = designer.injector.get(DesignerDatastoreService);
-        datastore.setSelectedFile(path);
+        datastore.setSelectedFile(path,caller);
       } else if(editor) {
-        console.log("in editor")
         const datastore = editor.injector.get(DesignerDatastoreService);
-        datastore.setSelectedFile(path);
+        datastore.setSelectedFile(path,caller);
+      }
+    });
+  }
+}
+
+function saveState() {
+  console.log("Calling saveState()")
+  const zone = ngZone();
+  if(zone) {
+    zone.run(() => {
+      if(editor) {
+        const editorService = editor.injector.get(EditorService);
+        editorService.save();
       }
     });
   }
@@ -98,7 +116,7 @@ function reloadAlyvixSelector(objectName: string) {
   const zone = ngZone();
   if(zone) {
     zone.run(() => {
-      //console.log('reload selector ' + objectName);
+      console.log('reload selector ' + objectName);
       if (selector) {
         const selectorDatastore = selector.injector.get(SelectorDatastoreService);
         selectorDatastore.reload(objectName);
@@ -112,10 +130,10 @@ function setRunState(state:string) {
   const zone = ngZone();
   if(zone) {
     zone.run(() => {
-
+      console.log('set run state ' + state);
       if (editor) {
-        const editorService = editor.injector.get(EditorService);
-        editorService.runState.emit(state);
+        const runnerService = editor.injector.get(RunnerService);
+        runnerService.setState(state);
       }
     });
   }
@@ -126,7 +144,7 @@ function consoleAppendLine(line:string) {
   const zone = ngZone();
   if(zone) {
     zone.run(() => {
-
+      console.log('consoleAppendLine ' + line);
       if (editor) {
         const service = editor.injector.get(EditorService);
         service.consoleAppendLine(line);
@@ -140,7 +158,7 @@ function consoleAppendImage(image:string) {
   const zone = ngZone();
   if(zone) {
     zone.run(() => {
-
+      console.log('consoleAppendImage ');
       if (editor) {
         const service = editor.injector.get(EditorService);
         service.consoleAppendImage(image);
@@ -154,7 +172,7 @@ function consoleClear() {
   const zone = ngZone();
   if(zone) {
     zone.run(() => {
-
+      console.log('consoleClear ' );
       if (editor) {
         const service = editor.injector.get(EditorService);
         service.consoleClear();
@@ -171,6 +189,7 @@ function consoleClear() {
 (window as any).reloadAlyvixSelector = reloadAlyvixSelector;
 (window as any).unloadAlyvixSelector = unloadAlyvixSelector;
 (window as any).setExePath = setExePath;
+(window as any).saveState = saveState;
 (window as any).changeResolution = changeResolution;
 (window as any).reloadAlyvixIde = reloadAlyvixIde;
 (window as any).setRunState = setRunState;

@@ -8,23 +8,54 @@
   <h3>SECTIONS <button class="btn" (click)="addSection()">Add</button></h3>
 
 
-      <div class="ax-object-list" priDropList   [priDropListConnectedTo]="objectLists" name="sections" [priDropListData]="'object'" [priDropListSorting]="false">
-        <div class="ax-object-element" *ngFor="let section of script.sections" priDragItem [priDragItemData]="sectionToStep(section)" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
-          <span *priDragPlaceholder><li><i class="fas fa-bars" priDragHandle></i> {{section.name}}</li></span>
-          <span *priDragPreview><li>{{section.name}}</li></span>
-          <i class="fas fa-bars" priDragHandle></i>
-          <input spellcheck="false" [ngModel]="section.name" (change)="changeSectionName(section,$event)" />
+      <div class="ax-object-list" name="sections">
+        <div class="ax-object-element" *ngFor="let section of script.sections" (click)="selectSection(section)" [ngClass]="{'selected': isSelected(section.name)}">
+          <div class="alyvix-actions">
+              <div class="alyvix-icon" *ngIf="!isSelected(section.name)">
+                <i   draggable="true"  (dragstart)="sectionDrag($event,section)" class="fas fa-arrows-alt"></i>
+              </div>
+              <div *ngIf="!isSelected(section.name)" class="alyvix-icon ai-draggable clickable" (click)="addSectionToScript(section,$event)"></div>
+              <div class="alyvix-icon" *ngIf="isSelected(section.name)"></div>
+              <div class="alyvix-icon" *ngIf="isSelected(section.name)"></div>
+              <div class="alyvix-icon clickable" (click)="runSection(section)">
+                  <i class="fas fa-play"></i>
+              </div>
+            </div>
+
+
+          <input #nameInput #name="ngModel"  type="text"
+          [ngClass]="{'ng-invalid': selectorDatastore.nameValidation(nameInput,section.name) != null  }" spellcheck="false"
+          [ngModel]="section.name" (ngModelChange)="onChangeSectionName(section,$event,nameInput)" (change)="changeSectionName(section,$event)"
+          pattern="[a-zA-Z0-9_\- ]+" />
+        <div *ngIf="hasFocus(nameInput)  && selectorDatastore.nameValidation(nameInput,section.name) && (name.dirty || name.touched)" class="name-popover">
+            <div class="name-popover-content">
+              {{ selectorDatastore.nameValidation(nameInput,section.name) }}
+            </div>
+        </div>
+
+
+
           <button class="btn light" (click)="removeSection(section)">Remove</button>
         </div>
       </div>
 
   <h3>MAPS <button class="btn" (click)="addMap()">Add</button></h3>
-      <div class="ax-object-list" priDropList  [priDropListConnectedTo]="objectLists" name="maps" [priDropListData]="'map'" [priDropListSorting]="false">
-        <div class="ax-object-element" *ngFor="let map of maps" priDragItem [priDragItemData]="mapToStep(map)" (click)="selectMap(map)" [ngClass]="{'selected': isSelectedMap(map)}">
-          <span *priDragPlaceholder><li><i class="fas fa-bars" priDragHandle></i> {{map.name}}</li></span>
-          <span *priDragPreview>{{map.name}}</span>
-          <i class="fas fa-bars" priDragHandle></i>
-          <input spellcheck="false" [(ngModel)]="map.name" (change)="changeMapName(map,$event)"/>
+      <div class="ax-object-list">
+        <div class="ax-object-element" *ngFor="let map of maps"  (click)="selectMap(map)" [ngClass]="{'selected': isSelectedMap(map)}">
+          <div class="alyvix-actions">
+              <div class="alyvix-icon">
+                <i   draggable="true" (dragstart)="mapDrag($event,map)" class="fas fa-arrows-alt"></i>
+              </div>
+              <div class="alyvix-icon ai-draggable clickable" (click)="addMapToScript(map,$event)"></div>
+
+            </div>
+          <input #mapNameInput #mapName="ngModel" type="text" spellcheck="false" [ngModel]="map.name" (change)="changeMapName(map,$event)" pattern="[a-zA-Z0-9_\- ]+" 
+          [ngClass]="{'ng-invalid': selectorDatastore.nameValidation(mapNameInput,map.name) != null  }"/>
+          <div *ngIf="hasFocus(mapNameInput)  && selectorDatastore.nameValidation(mapNameInput,map.name) && (mapName.dirty || mapName.touched)" class="name-popover">
+            <div class="name-popover-content">
+              {{ selectorDatastore.nameValidation(mapNameInput,map.name) }}
+            </div>
+        </div>
           <button class="btn light" (click)="removeMap(map)">Remove</button>
         </div>
       </div>

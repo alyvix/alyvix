@@ -66,6 +66,7 @@ export class InteractionComponent implements OnInit {
   removePoint() {
     this._node.box.mouse.features.point.dx = 0;
     this._node.box.mouse.features.point.dy = 0;
+    this._node.box.mouse.features.point.angle = null;
     this.axDesignerService.updateAx();
   }
 

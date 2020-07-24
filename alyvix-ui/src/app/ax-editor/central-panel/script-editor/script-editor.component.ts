@@ -1,32 +1,35 @@
-import { Component, OnInit, ViewChild, Input, OnDestroy, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, OnDestroy, Output, EventEmitter, ElementRef } from '@angular/core';
 import { ObjectsRegistryService } from '../../objects-registry.service';
 import { CdkDragDrop, moveItemInArray, CdkDrag } from '@angular/cdk/drag-drop';
-import { Step } from './step/step.component';
+import { Step, StepComponent } from './step/step.component';
 import { AxScriptFlow, AxScriptFlowObj } from 'src/app/ax-model/model';
-import { PriBaseDropList } from 'pri-ng-dragdrop/lib/entities/pri.base.drop.list';
-import { PriDropEventArgs } from 'pri-ng-dragdrop';
 import { Utils } from 'src/app/utils';
 import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
 import { RowVM } from 'src/app/ax-selector/ax-table/ax-table.component';
 import * as _ from 'lodash';
+import { Draggable } from 'src/app/utils/draggable';
+import { ModalService, Modal } from 'src/app/modal-service.service';
+import { AlyvixApiService } from 'src/app/alyvix-api.service';
+import { RunnerService } from 'src/app/runner.service';
 
 @Component({
   selector: 'app-script-editor',
   templateUrl: './script-editor.component.html',
   styleUrls: ['./script-editor.component.scss']
 })
-export class ScriptEditorComponent implements OnInit,OnDestroy {
+export class ScriptEditorComponent implements OnInit {
 
 
 
-  listId:string = "list-" + Math.random().toString(36).substring(2);
-  lastListId:string = "list-" + Math.random().toString(36).substring(2);
 
   selectedSteps:Step[] = []
 
   _steps:Step[] = []
 
   objects:RowVM[] = [];
+
+  @ViewChild('actionList',{static: true}) actionList:ElementRef;
+  @ViewChild('actionScroll',{static: true}) actionScroll:ElementRef;
 
   @Output() change:EventEmitter<AxScriptFlow[]> = new EventEmitter();
 
@@ -88,33 +91,24 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
 
 
 
-  constructor(private objectRegistry:ObjectsRegistryService, private selectorDatastore:SelectorDatastoreService) { }
+  constructor(
+    private objectRegistry:ObjectsRegistryService,
+    private selectorDatastore:SelectorDatastoreService,
+    private modal:ModalService,
+    private runner:RunnerService
+    ) { }
 
   ngOnInit() {
-    this.objectRegistry.addObjectList(this.listId);
-    this.objectRegistry.addObjectList(this.lastListId);
     this.selectorDatastore.getData().subscribe(d => this.objects = d);
+    this.objectRegistry.addStep.subscribe(s => {
+      this._steps.push(s);
+      this.emitChange();
+    })
   }
 
-  ngOnDestroy(): void {
-    this.objectRegistry.removeObjectList(this.listId);
-    this.objectRegistry.removeObjectList(this.lastListId);
-  }
 
-  dropped(event: PriDropEventArgs) {
-    switch(event.sourceListData) {
-      case 'actions':
-        const index = this._steps.findIndex(x => x.id === event.itemData.id)
-        moveItemInArray(this._steps, index, event.dropIndex);
-        break;
-      case 'object':
-      case 'section':
-      case 'map':
-        this._steps.splice(event.dropIndex, 0, event.itemData);
-        break;
-    }
-    this.emitChange();
-  }
+
+
 
   stepChange(step:Step) {
     this.emitChange();
@@ -166,11 +160,25 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
   }
 
   deleteSelected() {
-    if(confirm("Are you sure you want to delete this step?")) {
-      this._steps = this._steps.filter(s => !this.selectedSteps.map(ss => ss.id).includes(s.id));
-      this.selectedSteps = [];
-      this.emitChange();
-    }
+
+    this.modal.open({
+      title: 'Delete',
+      body: 'Are you sure you want to delete this step?',
+      actions: [
+        {
+          title: 'Delete',
+          importance: 'btn-danger',
+          callback: () => {
+            this._steps = this._steps.filter(s => !this.selectedSteps.map(ss => ss.id).includes(s.id));
+            this.selectedSteps = [];
+            this.emitChange();
+          }
+        }
+      ],
+      cancel: Modal.NOOP
+    });
+
+
   }
 
 
@@ -181,9 +189,90 @@ export class ScriptEditorComponent implements OnInit,OnDestroy {
 
 
 
-  droppedEnd(event: PriDropEventArgs) {
-    this._steps.push(event.itemData);
+  dragover(event:DragEvent) {
+    if(!this.dragStep) {
+      if(!event.dataTransfer.types.includes(Draggable.ORDER)) {
+        const type = Draggable.TYPE.decode(event.dataTransfer.types);
+        this.dragStep = {
+          id:Draggable.DRAGGING_ID,
+          type: type,
+          name: Draggable.TITLE.decode(event.dataTransfer.types),
+          disabled: false,
+          condition: type === "map" ? "for" : "run"
+        };
+        const position = this.dragPosition(event,1);
+        this._steps.splice(position,0,this.dragStep);
+      } else if(event.dataTransfer.types.includes(Draggable.ORDER)) {
+        const id = Draggable.ID.decode(event.dataTransfer.types);
+        this.dragStep = this._steps.find(s => s.id === id);
+      }
+    }
+
+    if(this.dragStep) {
+      const position = this.dragPosition(event,1);
+      const currentPosition = this._steps.findIndex(s => s.id === this.dragStep.id);
+
+      if(position != currentPosition) {
+        const temp = this._steps[position];
+        this._steps[position] = this._steps[currentPosition];
+        this._steps[currentPosition] = temp;
+      }
+    }
+
+
+
+    event.preventDefault();
+  }
+
+  dragStep:Step
+
+
+  dragleave(event:DragEvent) {
+    if(this.dragStep && this.dragStep.id === Draggable.DRAGGING_ID) {
+      this._steps = this._steps.filter(s => s.id !== this.dragStep.id);
+    }
+    this.dragStep = null;
+    event.preventDefault();
+  }
+
+  drop(event:DragEvent) {
+    if(this.dragStep && this.dragStep.id === Draggable.DRAGGING_ID) {
+      this._steps = this._steps.filter(s => s.id !== this.dragStep.id);
+      const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
+      if(step) {
+        const position = this.dragPosition(event,0);
+        this._steps.splice(position,0,step);
+      }
+    }
+    this.dragStep = null;
+    event.stopPropagation();
     this.emitChange();
+  }
+
+  isDragging(step:Step) {
+    return step.id === Draggable.DRAGGING_ID;
+  }
+
+  isSorting(step:Step) {
+    if(this.dragStep) {
+      return step.id === this.dragStep.id;
+    } else {
+      return false;
+    }
+  }
+
+  dragPosition(event:DragEvent,offset:number):number {
+    const position = Math.max(
+      0,
+      Math.floor((this.actionScroll.nativeElement.scrollTop + (event.clientY - this.actionList.nativeElement.offsetTop))/65) - 1
+    )
+    return Math.min(position,this._steps.length-offset);
+  }
+
+  runSelection() {
+    const flow = this._steps.filter(s => this.selectedSteps.includes(s)) // filter the main list so the order should be garanteed
+                    .map(s => this.fromStep(s));
+    this.runner.runSelection(flow);
   }
 
 

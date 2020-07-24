@@ -1,9 +1,10 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { Observable, throwError, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { BoxListEntity, AxSelectorObjects, DesignerModel, AxModel, AxMap } from './ax-model/model';
+import { BoxListEntity, AxSelectorObjects, DesignerModel, AxModel, AxMap, AxScriptFlow } from './ax-model/model';
 import { map, retry, catchError } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from 'src/environments/environment';
 
 export interface ScrapedText{
   regexp?: string,
@@ -66,6 +67,10 @@ export class AlyvixApiService {
     return this.httpClient.post<any>("/set_library_api",library);
   }
 
+  renameObject(oldName:string,newName:string):Observable<any> {
+    return this.httpClient.get<any>("/rename_object?old_name="+oldName+"&new_name=" + newName);
+  }
+
   checkObjectName(name: string): Observable<any> {
     return this.httpClient.get<any>("/check_if_object_exists_api?object_name="+name)
   }
@@ -74,8 +79,8 @@ export class AlyvixApiService {
     return this.httpClient.get<any>("/get_user_process_api");
   }
 
-  openOpenFileDialog():Observable<any> {
-    return this.httpClient.get<any>("/designer_open_file_api");
+  openOpenFileDialog(caller:string):Observable<any> {
+    return this.httpClient.get<any>("/designer_open_file_api?caller="+caller);
   }
 
   checkTextDate(request:ScrapedValidation):Observable<ValidationResult> {
@@ -94,6 +99,16 @@ export class AlyvixApiService {
     }
 
     return this.httpClient.get<any>(baseUrl + '?delay=' +  delay);
+  }
+
+  grab(delay: number,name:string):Observable<any> {
+
+    let subSystem = 'selector';
+    if (this.subSystem === 'editor') {
+      subSystem = 'ide';
+    }
+
+    return this.httpClient.get<any>('/button_grab_api?name='+name+'&delay='+delay+'&caller='+subSystem);
   }
 
   selectorCancel() {
@@ -119,7 +134,16 @@ export class AlyvixApiService {
   saveObject(model:AxModel):Observable<any> {
     if(model) {
       model.designerFromEditor = (this.subSystem === 'editor');
-      return this.httpClient.post<any>('/save_json',model);
+      return this.httpClient.post<any>('/save_json',model).pipe(map(x => {
+        if(!environment.production) {
+          setTimeout(() => {
+            if(this.subSystem === 'editor' && (window as any).reloadAlyvixIde) {
+              (window as any).reloadAlyvixIde(model.object_name);
+            }
+          }, 100);
+        }
+        return x;
+      }));
     } else {
       return of('')
     }
@@ -157,6 +181,10 @@ export class AlyvixApiService {
     return this.httpClient.get<any>('/ide_exit_api').subscribe(x => {})
   }
 
+  checkModification():Observable<DefaultResponse> {
+    return this.httpClient.get<DefaultResponse>('/is_lib_changed_api')
+  }
+
   saveAs() {
     this.startLoading.emit(true);
     return this.httpClient.get<any>('/ide_save_as_api').subscribe(x => {
@@ -165,8 +193,16 @@ export class AlyvixApiService {
     })
   }
 
-  run(action:string) {
+  run(action:string):Observable<any> {
     return this.httpClient.get<any>('/ide_run_api?action='+action)
+  }
+
+  runOne(name:string):Observable<any> {
+    return this.httpClient.get<any>('/selector_run_api?action=run&name=' + name);
+  }
+
+  runSelection(flow:AxScriptFlow[]):Observable<any> {
+    return this.httpClient.post('/central_panel_run_api?action=run',flow)
   }
 
 

@@ -6,6 +6,10 @@ import { AxScriptFlow } from 'src/app/ax-model/model';
 import { Step } from '../central-panel/script-editor/step/step.component';
 import { Utils } from 'src/app/utils';
 import { AlyvixApiService } from 'src/app/alyvix-api.service';
+import { Draggable } from 'src/app/utils/draggable';
+import { ModalService, Modal } from 'src/app/modal-service.service';
+import { RunnerService } from 'src/app/runner.service';
+import { AxDesignerService } from 'src/app/ax-designer/ax-designer-service';
 
 
 
@@ -20,12 +24,14 @@ export class ObjectsPanelComponent implements OnInit {
     private objectRegistry:ObjectsRegistryService,
     private editorService:EditorService,
     private selectorDatastore:SelectorDatastoreService,
-    private alyvixApi:AlyvixApiService
+    private alyvixApi:AlyvixApiService,
+    private runner:RunnerService,
+    private modal: ModalService,
+    private axDesignerService:AxDesignerService
     ) { }
 
 
 
-  objectLists:string[] = [];
 
   maps:MapsVM[] = [];
   script:ScriptVM = ScriptEmpty;
@@ -35,18 +41,31 @@ export class ObjectsPanelComponent implements OnInit {
 
 
   ngOnInit() {
-
-    this.objectRegistry.objectList().subscribe(x => {
-      setTimeout(() => {
-        this.objectLists = x;
-      }, 200);
-    });
+    this.editorService.setSection.subscribe(x => {
+      this.script.sections.filter(s => s.name === x).forEach(s => this.selectSection(s));
+    })
     this.selectorDatastore.getMaps().subscribe(m => this.maps = m);
     this.selectorDatastore.getScripts().subscribe(s => {
       if(s) {
         this.script = s;
         if(!this.selected) {
           this.selectMain();
+        } else {
+          if(this.selected.type == 'object') {
+            switch(this.selected.name) {
+              case 'MAIN': this.selectMain(); break;
+              case 'FAIL': this.selectFail(); break;
+              case 'EXIT': this.selectExit(); break;
+              default: {
+                const section = this.script.sections.find(x => x.name === this.selected.name)
+                if(section) {
+                  this.selectSection(section)
+                } else {
+                  this.selectMain()
+                }
+              }
+            }
+          }
         }
       }
     });
@@ -72,12 +91,17 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   selectMain() {
-    this.selected = {name:'MAIN', type: 'object', steps: () => this.script.main, onChangeSteps: s => {
-      this.script.main = s;
-      this.selectorDatastore.setScripts(this.script);
-      this.editorService.save().subscribe(x => {});
-    }};
-    this.editorService.setLeftSelection(this.selected);
+    console.log('selectMain')
+    setTimeout(() => {
+      this.selected = {name:'MAIN', type: 'object', steps: () => this.script.main, onChangeSteps: s => {
+        this.script.main = s;
+        this.selectorDatastore.setScripts(this.script);
+        this.editorService.save().subscribe(x => {});
+      }};
+      console.log('select Main')
+      this.editorService.setLeftSelection(this.selected);
+    }, 0);
+    
   }
 
   selectFail() {
@@ -125,19 +149,116 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   removeMap(map:MapsVM) {
-    if(confirm('Are you sure you want to delete that map?')) {
-      this.maps = this.maps.filter(x => x !== map);
-      this.editorService.save().subscribe(saved => {})
-      if(this.selected.name == map.name) {
-        this.selectMain();
+
+      const usageCurrent = this.checkUsageMapForObject(map.name)
+
+      let usages = this.selectorDatastore.mapUsage(map.name)
+      if(usageCurrent) {
+        usages.push(usageCurrent)
       }
-    }
+
+      this.modal.open({
+        title: 'Delete map',
+        body: 'Are you sure you want to delete ' + map.name + '?',
+        list: usages,
+        actions: [
+          {
+            title: 'Delete',
+            importance: 'btn-danger',
+            callback: () => {
+              this.maps = this.maps.filter(x => x !== map);
+              this.editorService.save().subscribe(saved => {})
+              if(this.selected.name == map.name) {
+                this.selectMain();
+              }
+            }
+          }
+        ],
+        cancel: Modal.NOOP
+      });
+    
+
   }
 
-  changeMapName(map:MapsVM, name) {
-    map.name = name.target.value;
-    this.selectMap(map);
-    this.editorService.saveThrottled();
+  hasFocus(input:HTMLInputElement):boolean {
+    return document.activeElement === input;
+  }
+
+
+  private checkUsageMapForObject(mapName:string):string {
+    const model = this.axDesignerService.getModel()
+    console.log(model)
+    if(!model) return null
+    return model.box_list.every(x => {
+      if(x.features && x.features.T && x.features.T.map) {
+        return x.features.T.map != mapName
+      } else {
+        return true
+      }
+    }) ?
+    null :
+    "Used in object " + model.object_name
+  }
+
+  private refactorMapForObject(oldName:string, newName:string) {
+    const model = this.axDesignerService.getModel()
+    console.log(model)
+    if(!model) return null
+    model.box_list.forEach(x => {
+      if(x.features && x.features.T && x.features.T.map && x.features.T.map == oldName) {
+        x.features.T.map = newName
+      } 
+    })
+  }
+
+
+  changeMapName(map:MapsVM, event:Event) {
+      console.log('changeMapName')
+      const target = (event.target as HTMLInputElement)
+      let usages = this.selectorDatastore.mapUsage(map.name);
+      const usageCurrent = this.checkUsageMapForObject(map.name)
+
+      if(usageCurrent) {
+        usages.push(usageCurrent)
+      }
+
+      const rename = () => {
+        console.log(target.value)
+
+        map.name = target.value;
+        this.selectMap(map);
+        
+        this.editorService.save().subscribe(x => '');
+      }
+
+      if(usages.length > 0) {
+        this.modal.open({
+          title: 'Rename map',
+          body: 'Are you sure you want to rename ' + map.name + ' to ' + target.value + '?',
+          list: usages,
+          actions: [
+            // {
+            //   title: 'Rename All',
+            //   importance: 'btn-primary',
+            //   callback: () => {
+            //     this.selectorDatastore.refactorMap(map.name,target.value)
+            //     this.refactorMapForObject(map.name,target.value)
+            //     rename();
+            //   }
+            // },
+            {
+              title: 'Rename',
+              importance: 'btn-danger',
+              callback: rename
+            }
+          ],
+          cancel: Modal.cancel(() => { target.value = map.name })
+        });
+      } else {
+        rename();
+      }
+
+
   }
 
   addSection() {
@@ -150,19 +271,73 @@ export class ObjectsPanelComponent implements OnInit {
   }
 
   removeSection(section:SectionVM) {
-    if(confirm('Are you sure you want to delete that section?')) {
-      this.script.sections = this.script.sections.filter(x => x !== section);
-      this.editorService.save().subscribe(saved => {})
-      if(this.selected.name == section.name) {
-        this.selectMain();
-      }
-    }
+
+    this.modal.open({
+      title: 'Delete section',
+      body: 'Are you sure you want to delete ' + section.name + '?',
+      list: this.selectorDatastore.sectionUsage(section.name),
+      actions: [
+        {
+          title: 'Delete',
+          importance: 'btn-danger',
+          callback: () => {
+            this.script.sections = this.script.sections.filter(x => x !== section);
+            this.editorService.save().subscribe(saved => {})
+            if(this.selected.name === section.name) {
+              this.selectMain();
+            }
+          }
+        }
+      ],
+      cancel: Modal.NOOP
+    });
+
   }
 
-  changeSectionName(section:SectionVM, name) {
-    section.name = name.target.value;
-    this.selectSection(section);
-    this.editorService.saveThrottled();
+  onChangeSectionName(section:SectionVM,name: string, nameInput: HTMLInputElement) {
+    if(this.selectorDatastore.nameValidation(nameInput, section.name) == null) {
+      section.name = name;
+    }
+
+  }
+
+  changeSectionName(section:SectionVM, event:Event) {
+
+    const target = (event.target as HTMLInputElement)
+    const usages = this.selectorDatastore.sectionUsage(section.name);
+
+    const rename = () => {
+      section.name = target.value;
+      this.selectSection(section);
+      this.editorService.save();
+    }
+
+    if(usages.length > 0) {
+      this.modal.open({
+        title: 'Rename map',
+        body: 'Are you sure you want to rename ' + section.name + ' to ' + target.value + '?',
+        list: usages,
+        actions: [
+          {
+            title: 'Rename All',
+            importance: 'btn-primary',
+            callback: () => {
+              this.selectorDatastore.refactorSection(section.name,target.value)
+              rename()
+            }
+          },
+          {
+            title: 'Rename',
+            importance: 'btn-danger',
+            callback: rename
+          }
+        ],
+        cancel: Modal.cancel(() => { target.value = section.name })
+      });
+    } else {
+      rename();
+    }
+
   }
 
   mapToStep(map: MapsVM):Step {
@@ -184,6 +359,31 @@ export class ObjectsPanelComponent implements OnInit {
       disabled: false
     }
   }
+
+
+  mapDrag(event:DragEvent,map:MapsVM) {
+    Draggable.startDrag(event,"map",this.mapToStep(map));
+  }
+
+  sectionDrag(event:DragEvent,section: SectionVM) {
+    Draggable.startDrag(event,"section",this.sectionToStep(section));
+  }
+
+  runSection(section:SectionVM) {
+    this.runner.runOne(section.name)
+  }
+
+  addSectionToScript(section:SectionVM,event:MouseEvent) {
+    event.stopPropagation();
+    this.objectRegistry.addStep.emit(this.sectionToStep(section));
+  }
+
+  addMapToScript(map:MapsVM,event:MouseEvent) {
+    event.stopPropagation();
+    this.objectRegistry.addStep.emit(this.mapToStep(map));
+  }
+
+
 
 
 }

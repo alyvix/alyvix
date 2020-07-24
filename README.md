@@ -1,25 +1,15 @@
-![Alyvix logo](https://www.alyvix.com/alyvix_doc/html/_static/alyvix_logo_100x83.png)
-# Visual Synthetic Monitoring
+<img src="https://alyvix.com/user/themes/quark/images/alyvix_logo.svg" height="100">
+
+# Visual Monitoring
 
 This is the official GitHub repository of Alyvix.
 
-Alyvix is a **synthetic monitoring system based on computer vision**. Alyvix synthesizes real users without being hardwired to application engines.
+Alyvix is an **open source APM software tool** for visual monitoring.
 
-+ *Alyvix automates any application*, interacting with GUIs exactly as a human would do.
-+ *Alyvix measures all transactions* and visualizes their performances in your monitoring system.
-+ *Alyvix reports HTML pages* containing the details of each test case step.
+**Build end-user bots** visually interacting with any Windows application like ERPs or your favourite browser. Run and measure business-critical workflows like a human would, but continuously.
 
-Alyvix provides **certifications on user perceived quality of IT services**. Alyvix certifies that users are able to successfully complete a certain application task.
+**Measure end-user experiences**: Alyvix records the click-to-appearance responsiveness of each transaction. Report IT service quality to support technical and business actions.
 
-[Get started with Alyvix!](http://alyvix.com/doc/getting_started/install.html)
+[Get started with Alyvix](https://alyvix.com/learn/getting_started.html)
 
-## Use case examples
-
-+ Alyvix automates and measures Outlook through Citrix and RDWebAccess:
-
-     ![Use case: Alyvix on Outlook through Citrix](http://alyvix.com/doc/_images/alyvix_citrix_outlook_20170606.gif)
-     ![Use case: Alyvix on Outlook through Citrix](http://alyvix.com/doc/_images/alyvix_rdwa_outlook_20170606.gif)
-+ Alyvix automates and measures Word through Citrix and RDWebAccess:
-
-     ![Use case: Alyvix on Word through RDWebAccess](http://alyvix.com/doc/_images/alyvix_citrix_word_20170606.gif)
-     ![Use case: Alyvix on Word through RDWebAccess](http://alyvix.com/doc/_images/alyvix_rdwa_word_20170606.gif)
+[Watch Alyvix Tutorials](https://www.youtube.com/watch?v=fU4d0DY-t0s&list=PLwzDvE46yA6FFGisTjD4crHY0M_Av7SyK)

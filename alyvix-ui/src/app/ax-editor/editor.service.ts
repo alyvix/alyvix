@@ -4,6 +4,8 @@ import { BehaviorSubject, Observable, from, timer } from 'rxjs';
 import { AxScriptFlow } from '../ax-model/model';
 import { Step } from './central-panel/script-editor/step/step.component';
 import { debounce } from 'rxjs/operators';
+import { RunnerService } from '../runner.service';
+import { CentralPanelComponent } from './central-panel/central-panel.component';
 
 
 export interface LeftSelection{
@@ -27,7 +29,7 @@ export class EditorService {
 
   private _selection:BehaviorSubject<LeftSelection> = new BehaviorSubject<LeftSelection>(null);
   objectChanged:EventEmitter<string> = new EventEmitter()
-  runState:EventEmitter<string> = new EventEmitter()
+  setSection:EventEmitter<string> = new EventEmitter()
   private tab:AxFile
 
   private console:BehaviorSubject<ConsoleElement[]> = new BehaviorSubject<ConsoleElement[]>([])
@@ -36,16 +38,21 @@ export class EditorService {
 
   private beforeSavePromises:(() => Promise<any>)[] = [];
 
-  private throttledChange:EventEmitter<any> = new EventEmitter();
 
+
+  private running = false;
 
   constructor(
-    private selectorDatastore:SelectorDatastoreService
+    private selectorDatastore:SelectorDatastoreService,
+    private runnerService:RunnerService
   ) {
     this.selectorDatastore.tabSelected().subscribe(tab => this.tab = tab);
-    this.throttledChange.pipe(debounce(() => timer(500))).subscribe(x =>{
-      this.save().subscribe(x => {});
-    });
+    this.runnerService.running().subscribe(x => {
+      if(this.running && !x) { // end run
+        this.setLeftSelection(CentralPanelComponent.consoleTab)
+      }
+      this.running = x;
+    })
   }
 
 
@@ -54,8 +61,9 @@ export class EditorService {
   }
 
   reloadObject(objectName:string) {
-    if(this.tab && this.tab.main) {
-      this.selectorDatastore.reload(objectName);
+    console.log('EditorService::reloadObject('+objectName+")")
+    if(this.tab && this.tab.main) { // do only when the working case tab is open
+     this.selectorDatastore.reload(objectName);
     }
     this.objectChanged.emit(objectName);
   }
@@ -77,18 +85,16 @@ export class EditorService {
   }
 
 
-
-
-  saveThrottled() {
-    this.throttledChange.emit(true);
-  }
-
   save():Observable<any> {
     let self = this;
     const promise = new Promise( function(resolve) {
       self.beforeSave().then(function() {
         self.selectorDatastore.save().subscribe(x => {
-          self.objectSave(x.map(x => x.name)).subscribe( y => resolve());
+          self.objectSave(x.map(x => x.name)).subscribe( y => {
+            self.selectorDatastore.getData().subscribe( z => {
+              resolve()
+            })
+          });
         });
       });
     });

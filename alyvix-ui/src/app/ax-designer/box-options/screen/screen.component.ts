@@ -23,12 +23,20 @@ export class ScreenComponent implements OnInit {
   call:AxSystemCall
 
 
-
+    // TO REPRODUCE
+    // 1. Create new object
+    // 2. Define a call using the select
+    // 3. Save
+    // 4. reopen the object
 
   processes: string[] = [];
 
 
   @ViewChild('selectProcess',{static: true}) selectProcess: ElementRef;
+
+
+  private CALLER_PATH = 'path'
+  private CALLER_ARG = 'arg'
 
   ngOnInit() {
     this.axService.getModelAsync().subscribe(ax => {
@@ -47,10 +55,14 @@ export class ScreenComponent implements OnInit {
     this.alyvixApi.getProcesses().subscribe(x => {
       this.processes = _.uniq(x.object_exists);
     });
-    this.datastore.getSelectedFile().subscribe(f => {
-      if (f.length > 0) {
-        this.changePath(f);
-        this.datastore.setSelectedFile("");
+    this.datastore.getSelectedFile().subscribe(o => {
+      if (o) {
+        if(o.caller === this.CALLER_PATH) {
+          this.changePath(o.file);
+        } else if(o.caller === this.CALLER_ARG) {
+          this.changeArguments(o.file);
+        }
+        this.datastore.resetFile();
         this.changeDetecor.markForCheck();
         this.changeDetecor.detectChanges();
       }
@@ -99,9 +111,12 @@ export class ScreenComponent implements OnInit {
   }
 
 
-
   selectFile() {
-    this.alyvixApi.openOpenFileDialog().subscribe(x => {});
+    this.alyvixApi.openOpenFileDialog(this.CALLER_PATH).subscribe(x => {});
+  }
+
+  selectArgument() {
+    this.alyvixApi.openOpenFileDialog(this.CALLER_ARG).subscribe(x => {});
   }
 
 

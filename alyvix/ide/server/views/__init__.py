@@ -101,6 +101,7 @@ alyvix_run_process = None
 original_screens = {}
 
 library_dict = None
+original_library_dict = None
 library_dict_in_editing = None
 
 win32_window = None
@@ -331,6 +332,8 @@ def draaawing():
 def designer_open_file_api():
     import tempfile, base64, zlib
 
+    caller = request.args.get('caller')
+
     ICON = zlib.decompress(base64.b64decode('eJxjYGAEQgEBBiDJwZDBy'
                                             'sAgxsDAoAHEQCEGBQaIOAg4sDIgACMUj4JRMApGwQgF/ykEAFXxQRc='))
 
@@ -350,9 +353,9 @@ def designer_open_file_api():
     #print(file_path)
 
     if browser_class._browser_3 is not None:
-        browser_class._browser_3.ExecuteJavascript("setExePath('" + file_path + "')")
+        browser_class._browser_3.ExecuteJavascript("setExePath('" + file_path + "','" + caller + "')")
     else:
-        browser_class._browser_1.ExecuteJavascript("setExePath('" + file_path + "')")
+        browser_class._browser_1.ExecuteJavascript("setExePath('" + file_path + "','" + caller + "')")
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -586,6 +589,7 @@ def selector_edit_api():
 @app.route("/ide_open_file_api")
 def ide_open_file_api():
     global library_dict
+    global original_library_dict
     global current_filename
 
     import tempfile, base64, zlib
@@ -610,21 +614,23 @@ def ide_open_file_api():
     file_path = filedialog.askopenfilename(initialdir=filename_path, filetypes=[("Alyvix Library","*.alyvix"), ("all files", "*.*")])
     #print(file_path)
 
-    lm = LibraryManager()
-    lm.load_file(file_path)
-    library_dict = lm.get_json()
+    if file_path != "":
+        lm = LibraryManager()
+        lm.load_file(file_path)
+        library_dict = lm.get_json()
+        original_library_dict = copy.deepcopy(library_dict)
 
-    current_filename = file_path
+        current_filename = file_path
 
-    filename_path = os.path.dirname(current_filename)
-    filename_no_path = os.path.basename(current_filename)
-    filename_no_extension = os.path.splitext(filename_no_path)[0]
+        filename_path = os.path.dirname(current_filename)
+        filename_no_path = os.path.basename(current_filename)
+        filename_no_extension = os.path.splitext(filename_no_path)[0]
 
-    browser_class.change_title(browser_class._hwnd_3, "Alyvix Editor - " + filename_no_extension)
+        browser_class.change_title(browser_class._hwnd_3, "Alyvix Editor - " + filename_no_extension)
 
-    browser_class._browser_3.Reload()
+        browser_class._browser_3.Reload()
 
-    #browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
+        #browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -942,7 +948,7 @@ def ide_run_api_process_old(current_filename, library_dict):
     browser_class._browser_3.ExecuteJavascript("setFilePath('" + "sds" + "')")
 
 
-def ide_run_api_process():
+def ide_run_api_process(selections=None):
     global current_filename
     global library_dict
     global alyvix_run_process
@@ -968,8 +974,23 @@ def ide_run_api_process():
         # directory already exists
         pass
 
-    with open(alyvix_run_tmp_path + os.sep + alyvix_file_name, 'w') as f:
-        json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+    if selections is not None:
+        library_dict_tmp = copy.deepcopy(library_dict)
+
+        library_dict_tmp["script"]["sections"]["fail"] = []
+        library_dict_tmp["script"]["sections"]["exit"] = []
+
+        if isinstance(selections,list):
+            library_dict_tmp["script"]["case"] = selections
+
+        else:
+            library_dict_tmp["script"]["case"] = [selections]
+
+        with open(alyvix_run_tmp_path + os.sep + alyvix_file_name, 'w') as f:
+            json.dump(library_dict_tmp, f, indent=4, sort_keys=True, ensure_ascii=False)
+    else:
+        with open(alyvix_run_tmp_path + os.sep + alyvix_file_name, 'w') as f:
+            json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
 
     python_interpreter = sys.executable
 
@@ -993,7 +1014,7 @@ def ide_run_api_process():
         nextline = nextline.splitlines()[0]
         if "ends FAILED" in nextline:
             failed = True
-        #nextline = nextline.replace(" ","&nbsp;")
+        nextline = nextline.replace(" ","&nbsp;")
         browser_class._browser_3.ExecuteJavascript("consoleAppendLine('"+nextline+"')")
         #print(str(nextline))
         #browser_class._browser_3.ExecuteJavascript("alert('"+nextline+"')")
@@ -1050,9 +1071,9 @@ def ide_run_api_process():
             else:
                 base64png = ordered_object[0]['measure']["series"][0]['annotation']
 
-            browser_class._browser_3.ExecuteJavascript("consoleAppendLine (' ')")
-            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('The screen appeared as follows:')")
-            browser_class._browser_3.ExecuteJavascript("consoleAppendLine (' ')")
+            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('<br/>')")
+            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('At the moment of test case failure, the following was displayed on the screen:')")
+            browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('<br/>')")
             browser_class._browser_3.ExecuteJavascript("consoleAppendImage ('" + base64png + "')")
 
     except:
@@ -1100,17 +1121,88 @@ def ide_run_api():
         browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('"+get_timestamp_formatted()+": Alyvix stopped')")
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
+@app.route("/selector_run_api", methods=['GET', 'POST'])
+def selector_run_api():
+    global alyvix_run_thread
+    global alyvix_run_process
+    global kill_alyvix_process
+    global current_filename
+    global library_dict
+    global alyvix_run_tmp_path
+    #action=run, stop
+    action = request.args.get("action")
+
+    selections = request.args.get("name")
+
+    if action == "run":
+        browser_class._browser_3.ExecuteJavascript("consoleClear()")
+        alyvix_run_thread = threading.Thread(target=ide_run_api_process, args=(selections,))
+        alyvix_run_thread.start()
+    elif action == "stop":
+        kill_alyvix_process = True
+        try:
+            shutil.rmtree(alyvix_run_tmp_path)
+        except:
+            pass
+        alyvix_run_process.kill()
+        browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('"+get_timestamp_formatted()+": Alyvix stopped')")
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
+@app.route("/central_panel_run_api", methods=['GET', 'POST'])
+def central_panel_run_api():
+    global alyvix_run_thread
+    global alyvix_run_process
+    global kill_alyvix_process
+    global current_filename
+    global library_dict
+    global alyvix_run_tmp_path
+    #action=run, stop
+
+    selections = request.json
+
+    action = request.args.get("action")
+    if action == "run":
+        browser_class._browser_3.ExecuteJavascript("consoleClear()")
+        alyvix_run_thread = threading.Thread(target=ide_run_api_process, args=(selections,))
+        alyvix_run_thread.start()
+    elif action == "stop":
+        kill_alyvix_process = True
+        try:
+            shutil.rmtree(alyvix_run_tmp_path)
+        except:
+            pass
+        alyvix_run_process.kill()
+        browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('"+get_timestamp_formatted()+": Alyvix stopped')")
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
+
 @app.route("/ide_new_api", methods=['GET', 'POST'])
 def ide_new_api():
     global library_dict
     global library_dict_in_editing
     global current_filename
+    global original_library_dict
 
     library_dict_in_editing = None
 
     lm = LibraryManager()
     lm.load_file(None)
     library_dict = lm.get_json()
+
+    original_library_dict = copy.deepcopy(library_dict)
+
+    original_library_dict["objects"] = {}
+
+    original_library_dict["script"]= {
+                        "case": [
+
+                        ],
+                        "sections": {
+                            "exit": [],
+                            "fail": []
+                        }
+                    }
+    original_library_dict["maps"] = {}
 
     filename_start_index = 1
     default_library_name = "VisualTestCase"
@@ -1181,6 +1273,15 @@ def ide_button_grab_api():
         while True:
             if browser_class.IsWindowVisible(browser_class._hwnd_3) is False \
                     and browser_class.IsIconic(browser_class._hwnd_3) is False:
+                break
+
+    elif caller == "selector":
+
+        browser_class.hide(browser_class._hwnd_2)
+
+        while True:
+            if browser_class.IsWindowVisible(browser_class._hwnd_2) is False \
+                    and browser_class.IsIconic(browser_class._hwnd_2) is False:
                 break
 
 
@@ -1267,6 +1368,8 @@ def ide_button_grab_api():
     lm = LibraryManager()
 
     lm.set_json(library_dict)
+
+    current_objectname = object_name
 
     alyvix_file_dict = lm.build_objects_for_ide(current_objectname, resolution=res_string)
 
@@ -1569,6 +1672,27 @@ def rename_object():
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
+@app.route("/is_lib_changed_api", methods=['GET'])
+def is_lib_changed_api():
+    global library_dict
+    global original_library_dict
+
+    dict_1 = copy.copy(library_dict)
+    a = findb("rect_type", dict_1)
+
+
+    """
+    with open("d:\\lib_dict", 'w') as f:
+        json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+
+    with open("d:\\lib_dict_ori", 'w') as f:
+        json.dump(original_library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+    """
+
+    if dict_1 != original_library_dict:
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+    else:
+        return json.dumps({'success': False}), 200, {'ContentType': 'application/json'}
 
 @app.route("/load_objects", methods=['GET'])
 def load_objects():
@@ -2093,11 +2217,33 @@ def save_json():
             if current_objectname in current_json["objects"]:
                 del current_json["objects"][current_objectname]
 
-        if original_object_dict != current_json["objects"][object_name]:
+        """
+        with open("d:\\original_object_dict.json", 'w') as f:
+            json.dump(original_object_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
+
+        with open("d:\\curren_tobject_dict.json", 'w') as f:
+            json.dump(current_json["objects"][object_name], f, indent=4, sort_keys=True, ensure_ascii=False)
+        """
+
+        dict_1 = copy.copy(original_object_dict)
+        a = findb("rect_type", dict_1)
+
+        dict_2 = copy.copy(current_json["objects"][object_name])
+        a = findb("rect_type", dict_2)
+
+        if dict_1 != dict_2:
 
             current_json["objects"][object_name]["date_modified"] = \
                 datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S") + " UTC" + time.strftime("%z")
 
+        # close from x button
+        if browser_class._ask_popup is True:
+
+            if original_library_dict != current_json:
+
+                browser_class.close_with_popup()
+            else:
+                browser_class.close()
 
         if browser_class._browser_2 is not None:
 
@@ -2155,9 +2301,19 @@ def findb(key, dictionary):
                 if isinstance(d, dict):
                     findb(key, d)
 
+@app.route("/force_set_lib", methods=['GET', 'POST'])
+def force_set_lib():
+    #global current_objectname
+    browser_class._browser_3.ExecuteJavascript("saveState()")
+
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
 @app.route("/save_all", methods=['GET', 'POST'])
 def save_all():
     global library_dict
+    global original_library_dict
+
+    original_library_dict = copy.deepcopy(library_dict)
 
     close_editor = request.args.get("close_editor")
 
@@ -2229,6 +2385,7 @@ def check_if_object_exists_api():
 def get_library_api():
     global library_dict
     global original_screens
+    global original_library_dict
 
     #ret_dict = copy.deepcopy(library_dict)
 
@@ -2276,6 +2433,16 @@ def get_library_api():
             id += 1
 
     """
+    # close from x button if testcase is new
+    if browser_class._ask_popup is True:
+
+        if original_library_dict != library_dict:
+
+            browser_class.close_with_popup()
+        else:
+            browser_class.close()
+
+
     #return jsonify(ret_dict)
     return jsonify(library_dict)
 
@@ -2301,8 +2468,13 @@ def set_library_api():
     global library_dict
     global original_screens
     global library_dict_in_editing
+    global original_library_dict
+    global browser_class
 
     json_string = json.loads(request.data)
+
+    if bool(original_library_dict) is False:
+        original_library_dict = {'objects': {}, 'script': {'case': [], 'sections': {'exit': [], 'fail': []}}, 'maps': {}} #copy.deepcopy(json_string["library"])
 
     objects = json_string["library"]["objects"]
 
@@ -2579,9 +2751,25 @@ def test_txt_regexp():
         #args_in_string = re.findall("\\{[1-9]\d*\\}|\\{.*\\.extract\\}|\\{.*\\.text\\}|\\{.*\\.check\\}|\\{.*\\..*\\}",
         #                            regexp, re.IGNORECASE)
 
-        args_in_string = re.findall("\\{[1-9]\d*\\}|\\{.*\\..*\\}", regexp, re.IGNORECASE)
+        #if "{cli."
 
-        if len(args_in_string) > 0:
+        cli_fail = False
+
+        args_in_string = re.findall("\{[1-9]\d*\}|\{[1-9]\d*[^\}]+\}|\{[\w]+\.[\w]+\}|\{[\w]+\.[\w]+,[^\}]+\}", regexp, re.IGNORECASE)
+
+        for arg in args_in_string:
+            if "cli." in arg:
+                after_dot = re.findall("\{cli\.arg[1-9]\}", arg, re.IGNORECASE)
+
+                if len(after_dot) == 0:
+                    cli_fail = True
+
+                default = re.findall("(\{cli\.arg[1-9],[^\}]+\})", arg, re.IGNORECASE)
+
+                if len(default) > 0:
+                    cli_fail = False
+
+        if len(args_in_string) > 0 and cli_fail is False:
             ret_dict = {'match': 'yellow'}
         else:
 

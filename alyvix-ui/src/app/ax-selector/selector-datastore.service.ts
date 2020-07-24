@@ -1,11 +1,13 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { AxSelectorObjects, AxSelectorComponentGroups, AxScript, AxMaps, AxScriptFlow, AxMap } from '../ax-model/model';
+import { AxSelectorObjects, AxSelectorComponentGroups, AxScript, AxMaps, AxScriptFlow,AxScriptFlowObj, AxMap, AxSelectorComponent, T } from '../ax-model/model';
 import { RowVM } from './ax-table/ax-table.component';
 import { Utils } from '../utils';
 import { AlyvixApiService } from '../alyvix-api.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { isArray } from 'util';
+import * as _ from 'lodash';
+import { identifierModuleUrl } from '@angular/compiler';
 
 
 export interface AxFile {
@@ -41,6 +43,11 @@ export interface SectionVM{
   instructions: AxScriptFlow[];
 }
 
+export interface MapRename{
+  oldName:string
+  newName:string
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -58,6 +65,7 @@ export class SelectorDatastoreService {
   changedBreak:EventEmitter<boolean> = new EventEmitter();
   changedTimeout:EventEmitter<number> = new EventEmitter();
   changeTab:EventEmitter<AxFile> = new EventEmitter();
+  renameMap:EventEmitter<MapRename> = new EventEmitter();
   private _tabSelected: BehaviorSubject<AxFile> = new BehaviorSubject<AxFile>(null);
 
   static modelToData(model: AxSelectorObjects): RowVM[] {
@@ -144,6 +152,8 @@ export class SelectorDatastoreService {
   }
 
   setData(data:RowVM[]) {
+    console.log('data')
+    console.log(data)
     this.data = data;
   }
 
@@ -165,6 +175,9 @@ export class SelectorDatastoreService {
 
   objectOrSection(name:string):string {
     if(!name) return null;
+
+    console.log(name)
+    console.log(this.data)
 
     if(this.data.find(x => x.name === name)) {
       return 'object';
@@ -256,6 +269,178 @@ export class SelectorDatastoreService {
       )
     };
 
+  }
+
+
+
+  private checkInObject(mapName:string):string[] {
+    return _.flatMap(this.data,d => {
+      return _.flatMap(Object.keys(d.object.components),k => {
+        const textComponents:AxSelectorComponent[] = _.flatMap(d.object.components[k].groups,g => g.subs)
+                                                      .filter(c => (c as any).detection && (c as any).detection.type === 'text' )
+                                                      .map(c => c as AxSelectorComponent)
+        if(textComponents.some(c => (c.detection.features as T).type === 'map' && (c.detection.features as T).map === mapName)) {
+          return ["Used in object " + d.name + " at "+k]
+        } else {
+          return []
+        }
+      })
+    })
+  }
+
+
+
+  private checkInScript(objectName:string, label:string, firstPlace:boolean, objTest:((o:AxScriptFlowObj) => boolean)):string[] {
+    const inFlow:((name:string,flow:AxScriptFlow[]) => string[]) = (name,flow) => {
+      let contains = flow.some(f => {
+        if(typeof f === "string") {
+          return objectName === f && firstPlace;
+        } else {
+          return  objTest(f)
+        }
+      });
+      return contains ? [label + " used in script: " + name] : []
+    }
+
+    const script = this.script.getValue();
+    console.log(script)
+    if(script) {
+      let sections = script.sections ? _.flatMap(script.sections,s => inFlow(s.name,s.instructions)) : []
+      return [
+        ...inFlow('main',script.main),
+        ...inFlow('fail',script.fail),
+        ...inFlow('exit',script.exit),
+        ...sections
+      ]
+    } else {
+      return []
+    }
+  }
+
+  unsafeData():RowVM[] {
+    return this.data
+  }
+
+  objectUsage(objectName:string):string[] {
+    return this.checkInScript(objectName,"Object",true,f =>
+      (f.flow && f.flow === objectName) ||
+      (f.if_true && f.if_true === objectName) ||
+      (f.if_false && f.if_true === objectName)
+    )
+  }
+
+  sectionUsage(objectName:string):string[] {
+    return this.checkInScript(objectName,"Section",true,f => f.flow && f.flow === objectName)
+  }
+
+  mapUsage(mapName:string):string[] {
+    let scripts =  this.checkInScript(mapName,"Map",false,f => f.for && f.for === mapName)
+    let objects = this.checkInObject(mapName);
+    return scripts.concat(objects);
+  }
+
+
+  private refactorInObject(oldName:string,newName:string):void {
+    this.renameMap.emit({oldName: oldName, newName:newName})
+    this.data.forEach(d => {
+      Object.keys(d.object.components).forEach(k => {
+        const textComponents:AxSelectorComponent[] = _.flatMap(d.object.components[k].groups,g => g.subs)
+                                                      .filter(c => (c as any).detection && (c as any).detection.type === 'text' )
+                                                      .map(c => c as AxSelectorComponent)
+        textComponents.forEach(c => {
+          if((c.detection.features as T).type === 'map' && (c.detection.features as T).map === oldName) {
+            (c.detection.features as T).map = newName
+          }
+        })
+      })
+    })
+  }
+
+  private refactorInScript(oldName:string, newName:string, firstPlace:boolean, objRename:((o:AxScriptFlowObj) => void)):void {
+    const renameFlow:((flow:AxScriptFlow[]) => void) = (flow) => {
+      flow.forEach((f,i) => {
+        if(typeof f === "string") {
+          if(oldName === f && firstPlace) {
+            flow[i] = newName
+          }
+        } else {
+          objRename(f)
+        }
+      });
+    }
+
+    const script = this.script.getValue();
+    if(script) {
+      renameFlow(script.main)
+      renameFlow(script.fail)
+      renameFlow(script.exit)
+      if(script.sections) {
+        script.sections.forEach(s => renameFlow(s.instructions))
+      }
+    }
+    this.setScripts(script);
+  }
+
+  refactorObject(oldName:string,newName:string) {
+
+    this.data.filter(x => x.name === oldName).forEach(x => {
+      console.log('rename on this data')
+      x.name = newName
+    })
+
+    this.refactorInScript(oldName,newName,true,flow => {
+      if(flow.flow && flow.flow === oldName) {
+        flow.flow = newName
+      }
+      if(flow.if_false && flow.if_false === oldName) {
+        flow.if_false = newName
+      }
+      if(flow.if_true && flow.if_true === oldName) {
+        flow.if_true = newName
+      }
+    })
+  }
+
+  refactorSection(oldName:string,newName:string) {
+    this.refactorInScript(oldName,newName,true,flow => {
+      if(flow.flow && flow.flow === oldName) {
+        flow.flow = newName
+      }
+    })
+  }
+
+  refactorMap(oldName:string,newName:string) {
+    this.refactorInScript(oldName,newName,false,flow => {
+      if(flow.for && flow.for === oldName) {
+        flow.for = newName
+      }
+    })
+
+    this.refactorInObject(oldName,newName)
+  }
+
+  nameCheck(name:string):boolean {
+    return name === "main" ||
+    name === "fail" ||
+    name === "exit" ||
+    this.data.some(x => name === x.name) ||
+    this.script.value.sections.some(x => name === x.name) ||
+    this.maps.value.some(x => name === x.name)
+  }
+
+  nameValidation(input:HTMLInputElement, old:string):string {
+      const valid = input.validity.valid && input.value.length > 0;
+
+      const duplicate = input.value === old ? false : this.nameCheck(input.value);
+
+      const isCli = input.value === "cli"
+
+      let result = null
+
+      if(!valid) result = "Only alphanumeric characters and - _ ` ` (space) are allowed"
+      if(duplicate) result =  'Object name already in use'
+      if(isCli) result = '`cli` is not a valid name'
+      return result
   }
 
 

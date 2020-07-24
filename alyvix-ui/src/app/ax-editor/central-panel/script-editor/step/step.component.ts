@@ -1,9 +1,10 @@
 import { Component, OnInit, Input, ViewChild, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CdkDragDrop, CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
-import { PriBaseDropList } from 'pri-ng-dragdrop/lib/entities/pri.base.drop.list';
-import { PriDropEventArgs } from 'pri-ng-dragdrop';
-import { SelectorDatastoreService } from 'src/app/ax-selector/selector-datastore.service';
+import { SelectorDatastoreService, MapsVM, SectionVM } from 'src/app/ax-selector/selector-datastore.service';
+import { Draggable } from 'src/app/utils/draggable';
+import { EditorService } from 'src/app/ax-editor/editor.service';
+import { RowVM } from 'src/app/ax-selector/ax-table/ax-table.component';
 
 export interface Step{
   id: string;
@@ -14,20 +15,21 @@ export interface Step{
   parameterType?:string;
   disabled:boolean;
 }
+
 @Component({
   selector: 'script-step',
   templateUrl: './step.component.html',
   styleUrls: ['./step.component.scss']
 })
-export class StepComponent implements OnInit,OnDestroy {
+export class StepComponent implements OnInit {
 
 
 
-  firstParameterId:string = 'list-' + Math.random().toString(36).substring(2);
-  secondParameterId:string = 'list-' + Math.random().toString(36).substring(2);
 
-
-  constructor(private objectRegistry:ObjectsRegistryService, private selectorDatastore:SelectorDatastoreService) { }
+  constructor(
+    private selectorDatastore:SelectorDatastoreService,
+    private editorService:EditorService
+    ) { }
 
   private conditions = {
     'object': ['run', 'if true', 'if false'],
@@ -39,6 +41,8 @@ export class StepComponent implements OnInit,OnDestroy {
   secondParameterEnabled = false;
   secondParameterValue = '';
   secondParameterType = 'warning';
+  droppingSecond = false;
+  droppingPrimary = false;
 
   private _step:Step;
 
@@ -53,9 +57,36 @@ export class StepComponent implements OnInit,OnDestroy {
     if(this.secondParameterValue && this.secondParameterValue !== '') {
       this.secondParameterType = this.selectorDatastore.objectOrSection(this.secondParameterValue);
     }
-    if (this.secondParameterEnabled) {
-      setTimeout(() => this.objectRegistry.addObjectList(this.secondParameterId), 200);
+
+  }
+
+  get missing(): boolean {
+    if(this.selectorDatastore.unsafeData() && this.selectorDatastore.unsafeData().some(x => this.step.name == x.name)) {
+      return false
     }
+    if(this.sections && this.sections.some(x => this.step.name == x.name)) {
+      return false
+    }
+    if(this.maps && this.maps.some(x => this.step.name == x.name)) {
+      return false
+    }
+    return true
+  }
+
+  get missingCondition(): boolean {
+    if(!this.step.parameter) return false;
+
+
+    if(this.selectorDatastore.unsafeData() && this.selectorDatastore.unsafeData().some(x => this.step.parameter == x.name)) {
+      return false
+    }
+    if(this.sections && this.sections.some(x => this.step.parameter == x.name)) {
+      return false
+    }
+    if(this.maps && this.maps.some(x => this.step.parameter == x.name)) {
+      return false
+    }
+    return true
   }
 
   @Input() selected:boolean;
@@ -76,43 +107,150 @@ export class StepComponent implements OnInit,OnDestroy {
       default:
         this.secondParameterEnabled = true;
     }
-    if (this.secondParameterEnabled) {
-      setTimeout(() => this.objectRegistry.addObjectList(this.secondParameterId), 200);
-    }
     this.step.condition = this.condition;
     this.stepChange.emit(this.step);
   }
 
-  dropped(event: PriDropEventArgs) {
-   this._step.name = event.itemData.name;
-   if(this._step.type != event.itemData.type) {
-     this._step.condition = event.itemData.condition || this.conditions[this.step.type][0];
-   }
-   this.condition = this.step.condition;
-   this.secondParameterEnabled = !(this.step.condition === 'run');
-   this._step.type = event.itemData.type;
-   this._step.id = event.itemData.id;
-   this.stepChange.emit(this.step);
+  dropped(event: DragEvent) {
+    this.droppingPrimary = false;
+    if(this.enableDropArea(event)) {
+      if(this.enableDropPrimary(event)) {
+        const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
+        if(step) {
+          this._step.name = step.name;
+          if(this._step.type != step.type) {
+            this._step.condition = step.condition || this.conditions[this.step.type][0];
+          }
+          this.condition = this.step.condition;
+          this.secondParameterEnabled = !(this.step.condition === 'run');
+          this._step.type = step.type;
+          this._step.id = step.id;
+          this.stepChange.emit(this.step);
+        }
+      }
+      event.stopPropagation();
+    }
   }
 
-  droppedSecond(event: PriDropEventArgs) {
-   this.secondParameterValue = event.itemData.name;
-   this.secondParameterType = event.itemData.type;
-   this.step.parameter = this.secondParameterValue;
-   this.stepChange.emit(this.step);
+
+  droppedSecond(event: DragEvent) {
+    this.droppingSecond = false;
+    if(this.enableDropArea(event)) {
+      if(this.enableDropSecondary(event)) {
+        const step:Step = JSON.parse(event.dataTransfer.getData(Draggable.STEP));
+        if(step) {
+          this.secondParameterValue = step.name;
+          this.secondParameterType = step.type;
+          this.step.parameter = this.secondParameterValue;
+          this.stepChange.emit(this.step);
+        }
+      }
+      event.stopPropagation();
+    }
   }
+
+  maps:MapsVM[] = []
+  sections:SectionVM[] = []
 
   ngOnInit() {
-    this.objectRegistry.addObjectList(this.firstParameterId);
+    this.selectorDatastore.getMaps().subscribe(m => this.maps = m)
+    this.selectorDatastore.getScripts().subscribe(s => this.sections = s.sections)
   }
 
-  ngOnDestroy(): void {
-    this.objectRegistry.removeObjectList(this.firstParameterId);
-    this.objectRegistry.removeObjectList(this.secondParameterId);
+
+  enableDropArea(event:DragEvent):boolean {
+    return  this.step.id !== Draggable.DRAGGING_ID &&
+            !event.dataTransfer.types.includes(Draggable.ORDER)
   }
 
-  readonly canDropObject = (listData: any, itemData: Step) => {
-    return itemData.type === 'object' || itemData.type === 'section';
+  enableDropPrimary(event:DragEvent):boolean {
+    switch(Draggable.TYPE.decode(event.dataTransfer.types)) {
+      case 'object': return this.step.type === "object" && this.step.condition !== "run";
+      case 'section': return false;
+      case 'map': return this.step.type === "map"
+    }
   }
+
+  enableDropSecondary(event:DragEvent):boolean {
+    switch(Draggable.TYPE.decode(event.dataTransfer.types)) {
+      case 'object': return true;
+      case 'section': return true;
+      case 'map': return false;
+    }
+  }
+
+  dragoverPrimary(event:DragEvent) {
+    if(this.enableDropArea(event)) {
+      if(this.enableDropPrimary(event)) {
+        this.droppingPrimary = true;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
+  primaryTempName = null;
+
+  // dragenterPrimary(event:DragEvent) {
+  //   if(this.enableDrop(event)) {
+  //     this.primaryTempName = Draggable.TITLE.decode(event.dataTransfer.types)
+  //     event.preventDefault();
+  //     event.stopPropagation();
+  //   }
+  // }
+
+  disableDrop(event:DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    return false;
+  }
+
+  dragleavePrimary(event:DragEvent) {
+    this.droppingPrimary = false;
+    if(this.primaryTempName) {
+      this.primaryTempName = null;
+    }
+  }
+
+  secondaryTempName = null;
+
+  dragoverSecondary(event:DragEvent) {
+    if(this.enableDropArea(event)) {
+      if(this.enableDropSecondary(event)) {
+        this.droppingSecond = true;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
+  // dragenterSecondary(event:DragEvent) {
+  //   if(this.enableDrop(event) && Draggable.TYPE.decode(event.dataTransfer.types) != "map") {
+  //     this.secondaryTempName = Draggable.TITLE.decode(event.dataTransfer.types)
+  //     event.preventDefault();
+  //     event.stopPropagation();
+  //   }
+  // }
+
+  dragleaveSecondary(event:DragEvent) {
+    this.droppingSecond = false;
+    if(this.secondaryTempName) {
+      this.secondaryTempName = null;
+    }
+  }
+
+
+  startDrag(event:DragEvent) {
+
+    event.dataTransfer.setDragImage(Draggable.labelTitle(this.step.name), 0, 0);
+    event.dataTransfer.setData(Draggable.STEP,JSON.stringify(this._step));
+    event.dataTransfer.setData(Draggable.ORDER,"true");
+    event.dataTransfer.setData(Draggable.ID.encode(this._step.id),"id");
+  }
+
+  openSection(section:string) {
+    this.editorService.setSection.emit(section);
+  }
+
 
 }

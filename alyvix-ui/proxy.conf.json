@@ -149,7 +149,25 @@
         "logLevel": "debug",
         "changeOrigin": true
       },
-      "/api/*": {
+      "/rename_object": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
+      "/selector_run_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
+      "/central_panel_run_api": {
+        "target": "http://localhost:5000",
+        "secure": false,
+        "logLevel": "debug",
+        "changeOrigin": true
+      },
+      "/button_grab_api": {
         "target": "http://localhost:5000",
         "secure": false,
         "logLevel": "debug",

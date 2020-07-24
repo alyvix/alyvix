@@ -14,6 +14,11 @@ import { SelectorDatastoreService } from '../selector-datastore.service';
 import { CdkDropList } from '@angular/cdk/drag-drop';
 import { ObjectsRegistryService } from 'src/app/ax-editor/objects-registry.service';
 import { Step } from 'src/app/ax-editor/central-panel/script-editor/step/step.component';
+import { Draggable } from 'src/app/utils/draggable';
+import { ModalService, Modal } from 'src/app/modal-service.service';
+import { RunnerService } from 'src/app/runner.service';
+import { EditorService } from 'src/app/ax-editor/editor.service';
+import { Observable } from 'rxjs';
 
 export interface RowVM{
   name:string
@@ -39,16 +44,20 @@ export class AxTableComponent implements OnInit {
     private _sanitizer: DomSanitizer,
     @Inject('GlobalRefSelector') private global: SelectorGlobal,
     private api:AlyvixApiService,
+    private runner:RunnerService,
     private datastore:SelectorDatastoreService,
     private changeDetecor: ChangeDetectorRef,
-    private objectRegistry:ObjectsRegistryService
+    private objectRegistry:ObjectsRegistryService,
+    private modal:ModalService,
+    private editorService:EditorService,
     ) {}
 
 
   production: boolean = environment.production;
   private _data: RowVM[] = [];
 
-  objectLists:string[] = [];
+  imageUpdate = 0;
+
 
   @Output() import = new EventEmitter<RowVM[]>();
 
@@ -122,6 +131,7 @@ export class AxTableComponent implements OnInit {
   }
 
   @ViewChild('tableContainer',{static: true}) tableContainer: ElementRef;
+
   onResized(event: ResizedEvent) {
     this.tableContainer.nativeElement.style.height = (event.newHeight - 44 - 70 - 27) + "px"
   }
@@ -136,13 +146,19 @@ export class AxTableComponent implements OnInit {
       this.api.selectorCancel()
   }
 
+  private save(close:boolean):Observable<any> {
+    if(this.editor) {
+      return this.editorService.save()
+    } else {
+      return this.datastore.saveData(this.data,close)
+    }
+  }
+
   edit() {
     if (this.singleSelection()) {
       this.editing = this.selectedRows[0];
-      this.datastore.saveData(this.data,false).subscribe(x => {
-        if (x.success) {
+      this.save(false).subscribe(x => {
           this.api.selectorEdit(this.selectedRows[0].name, this.selectedRows[0].selectedResolution);
-        }
       });
     }
 
@@ -150,13 +166,22 @@ export class AxTableComponent implements OnInit {
 
   delay:number = 0;
   newObject() {
-    this.datastore.saveData(this.data,false).subscribe(x => {
-      if (x.success) {
+    this.save(false).subscribe(x => {
         this.api.newObject(this.delay).subscribe(x => {
 
         });
-      }
     });
+  }
+
+  regrabObject() {
+    if (this.singleSelection()) {
+      this.editing = this.selectedRows[0];
+      this.save(false).subscribe(x => {
+          this.api.grab(this.delay,this.editing.name).subscribe(x => {
+
+          });
+      });
+    }
   }
 
   changeTransactionGroup(row:RowVM,tg:string) {
@@ -197,7 +222,7 @@ export class AxTableComponent implements OnInit {
       } else {
         this.selectedRows.push(row);
       }
-    } else if (!this.isSelected(row) || event.detail > 1) {
+    } else {
       this.selectedRows = [row];
     }
     this.datastore.setSelected(this.selectedRows);
@@ -210,6 +235,7 @@ export class AxTableComponent implements OnInit {
     this.changeDetecor.markForCheck();
     this.changeDetecor.detectChanges();
     this.datastore.setSelected(this.selectedRows);
+    this.datastore.changedSelection.emit(this.selectedRows);
   }
 
   deselectAll() {
@@ -217,6 +243,7 @@ export class AxTableComponent implements OnInit {
     this.changeDetecor.markForCheck();
     this.changeDetecor.detectChanges();
     this.datastore.setSelected(this.selectedRows);
+    this.datastore.changedSelection.emit(this.selectedRows);
   }
 
   selectedNames(): string {
@@ -224,20 +251,38 @@ export class AxTableComponent implements OnInit {
   }
 
   remove() {
-    if (confirm('Do you really want to delete ' + this.selectedNames() + '?')) {
-      this.data = this.data.filter(d => !this.isSelected(d));
-      this.dataChange.emit(this.data);
-      this.selectedRows = [];
-      this.filterData();
-    }
+
+    this.modal.open({
+      title: 'Delete',
+      body: 'Do you really want to delete ' + this.selectedNames() + '?',
+      list: _.flatMap(this.selectedRows,r => this.datastore.objectUsage(r.name)),
+      actions: [
+        {
+          title: 'Delete',
+          importance: 'btn-danger',
+          callback: () => {
+            this.data = this.data.filter(d => !this.isSelected(d));
+            this.dataChange.emit(this.data);
+            this.selectedRows = [];
+            this.filterData();
+          }
+        }
+      ],
+      cancel: Modal.NOOP
+    });
+
+
   }
 
   duplicate() {
-    SelectorUtils.duplicateRows(this.selectedRows, this.data).forEach(r => this.selectedRows.push(r));
-    this.dataChange.emit(this.data);
-    this.datastore.saveData(this.data,false).subscribe(d => {
-      this.filterData();
-    });
+    this.save(false).subscribe(x => {
+      SelectorUtils.duplicateRows(this.selectedRows, this.data).forEach(r => this.selectedRows.push(r));
+      this.dataChange.emit(this.data);
+      this.save(false).subscribe(x => {
+        this.filterData();
+      });
+      this.datastore.changedSelection.emit(this.selectedRows);
+    })
 
   }
 
@@ -245,9 +290,7 @@ export class AxTableComponent implements OnInit {
     return document.activeElement === input;
   }
 
-  isNameValid(input:HTMLInputElement):boolean {
-    return input.validity.valid && input.value.length > 0;
-  }
+
 
   sortColumn(column) {
     if (this.sort.column === column) {
@@ -270,12 +313,14 @@ export class AxTableComponent implements OnInit {
       }
     });
     this.filterData();
+    this.datastore.changedSelection.emit(this.selectedRows);
   }
 
   resetFilters() {
     this.searchElementQuery = '';
     this.selectedResolution = this.currentResolution;
     this.filterData();
+    this.datastore.changedSelection.emit(this.selectedRows);
   }
 
   filterData() {
@@ -300,6 +345,10 @@ export class AxTableComponent implements OnInit {
         case 'transaction_group': return compare(x => x.object.measure.group);
         case 'date': return compare(x => x.object.date_modified);
       }
+    }).map(x => {
+      if(this.selectedResolution != 'All')
+        x.selectedResolution = this.selectedResolution
+      return x;
     })
 
     this.selectedRows = this.selectedRows.filter(r => this.filteredData.some(r1 => r.id == r1.id)); //reduce selection to only visibles
@@ -314,28 +363,77 @@ export class AxTableComponent implements OnInit {
     return SelectorUtils.isDuplicatedName(name, this.data);
   }
 
-  nameExists(old:string, name:string):boolean {
-    if(old === name) { return false; }
-    return this.data.filter(x => name === x.name).length > 0;
+
+
+  private originalName = "";
+
+  saveOriginalName(row:RowVM) {
+    this.originalName = row.name;
   }
 
-
-  private tempName = '';
-
-  changeName(row:RowVM,name,invalid:boolean) {
-    if(!invalid) {
-      this.tempName = name;
-    } else {
-      this.tempName = row.name;
+  nameKeyup(event: KeyboardEvent, row:RowVM) {
+    if(event.keyCode === 13) { //enter
+      this.confirmName(row,event.srcElement as HTMLInputElement)
     }
-    this.changeDetecor.markForCheck();
-    this.changeDetecor.detectChanges();
   }
 
-  onChangeName(row:RowVM,event) {
-    event.srcElement.value = this.tempName;
-    row.name = this.tempName;
-    this.datastore.changedNameRow.emit(row.name);
+  confirmName(row:RowVM, nameInput: HTMLInputElement) {
+    console.log("name focus out")
+    nameInput.value = row.name;
+
+    if(row.name !== this.originalName) {
+
+      const usages = this.datastore.objectUsage(this.originalName);
+
+
+      if(usages.length > 0) {
+        this.modal.open({
+          title: 'Rename object',
+          body: 'Are you sure you want to rename ' + this.originalName + ' to ' + row.name + '?',
+          list: usages,
+          actions: [
+            {
+              title: 'Rename All',
+              importance: 'btn-primary',
+              callback: () => {
+                this.datastore.refactorObject(this.originalName,row.name)
+                this.api.renameObject(this.originalName,row.name).subscribe( x=> {
+                  this.datastore.changedNameRow.emit(row.name);
+                  this.originalName = row.name;
+                  this.datastore.save().subscribe(() => { });
+                });
+              }
+            },
+            {
+              title: 'Rename',
+              importance: 'btn-danger',
+              callback: () => {
+                this.api.renameObject(this.originalName,row.name).subscribe( x=> {
+                  this.datastore.changedNameRow.emit(row.name);
+                  this.originalName = row.name;
+                });
+              }
+            }
+          ],
+          cancel: Modal.cancel(() => {
+            row.name = this.originalName
+            nameInput.value = this.originalName
+          })
+        });
+      } else {
+        this.api.renameObject(this.originalName,row.name).subscribe( x=> {
+          this.datastore.changedNameRow.emit(row.name);
+          this.originalName = row.name;
+        });
+      }
+    }
+  }
+
+  onChangeName(row:RowVM,name: string, nameInput: HTMLInputElement) {
+    if(this.datastore.nameValidation(nameInput, row.name) == null) {
+      row.name = name;
+    }
+
   }
 
   changeTimeout(row:RowVM,timeout:number) {
@@ -398,6 +496,10 @@ export class AxTableComponent implements OnInit {
     };
   }
 
+  objectDrag(event:DragEvent,row:RowVM) {
+    Draggable.startDrag(event,"object",this.toStep(row));
+  }
+
   breakClick(event,row:RowVM) {
     event.stopPropagation();
     row.object.detection.break = event.target.checked
@@ -411,14 +513,39 @@ export class AxTableComponent implements OnInit {
     row.object.measure.output = event.target.checked
   }
 
+  addToScript(row:RowVM) {
+    this.objectRegistry.addStep.emit(this.toStep(row));
+  }
+
+  run(row:RowVM) {
+    this.save(false).subscribe(x => {
+      this.runner.runOne(row.name);
+    })
+  }
+
 
 
 
   selectorColumns = ['handle','name','transactionGroup','dateModified','timeout','break','measure','warning','critical','resolution','screen']
 
+  private updateRow(r:RowVM,d:RowVM) {
+    d.object.date_modified = r.object.date_modified
+    d.object.components = r.object.components
+    d.object.call = r.object.call
+  }
+
+  private updateLibrary(r:RowVM) {
+    this.filteredData.filter(d => d.name === r.name).forEach(d => this.updateRow(r,d));
+    this._data.filter(d => d.name === r.name).forEach(d => this.updateRow(r,d));
+    this.selectedRows.filter(d => d.name === r.name).forEach(d => this.updateRow(r,d));
+  }
+
   ngOnInit(): void {
     this.datastore.editRow().subscribe(r => {
-      if (r && this.editing) {
+      this.imageUpdate++
+      if(this.editor && r && this.data.find(d => d.name === r.name)) {
+        this.updateLibrary(r);
+      } else if (r && this.editing) {
         r.id = this.editing.id;
         r.selectedResolution = this.editing.selectedResolution;
 
@@ -448,11 +575,7 @@ export class AxTableComponent implements OnInit {
       }
     });
 
-    this.objectRegistry.objectList().subscribe(x => {
-      setTimeout(() => {
-        this.objectLists = x;
-      }, 200);
-    });
+
 
 
   }

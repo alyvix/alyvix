@@ -1,6 +1,6 @@
 <div class="console-container">
   <div *ngFor="let item of consoleItems">
-    <span *ngIf="item.line">{{item.line}}</span>
+    <span *ngIf="item.line" [innerHTML]="parseHtml(item.line)"></span>
     <img *ngIf="item.image" [src]="imageFor(item.image)">
   </div>
 </div>
