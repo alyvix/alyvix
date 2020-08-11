@@ -28,6 +28,8 @@ def eprint(*args, **kwargs):
 
 help_main_string = '''usage: alyvix_robot.py [-h] --filename FILENAME [--object OBJECT]
                           [--args ARGUMENTS] [--mode MODE]
+                          [--screenshot-recording RECORDING]
+                          [--screenshot-compression COMPRESSION]
                           [--pseudonym PSEUDONYM]
                           [--key KEY]'''
 
@@ -55,6 +57,23 @@ Optional arguments:
                  Execute a specific test case object within the test case, or
                  multiple objects by inserting each in a quoted string with a
                  space separating them.
+  --screenshot-recording RECORDING, -sr RECORDING
+                 any-output 
+                           (default) it means for any test case output
+                           [true or false] alyvix records screenshots and
+                           annotations of all test case objects.
+                 broken-output-only
+                           it means just in case of a broken execution alyvix
+                           records screenshots and annotations of all test case
+                           objects.
+                 none
+                           it means for any test case output [true or false]
+                           alyvix does not record screenshots and annotations at
+                           all; in this case do not consider the
+                           --screenshot-compression option
+  --screenshot-compression COMPRESSION, -sc COMPRESSION
+                lossless (default, PNG)
+                compressed (JPG, 30%)
   --pseudonym PSEUDONYM, -p PSEUDONYM
                  Specify an additional name that allows you to differentiate
                  two test case runs with different sets of arguments.'''
@@ -156,7 +175,7 @@ for i in range(0, len(sys.argv)):
             pass
     elif sys.argv[i] == "-sr" or sys.argv[i] == "--screenshot-recording":
 
-        sr_arg = sys.argv[i + 1]
+        sr_arg = sys.argv[i + 1].lower()
         if sr_arg == "any-output":
             screen_recording = sr_arg
         elif sr_arg == "broken-output-only":
@@ -166,7 +185,7 @@ for i in range(0, len(sys.argv)):
 
     elif sys.argv[i] == "-sc" or sys.argv[i] == "--screenshot-compression":
 
-        screen_compression = sys.argv[i + 1]
+        screen_compression = sys.argv[i + 1].lower()
 
 
     elif sys.argv[i] == "-h" or sys.argv[i] == "--help":
