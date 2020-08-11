@@ -72,7 +72,7 @@ class OutputManager:
 
                 try:
                     if series["screenshot"] is not None:
-                        if (recording=="broken-output-only" and exit == "fail") or recording == "any-output":
+                        if (recording=="broken-output-only" and exit == "false") or recording == "any-output":
                             if compression == "compressed":
                                 jpg_image = cv2.imencode('.jpg', series["screenshot"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
                                 base64png = base64.b64encode(jpg_image[1]).decode('ascii')
@@ -90,7 +90,7 @@ class OutputManager:
 
                 try:
                     if series["annotation"] is not None:
-                        if (recording == "broken-output-only" and exit == "fail") or recording == "any-output":
+                        if (recording == "broken-output-only" and exit == "false") or recording == "any-output":
                             if compression == "compressed":
                                 jpg_image = cv2.imencode('.jpg', series["annotation"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
                                 base64png = base64.b64encode(jpg_image[1]).decode('ascii')
