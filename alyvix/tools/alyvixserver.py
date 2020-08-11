@@ -162,9 +162,16 @@ class AlyvixServerManager:
 
             try:
                 if object["screenshot"] is not None:
-                    png_image = cv2.imencode('.png', object["screenshot"])
-                    base64png = base64.b64encode(png_image[1]).decode('ascii')
-                    perf_dict["transaction_screenshot"] = base64png
+                    if (test_case_common["screenshot_recording"] == "broken-output-only" and test_case_common["test_case_exit"] == "fail")\
+                            or test_case_common["screenshot_recording"] == "any-output":
+                        if test_case_common["screenshot_compression"] == "compressed":
+                            jpg_image = cv2.imencode('.jpg', object["screenshot"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
+                            base64png = base64.b64encode(jpg_image[1]).decode('ascii')
+                        else:
+                            png_image = cv2.imencode('.png', object["screenshot"])
+                            base64png = base64.b64encode(png_image[1]).decode('ascii')
+                        perf_dict["transaction_screenshot"] = base64png
+
             except:
                 pass
 
@@ -172,9 +179,15 @@ class AlyvixServerManager:
 
             try:
                 if object["annotation"] is not None:
-                    png_image = cv2.imencode('.png', object["annotation"])
-                    base64png = base64.b64encode(png_image[1]).decode('ascii')
-                    perf_dict["transaction_annotation"] = base64png
+                    if (test_case_common["screenshot_recording"] == "broken-output-only" and test_case_common["test_case_exit"] == "fail")\
+                            or test_case_common["screenshot_recording"] == "any-output":
+                        if test_case_common["screenshot_compression"] == "compressed":
+                            jpg_image = cv2.imencode('.jpg', object["annotation"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
+                            base64png = base64.b64encode(jpg_image[1]).decode('ascii')
+                        else:
+                            png_image = cv2.imencode('.png', object["annotation"])
+                            base64png = base64.b64encode(png_image[1]).decode('ascii')
+                        object["annotation"] = base64png
             except:
                 pass
 

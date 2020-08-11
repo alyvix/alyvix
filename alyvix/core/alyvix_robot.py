@@ -104,6 +104,9 @@ nats_measure = ""
 
 not_executed_cnt = 0
 
+screen_recording = "any-output"
+screen_compression = "lossless"
+
 cli_map = {}
 
 for i in range(0, len(sys.argv)):
@@ -112,7 +115,7 @@ for i in range(0, len(sys.argv)):
     elif sys.argv[i] == "-o" or sys.argv[i] == "--object":
         objects_names = sys.argv[i + 1]
         objects_names = shlex.split(objects_names)
-    elif sys.argv[i] == "-a" or sys.argv == "--args":
+    elif sys.argv[i] == "-a" or sys.argv[i] == "--args":
         engine_arguments = sys.argv[i + 1]
         engine_arguments_text = engine_arguments
 
@@ -146,12 +149,27 @@ for i in range(0, len(sys.argv)):
             cli_map["arg" + str(cnt_arg)] = earg
 
 
-    elif sys.argv[i] == "-v" or sys.argv == "--verbose":
+    elif sys.argv[i] == "-v" or sys.argv[i] == "--verbose":
         try:
             verbose = int(sys.argv[i + 1])
         except:
             pass
-    elif sys.argv[i] == "-h" or sys.argv == "--help":
+    elif sys.argv[i] == "-sr" or sys.argv[i] == "--screenshot-recording":
+
+        sr_arg = sys.argv[i + 1]
+        if sr_arg == "any-output":
+            screen_recording = sr_arg
+        elif sr_arg == "broken-output-only":
+            screen_recording = sr_arg
+        elif sr_arg == "none":
+            screen_recording = sr_arg
+
+    elif sys.argv[i] == "-sc" or sys.argv[i] == "--screenshot-compression":
+
+        screen_compression = sys.argv[i + 1]
+
+
+    elif sys.argv[i] == "-h" or sys.argv[i] == "--help":
         print_help()
         exit(0)
     elif sys.argv[i] == "--is_foride":
@@ -433,7 +451,8 @@ if filename is not None:
     #json_output = om.build_json(chunk, objects_result)
 
     if verbose >= 2 and output_mode == "alyvix": #or is_foride is True:
-        om.save_screenshots(filename_path, pm.get_flattern_performances(), prefix=filename_no_extension)
+        om.save_screenshots(filename_path, pm.get_flattern_performances(), prefix=filename_no_extension,
+                            compression=screen_compression)
 
     if not_executed_cnt > 0:
         if output_mode != "nagios":
@@ -495,7 +514,8 @@ if filename is not None:
         filename = filename_path + os.sep + filename_no_extension + "_" + date_formatted + ".alyvix"
 
         #if is_foride is False:
-        om.save(filename, lm.get_json(), chunk, pm.get_performances(),engine_arguments_text, exit, sys_exit, t_end)
+        om.save(filename, lm.get_json(), chunk, pm.get_performances(),engine_arguments_text, exit, sys_exit, t_end,
+                screen_compression, screen_recording)
 
     if publish_nats is True:
         nats_manager = NatsManager()
