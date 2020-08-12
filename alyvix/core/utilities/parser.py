@@ -304,6 +304,7 @@ class ParserManager:
         series_dict["object_name"] = object_name
         series_dict["detection_type"] = self._lm.get_detection(object_name)["type"]
         series_dict["timeout"] = self._lm.get_timeout(object_name)
+        series_dict["output"] = self._lm.measure_is_enable(object_name)
         try:
             series_dict["group"] = self._lm.get_measure(object_name)["group"]
         except:

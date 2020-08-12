@@ -162,7 +162,7 @@ class AlyvixServerManager:
 
             try:
                 if object["screenshot"] is not None:
-                    if (test_case_common["screenshot_recording"] == "broken-output-only" and test_case_common["test_case_exit"] == "fail")\
+                    if (test_case_common["screenshot_recording"] == "broken-output-only" and test_case_common["test_case_exit"] == "false")\
                             or test_case_common["screenshot_recording"] == "any-output":
                         if test_case_common["screenshot_compression"] == "compressed":
                             jpg_image = cv2.imencode('.jpg', object["screenshot"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
@@ -179,7 +179,7 @@ class AlyvixServerManager:
 
             try:
                 if object["annotation"] is not None:
-                    if (test_case_common["screenshot_recording"] == "broken-output-only" and test_case_common["test_case_exit"] == "fail")\
+                    if (test_case_common["screenshot_recording"] == "broken-output-only" and test_case_common["test_case_exit"] == "false")\
                             or test_case_common["screenshot_recording"] == "any-output":
                         if test_case_common["screenshot_compression"] == "compressed":
                             jpg_image = cv2.imencode('.jpg', object["annotation"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
@@ -187,7 +187,7 @@ class AlyvixServerManager:
                         else:
                             png_image = cv2.imencode('.png', object["annotation"])
                             base64png = base64.b64encode(png_image[1]).decode('ascii')
-                        object["annotation"] = base64png
+                        perf_dict["transaction_annotation"] = base64png
             except:
                 pass
 

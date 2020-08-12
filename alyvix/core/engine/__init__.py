@@ -1580,6 +1580,7 @@ class EngineManager(object):
                         series["screenshot"] = cur_series["screenshot"]
                         series["annotation"] = cur_series["annotation"]
                         series["state"] = cur_series["state"]
+                        series["output"] = cur_series["output"]
                         series["exit"]  = cur_series["exit"]
                         not_exec = True
 
