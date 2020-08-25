@@ -3,6 +3,7 @@ import copy
 import time
 from datetime import datetime
 from alyvix.core.engine import EngineManager
+from alyvix.core.interaction.mouse import MouseManager
 from alyvix.tools.library import LibraryManager
 from alyvix.tools.screen import ScreenManager
 from alyvix.core.utilities import common
@@ -479,7 +480,10 @@ class ParserManager:
     def execute_object(self, object_name, args=None, map_names_map_keys=None):
         if self._lm.check_if_exist(object_name) is False:
             print(object_name + " does NOT exist")
-            sys.exit(2)
+            if common.is_from_server is True:
+                return
+            else:
+                sys.exit(2)
 
         object_json = self._lm.add_chunk(object_name, self._chunk)
 
@@ -606,6 +610,9 @@ class ParserManager:
     def execute_script(self):
         aaa = self.get_all_objects()
         self._executed_object_name = []
+
+        mm = MouseManager()
+        mm.move(0, 0)
 
         try:
             self._execute_section()

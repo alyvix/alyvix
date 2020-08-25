@@ -24,6 +24,7 @@ from ctypes import *
 import time
 import sys
 import os
+import re
 
 
 class KeyboardManager(KeyboardManagerBase):
@@ -51,6 +52,16 @@ class KeyboardManager(KeyboardManagerBase):
         self.ahk.ahkExec("SetKeyDelay \"" + str(delay) + " " + str(duration) + "\"")
 
         text = keys.replace("!", "{!}").replace("^", "{^}").replace("#", "{#}").replace("+", "{+}")
+
+        text = text.replace("`", "``")
+        text = text.replace(";", "`;")
+        text = text.replace("\"", "`\"")
+
+
+        unicodes_chars = re.findall(r"\{u\{\+\}[0-9][0-9][0-9][0-9]\}", text, re.IGNORECASE)
+
+        for unicode_char in unicodes_chars:
+            text = text.replace(unicode_char, unicode_char.replace("{+}", "+"))
 
         if encrypted == False:
             self.ahk.ahkExec("SendEvent \"" + text + "\"")
