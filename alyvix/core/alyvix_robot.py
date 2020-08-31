@@ -31,6 +31,7 @@ help_main_string = '''usage: alyvix_robot.py [-h] --filename FILENAME [--object 
                           [--screenshot-recording RECORDING]
                           [--screenshot-compression COMPRESSION]
                           [--pseudonym PSEUDONYM]
+                          [--verbose VERBOSE]
                           [--key KEY]'''
 
 def print_help():
@@ -57,26 +58,40 @@ Optional arguments:
                  Execute a specific test case object within the test case, or
                  multiple objects by inserting each in a quoted string with a
                  space separating them.
-  --screenshot-recording RECORDING, -sr RECORDING
-                 any-output 
-                           (default) it means for any test case output
-                           [true or false] alyvix records screenshots and
-                           annotations of all test case objects.
-                 broken-output-only
-                           it means just in case of a broken execution alyvix
-                           records screenshots and annotations of all test case
-                           objects.
-                 none
-                           it means for any test case output [true or false]
-                           alyvix does not record screenshots and annotations at
-                           all; in this case do not consider the
-                           --screenshot-compression option
-  --screenshot-compression COMPRESSION, -sc COMPRESSION
-                lossless (default, PNG)
-                compressed (JPG, 30%)
   --pseudonym PSEUDONYM, -p PSEUDONYM
-                 Specify an additional name that allows you to differentiate
-                 two test case runs with different sets of arguments.'''
+                 Set an additional test case name that allows you to
+                 differentiate several runs with different sets of arguments
+                 each.
+  --screenshot-recording RECORDING, -sr RECORDING
+                 any-output
+                     [default] For any test case output (true or false) Alyvix
+                     records screenshots and annotations of all test case
+                     objects.
+                 broken-output-only
+                     Just in case of a broken execution Alyvix records
+                     screenshots and annotations of all test case objects.
+                 none
+                     For any test case output (true or false) Alyvix does not
+                     record screenshots and annotations at all; in this case
+                     the --screenshot-compression option will not be
+                     considered.
+  --screenshot-compression COMPRESSION, -sc COMPRESSION
+                 lossless
+                     [default] Alyvix records screenshots and annotations in
+                     PNG format.
+                 compressed
+                     Alyvix records screenshots and annotations in JPG 30%
+                     format.
+  --verbose VERBOSE, -v VERBOSE
+                 Set the verbosity level for debugging output:
+                 0
+                     [default] Log start/stop timestamps, state and time
+                     measures for each object (with measure option enabled).
+                 1
+                     Log Alyvix actions too.
+                 2
+                     Save screenshot and annotation files in the same
+                     directory too.'''
     print(help_info)
 
     sys.exit(0)

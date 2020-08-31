@@ -58,7 +58,7 @@ class KeyboardManager(KeyboardManagerBase):
         text = text.replace("\"", "`\"")
 
 
-        unicodes_chars = re.findall(r"\{u\{\+\}[0-9][0-9][0-9][0-9]\}", text, re.IGNORECASE)
+        unicodes_chars = re.findall(r"\{u\{\+\}[a-z0-9]+\}", text, re.IGNORECASE)
 
         for unicode_char in unicodes_chars:
             text = text.replace(unicode_char, unicode_char.replace("{+}", "+"))

@@ -617,6 +617,7 @@ class ParserManager:
         try:
             self._execute_section()
         except ValueError as e:
+            common.is_in_fail_or_stop_section = True
             try:
                 if common.stop_flag is False:
                     common.break_flag = False
@@ -624,6 +625,7 @@ class ParserManager:
             except:
                 pass
         try:
+            common.is_in_fail_or_stop_section = True
             if common.stop_flag is False:
                 self._execute_section(section_name="exit")
         except:
