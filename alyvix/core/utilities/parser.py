@@ -1,6 +1,7 @@
 import sys
 import copy
 import time
+import threading
 from datetime import datetime
 from alyvix.core.engine import EngineManager
 from alyvix.core.interaction.mouse import MouseManager
@@ -74,6 +75,8 @@ class ParserManager:
             self._script_maps = copy.deepcopy(library_json["maps"])
         except:
             self._script_maps = {}
+
+        self.lock = threading.Lock()
 
     def get_performances(self):
 
@@ -477,7 +480,7 @@ class ParserManager:
     def get_executed_objects(self):
         return self._executed_object_name
 
-    def execute_object(self, object_name, args=None, map_names_map_keys=None):
+    def execute_object(self, object_name, args=None, map_names_map_keys=None, section_name=None):
         if self._lm.check_if_exist(object_name) is False:
             print(object_name + " does NOT exist")
             if common.is_from_server is True:
@@ -490,7 +493,8 @@ class ParserManager:
         engine_manager = EngineManager(object_json, args=args, maps=self._script_maps,
                                        verbose=self._verbose, output_mode=self._output_mode, cipher_key=self._key,
                                        cipher_iv=self._iv, performances=self._performances,
-                                       map_names_map_keys=map_names_map_keys)
+                                       map_names_map_keys=map_names_map_keys,
+                                       section_name=section_name)
 
         result = engine_manager.execute()
 
@@ -513,7 +517,15 @@ class ParserManager:
 
     def _execute_section(self, section_name=None, args=None, map_names_map_keys=None):
 
-        if common.break_flag is True or common.stop_flag is True:
+        self.lock.acquire()
+        break_flag = common.break_flag
+        stop_flag = common.stop_flag
+        self.lock.release()
+
+        if break_flag is True and section_name != "fail" and section_name != "exit":
+            return
+
+        if stop_flag is True:
             return
 
         if args is None:
@@ -535,7 +547,15 @@ class ParserManager:
 
         for key in section:
 
-            if common.break_flag is True or common.stop_flag is True:
+            self.lock.acquire()
+            break_flag = common.break_flag
+            stop_flag = common.stop_flag
+            self.lock.release()
+
+            if break_flag is True and section_name != "fail" and section_name != "exit":
+                return
+
+            if stop_flag is True:
                 return
 
             if isinstance(key, dict):
@@ -547,19 +567,21 @@ class ParserManager:
 
                 if if_key_true is not None:
 
-                    if self.execute_object(key["if_true"]):
+                    if self.execute_object(key["if_true"], section_name=section_name):
 
                         if flow_key in self._script_sections:
                             self._execute_section(section_name=flow_key, args=arguments, map_names_map_keys=map_names_map_keys)
                         else:
-                            self.execute_object(flow_key, args=arguments, map_names_map_keys=map_names_map_keys)
+                            self.execute_object(flow_key, args=arguments, map_names_map_keys=map_names_map_keys,
+                                                section_name=section_name)
 
                 elif if_key_false is not None:
-                    if not self.execute_object(key["if_false"]):
+                    if not self.execute_object(key["if_false"], section_name=section_name):
                         if flow_key in self._script_sections:
                             self._execute_section(section_name=flow_key, args=arguments, map_names_map_keys=map_names_map_keys)
                         else:
-                            self.execute_object(flow_key, args=arguments, map_names_map_keys=map_names_map_keys)
+                            self.execute_object(flow_key, args=arguments, map_names_map_keys=map_names_map_keys,
+                                                section_name=section_name)
 
                 elif for_key is not None:
 
@@ -568,7 +590,15 @@ class ParserManager:
 
                     for current_map_key in self._script_maps[current_map_name]:
 
-                        if common.break_flag is True or common.stop_flag is True:
+                        self.lock.acquire()
+                        break_flag = common.break_flag
+                        stop_flag = common.stop_flag
+                        self.lock.release()
+
+                        if break_flag is True and section_name != "fail" and section_name != "exit":
+                            return
+
+                        if stop_flag is True:
                             return
 
                         current_map = {"map_name": current_map_name, "map_key": current_map_key}
@@ -598,16 +628,19 @@ class ParserManager:
                                 map_n_map_k = []
                                 map_n_map_k.append(current_map)
 
-                            self.execute_object(flow_key, args=arguments, map_names_map_keys=map_n_map_k)
+                            self.execute_object(flow_key, args=arguments, map_names_map_keys=map_n_map_k,
+                                                section_name=section_name)
 
             elif key in self._script_sections:
                 self._execute_section(section_name=key, args=arguments, map_names_map_keys=map_names_map_keys)
             else:
                 if key[0] == "#":
                     continue
-                self.execute_object(key, args=arguments, map_names_map_keys=map_names_map_keys)
+                self.execute_object(key, args=arguments, map_names_map_keys=map_names_map_keys,
+                                    section_name=section_name)
 
     def execute_script(self):
+
         aaa = self.get_all_objects()
         self._executed_object_name = []
 
@@ -617,16 +650,12 @@ class ParserManager:
         try:
             self._execute_section()
         except ValueError as e:
-            common.is_in_fail_or_stop_section = True
             try:
-                if common.stop_flag is False:
-                    common.break_flag = False
-                    self._execute_section(section_name="fail")
+                self._execute_section(section_name="fail")
             except:
                 pass
+
         try:
-            common.is_in_fail_or_stop_section = True
-            if common.stop_flag is False:
-                self._execute_section(section_name="exit")
+            self._execute_section(section_name="exit")
         except:
             pass

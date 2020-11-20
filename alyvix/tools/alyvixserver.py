@@ -44,7 +44,7 @@ class AlyvixServerManager:
         super(AlyvixServerManager, self).__init__()
 
 
-    def publish_message(self, url, objects, start_time, filename, test_case_common):
+    def publish_message(self, url, objects, start_time, filename, test_case_common, verify=False):
 
         current_timestamp = int(time.time() * 1000 * 1000 * 1000)
 
@@ -243,7 +243,7 @@ class AlyvixServerManager:
 
 
         try:
-            r = requests.post(url, json=output_json, timeout=10)
+            r = requests.post(url, json=output_json, timeout=10, verify=verify)
         except Exception as ex:
             pass
 
