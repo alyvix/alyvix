@@ -83,7 +83,7 @@ class Result():
 class EngineManager(object):
 
     def __init__(self, object_json, args=None, maps={}, verbose=0, output_mode="alyvix", cipher_key=None, cipher_iv=None,
-                 performances=None, map_names_map_keys=None):
+                 performances=None, map_names_map_keys=None, section_name=None):
 
         self._result = Result()
 
@@ -96,6 +96,8 @@ class EngineManager(object):
         self._performances = performances
 
         self._map_names_map_keys = map_names_map_keys
+
+        self.section_name = section_name
 
         self._output_mode = output_mode
 
@@ -618,12 +620,30 @@ class EngineManager(object):
         arr_scraped_txt = copy.deepcopy(self._arr_scraped_txt)
         arr_extracted_txt = copy.deepcopy(self._arr_extracted_txt)
 
-        if common.break_flag is True or common.stop_flag is True:
+        self.lock.acquire()
+        break_flag = common.break_flag
+        stop_flag = common.stop_flag
+        section_name = self.section_name
+        self.lock.release()
+
+        if break_flag is True and section_name != "fail" and section_name != "exit":
+            return
+
+        if stop_flag is True:
             return
 
         for cnt_g in range(3):
 
-            if common.break_flag is True or common.stop_flag is True:
+            self.lock.acquire()
+            break_flag = common.break_flag
+            stop_flag = common.stop_flag
+            section_name = self.section_name
+            self.lock.release()
+
+            if break_flag is True and section_name != "fail" and section_name != "exit":
+                return
+
+            if stop_flag is True:
                 return
 
 
@@ -684,7 +704,16 @@ class EngineManager(object):
 
             if len(mains_found) > 0:
                 for main_found in mains_found:
-                    if common.break_flag is True or common.stop_flag is True:
+                    self.lock.acquire()
+                    break_flag = common.break_flag
+                    stop_flag = common.stop_flag
+                    section_name = self.section_name
+                    self.lock.release()
+
+                    if break_flag is True and section_name != "fail" and section_name != "exit":
+                        return
+
+                    if stop_flag is True:
                         return
 
                     sub_results = []
@@ -1580,6 +1609,7 @@ class EngineManager(object):
                         series["screenshot"] = cur_series["screenshot"]
                         series["annotation"] = cur_series["annotation"]
                         series["state"] = cur_series["state"]
+                        series["output"] = cur_series["output"]
                         series["exit"]  = cur_series["exit"]
                         not_exec = True
 
@@ -1594,7 +1624,16 @@ class EngineManager(object):
 
     def execute(self):
 
-        if common.break_flag is True or common.stop_flag is True:
+        self.lock.acquire()
+        break_flag = common.break_flag
+        stop_flag = common.stop_flag
+        section_name = self.section_name
+        self.lock.release()
+
+        if break_flag is True and section_name != "fail" and section_name != "exit":
+            return
+
+        if stop_flag is True:
             return
 
         self._result.timestamp = time.time()
@@ -1770,7 +1809,16 @@ class EngineManager(object):
 
         while True:
 
-            if common.break_flag is True or common.stop_flag is True:
+            self.lock.acquire()
+            break_flag = common.break_flag
+            stop_flag = common.stop_flag
+            section_name = self.section_name
+            self.lock.release()
+
+            if break_flag is True and section_name != "fail" and section_name != "exit":
+                return
+
+            if stop_flag is True:
                 return
 
             #t_before_grab = time.time()

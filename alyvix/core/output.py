@@ -26,7 +26,8 @@ class OutputManager:
             if isinstance(value, MutableMapping):
                 self._delete_keys_from_dict(value, keys)
 
-    def _build_json(self, json_object, chunk, object_list, engine_arguments_text, exit, state, duration):
+    def _build_json(self, json_object, chunk, object_list, engine_arguments_text, exit, state, duration,
+                    compression, recording):
 
         for object in json_object["objects"]:
             try:
@@ -71,17 +72,37 @@ class OutputManager:
 
                 try:
                     if series["screenshot"] is not None:
-                        png_image = cv2.imencode('.png', series["screenshot"])
-                        base64png = base64.b64encode(png_image[1]).decode('ascii')
-                        series["screenshot"] = base64png
+                        if (recording=="broken-output-only" and exit == "false") or recording == "any-output":
+                            if compression == "compressed":
+                                jpg_image = cv2.imencode('.jpg', series["screenshot"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
+                                base64png = base64.b64encode(jpg_image[1]).decode('ascii')
+                            else:
+                                png_image = cv2.imencode('.png', series["screenshot"])
+                                base64png = base64.b64encode(png_image[1]).decode('ascii')
+                            series["screenshot"] = base64png
+                            #np_array = np.frombuffer(base64.b64decode(base64png), np.uint8)
+                            #np_array = cv2.imdecode(np_array, 1)
+                            #cv2.imwrite("D:\\alyvix_testcase\\"+str(time.time()).replace(".","")+".jpg", np_array, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+                        else:
+                            series["screenshot"] = None
                 except:
                     pass
 
                 try:
                     if series["annotation"] is not None:
-                        png_image = cv2.imencode('.png', series["annotation"])
-                        base64png = base64.b64encode(png_image[1]).decode('ascii')
-                        series["annotation"] = base64png
+                        if (recording == "broken-output-only" and exit == "false") or recording == "any-output":
+                            if compression == "compressed":
+                                jpg_image = cv2.imencode('.jpg', series["annotation"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
+                                base64png = base64.b64encode(jpg_image[1]).decode('ascii')
+                            else:
+                                png_image = cv2.imencode('.png', series["annotation"])
+                                base64png = base64.b64encode(png_image[1]).decode('ascii')
+                            series["annotation"] = base64png
+                            #np_array = np.frombuffer(base64.b64decode(base64png), np.uint8)
+                            #np_array = cv2.imdecode(np_array, 1)
+                            #cv2.imwrite("D:\\alyvix_testcase\\"+str(time.time()).replace(".","")+".jpg", np_array,[int(cv2.IMWRITE_JPEG_QUALITY), 100])
+                        else:
+                            series["annotation"] = None
                 except:
                     pass
 
@@ -103,7 +124,7 @@ class OutputManager:
 
         return json_object
 
-    def save_screenshots(self, file_path, performances, prefix=None):
+    def save_screenshots(self, file_path, performances, prefix=None, compression="lossless"):
         for perf in performances:
 
             object_name = perf["performance_name"]
@@ -129,12 +150,23 @@ class OutputManager:
                 date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) \
                                  + "_UTC" + time.strftime("%z")
 
-                if prefix is not None:
-                    filename = date_formatted + "_" + prefix + "_" + object_name + "_screenshot.png"
-                else:
-                    filename = date_formatted + "_" + object_name + "_screenshot.png"
 
-                cv2.imwrite(file_path + os.sep + filename, perf["screenshot"])
+                if compression == "compressed":
+                    if prefix is not None:
+                        filename = date_formatted + "_" + prefix + "_" + object_name + "_screenshot.jpg"
+                    else:
+                        filename = date_formatted + "_" + object_name + "_screenshot.jpg"
+
+
+                    cv2.imwrite(file_path + os.sep + filename, perf["screenshot"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
+                else:
+                    if prefix is not None:
+                        filename = date_formatted + "_" + prefix + "_" + object_name + "_screenshot.png"
+                    else:
+                        filename = date_formatted + "_" + object_name + "_screenshot.png"
+
+
+                    cv2.imwrite(file_path + os.sep + filename, perf["screenshot"])
 
             except:
                 pass
@@ -147,18 +179,30 @@ class OutputManager:
                 date_formatted = date_from_ts.strftime("%Y%m%d_%H%M%S") + "_" + str(millis_from_ts) \
                                  + "_UTC" + time.strftime("%z")
 
-                if prefix is not None:
-                    filename = date_formatted + "_" + prefix + "_" + object_name + "_annotation.png"
-                else:
-                    filename = date_formatted + "_" + prefix + "_" + object_name + "_annotation.png"
+                if compression == "compressed":
 
-                cv2.imwrite(file_path + os.sep + filename, perf["annotation"])
+                    if prefix is not None:
+                        filename = date_formatted + "_" + prefix + "_" + object_name + "_annotation.jpg"
+                    else:
+                        filename = date_formatted + "_" + prefix + "_" + object_name + "_annotation.jpg"
+
+
+                    cv2.imwrite(file_path + os.sep + filename, perf["annotation"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
+                else:
+
+                    if prefix is not None:
+                        filename = date_formatted + "_" + prefix + "_" + object_name + "_annotation.png"
+                    else:
+                        filename = date_formatted + "_" + prefix + "_" + object_name + "_annotation.png"
+
+                    cv2.imwrite(file_path + os.sep + filename, perf["annotation"])
 
             except:
                 pass
 
-    def save(self, filename, json_object, chunk, object_list, engine_arguments_text, exit, state, duration):
+    def save(self, filename, json_object, chunk, object_list, engine_arguments_text, exit, state, duration, compression, recording):
 
         with open(filename, 'w') as f:
-            json.dump(self._build_json(json_object, chunk, object_list, engine_arguments_text, exit, state, duration), f, indent=4,
+            json.dump(self._build_json(json_object, chunk, object_list, engine_arguments_text, exit, state, duration,
+                                       compression, recording), f, indent=4,
                       sort_keys=True, ensure_ascii=False)
