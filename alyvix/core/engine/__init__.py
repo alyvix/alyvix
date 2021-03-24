@@ -266,9 +266,11 @@ class EngineManager(object):
         gray_screen = cv2.cvtColor(color_screen, cv2.COLOR_BGR2GRAY)
 
         for result_box in self._components_appeared:
+            """
             if result_box.type == "T" and result_box.scraped_text is not None:
                 cnt_found += 1
                 continue
+            """
 
             template = cv2.cvtColor(self._last_screen[result_box.y:result_box.y + result_box.h,
                                     result_box.x:result_box.x + result_box.w], cv2.COLOR_BGR2GRAY)
@@ -1570,7 +1572,7 @@ class EngineManager(object):
                         pass
 
                     try:
-                        critical_ms = self._result.thresholds["warning_s"] * 1000
+                        critical_ms = self._result.thresholds["critical_s"] * 1000
 
                         if self._result.performance_ms >= critical_ms:
                             self._result.state = 2
