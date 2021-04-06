@@ -1045,17 +1045,21 @@ def ide_run_api_process(selections=None):
 
             for key, value in objects.items():
                 try:
-                    if value["measure"]["series"][0]["timestamp"] != -1 and value["measure"]["series"][0]["exit"]=="fail":
-                        ordered_object.append(value)
+                    for element in value["measure"]["series"]:
+                        try:
+                            if element["timestamp"] != -1 and element["exit"]=="fail":
+                                ordered_object.append(element)
+                        except:
+                            pass
                 except:
                     pass #keyword is not executed, so measure is empty
-            ordered_object = sorted(ordered_object, key=lambda k: k['measure']["series"][0]['timestamp'])
+            ordered_object = sorted(ordered_object, key=lambda k: k['timestamp'])
 
             sm = ScreenManager()
             scaling_factor = sm.get_scaling_factor()
 
             if scaling_factor > 1:
-                np_array = np.frombuffer(base64.b64decode(ordered_object[0]['measure']["series"][0]['annotation']), np.uint8)
+                np_array = np.frombuffer(base64.b64decode(ordered_object[0]['annotation']), np.uint8)
 
                 background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
@@ -1069,7 +1073,7 @@ def ide_run_api_process(selections=None):
 
                 base64png = base64.b64encode(png_image[1]).decode('ascii')
             else:
-                base64png = ordered_object[0]['measure']["series"][0]['annotation']
+                base64png = ordered_object[0]['annotation']
 
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('<br/>')")
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('At the moment of test case failure, the following was displayed on the screen:')")
