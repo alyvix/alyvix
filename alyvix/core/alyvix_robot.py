@@ -82,16 +82,16 @@ Optional arguments:
                  compressed
                      Alyvix records screenshots and annotations in JPG 30%
                      format.
+  --screenshot-saving, -ss
+                 Save screenshot and annotation PNG files (or JPG depending on
+                 the screenshot compression argument) in the test case folder.
   --verbose VERBOSE, -v VERBOSE
                  Set the verbosity level for debugging output:
                  0
                      [default] Log start/stop timestamps, state and time
                      measures for each object (with measure option enabled).
                  1
-                     Log Alyvix actions too.
-                 2
-                     Save screenshot and annotation files in the same
-                     directory too.'''
+                     Log Alyvix actions too.'''
     print(help_info)
 
     sys.exit(0)
@@ -138,8 +138,9 @@ nats_measure = ""
 
 not_executed_cnt = 0
 
-screen_recording = "any-output"
+screen_recording = "any-output" #save into json output
 screen_compression = "lossless"
+screenshot_saving = False #save on filesystem
 
 cli_map = {}
 
@@ -201,6 +202,10 @@ for i in range(0, len(sys.argv)):
     elif sys.argv[i] == "-sc" or sys.argv[i] == "--screenshot-compression":
 
         screen_compression = sys.argv[i + 1].lower()
+
+    elif sys.argv[i] == "-ss" or sys.argv[i] == "--screenshot-saving":
+
+        screenshot_saving = True
 
 
     elif sys.argv[i] == "-h" or sys.argv[i] == "--help":
@@ -484,7 +489,8 @@ if filename is not None:
     om = OutputManager()
     #json_output = om.build_json(chunk, objects_result)
 
-    if verbose >= 2 and output_mode == "alyvix": #or is_foride is True:
+    #if verbose >= 2 and output_mode == "alyvix": #or is_foride is True:
+    if screenshot_saving == True:
         om.save_screenshots(filename_path, pm.get_flattern_performances(), prefix=filename_no_extension,
                             compression=screen_compression)
 
