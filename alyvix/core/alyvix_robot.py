@@ -30,6 +30,7 @@ help_main_string = '''usage: alyvix_robot.py [-h] --filename FILENAME [--object 
                           [--args ARGUMENTS] [--mode MODE]
                           [--screenshot-recording RECORDING]
                           [--screenshot-compression COMPRESSION]
+                          [--screenshot-saving]
                           [--pseudonym PSEUDONYM]
                           [--verbose VERBOSE]
                           [--key KEY]'''
