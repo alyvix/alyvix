@@ -204,7 +204,7 @@ class ArgsManager:
             output_string = output_string.replace(arg_pattern, check_value)
             # self._result.arguments.append(text_value)
 
-        maps_args = re.findall(r"(\{[\w\s\-]+\.[\w]+\}|{[\w\s\-]+\.[\w\s\-]+,[^\}]+\})", output_string,
+        maps_args = re.findall(r"(\{[\w\s\-]+\.[\w\s\-]+\}|{[\w\s\-]+\.[\w\s\-]+,[^\}]+\})", output_string,
                                re.IGNORECASE | re.UNICODE)
         # re.findall("\\{.*\\..*\\}", output_string, re.IGNORECASE)
 
