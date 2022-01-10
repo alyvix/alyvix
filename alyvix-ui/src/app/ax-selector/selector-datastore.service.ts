@@ -152,8 +152,8 @@ export class SelectorDatastoreService {
   }
 
   setData(data:RowVM[]) {
-    console.log('data')
-    console.log(data)
+    //console.log('data')
+    //console.log(data)
     this.data = data;
   }
 
@@ -176,8 +176,8 @@ export class SelectorDatastoreService {
   objectOrSection(name:string):string {
     if(!name) return null;
 
-    console.log(name)
-    console.log(this.data)
+    //console.log(name)
+    //console.log(this.data)
 
     if(this.data.find(x => x.name === name)) {
       return 'object';
@@ -228,6 +228,12 @@ export class SelectorDatastoreService {
 
   save():Observable<RowVM[]> {
     return this.apiService.setLibrary({library: this.prepareModelForSubmission(this.data), close_selector: false}).pipe(map(x => this.data))
+  }
+
+
+  
+  save2(data:RowVM[]):Observable<RowVM[]> {
+    return this.apiService.setLibrary({library: this.prepareModelForSubmission(data), close_selector: false}).pipe(map(x => this.data))
   }
 
 

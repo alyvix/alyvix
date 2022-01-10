@@ -17,7 +17,16 @@ import sys
 import threading
 
 #os.environ["FLASK_ENV"] = "development"
+#import atexit
 
+"""
+@atexit.register
+def what_happened():
+    import traceback
+    ex_type, ex_value, ex_traceback = sys.exc_info()
+
+    print( sys.exc_info())
+"""
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -128,7 +137,7 @@ if __name__ == '__main__':
 
     scaling_factor = screen_manager.get_scaling_factor()
 
-    server_port = 5000
+    server_port = 4997
 
     while True:
 

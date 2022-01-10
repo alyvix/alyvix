@@ -357,6 +357,8 @@ def designer_open_file_api():
     else:
         browser_class._browser_1.ExecuteJavascript("setExePath('" + file_path + "','" + caller + "')")
 
+    root.destroy()
+
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route("/selector", methods=['GET', 'POST'])
@@ -630,6 +632,8 @@ def ide_open_file_api():
 
         browser_class._browser_3.Reload()
 
+        root.destroy()
+
         #browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
@@ -681,6 +685,8 @@ def ide_save_as_api():
         filename_path = os.path.dirname(current_filename)
         filename_no_path = os.path.basename(current_filename)
         filename_no_extension = os.path.splitext(filename_no_path)[0]
+
+        root.destroy()
 
         browser_class.change_title(browser_class._hwnd_3, "Alyvix Editor - " + filename_no_extension)
 
@@ -947,6 +953,69 @@ def ide_run_api_process_old(current_filename, library_dict):
     #sys.exit(sys_exit)
     browser_class._browser_3.ExecuteJavascript("setFilePath('" + "sds" + "')")
 
+def _sort_windows(windows):
+    sorted_windows = []
+
+    # Find the first entry
+    for window in windows:
+        if window["hwnd_above"] == 0:
+            sorted_windows.append(window)
+            break
+    else:
+        raise(IndexError("Could not find first entry"))
+
+    # Follow the trail
+    while True:
+        for window in windows:
+            if sorted_windows[-1]["hwnd"] == window["hwnd_above"]:
+                sorted_windows.append(window)
+                break
+        else:
+            break
+
+    # Remove hwnd_above
+    for window in windows:
+        del(window["hwnd_above"])
+
+    return sorted_windows
+
+def _enum_handler(hwnd, results):
+
+    try:
+        window_placement = win32gui.GetWindowPlacement(hwnd)
+
+        rect = win32gui.GetWindowRect(hwnd)
+        x, y, w, h = rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]
+
+        styles = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE)
+
+        top_most = (styles & win32con.WS_EX_TOPMOST) == win32con.WS_EX_TOPMOST
+        #win32gui.GetWindowText(hwnd)
+
+        # "hwnd":hwnd,
+        # "hwnd_above":win32gui.GetWindow(hwnd, win32con.GW_HWNDPREV), # Window handle to above window
+        # "title":title,
+        visible = win32gui.IsWindowVisible(hwnd) == 1
+        minimized = window_placement[1] == win32con.SW_SHOWMINIMIZED
+        maximized = window_placement[1] == win32con.SW_SHOWMAXIMIZED
+
+        if top_most is False and visible is True:
+            title = win32gui.GetWindowText(hwnd)
+        else:
+            title = ""
+
+        results.append({
+            "hwnd":hwnd,
+            #"hwnd_above":win32gui.GetWindow(hwnd, win32con.GW_HWNDPREV), # Window handle to above window
+            "title":title,
+            "visible": visible,
+            "minimized":minimized,
+            "maximized":maximized,
+            "top_most": top_most,
+            "x":x, "y": y, "w": w, "h": h
+        })
+    except:
+        pass
 
 def ide_run_api_process(selections=None):
     global current_filename
@@ -954,7 +1023,19 @@ def ide_run_api_process(selections=None):
     global alyvix_run_process
     global alyvix_run_tmp_path
 
-    browser_class.minimize(browser_class._hwnd_3)
+    #browser_class.minimize(browser_class._hwnd_3)
+
+    """
+    enumerated_windows = []
+
+    win32gui.EnumWindows(_enum_handler, enumerated_windows)
+
+    editor_hwnd = [s for s in enumerated_windows if "Alyvix Editor" in s["title"]]
+    editor_hwnd = editor_hwnd[0]["hwnd"]
+    """
+
+    win32gui.ShowWindow(browser_class._hwnd_3, win32con.SW_HIDE)
+
 
     if loglevel == 0:
         os.dup2(output_pipeline[0], 1)
@@ -1087,8 +1168,6 @@ def ide_run_api_process(selections=None):
         # STOP button already remove it
         shutil.rmtree(alyvix_run_tmp_path)
 
-        # restore if we dont press stop
-        browser_class.restore(browser_class._hwnd_3)
     except:
         pass
 
@@ -1098,7 +1177,18 @@ def ide_run_api_process(selections=None):
         os.dup2(null_fds[0], 1)
         os.dup2(null_fds[1], 2)
 
+    # restore if we dont press stop
+    #browser_class.restore(browser_class._hwnd_3)
 
+    win32gui.ShowWindow(browser_class._hwnd_3, win32con.SW_SHOW)
+    shell = win32com.client.Dispatch("WScript.Shell")
+    # And SetAsForegroundWindow becomes
+    shell.SendKeys('%')
+    try:
+        win32gui.SetForegroundWindow(browser_class._hwnd_3)
+    except:
+        pass
+    win32gui.BringWindowToTop(browser_class._hwnd_3)
 
 
 @app.route("/ide_run_api", methods=['GET', 'POST'])
@@ -2440,12 +2530,14 @@ def get_library_api():
     # close from x button if testcase is new
     if browser_class._ask_popup is True:
 
-        if original_library_dict != library_dict:
+        try:
+            if original_library_dict != library_dict:
 
-            browser_class.close_with_popup()
-        else:
-            browser_class.close()
-
+                browser_class.close_with_popup()
+            else:
+                browser_class.close()
+        except:
+            pass
 
     #return jsonify(ret_dict)
     return jsonify(library_dict)

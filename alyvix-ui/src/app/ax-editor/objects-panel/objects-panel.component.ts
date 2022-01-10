@@ -187,7 +187,7 @@ export class ObjectsPanelComponent implements OnInit {
 
   private checkUsageMapForObject(mapName:string):string {
     const model = this.axDesignerService.getModel()
-    console.log(model)
+    //console.log(model)
     if(!model) return null
     return model.box_list.every(x => {
       if(x.features && x.features.T && x.features.T.map) {
@@ -202,7 +202,7 @@ export class ObjectsPanelComponent implements OnInit {
 
   private refactorMapForObject(oldName:string, newName:string) {
     const model = this.axDesignerService.getModel()
-    console.log(model)
+    //console.log(model)
     if(!model) return null
     model.box_list.forEach(x => {
       if(x.features && x.features.T && x.features.T.map && x.features.T.map == oldName) {
@@ -223,7 +223,7 @@ export class ObjectsPanelComponent implements OnInit {
       }
 
       const rename = () => {
-        console.log(target.value)
+        //console.log(target.value)
 
         map.name = target.value;
         this.selectMap(map);
