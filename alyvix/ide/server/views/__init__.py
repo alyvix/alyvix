@@ -594,35 +594,28 @@ def ide_open_file_api():
     global original_library_dict
     global current_filename
 
-    import tempfile, base64, zlib
-
     filename_path = os.path.dirname(current_filename)
 
-    ICON = zlib.decompress(base64.b64decode('eJxjYGAEQgEBBiDJwZDBy'
-                                            'sAgxsDAoAHEQCEGBQaIOAg4sDIgACMUj4JRMApGwQgF/ykEAFXxQRc='))
+    filter = 'Alyvix Library (*.alyvix)\0*.alyvix\0All Files (*.*)\0*.*\0'
+    fname= customfilter= flags=None
+    try:
+        fname, customfilter, flags = win32gui.GetOpenFileNameW(
+            #InitialDir=filename_path,
+            Flags=win32con.OFN_EXPLORER | win32con.OFN_NOCHANGEDIR,
+            File=None,
+            Title='Open File',
+            Filter=filter,
+            FilterIndex=0)
+    except:
+        pass
 
-    _, ICON_PATH = tempfile.mkstemp()
-    with open(ICON_PATH, 'wb') as icon_file:
-        icon_file.write(ICON)
-
-    root = tk.Tk()
-    root.withdraw()
-    #icon = PhotoImage(height=16, width=16)
-    #icon.blank()
-    root.iconbitmap(default=ICON_PATH)
-    #root.call('wm', 'iconphoto', root._w, PhotoImage(r'server\static\img\icons\transparent_ico.gif'))
-    root.call('wm', 'attributes', '.', '-topmost', '1')
-    #root.tk.call('wm', 'iconphoto', root._w, icon)
-    file_path = filedialog.askopenfilename(initialdir=filename_path, filetypes=[("Alyvix Library","*.alyvix"), ("all files", "*.*")])
-    #print(file_path)
-
-    if file_path != "":
+    if fname != None:
         lm = LibraryManager()
-        lm.load_file(file_path)
+        lm.load_file(fname)
         library_dict = lm.get_json()
         original_library_dict = copy.deepcopy(library_dict)
 
-        current_filename = file_path
+        current_filename = fname
 
         filename_path = os.path.dirname(current_filename)
         filename_no_path = os.path.basename(current_filename)
@@ -645,6 +638,7 @@ def ide_save_as_api():
     global library_dict_in_editing
     global current_filename
 
+    """
     import tempfile, base64, zlib
 
     filename_path = os.path.dirname(current_filename)
@@ -667,8 +661,26 @@ def ide_save_as_api():
     filename = filedialog.asksaveasfilename(initialdir=filename_path, title="Select file",
                                                  filetypes=(("Alyvix Library", "*.alyvix"), ("all files", "*.*")), defaultextension='.alyvix')
     #print(filename)
+    """
 
-    if filename != "":
+    filename = None
+    filename_path = os.path.dirname(current_filename)
+    filter = 'Alyvix Library (*.alyvix)\0*.alyvix\0All Files (*.*)\0*.*\0'
+
+    try:
+        filename, customfilter, flags = win32gui.GetSaveFileNameW(
+            # hwndOwner=display.get_wm_info()['window'],
+            #InitialDir=filename_path,
+            Flags=win32con.OFN_EXPLORER | win32con.OFN_NOCHANGEDIR | win32con.OFN_OVERWRITEPROMPT,
+            #File='testcase',
+            DefExt='alyvix',
+            Title='Save As',
+            Filter=filter,
+        )
+    except:
+        pass
+
+    if filename != "" and filename != None:
         with open(filename, 'w') as f:
             json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
 
@@ -686,15 +698,15 @@ def ide_save_as_api():
         filename_no_path = os.path.basename(current_filename)
         filename_no_extension = os.path.splitext(filename_no_path)[0]
 
-        root.destroy()
-
         browser_class.change_title(browser_class._hwnd_3, "Alyvix Editor - " + filename_no_extension)
 
         browser_class._browser_3.Reload()
 
         # browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
 
-    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+        return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+    else:
+        return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
 
 @app.route("/ide_exit_api", methods=['GET', 'POST'])
 def ide_exit_api():
@@ -953,89 +965,15 @@ def ide_run_api_process_old(current_filename, library_dict):
     #sys.exit(sys_exit)
     browser_class._browser_3.ExecuteJavascript("setFilePath('" + "sds" + "')")
 
-def _sort_windows(windows):
-    sorted_windows = []
-
-    # Find the first entry
-    for window in windows:
-        if window["hwnd_above"] == 0:
-            sorted_windows.append(window)
-            break
-    else:
-        raise(IndexError("Could not find first entry"))
-
-    # Follow the trail
-    while True:
-        for window in windows:
-            if sorted_windows[-1]["hwnd"] == window["hwnd_above"]:
-                sorted_windows.append(window)
-                break
-        else:
-            break
-
-    # Remove hwnd_above
-    for window in windows:
-        del(window["hwnd_above"])
-
-    return sorted_windows
-
-def _enum_handler(hwnd, results):
-
-    try:
-        window_placement = win32gui.GetWindowPlacement(hwnd)
-
-        rect = win32gui.GetWindowRect(hwnd)
-        x, y, w, h = rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]
-
-        styles = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE)
-
-        top_most = (styles & win32con.WS_EX_TOPMOST) == win32con.WS_EX_TOPMOST
-        #win32gui.GetWindowText(hwnd)
-
-        # "hwnd":hwnd,
-        # "hwnd_above":win32gui.GetWindow(hwnd, win32con.GW_HWNDPREV), # Window handle to above window
-        # "title":title,
-        visible = win32gui.IsWindowVisible(hwnd) == 1
-        minimized = window_placement[1] == win32con.SW_SHOWMINIMIZED
-        maximized = window_placement[1] == win32con.SW_SHOWMAXIMIZED
-
-        if top_most is False and visible is True:
-            title = win32gui.GetWindowText(hwnd)
-        else:
-            title = ""
-
-        results.append({
-            "hwnd":hwnd,
-            #"hwnd_above":win32gui.GetWindow(hwnd, win32con.GW_HWNDPREV), # Window handle to above window
-            "title":title,
-            "visible": visible,
-            "minimized":minimized,
-            "maximized":maximized,
-            "top_most": top_most,
-            "x":x, "y": y, "w": w, "h": h
-        })
-    except:
-        pass
-
 def ide_run_api_process(selections=None):
     global current_filename
     global library_dict
     global alyvix_run_process
     global alyvix_run_tmp_path
 
-    #browser_class.minimize(browser_class._hwnd_3)
+    browser_class.minimize(browser_class._hwnd_3)
 
-    """
-    enumerated_windows = []
-
-    win32gui.EnumWindows(_enum_handler, enumerated_windows)
-
-    editor_hwnd = [s for s in enumerated_windows if "Alyvix Editor" in s["title"]]
-    editor_hwnd = editor_hwnd[0]["hwnd"]
-    """
-
-    win32gui.ShowWindow(browser_class._hwnd_3, win32con.SW_HIDE)
-
+    #win32gui.ShowWindow(browser_class._hwnd_3, win32con.SW_HIDE)
 
     if loglevel == 0:
         os.dup2(output_pipeline[0], 1)
@@ -1178,8 +1116,9 @@ def ide_run_api_process(selections=None):
         os.dup2(null_fds[1], 2)
 
     # restore if we dont press stop
-    #browser_class.restore(browser_class._hwnd_3)
+    browser_class.restore(browser_class._hwnd_3)
 
+    """
     win32gui.ShowWindow(browser_class._hwnd_3, win32con.SW_SHOW)
     shell = win32com.client.Dispatch("WScript.Shell")
     # And SetAsForegroundWindow becomes
@@ -1189,7 +1128,7 @@ def ide_run_api_process(selections=None):
     except:
         pass
     win32gui.BringWindowToTop(browser_class._hwnd_3)
-
+    """
 
 @app.route("/ide_run_api", methods=['GET', 'POST'])
 def ide_run_api():

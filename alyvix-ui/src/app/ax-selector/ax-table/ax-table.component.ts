@@ -585,6 +585,7 @@ export class AxTableComponent implements OnInit {
   private updateRow(r:RowVM,d:RowVM) {
     d.object.date_modified = r.object.date_modified
     d.object.components = r.object.components
+    d.object.detection = r.object.detection
     d.object.call = r.object.call
   }
 
