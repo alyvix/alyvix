@@ -144,7 +144,8 @@ export class ObjectsPanelComponent implements OnInit {
     while(this.maps.find(x => x.name === 'Map'+i)) {
       i++;
     }
-    this.maps.push({name: 'Map'+i, rows:[{name: 'key', value: 'value'}]});
+    //this.maps.push({name: 'Map'+i, rows:[{name: 'key1', value: 'value1'}]});
+    this.maps.push({name: 'Map'+i, rows:[{name: 'key1', value: ''}]});
     this.editorService.save().subscribe(saved => {})
   }
 
@@ -215,6 +216,11 @@ export class ObjectsPanelComponent implements OnInit {
   changeMapName(map:MapsVM, event:Event) {
       console.log('changeMapName')
       const target = (event.target as HTMLInputElement)
+      if(target.validity.valid === false || target.value.length < 0 || target.value === ''){
+        console.log('ingvalid!!map_name' + map.name);
+        target.value = map.name;
+        return;
+      }
       let usages = this.selectorDatastore.mapUsage(map.name);
       const usageCurrent = this.checkUsageMapForObject(map.name)
 
@@ -305,6 +311,12 @@ export class ObjectsPanelComponent implements OnInit {
 
     const target = (event.target as HTMLInputElement)
     const usages = this.selectorDatastore.sectionUsage(section.name);
+
+    if(target.validity.valid === false || target.value.length < 0 || target.value === ''){
+      console.log('ingvalid!!section_name' + section.name);
+      target.value = section.name;
+      return;
+    }
 
     const rename = () => {
       section.name = target.value;

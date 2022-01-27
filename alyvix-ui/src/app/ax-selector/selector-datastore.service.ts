@@ -198,6 +198,7 @@ export class SelectorDatastoreService {
         let obj = {};
         m.forEach(r => {
           obj[r.name] = r.value || r.values;
+          if(obj[r.name] == null) obj[r.name] ='';
         })
         return obj;
   }
@@ -435,7 +436,7 @@ export class SelectorDatastoreService {
   }
 
   nameValidation(input:HTMLInputElement, old:string):string {
-      const valid = input.validity.valid && input.value.length > 0;
+      const valid = input.validity.valid && input.value.length > 0 && input.value !== '';
 
       const duplicate = input.value === old ? false : this.nameCheck(input.value);
 
