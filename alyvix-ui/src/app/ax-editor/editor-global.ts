@@ -16,14 +16,14 @@ export interface EditorGlobal{
 })
 export class MockEditorGlobal implements EditorGlobal{
   setBoxes(boxes: BoxListEntity[]) {
-    console.log(boxes);
+    //console.log(boxes);
   }
   res_h: number = 1080;
   res_w: number = 1920;
   scaling_factor: number = 100;
   setCanvas(c: HTMLCanvasElement) {
-    console.log("set canvas");
-    console.log(c);
+    //console.log("set canvas");
+    //console.log(c);
   }
 
 

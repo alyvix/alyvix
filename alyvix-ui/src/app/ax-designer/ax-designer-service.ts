@@ -301,7 +301,7 @@ export class AxDesignerService {
   }
   removeComponent(node: TreeNode) {
     this.axModel.box_list = this.axModel.box_list.filter(x => !fastDeepEqual(x, node.box));
-    console.log(this.axModel.box_list)
+    //console.log(this.axModel.box_list)
     this._loadNodes(false);
   }
   duplicateComponent(node: TreeNode) {

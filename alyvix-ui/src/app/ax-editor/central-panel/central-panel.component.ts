@@ -130,6 +130,7 @@ export class CentralPanelComponent implements OnInit {
 
 
   mapChanged(map:MapRowVM[]) {
+    console.log('mapchanged' + map)
     this.selected.onChangeMap(map);
   }
 

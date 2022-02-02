@@ -52,8 +52,11 @@ export class AxTableComponent implements OnInit {
     private editorService:EditorService,
     ) {}
 
+  name_changed: boolean = false;
+
 
   production: boolean = environment.production;
+  home: string = "http://localhost:4997";
   private _data: RowVM[] = [];
 
   imageUpdate = 0;
@@ -98,7 +101,12 @@ export class AxTableComponent implements OnInit {
   sort: SortDescriptor = {column: 'name', asc: true};
   filteredData: RowVM[];
   selectedRows: RowVM[] = [];
-  resolutions: string[]
+  resolutions: string[];
+
+  objectsRenamed: string[] = [];
+  isRenamingObject: boolean = false;
+  originalName_forRenaming: string;
+  row_name_forRenaming: string;
 
   currentResolution: string = this.global.res_string;
   selectedResolution = this.currentResolution;
@@ -123,7 +131,7 @@ export class AxTableComponent implements OnInit {
   objectKeys = Object.keys;
 
   imageUrl(row:RowVM) {
-    return this._sanitizer.bypassSecurityTrustResourceUrl("/get_screen_for_selector?object_name="+row.name+"&resolution_string="+row.selectedResolution);
+    return this._sanitizer.bypassSecurityTrustResourceUrl(this.home + "/get_screen_for_selector?object_name="+row.name+"&resolution_string="+row.selectedResolution);
   }
 
   imageFor(image:string) {
@@ -193,40 +201,49 @@ export class AxTableComponent implements OnInit {
   }
 
   selectRow(event: MouseEvent, row: RowVM) {
-    if(event.shiftKey) {
-      let leftIndex = -1;
-      let rightIndex = -1;
-      const rowIndex = this.filteredData.indexOf(row);
-      this.filteredData.forEach((fd,i) => {
-        if(this.isSelected(fd) && i < rowIndex ) {
-          leftIndex = i;
+    if(this.isRenamingObject === false){
+      console.log("select row");
+      if(event.shiftKey) {
+        let leftIndex = -1;
+        let rightIndex = -1;
+        const rowIndex = this.filteredData.indexOf(row);
+        this.filteredData.forEach((fd,i) => {
+          if(this.isSelected(fd) && i < rowIndex ) {
+            leftIndex = i;
+          }
+          if(this.isSelected(fd) && i > rowIndex) {
+            rightIndex = i;
+          }
+        });
+        if(leftIndex >= 0) { // found on the right
+          for(let i = leftIndex+1; i <= rowIndex; i++) {
+            this.selectedRows.push(this.filteredData[i]);
+          }
+        } else if(rightIndex > 0) {
+          for(let i = rowIndex; i < rightIndex; i++) {
+            this.selectedRows.push(this.filteredData[i]);
+          }
+        } else {
+          this.selectedRows = [row];
         }
-        if(this.isSelected(fd) && i > rowIndex) {
-          rightIndex = i;
-        }
-      });
-      if(leftIndex >= 0) { // found on the right
-        for(let i = leftIndex+1; i <= rowIndex; i++) {
-          this.selectedRows.push(this.filteredData[i]);
-        }
-      } else if(rightIndex > 0) {
-        for(let i = rowIndex; i < rightIndex; i++) {
-          this.selectedRows.push(this.filteredData[i]);
+      } else if (event.ctrlKey) {
+        if (this.isSelected(row)) {
+          this.selectedRows = this.selectedRows.filter(r => r.id !== row.id);
+        } else {
+          this.selectedRows.push(row);
         }
       } else {
         this.selectedRows = [row];
       }
-    } else if (event.ctrlKey) {
-      if (this.isSelected(row)) {
-        this.selectedRows = this.selectedRows.filter(r => r.id !== row.id);
-      } else {
-        this.selectedRows.push(row);
-      }
-    } else {
-      this.selectedRows = [row];
+      this.datastore.setSelected(this.selectedRows);
+      /*this.datastore.save2(this.data).subscribe(x => {
+        console.log(x);
+        this.datastore.changedSelection.emit(this.selectedRows);
+      });*/
+      this.datastore.changedSelection.emit(this.selectedRows);
+      console.log("row selected");
     }
-    this.datastore.setSelected(this.selectedRows);
-    this.datastore.changedSelection.emit(this.selectedRows);
+    
   }
 
   selectAll() {
@@ -368,7 +385,7 @@ export class AxTableComponent implements OnInit {
   private originalName = "";
 
   saveOriginalName(row:RowVM) {
-    this.originalName = row.name;
+    if(this.isRenamingObject === false) this.originalName = row.name;
   }
 
   nameKeyup(event: KeyboardEvent, row:RowVM) {
@@ -378,54 +395,91 @@ export class AxTableComponent implements OnInit {
   }
 
   confirmName(row:RowVM, nameInput: HTMLInputElement) {
-    console.log("name focus out")
+    console.log("focus out");
+    //console.log(this._data);
+    //console.log(this.filteredData);
+    console.log(row.name + "-->" + this.originalName);
     nameInput.value = row.name;
+
+    let alreadyRenamed: boolean = false;
 
     if(row.name !== this.originalName) {
 
-      const usages = this.datastore.objectUsage(this.originalName);
+
+      
+      //this sets all product descriptions to a max length of 10 characters
+      this.objectsRenamed.forEach( (element) => {
+        if(element === row.name || element === this.originalName) alreadyRenamed = true;
+      });
+
+      if(alreadyRenamed === false && this.isRenamingObject === false)
+      {
+        this.objectsRenamed = [];
+        this.objectsRenamed.push(row.name);
+
+        
+        this.originalName_forRenaming = this.originalName;
+        this.row_name_forRenaming = row.name;
+
+        this.name_changed = true;
+
+        const usages = this.datastore.objectUsage(this.originalName_forRenaming);
+
+        this.objectsRenamed.push(this.row_name_forRenaming);
 
 
-      if(usages.length > 0) {
-        this.modal.open({
-          title: 'Rename object',
-          body: 'Are you sure you want to rename ' + this.originalName + ' to ' + row.name + '?',
-          list: usages,
-          actions: [
-            {
-              title: 'Rename All',
-              importance: 'btn-primary',
-              callback: () => {
-                this.datastore.refactorObject(this.originalName,row.name)
-                this.api.renameObject(this.originalName,row.name).subscribe( x=> {
-                  this.datastore.changedNameRow.emit(row.name);
-                  this.originalName = row.name;
-                  this.datastore.save().subscribe(() => { });
-                });
+        if(usages.length > 0) {
+          this.isRenamingObject = true;
+
+          this.modal.open({
+            title: 'Rename object',
+            body: 'Are you sure you want to rename ' + this.originalName_forRenaming + ' to ' + this.row_name_forRenaming + '?',
+            list: usages,
+            actions: [
+              {
+                title: 'Rename All',
+                importance: 'btn-primary',
+                callback: () => {
+
+                  this.datastore.refactorObject(this.originalName_forRenaming,this.row_name_forRenaming)
+                  this.api.renameObject(this.originalName_forRenaming,this.row_name_forRenaming).subscribe( x=> {
+                    this.datastore.changedNameRow.emit(this.row_name_forRenaming);
+                    this.originalName = this.row_name_forRenaming;
+                    this.datastore.save().subscribe(() => { this.isRenamingObject = false; });
+
+                  });
+                }
+              },
+              {
+                title: 'Rename',
+                importance: 'btn-danger',
+                callback: () => {
+                  this.api.renameObject(this.originalName_forRenaming,this.row_name_forRenaming).subscribe( x=> {
+                    this.datastore.changedNameRow.emit(this.row_name_forRenaming);
+                    this.originalName = this.row_name_forRenaming;
+                    this.isRenamingObject = false;
+                  });
+                }
               }
-            },
-            {
-              title: 'Rename',
-              importance: 'btn-danger',
-              callback: () => {
-                this.api.renameObject(this.originalName,row.name).subscribe( x=> {
-                  this.datastore.changedNameRow.emit(row.name);
-                  this.originalName = row.name;
-                });
-              }
-            }
-          ],
-          cancel: Modal.cancel(() => {
-            row.name = this.originalName
-            nameInput.value = this.originalName
-          })
-        });
-      } else {
-        this.api.renameObject(this.originalName,row.name).subscribe( x=> {
-          this.datastore.changedNameRow.emit(row.name);
-          this.originalName = row.name;
-        });
+            ],
+            cancel: Modal.cancel(() => {
+              row.name = this.originalName_forRenaming
+              nameInput.value = this.originalName_forRenaming
+              this.isRenamingObject = false;
+            })
+          });
+        } else {
+            this.api.renameObject(this.originalName,row.name).subscribe( x=> {
+            this.datastore.changedNameRow.emit(row.name);
+            this.originalName = row.name;
+            this.name_changed = false;
+          });
+        }
       }
+
+
+      
+      
     }
   }
 
@@ -531,6 +585,7 @@ export class AxTableComponent implements OnInit {
   private updateRow(r:RowVM,d:RowVM) {
     d.object.date_modified = r.object.date_modified
     d.object.components = r.object.components
+    d.object.detection = r.object.detection
     d.object.call = r.object.call
   }
 

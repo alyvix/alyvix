@@ -119,7 +119,7 @@ export class TreeNodeComponent implements OnInit,DoCheck {
     if(this.node.box)
     this.group = this.node.box.group
 
-    console.log(this.node)
+    //console.log(this.node)
 
 	/*var ctx = this.canvas.nativeElement.getContext("2d");
 	var dpi = window.devicePixelRatio || 1;

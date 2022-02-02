@@ -1,1 +1,1 @@
-from ._tesserocr import *
+from .tesserocr import *
