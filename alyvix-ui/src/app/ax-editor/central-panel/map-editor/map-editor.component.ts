@@ -59,7 +59,15 @@ export class MapEditorComponent implements OnInit {
   }
 
   addRow() {
-    this.dataSource.push({id: Utils.uuidv4(), key: "new"});
+
+    const addedKeys = this.dataSource.map(({ key }) => key);
+
+    let i = 1;
+    while (addedKeys.indexOf('key' + i) >= 0) {
+      i++;
+    }
+
+    this.dataSource.push({id: Utils.uuidv4(), key: "key"+i});
     this.displayedColumns = ['key'];
     this.changeDetector.markForCheck();
     this.changeDetector.detectChanges();

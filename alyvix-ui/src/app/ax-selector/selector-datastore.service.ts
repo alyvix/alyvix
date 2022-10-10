@@ -152,8 +152,8 @@ export class SelectorDatastoreService {
   }
 
   setData(data:RowVM[]) {
-    console.log('data')
-    console.log(data)
+    //console.log('data')
+    //console.log(data)
     this.data = data;
   }
 
@@ -176,8 +176,8 @@ export class SelectorDatastoreService {
   objectOrSection(name:string):string {
     if(!name) return null;
 
-    console.log(name)
-    console.log(this.data)
+    //console.log(name)
+    //console.log(this.data)
 
     if(this.data.find(x => x.name === name)) {
       return 'object';
@@ -198,6 +198,7 @@ export class SelectorDatastoreService {
         let obj = {};
         m.forEach(r => {
           obj[r.name] = r.value || r.values;
+          if(obj[r.name] == null) obj[r.name] ='';
         })
         return obj;
   }
@@ -228,6 +229,12 @@ export class SelectorDatastoreService {
 
   save():Observable<RowVM[]> {
     return this.apiService.setLibrary({library: this.prepareModelForSubmission(this.data), close_selector: false}).pipe(map(x => this.data))
+  }
+
+
+  
+  save2(data:RowVM[]):Observable<RowVM[]> {
+    return this.apiService.setLibrary({library: this.prepareModelForSubmission(data), close_selector: false}).pipe(map(x => this.data))
   }
 
 
@@ -429,7 +436,7 @@ export class SelectorDatastoreService {
   }
 
   nameValidation(input:HTMLInputElement, old:string):string {
-      const valid = input.validity.valid && input.value.length > 0;
+      const valid = input.validity.valid && input.value.length > 0 && input.value !== '';
 
       const duplicate = input.value === old ? false : this.nameCheck(input.value);
 
