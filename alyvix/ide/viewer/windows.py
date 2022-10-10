@@ -96,16 +96,21 @@ class ViewerManager(ViewerManagerBase):
 
     def close(self):
 
-        win32gui.PostMessage(self._hwnd_1, win32con.WM_CLOSE, 0, 0)
-
+        try:
+            win32gui.PostMessage(self._hwnd_1, win32con.WM_CLOSE, 0, 0)
+        except:
+            pass
         self._close_from_server = True
 
-        #print("close_from_server")
+        try:
+            #print("close_from_server")
 
-        if self._father == "selector":
-            win32gui.PostMessage(self._hwnd_2, win32con.WM_CLOSE, 0, 0)
-        elif self._father == "ide":
-            win32gui.PostMessage(self._hwnd_3, win32con.WM_CLOSE, 0, 0)
+            if self._father == "selector":
+                win32gui.PostMessage(self._hwnd_2, win32con.WM_CLOSE, 0, 0)
+            elif self._father == "ide":
+                win32gui.PostMessage(self._hwnd_3, win32con.WM_CLOSE, 0, 0)
+        except:
+            pass
 
     def close_with_popup(self):
         MB_TOPMOST = 4096 #0x00040000

@@ -70,7 +70,7 @@ class ArgsManager:
             output_string = output_string.replace(arg_pattern, str_value)
 
         # args_in_string = re.findall("\\{arg[0-9]+\\}", output_string,re.IGNORECASE)
-        extract_args = re.findall(r"(\{[\w]+\.extract\}|{[\w]+\.extract,[^\}]+\})", output_string,
+        extract_args = re.findall(r"(\{[\w\s\-]+\.extract\}|{[\w\s\-]+\.extract,[^\}]+\})", output_string,
                                   re.IGNORECASE | re.UNICODE)
         # re.findall("\\{.*\\.extract\\}", output_string, re.IGNORECASE)
 
@@ -115,7 +115,7 @@ class ArgsManager:
             # self._result.arguments.append(extract_value)
 
         # [ ^\}] all that is not parentesdi graffa
-        text_args = re.findall(r"(\{[\w]+\.text\}|{[\w]+\.text,[^\}]+\})", output_string, re.IGNORECASE | re.UNICODE)
+        text_args = re.findall(r"(\{[\w\s\-]+\.text\}|{[\w\s\-]+\.text,[^\}]+\})", output_string, re.IGNORECASE | re.UNICODE)
 
         # a = output_string[output_string.find("{")+1:output_string.find("}")]
 
@@ -160,7 +160,7 @@ class ArgsManager:
             output_string = output_string.replace(arg_pattern, text_value)
             # self._result.arguments.append(text_value)
 
-        check_args = re.findall(r"(\{[\w]+\.check\}|{[\w]+\.check,[^\}]+\})", output_string,
+        check_args = re.findall(r"(\{[\w\s\-]+\.check\}|{[\w\s\-]+\.check,[^\}]+\})", output_string,
                                 re.IGNORECASE | re.UNICODE)
         # re.findall("\\{.*\\.check\\}", output_string, re.IGNORECASE)
 
@@ -204,7 +204,7 @@ class ArgsManager:
             output_string = output_string.replace(arg_pattern, check_value)
             # self._result.arguments.append(text_value)
 
-        maps_args = re.findall(r"(\{[\w]+\.[\w]+\}|{[\w]+\.[\w]+,[^\}]+\})", output_string,
+        maps_args = re.findall(r"(\{[\w\s\-]+\.[\w\s\-]+\}|{[\w\s\-]+\.[\w\s\-]+,[^\}]+\})", output_string,
                                re.IGNORECASE | re.UNICODE)
         # re.findall("\\{.*\\..*\\}", output_string, re.IGNORECASE)
 

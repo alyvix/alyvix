@@ -357,6 +357,8 @@ def designer_open_file_api():
     else:
         browser_class._browser_1.ExecuteJavascript("setExePath('" + file_path + "','" + caller + "')")
 
+    root.destroy()
+
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route("/selector", methods=['GET', 'POST'])
@@ -592,35 +594,28 @@ def ide_open_file_api():
     global original_library_dict
     global current_filename
 
-    import tempfile, base64, zlib
-
     filename_path = os.path.dirname(current_filename)
 
-    ICON = zlib.decompress(base64.b64decode('eJxjYGAEQgEBBiDJwZDBy'
-                                            'sAgxsDAoAHEQCEGBQaIOAg4sDIgACMUj4JRMApGwQgF/ykEAFXxQRc='))
+    filter = 'Alyvix Library (*.alyvix)\0*.alyvix\0All Files (*.*)\0*.*\0'
+    fname= customfilter= flags=None
+    try:
+        fname, customfilter, flags = win32gui.GetOpenFileNameW(
+            #InitialDir=filename_path,
+            Flags=win32con.OFN_EXPLORER | win32con.OFN_NOCHANGEDIR,
+            File=None,
+            Title='Open File',
+            Filter=filter,
+            FilterIndex=0)
+    except:
+        pass
 
-    _, ICON_PATH = tempfile.mkstemp()
-    with open(ICON_PATH, 'wb') as icon_file:
-        icon_file.write(ICON)
-
-    root = tk.Tk()
-    root.withdraw()
-    #icon = PhotoImage(height=16, width=16)
-    #icon.blank()
-    root.iconbitmap(default=ICON_PATH)
-    #root.call('wm', 'iconphoto', root._w, PhotoImage(r'server\static\img\icons\transparent_ico.gif'))
-    root.call('wm', 'attributes', '.', '-topmost', '1')
-    #root.tk.call('wm', 'iconphoto', root._w, icon)
-    file_path = filedialog.askopenfilename(initialdir=filename_path, filetypes=[("Alyvix Library","*.alyvix"), ("all files", "*.*")])
-    #print(file_path)
-
-    if file_path != "":
+    if fname != None:
         lm = LibraryManager()
-        lm.load_file(file_path)
+        lm.load_file(fname)
         library_dict = lm.get_json()
         original_library_dict = copy.deepcopy(library_dict)
 
-        current_filename = file_path
+        current_filename = fname
 
         filename_path = os.path.dirname(current_filename)
         filename_no_path = os.path.basename(current_filename)
@@ -629,6 +624,8 @@ def ide_open_file_api():
         browser_class.change_title(browser_class._hwnd_3, "Alyvix Editor - " + filename_no_extension)
 
         browser_class._browser_3.Reload()
+
+        root.destroy()
 
         #browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
 
@@ -641,6 +638,7 @@ def ide_save_as_api():
     global library_dict_in_editing
     global current_filename
 
+    """
     import tempfile, base64, zlib
 
     filename_path = os.path.dirname(current_filename)
@@ -663,8 +661,26 @@ def ide_save_as_api():
     filename = filedialog.asksaveasfilename(initialdir=filename_path, title="Select file",
                                                  filetypes=(("Alyvix Library", "*.alyvix"), ("all files", "*.*")), defaultextension='.alyvix')
     #print(filename)
+    """
 
-    if filename != "":
+    filename = None
+    filename_path = os.path.dirname(current_filename)
+    filter = 'Alyvix Library (*.alyvix)\0*.alyvix\0All Files (*.*)\0*.*\0'
+
+    try:
+        filename, customfilter, flags = win32gui.GetSaveFileNameW(
+            # hwndOwner=display.get_wm_info()['window'],
+            #InitialDir=filename_path,
+            Flags=win32con.OFN_EXPLORER | win32con.OFN_NOCHANGEDIR | win32con.OFN_OVERWRITEPROMPT,
+            #File='testcase',
+            DefExt='alyvix',
+            Title='Save As',
+            Filter=filter,
+        )
+    except:
+        pass
+
+    if filename != "" and filename != None:
         with open(filename, 'w') as f:
             json.dump(library_dict, f, indent=4, sort_keys=True, ensure_ascii=False)
 
@@ -688,7 +704,9 @@ def ide_save_as_api():
 
         # browser_class._browser_3.ExecuteJavascript("setFilePath('" + file_path + "')")
 
-    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+        return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+    else:
+        return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
 
 @app.route("/ide_exit_api", methods=['GET', 'POST'])
 def ide_exit_api():
@@ -947,7 +965,6 @@ def ide_run_api_process_old(current_filename, library_dict):
     #sys.exit(sys_exit)
     browser_class._browser_3.ExecuteJavascript("setFilePath('" + "sds" + "')")
 
-
 def ide_run_api_process(selections=None):
     global current_filename
     global library_dict
@@ -955,6 +972,8 @@ def ide_run_api_process(selections=None):
     global alyvix_run_tmp_path
 
     browser_class.minimize(browser_class._hwnd_3)
+
+    #win32gui.ShowWindow(browser_class._hwnd_3, win32con.SW_HIDE)
 
     if loglevel == 0:
         os.dup2(output_pipeline[0], 1)
@@ -1045,17 +1064,21 @@ def ide_run_api_process(selections=None):
 
             for key, value in objects.items():
                 try:
-                    if value["measure"]["series"][0]["timestamp"] != -1 and value["measure"]["series"][0]["exit"]=="fail":
-                        ordered_object.append(value)
+                    for element in value["measure"]["series"]:
+                        try:
+                            if element["timestamp"] != -1 and element["exit"]=="fail":
+                                ordered_object.append(element)
+                        except:
+                            pass
                 except:
                     pass #keyword is not executed, so measure is empty
-            ordered_object = sorted(ordered_object, key=lambda k: k['measure']["series"][0]['timestamp'])
+            ordered_object = sorted(ordered_object, key=lambda k: k['timestamp'])
 
             sm = ScreenManager()
             scaling_factor = sm.get_scaling_factor()
 
             if scaling_factor > 1:
-                np_array = np.frombuffer(base64.b64decode(ordered_object[0]['measure']["series"][0]['annotation']), np.uint8)
+                np_array = np.frombuffer(base64.b64decode(ordered_object[0]['annotation']), np.uint8)
 
                 background_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
@@ -1069,7 +1092,7 @@ def ide_run_api_process(selections=None):
 
                 base64png = base64.b64encode(png_image[1]).decode('ascii')
             else:
-                base64png = ordered_object[0]['measure']["series"][0]['annotation']
+                base64png = ordered_object[0]['annotation']
 
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('<br/>')")
             browser_class._browser_3.ExecuteJavascript("consoleAppendLine ('At the moment of test case failure, the following was displayed on the screen:')")
@@ -1083,8 +1106,6 @@ def ide_run_api_process(selections=None):
         # STOP button already remove it
         shutil.rmtree(alyvix_run_tmp_path)
 
-        # restore if we dont press stop
-        browser_class.restore(browser_class._hwnd_3)
     except:
         pass
 
@@ -1094,8 +1115,20 @@ def ide_run_api_process(selections=None):
         os.dup2(null_fds[0], 1)
         os.dup2(null_fds[1], 2)
 
+    # restore if we dont press stop
+    browser_class.restore(browser_class._hwnd_3)
 
-
+    """
+    win32gui.ShowWindow(browser_class._hwnd_3, win32con.SW_SHOW)
+    shell = win32com.client.Dispatch("WScript.Shell")
+    # And SetAsForegroundWindow becomes
+    shell.SendKeys('%')
+    try:
+        win32gui.SetForegroundWindow(browser_class._hwnd_3)
+    except:
+        pass
+    win32gui.BringWindowToTop(browser_class._hwnd_3)
+    """
 
 @app.route("/ide_run_api", methods=['GET', 'POST'])
 def ide_run_api():
@@ -2436,12 +2469,14 @@ def get_library_api():
     # close from x button if testcase is new
     if browser_class._ask_popup is True:
 
-        if original_library_dict != library_dict:
+        try:
+            if original_library_dict != library_dict:
 
-            browser_class.close_with_popup()
-        else:
-            browser_class.close()
-
+                browser_class.close_with_popup()
+            else:
+                browser_class.close()
+        except:
+            pass
 
     #return jsonify(ret_dict)
     return jsonify(library_dict)
