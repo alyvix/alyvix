@@ -1548,7 +1548,7 @@ class EngineManager(object):
                     "height": self._res_h
                 }
 
-                cur_series["scaling_factor"] = int(self._scaling_factor * 100),
+                cur_series["scaling_factor"] = int(self._scaling_factor * 100)
 
 
                 cur_series["state"] = 2

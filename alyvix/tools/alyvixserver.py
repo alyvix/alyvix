@@ -535,16 +535,14 @@ class AlyvixServerManager:
             perf_dict["transaction_resolution_height"] = object["resolution"]["height"]
             perf_dict["transaction_scaling_factor"] = object["scaling_factor"]
 
+            
             perf_dict["transaction_screenshot"] = None
+            perf_dict["transaction_definition"] = None
 
             try:
                 if object["screenshot"] is not None:
-                    if test_case_common["screenshot_compression"] == "compressed":
-                        jpg_image = cv2.imencode('.jpg', object["screenshot"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
-                        base64png = base64.b64encode(jpg_image[1]).decode('ascii')
-                    else:
-                        png_image = cv2.imencode('.png', object["screenshot"])
-                        base64png = base64.b64encode(png_image[1]).decode('ascii')
+                    png_image = cv2.imencode('.png', object["screenshot"])
+                    base64png = base64.b64encode(png_image[1]).decode('ascii')
                     perf_dict["transaction_screenshot"] = base64png
 
             except:
@@ -554,13 +552,17 @@ class AlyvixServerManager:
 
             try:
                 if object["annotation"] is not None:
-                    if test_case_common["screenshot_compression"] == "compressed":
-                        jpg_image = cv2.imencode('.jpg', object["annotation"], [int(cv2.IMWRITE_JPEG_QUALITY), 30])
-                        base64png = base64.b64encode(jpg_image[1]).decode('ascii')
-                    else:
-                        png_image = cv2.imencode('.png', object["annotation"])
-                        base64png = base64.b64encode(png_image[1]).decode('ascii')
+
+                    base64png = base64.b64encode(object["annotation"]).decode('ascii')
                     perf_dict["transaction_annotation"] = base64png
+            except:
+                pass
+                
+            try:
+                if object["definition"] is not None:
+
+                    base64png = base64.b64encode(object["definition"]).decode('ascii')
+                    perf_dict["transaction_definition"] = base64png
             except:
                 pass
 
