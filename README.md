@@ -1,4 +1,4 @@
-<img src="https://alyvix.com/user/themes/quark/images/Lockup-black_vector.svg" height="100">
+<img src="https://alyvix.com/user/themes/quark/images/alyvix_logo.svg" height="100">
 
 # Visual Monitoring
 
