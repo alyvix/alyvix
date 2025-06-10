@@ -124,7 +124,19 @@ class OutputManager:
 
         return json_object
 
-    def save_screenshots(self, file_path, performances, prefix=None, compression="lossless"):
+    def save_screenshots(self, file_path, performances, prefix=None, compression="lossless",
+                         screen_recording_option="any-output"):
+
+
+
+        if screen_recording_option == "last-broken-output-only":
+            last_bokens = [j for i, j in enumerate(performances) if j['exit'] == 'fail' and j['state'] == 2]
+
+            if len(last_bokens):
+                performances = []
+                performances.append(last_bokens[-1])
+
+
         for perf in performances:
 
             object_name = perf["performance_name"]
