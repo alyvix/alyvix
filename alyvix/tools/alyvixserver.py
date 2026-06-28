@@ -604,6 +604,9 @@ class AlyvixServerManager:
             perf_dict["test_case_arguments"] = test_case_common["test_case_arguments"]
             perf_dict["test_case_exit"] = test_case_common["test_case_exit"]
             perf_dict["test_case_state"] = test_case_common["test_case_state"]
+            
+            perf_dict["user_id"] = test_case_common["user_id"]
+            perf_dict["tenant_id"] = test_case_common["tenant_id"]
 
             performances.append(perf_dict)
 

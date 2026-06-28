@@ -15,7 +15,6 @@ from alyvix.tools.library import LibraryManager
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.nats import NatsManager
 from alyvix.tools.crypto import CryptoManager
-from alyvix.core.utilities.playwright_wrapper import PlaywrightManager
 
 class ResultForOutput():
 
@@ -271,8 +270,7 @@ if filename is None:
 if filename is not None:
     lm = LibraryManager()
 
-    if not filename.endswith(".py"):
-        filename = lm.get_correct_filename(filename)
+    filename = lm.get_correct_filename(filename)
 
     invalid_chars = lm.get_invalid_filename_chars()
 
@@ -301,33 +299,28 @@ if filename is not None:
         print(filename + " does NOT exist")
         sys.exit(2)
 
-    if filename.endswith(".py"):
-        pm = PlaywrightManager()
-        pl_performances = pm.run_script(filename)
+    lm.load_file(filename)
 
-    else:
-        lm.load_file(filename)
+    library_json = lm.get_json()
 
-        library_json = lm.get_json()
+    library_json["maps"] = lm.get_map()
 
-        library_json["maps"] = lm.get_map()
+    library_json["maps"]["cli"] = cli_map
 
-        library_json["maps"]["cli"] = cli_map
+    old_script = copy.deepcopy(lm.get_script())
 
-        old_script = copy.deepcopy(lm.get_script())
+    if len(objects_names) > 0:
+        lib = lm.get_script()
+        lib["case"] = []
+        lib["sections"] = {}
 
-        if len(objects_names) > 0:
-            lib = lm.get_script()
-            lib["case"] = []
-            lib["sections"] = {}
+        for obj in objects_names:
+            lib["case"].append(obj)
 
-            for obj in objects_names:
-                lib["case"].append(obj)
-
-        """
-        if is_foride is True:
-            os.remove(filename)
-        """
+    """
+    if is_foride is True:
+        os.remove(filename)
+    """
 
     timestamp = time.time()
     start_time = timestamp
@@ -370,16 +363,13 @@ if filename is not None:
     w, h = sm.get_resolution()
     scaling_factor = sm.get_scaling_factor()
 
-    if filename.endswith(".py"):
-        performances = pm.get_unique_flattern_performances(pl_performances)
-    else:
 
-        pm = ParserManager(library_json=library_json, chunk= chunk, engine_arguments=engine_arguments,
-                           verbose=verbose, output_mode=output_mode, cipher_key=cipher_key, cipher_iv=cipher_iv)
+    pm = ParserManager(library_json=library_json, chunk= chunk, engine_arguments=engine_arguments,
+                       verbose=verbose, output_mode=output_mode, cipher_key=cipher_key, cipher_iv=cipher_iv)
 
-        pm.execute_script()
+    pm.execute_script()
 
-        performances = pm.get_unique_flattern_performances()
+    performances = pm.get_unique_flattern_performances()
 
     #performances = pm.get_flattern_performances()
 
@@ -412,7 +402,7 @@ if filename is not None:
             performance = round(int(perf["performance_ms"]) / 1000, 3)
             accuracy = round(int(perf["accuracy_ms"]) / 1000, 3)
 
-            if output_mode == "nagios" and (lm.measure_is_enable(perf["object_name"]) is True or filename.endswith(".py")):
+            if output_mode == "nagios" and lm.measure_is_enable(perf["object_name"]) is True:
                 curr_perf_string = perf["performance_name"].replace(" ", "_") + "=" + str(int(perf["performance_ms"] )) + "ms"
                 if warning_s is not None:
                     curr_perf_string += ";" + str(warning_s*1000)
@@ -438,7 +428,7 @@ if filename is not None:
 
         else:
 
-            if (lm.measure_is_enable(perf["object_name"]) is True and lm.break_is_enable(perf["object_name"]) is True)  or filename.endswith(".py"):
+            if lm.measure_is_enable(perf["object_name"]) is True and lm.break_is_enable(perf["object_name"]) is True:
                 if output_mode == "nagios":
                     curr_perf_string = perf["performance_name"].replace(" ", "_") + "=ms"
                 else:
@@ -479,8 +469,7 @@ if filename is not None:
 
     t_end = time.time() - t_start
 
-    if not filename.endswith(".py"):
-        library_json["script"] = old_script
+    library_json["script"] = old_script
 
 
     message_to_print = ""
