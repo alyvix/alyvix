@@ -19,11 +19,12 @@
 # Official website: http://www.alyvix.com/
 
 
-from cefpython3 import cefpython as cef
+from unofficial_cefpython3_for_alyvix import cefpython as cef
 from .base import ViewerManagerBase
 import tempfile
+from packaging.version import Version
 
-import distutils.sysconfig
+import sysconfig
 import math
 import os
 import re
@@ -391,31 +392,31 @@ class ViewerManager(ViewerManagerBase):
             
             if father == "selector":
                 self._browser_1 = self.create_browser(window_info=window_info,
-                               settings={"plugins_disabled":True},
+                               settings={},
                                url=self._base_url + "/static/blank.html")
 
 
                 self._browser_2 = self.create_browser(window_info=window_info_2,
-                                                      settings={"plugins_disabled": True},
+                                                      settings={},
                                                       url=url)
                 #time.sleep(0.5)
                 self.show(self._hwnd_2)
 
             elif father == "ide":
                 self._browser_1 = self.create_browser(window_info=window_info,
-                               settings={"plugins_disabled":True},
+                               settings={},
                                url=self._base_url + "/static/blank.html")
 
 
                 self._browser_3 = self.create_browser(window_info=window_info_3,
-                                                      settings={"plugins_disabled": True},
+                                                      settings={},
                                                       url=url)
 
                 #time.sleep(0.5)
                 self.show(self._hwnd_3)
             else:
                 self._browser_1 = self.create_browser(window_info=window_info,
-                               settings={"plugins_disabled":True},
+                               settings={},
                                url=url)
 
                 #time.sleep(0.5)
@@ -458,13 +459,14 @@ class ViewerManager(ViewerManagerBase):
         #    ver=platform.python_version(), arch=platform.architecture()[0]))
 
         # PyWin32 version
-        python_lib = distutils.sysconfig.get_python_lib(plat_specific=1)
+        #python_lib = distutils.sysconfig.get_python_lib(plat_specific=1)
+        
+        python_lib = sysconfig.get_path("platlib")
         with open(os.path.join(python_lib, "pywin32.version.txt")) as fp:
             pywin32_version = fp.read().strip()
         #print("[pywin32.py] pywin32 {ver}".format(ver=pywin32_version))
-
-        assert cef.__version__ >= "57.0", "CEF Python v57.0+ required to run this"
-
+        assert Version(cef.__version__) >= Version("57.0"), \
+            "CEF Python v57.0+ required to run this"
 
     def create_browser(self, window_info, settings, url):
         assert (cef.IsThread(cef.TID_UI))

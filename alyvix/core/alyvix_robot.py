@@ -15,6 +15,7 @@ from alyvix.tools.library import LibraryManager
 from alyvix.tools.screen import ScreenManager
 from alyvix.tools.nats import NatsManager
 from alyvix.tools.crypto import CryptoManager
+#from alyvix.core.utilities.playwright_wrapper import PlaywrightManager
 
 class ResultForOutput():
 
@@ -270,7 +271,8 @@ if filename is None:
 if filename is not None:
     lm = LibraryManager()
 
-    filename = lm.get_correct_filename(filename)
+    if not filename.endswith(".py"):
+        filename = lm.get_correct_filename(filename)
 
     invalid_chars = lm.get_invalid_filename_chars()
 
@@ -299,28 +301,33 @@ if filename is not None:
         print(filename + " does NOT exist")
         sys.exit(2)
 
-    lm.load_file(filename)
+    if filename.endswith(".py"):
+        #pm = PlaywrightManager()
+        #pl_performances = pm.run_script(filename)
+        pass
+    else:
+        lm.load_file(filename)
 
-    library_json = lm.get_json()
+        library_json = lm.get_json()
 
-    library_json["maps"] = lm.get_map()
+        library_json["maps"] = lm.get_map()
 
-    library_json["maps"]["cli"] = cli_map
+        library_json["maps"]["cli"] = cli_map
 
-    old_script = copy.deepcopy(lm.get_script())
+        old_script = copy.deepcopy(lm.get_script())
 
-    if len(objects_names) > 0:
-        lib = lm.get_script()
-        lib["case"] = []
-        lib["sections"] = {}
+        if len(objects_names) > 0:
+            lib = lm.get_script()
+            lib["case"] = []
+            lib["sections"] = {}
 
-        for obj in objects_names:
-            lib["case"].append(obj)
+            for obj in objects_names:
+                lib["case"].append(obj)
 
-    """
-    if is_foride is True:
-        os.remove(filename)
-    """
+        """
+        if is_foride is True:
+            os.remove(filename)
+        """
 
     timestamp = time.time()
     start_time = timestamp
@@ -364,12 +371,16 @@ if filename is not None:
     scaling_factor = sm.get_scaling_factor()
 
 
-    pm = ParserManager(library_json=library_json, chunk= chunk, engine_arguments=engine_arguments,
-                       verbose=verbose, output_mode=output_mode, cipher_key=cipher_key, cipher_iv=cipher_iv)
+    if filename.endswith(".py"):
+        #performances = pm.get_unique_flattern_performances(pl_performances)
+        pass
+    else:
+        pm = ParserManager(library_json=library_json, chunk= chunk, engine_arguments=engine_arguments,
+                           verbose=verbose, output_mode=output_mode, cipher_key=cipher_key, cipher_iv=cipher_iv)
 
-    pm.execute_script()
+        pm.execute_script()
 
-    performances = pm.get_unique_flattern_performances()
+        performances = pm.get_unique_flattern_performances()
 
     #performances = pm.get_flattern_performances()
 

@@ -174,6 +174,7 @@ export class AxTableComponent implements OnInit {
 
   delay:number = 0;
   newObject() {
+    this.editing = null; // avoid replacing an existing row when the new object reload arrives
     this.save(false).subscribe(x => {
         this.api.newObject(this.delay).subscribe(x => {
 

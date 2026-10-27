@@ -1,5 +1,3 @@
-<img src="https://alyvix.com/user/themes/quark/images/alyvix_logo.svg" height="100">
-
 # Visual Monitoring
 
 This is the official GitHub repository of Alyvix.

@@ -26,7 +26,7 @@ import re
 import difflib
 import datetime
 import base64
-import alyvix.core.tesserocr as tesserocr
+import unofficial_tesserocr_for_alyvix as tesserocr
 from PIL import Image
 from alyvix.core.utilities.args import ArgsManager
 from alyvix.tools.screen import ScreenManager
@@ -175,7 +175,7 @@ class TextManager():
         regexp = "("
 
         for month in self._dict_month:
-            regexp += month.replace(".", "\.") + "|"
+            regexp += month.replace(".", r"\.") + "|"
 
         regexp = regexp[:-1]
         regexp += ")"
@@ -455,7 +455,7 @@ class TextManager():
 
                     if s_text.scraped_text != "":
 
-                        """
+                        r"""
                         scraped_text_one_space = re.sub(r'\s+', ' ', s_text.scraped_text.lower()).strip()
 
                         result = re.search(r'-\d+', scraped_text_one_space)
