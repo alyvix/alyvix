@@ -123,7 +123,7 @@ if __name__ == '__main__':
         print("Invalid file name (" + filename_no_extension + "), the following characters are not valid: " +
               invalid_char_str)
         """
-        print("A file name can't contain any of the following characters: \ / : * ? \" > < |")
+        print("A file name can't contain any of the following characters: \\ / : * ? \" > < |")
         sys.exit(2)
 
     if os.path.isfile(filename) is True:

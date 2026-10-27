@@ -178,7 +178,7 @@ class EngineManager(object):
         self._result.detection_type = self._detection["type"]
         self._result.has_to_break = self._detection["break"]
 
-        np_screen_array = np.fromstring(base64.b64decode(self._object_definition["screen"]), np.uint8)
+        np_screen_array = np.frombuffer(base64.b64decode(self._object_definition["screen"]), dtype=np.uint8)
 
         self._screen = cv2.imdecode(np_screen_array, cv2.IMREAD_COLOR)
 

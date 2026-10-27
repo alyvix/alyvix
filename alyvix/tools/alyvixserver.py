@@ -30,9 +30,6 @@ import time
 from socket import gethostname
 import requests
 
-from pynats import NATSClient
-from pynats.exceptions import NATSReadSocketError
-
 import math
 from sys import platform as _platform
 
@@ -608,9 +605,11 @@ class AlyvixServerManager:
             perf_dict["user_id"] = test_case_common["user_id"]
             perf_dict["tenant_id"] = test_case_common["tenant_id"]
 
+
             performances.append(perf_dict)
 
         output_json["performances"] = performances
+        output_json["test_case_start_ns"] = test_case_common["test_case_start_ns"]
 
 
         try:

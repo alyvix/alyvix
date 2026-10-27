@@ -36,7 +36,7 @@ import mimetypes
 from threading import Thread
 from hashlib import sha1
 #import requests, zipfile, io
-from flask import Flask, request, redirect, make_response, render_template, current_app, Markup, g, send_file
+from flask import Flask, request, redirect, make_response, render_template, current_app, g, send_file
 from alyvix.ide.server import app
 from alyvix.ide.server.lang import en
 #from alyvix.ide.server.utilities.alyvixfile import AlyvixFileManager
@@ -1833,6 +1833,24 @@ def save_json():
 
     if request.method == 'POST':
 
+        # Parse and validate the request body BEFORE capturing a reference to the
+        # global library_dict. Reading request.data performs a socket read that,
+        # under gevent, yields to other greenlets: if a concurrent set_library_api
+        # reassigned library_dict in that window, current_json would point to an
+        # orphaned dict and the object just drawn would be silently lost.
+        # Parsing first keeps the capture-and-mutate of library_dict atomic (no
+        # yield points between them).
+        json_data = json.loads(request.data)
+        object_name = json_data['object_name']
+
+        object_name = object_name.lstrip()
+        object_name = object_name.rstrip()
+
+        invalid_chars = re.findall("[^a-zA-Z0-9_\- ]+", object_name)
+
+        if len(invalid_chars) > 0:
+            return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
+
         current_json = {}
 
         if browser_class._hwnd_2 is None and browser_class._hwnd_3 is None:
@@ -1849,17 +1867,6 @@ def save_json():
             original_object_dict = copy.deepcopy(current_json["objects"][current_objectname])
         except:
             original_object_dict = {}
-
-        json_data = json.loads(request.data)
-        object_name = json_data['object_name']
-
-        object_name = object_name.lstrip()
-        object_name = object_name.rstrip()
-
-        invalid_chars = re.findall("[^a-zA-Z0-9_\- ]+", object_name)
-
-        if len(invalid_chars) > 0:
-            return json.dumps({'success': False}), 500, {'ContentType': 'application/json'}
 
         detection = json_data['detection']
 

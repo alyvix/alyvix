@@ -21,7 +21,7 @@
 import os
 from os.path import expanduser
 import xml.dom.minidom as minidom
-from distutils.sysconfig import get_python_lib
+#import sysconfig
 
 class ConfigReader():
 
@@ -71,7 +71,7 @@ class ConfigReader():
         """
         try:
             #global_config_file_name = os.getenv("ALYVIX_HOME") + os.sep + "config.xml"
-            global_config_file_name = get_python_lib() + os.sep + "alyvix" + os.sep + "config.xml"
+            global_config_file_name = sysconfig.get_python_lib() + os.sep + "alyvix" + os.sep + "config.xml"
             return global_config_file_name
         except:
             return ""
